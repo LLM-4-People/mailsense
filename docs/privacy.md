@@ -61,7 +61,7 @@ jobs, warnings and errors behind a screen. There is no hidden second record.
 
 The data directory is shown in the app's status bar. Delete it to remove the
 store, indexes, settings and logs. On Windows, uninstalling the app keeps the
-data directory; on Linux, removing the binary keeps it too.
+data directory until you delete it.
 
 <!-- footer:start -->
 [Source](https://github.com/LLM-4-People/mailsense) · AGPL-3.0-or-later · [Documentation](https://llm-4-people.github.io/mailsense/) · [Privacy](privacy.md)
