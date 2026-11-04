@@ -71,10 +71,15 @@ jobs:
         # reads dist/VERSION, which scripts/build.sh just wrote, and ships the
         # installer checksum it verifies.
         run: packaging/linux/package.sh
+      # Exactly the release files. dist/VERSION is build metadata that the
+      # publish job must not see as an asset; a wildcard shipped it, and the
+      # asset-set check refused to publish.
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: binaries
-          path: dist/*
+          path: |
+            dist/mailsense
+            dist/mailsense-*-linux-amd64.tar.gz
           if-no-files-found: error
 
   installer:
