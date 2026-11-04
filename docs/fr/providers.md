@@ -7,7 +7,24 @@ lang: fr
 # Fournisseurs
 
 <!-- nav:start -->
-[Documentation](index.md) · [Demander](ask.md) · [Installation](install.md) · [Premier démarrage](first-run.md) · [Console](console.md) · [Boîtes](mailboxes.md) · **Fournisseurs** · [Apprentissage](learning.md) · [FAQ](faq.md) · [Confidentialité](privacy.md) · [Sécurité](security.md) · [Dépannage](troubleshooting.md) · [Contribuer](contributing.md) · <a href="../providers.html" hreflang="en" lang="en" data-lang-switch="en">English</a>
+<div class="doc-index-wrap">
+  <nav class="doc-index" aria-label="Documentation">
+  <a href="index.html">Documentation</a>
+  <a href="ask.html">Demander</a>
+  <a href="install.html">Installation</a>
+  <a href="first-run.html">Premier démarrage</a>
+  <a href="console.html">Console</a>
+  <a href="mailboxes.html">Boîtes</a>
+  <span class="doc-index-current" aria-current="page">Fournisseurs</span>
+  <a href="learning.html">Apprentissage</a>
+  <a href="faq.html">FAQ</a>
+  <a href="privacy.html">Confidentialité</a>
+  <a href="security.html">Sécurité</a>
+  <a href="troubleshooting.html">Dépannage</a>
+  <a href="contributing.html">Contribuer</a>
+  </nav>
+  <span class="doc-index-hint" aria-hidden="true"></span>
+  </div>
 <!-- nav:end -->
 
 
@@ -86,5 +103,5 @@ Rien d'autre n'est envoyé. Voir [confidentialité](privacy.md) pour la liste
 complète des requêtes.
 
 <!-- footer:start -->
-[Code source](https://github.com/LLM-4-People/mailsense) · AGPL-3.0-or-later · [Documentation](https://llm-4-people.github.io/mailsense/fr/) · [Confidentialité](privacy.md)
+<p class="doc-meta"><a href="https://github.com/LLM-4-People/mailsense">Code source</a> · AGPL-3.0-or-later · <a href="https://llm-4-people.github.io/mailsense/fr/">Documentation</a> · <a href="privacy.html">Confidentialité</a></p>
 <!-- footer:end -->

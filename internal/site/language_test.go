@@ -225,31 +225,36 @@ func TestLanguageRedirectIsGuardedAndOneShot(t *testing.T) {
 	}
 }
 
-// TestGeneratedNavMarksTheLanguageSwitch proves every generated navigation,
-// in both trees, carries the marked switch and a working link without
-// JavaScript.
-func TestGeneratedNavMarksTheLanguageSwitch(t *testing.T) {
+// TestGeneratedChromeMarksTheLanguageSwitch proves the one masthead include,
+// which the one layout puts on every page, carries both marked switches and no
+// Markdown destination. The footer repeats the switch in the sitemap.
+func TestGeneratedChromeMarksTheLanguageSwitch(t *testing.T) {
 	value, err := Load(root(t))
 	if err != nil {
 		t.Fatal(err)
 	}
-	files := []string{"docs/index.md", "docs/fr/index.md"}
-	files = append(files, value.ManagedPaths()...)
-	anchor := regexp.MustCompile(`<a href="([^"]+)"[^>]*data-lang-switch="(en|fr)"[^>]*>`)
-	checked := 0
-	for _, name := range files {
-		body := readDoc(t, root(t), name)
-		match := anchor.FindStringSubmatch(body)
-		if match == nil {
-			t.Errorf("%s has no marked language switch", name)
-			continue
+	anchor := regexp.MustCompile(`<a [^>]*href="([^"]+)"[^>]*data-lang-switch="(en|fr)"[^>]*>`)
+	for name, file := range map[string]string{
+		"masthead": string(value.Header()),
+		"footer":   string(value.Footer()),
+	} {
+		seen := map[string]bool{}
+		for _, match := range anchor.FindAllStringSubmatch(file, -1) {
+			seen[match[2]] = true
+			if strings.HasSuffix(match[1], ".md") {
+				t.Errorf("%s switch %s links to a Markdown file: %s", name, match[2], match[1])
+			}
 		}
-		checked++
-		if strings.HasSuffix(match[1], ".md") {
-			t.Errorf("%s links its language switch to a Markdown file: %s", name, match[1])
+		for _, lang := range []string{"en", "fr"} {
+			if !seen[lang] {
+				t.Errorf("%s has no marked %s language switch", name, lang)
+			}
 		}
 	}
-	if checked < len(files) {
-		t.Fatalf("only %d of %d pages carry a marked language switch", checked, len(files))
+	if !strings.Contains(string(value.Layout()), "{%- include header.html -%}") {
+		t.Fatal("the layout does not include the generated masthead")
+	}
+	if !strings.Contains(string(value.Layout()), "{%- include footer.html -%}") {
+		t.Fatal("the layout does not include the generated footer")
 	}
 }

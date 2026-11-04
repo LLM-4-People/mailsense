@@ -6,7 +6,24 @@ title: Privacy
 # Privacy
 
 <!-- nav:start -->
-[Documentation](index.md) · [Ask](ask.md) · [Install](install.md) · [First run](first-run.md) · [Console](console.md) · [Mailboxes](mailboxes.md) · [Providers](providers.md) · [Learning](learning.md) · [FAQ](faq.md) · **Privacy** · [Security](security.md) · [Troubleshooting](troubleshooting.md) · [Contributing](contributing.md) · <a href="fr/privacy.html" hreflang="fr" lang="fr" data-lang-switch="fr">Français</a>
+<div class="doc-index-wrap">
+  <nav class="doc-index" aria-label="Documentation">
+  <a href="index.html">Documentation</a>
+  <a href="ask.html">Ask</a>
+  <a href="install.html">Install</a>
+  <a href="first-run.html">First run</a>
+  <a href="console.html">Console</a>
+  <a href="mailboxes.html">Mailboxes</a>
+  <a href="providers.html">Providers</a>
+  <a href="learning.html">Learning</a>
+  <a href="faq.html">FAQ</a>
+  <span class="doc-index-current" aria-current="page">Privacy</span>
+  <a href="security.html">Security</a>
+  <a href="troubleshooting.html">Troubleshooting</a>
+  <a href="contributing.html">Contributing</a>
+  </nav>
+  <span class="doc-index-hint" aria-hidden="true"></span>
+  </div>
 <!-- nav:end -->
 
 Mailsense is local-first. The live source is the classic Outlook profile already
@@ -64,5 +81,5 @@ store, indexes, settings and logs. On Windows, uninstalling the app keeps the
 data directory until you delete it.
 
 <!-- footer:start -->
-[Source](https://github.com/LLM-4-People/mailsense) · AGPL-3.0-or-later · [Documentation](https://llm-4-people.github.io/mailsense/) · [Privacy](privacy.md)
+<p class="doc-meta"><a href="https://github.com/LLM-4-People/mailsense">Source</a> · AGPL-3.0-or-later · <a href="https://llm-4-people.github.io/mailsense/">Documentation</a> · <a href="privacy.html">Privacy</a></p>
 <!-- footer:end -->

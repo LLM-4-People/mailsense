@@ -28,13 +28,69 @@
       "en": "Windows installer. No account, no telemetry.",
       "fr": "Installateur Windows. Sans compte, sans télémétrie."
     },
-    "figure_alt": {
-      "en": "An invented ranked queue with three rows: verify an invoice, reply to a kickoff, read workshop notes.",
-      "fr": "Une file classée inventée de trois lignes : vérifier une facture, répondre à un lancement, lire des notes d'atelier."
-    },
-    "figure_caption": {
-      "en": "The queue is the second proof. An invented queue, with the action and the reason on every row.",
-      "fr": "La file est la seconde preuve. Une file inventée, avec l'action et la raison sur chaque ligne."
+    "answer": {
+      "label": {
+        "en": "ASK / GROUNDED ANSWER",
+        "fr": "ASK / RÉPONSE ANCRÉE"
+      },
+      "sample": {
+        "en": "Sample answer",
+        "fr": "Exemple de réponse"
+      },
+      "mode": {
+        "en": "Auto",
+        "fr": "Auto"
+      },
+      "question": {
+        "en": "Who is waiting on the Northwind proposal?",
+        "fr": "Qui attend la proposition Northwind ?"
+      },
+      "body": {
+        "en": "Three threads still need you. Atelier Nord is holding the Thursday delivery window until you confirm the signed proposal. Harbor Logistics asked which pickup window works, and Studio Lumen sent an invoice whose payment link points somewhere unexpected. The first two are ordinary replies. The invoice is the one to check before you pay.",
+        "fr": "Trois fils attendent encore votre réponse. Atelier Nord garde la fenêtre de livraison de jeudi jusqu'à ce que vous confirmiez la proposition signée. Harbor Logistics demande quel créneau d'enlèvement convient, et Studio Lumen a envoyé une facture dont le lien de paiement mène ailleurs. Les deux premiers sont des réponses ordinaires. La facture est le message à vérifier avant de payer."
+      },
+      "citations": [
+        {
+          "subject": {
+            "en": "Signed proposal for the Northwind launch",
+            "fr": "Proposition signée pour le lancement Northwind"
+          },
+          "sender": "Atelier Nord",
+          "at": "2026-11-03T07:40:00Z",
+          "date": {
+            "en": "3 Nov 2026",
+            "fr": "3 nov. 2026"
+          }
+        },
+        {
+          "subject": {
+            "en": "Thursday pickup window",
+            "fr": "Créneau d'enlèvement du jeudi"
+          },
+          "sender": "Harbor Logistics",
+          "at": "2026-11-02T16:10:00Z",
+          "date": {
+            "en": "2 Nov 2026",
+            "fr": "2 nov. 2026"
+          }
+        },
+        {
+          "subject": {
+            "en": "Invoice 1042 needs a second look",
+            "fr": "La facture 1042 demande une vérification"
+          },
+          "sender": "Studio Lumen",
+          "at": "2026-11-03T08:20:00Z",
+          "date": {
+            "en": "3 Nov 2026",
+            "fr": "3 nov. 2026"
+          }
+        }
+      ],
+      "caption": {
+        "en": "In the app, every citation opens the message it names.",
+        "fr": "Dans l'application, chaque citation ouvre le message qu'elle nomme."
+      }
     }
   },
   "ask": {
@@ -90,6 +146,70 @@
         }
       }
     ],
+    "modes": {
+      "title": {
+        "en": "Three modes, one rule",
+        "fr": "Trois modes, une règle"
+      },
+      "columns": [
+        {
+          "en": "Mode",
+          "fr": "Mode"
+        },
+        {
+          "en": "What answers",
+          "fr": "Ce qui répond"
+        },
+        {
+          "en": "When a model runs",
+          "fr": "Quand un modèle est appelé"
+        }
+      ],
+      "items": [
+        {
+          "name": {
+            "en": "Auto",
+            "fr": "Auto"
+          },
+          "answers": {
+            "en": "The local index and ranking when the question has an exact answer, otherwise the provider you configured or the matching messages.",
+            "fr": "L'index local et le classement quand la question a une réponse exacte, sinon le fournisseur configuré ou les messages correspondants."
+          },
+          "model": {
+            "en": "Only for a question no exact intent covers.",
+            "fr": "Seulement pour une question qu'aucune intention exacte ne couvre."
+          }
+        },
+        {
+          "name": {
+            "en": "Local",
+            "fr": "Local"
+          },
+          "answers": {
+            "en": "The local index, the ranking and the stored profile.",
+            "fr": "L'index local, le classement et le profil stocké."
+          },
+          "model": {
+            "en": "Never.",
+            "fr": "Jamais."
+          }
+        },
+        {
+          "name": {
+            "en": "Remote",
+            "fr": "Distant"
+          },
+          "answers": {
+            "en": "The provider you configured, grounded in the retrieved messages.",
+            "fr": "Le fournisseur configuré, ancré dans les messages récupérés."
+          },
+          "model": {
+            "en": "For every question with retrieved evidence. Offered only when a provider is usable.",
+            "fr": "Pour chaque question avec des preuves récupérées. Proposé seulement quand un fournisseur est utilisable."
+          }
+        }
+      ]
+    },
     "examples": [
       {
         "question": {
@@ -133,6 +253,14 @@
     "lead": {
       "en": "Captured from the Linux preview with an invented mailbox. No real mail appears here.",
       "fr": "Capturés depuis l'aperçu Linux avec une boîte inventée. Aucun courrier réel n'apparaît ici."
+    },
+    "index_label": {
+      "en": "Screen index",
+      "fr": "Index des écrans"
+    },
+    "index_hint": {
+      "en": "Choose a screen. Use the arrow keys to move between screens.",
+      "fr": "Choisissez un écran. Les flèches permettent de passer d'un écran à l'autre."
     },
     "screenshot_dir": "docs/assets/screenshots",
     "screenshot_width": 1440,
@@ -229,7 +357,15 @@
           "fr": "Le premier lancement écrit le marqueur d'installation, nomme le répertoire de données et demande un fuseau horaire avant de lire le courrier."
         }
       }
-    ]
+    ],
+    "index_hint_touch": {
+      "en": "Choose a screen.",
+      "fr": "Choisissez un écran."
+    },
+    "view_full": {
+      "en": "View full size",
+      "fr": "Voir en plein format"
+    }
   },
   "nav": [
     {
@@ -320,6 +456,104 @@
       }
     }
   ],
+  "sections": [
+    {
+      "key": "ask",
+      "label": {
+        "en": "Ask first",
+        "fr": "Commencez par une question"
+      }
+    },
+    {
+      "key": "queue",
+      "label": {
+        "en": "The queue",
+        "fr": "La file"
+      }
+    },
+    {
+      "key": "screens",
+      "label": {
+        "en": "The screens",
+        "fr": "Les écrans"
+      }
+    },
+    {
+      "key": "boundary",
+      "label": {
+        "en": "What leaves the machine",
+        "fr": "Ce qui quitte la machine"
+      }
+    },
+    {
+      "key": "limits",
+      "label": {
+        "en": "What it cannot do yet",
+        "fr": "Ce qu'il ne fait pas encore"
+      }
+    },
+    {
+      "key": "install",
+      "label": {
+        "en": "Install",
+        "fr": "Installer"
+      }
+    }
+  ],
+  "chrome": {
+    "docs": {
+      "en": "Docs",
+      "fr": "Docs"
+    },
+    "github": {
+      "en": "GitHub",
+      "fr": "GitHub"
+    },
+    "menu": {
+      "en": "Menu",
+      "fr": "Menu"
+    },
+    "skip": {
+      "en": "Skip to content",
+      "fr": "Aller au contenu"
+    },
+    "language": {
+      "en": "Français",
+      "fr": "English"
+    },
+    "primary": {
+      "en": "Primary",
+      "fr": "Navigation principale"
+    },
+    "breadcrumb": {
+      "en": "Breadcrumb",
+      "fr": "Fil d'Ariane"
+    },
+    "footer_product": {
+      "en": "Product",
+      "fr": "Produit"
+    },
+    "footer_docs": {
+      "en": "Documentation",
+      "fr": "Documentation"
+    },
+    "footer_project": {
+      "en": "Project",
+      "fr": "Projet"
+    },
+    "releases": {
+      "en": "Releases",
+      "fr": "Versions"
+    },
+    "on_this_page": {
+      "en": "On this page",
+      "fr": "Sur cette page"
+    },
+    "back_to_top": {
+      "en": "Back to top",
+      "fr": "Haut de page"
+    }
+  },
   "differences": {
     "title": {
       "en": "Three things it does differently",
@@ -372,7 +606,77 @@
           "fr": "Le classifieur local entraîne une tête par question sur vos corrections. Une question n'est certifiée que lorsque la borne inférieure de Wilson de sa précision répondue atteint 0,99 sur une partition mise de côté, avec au moins 200 étiquettes d'entraînement, 50 étiquettes d'évaluation et une couverture de 0,5. En dessous, il s'abstient, et l'écran Apprentissage nomme l'étape qui bloque."
         }
       }
-    ]
+    ],
+    "queue": {
+      "label": {
+        "en": "An invented queue. The score is local policy, not a model call.",
+        "fr": "Une file inventée. Le score suit une règle locale, pas un appel à un modèle."
+      },
+      "columns": [
+        {
+          "en": "Rank",
+          "fr": "Rang"
+        },
+        {
+          "en": "Subject",
+          "fr": "Objet"
+        },
+        {
+          "en": "Sender",
+          "fr": "Expéditeur"
+        },
+        {
+          "en": "Action",
+          "fr": "Action"
+        }
+      ],
+      "items": [
+        {
+          "subject": {
+            "en": "Signed proposal for the Northwind launch",
+            "fr": "Proposition signée pour le lancement Northwind"
+          },
+          "sender": "Atelier Nord",
+          "action": {
+            "en": "Decide",
+            "fr": "Décider"
+          }
+        },
+        {
+          "subject": {
+            "en": "Invoice 1042 needs a second look",
+            "fr": "La facture 1042 demande une vérification"
+          },
+          "sender": "Studio Lumen",
+          "action": {
+            "en": "Verify",
+            "fr": "Vérifier"
+          }
+        },
+        {
+          "subject": {
+            "en": "Thursday pickup window",
+            "fr": "Créneau d'enlèvement du jeudi"
+          },
+          "sender": "Harbor Logistics",
+          "action": {
+            "en": "Reply",
+            "fr": "Répondre"
+          }
+        },
+        {
+          "subject": {
+            "en": "Workshop notes and the two open questions",
+            "fr": "Notes d'atelier et les deux questions ouvertes"
+          },
+          "sender": "Morgan Ellis",
+          "action": {
+            "en": "Read",
+            "fr": "Lire"
+          }
+        }
+      ]
+    }
   },
   "boundary": {
     "title": {
@@ -518,6 +822,28 @@
       "fr": "Installateur Windows"
     },
     "file": "mailsense-<version>-setup.exe",
+    "facts": [
+      {
+        "en": "Installs per user.",
+        "fr": "S'installe par utilisateur."
+      },
+      {
+        "en": "Needs no administrator rights.",
+        "fr": "Ne demande pas de droits administrateur."
+      },
+      {
+        "en": "Keeps the data directory when you uninstall.",
+        "fr": "Conserve le répertoire de données à la désinstallation."
+      }
+    ],
+    "download": {
+      "en": "Download the installer",
+      "fr": "Télécharger l'installateur"
+    },
+    "caveat": {
+      "en": "Mailsense needs the WebView2 runtime, which Windows 11 and current Windows 10 already have. The build is not code-signed, so SmartScreen may ask you to confirm the publisher.",
+      "fr": "Mailsense a besoin du runtime WebView2, déjà présent sous Windows 11 et Windows 10 à jour. La version n'est pas signée, SmartScreen peut donc demander une confirmation."
+    },
     "file_note": {
       "en": "The version comes from the release tag. Download the file from the [releases page]({repository}/releases).",
       "fr": "La version vient de l'étiquette de version. Téléchargez le fichier depuis la [page des versions]({repository}/releases)."
