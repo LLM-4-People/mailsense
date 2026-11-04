@@ -6,7 +6,10 @@ lang: fr
 
 # Dépannage
 
-[English](../troubleshooting.md)
+<!-- nav:start -->
+[Documentation](index.md) · [Installation](install.md) · [Premier démarrage](first-run.md) · [Console](console.md) · [Boîtes](mailboxes.md) · [Fournisseurs](providers.md) · [Apprentissage](learning.md) · [FAQ](faq.md) · [Confidentialité](privacy.md) · [Sécurité](security.md) · **Dépannage** · [Contribuer](contributing.md) · [English](../troubleshooting.md)
+<!-- nav:end -->
+
 
 ## La boîte est vide
 
@@ -66,3 +69,7 @@ La barre d'état affiche le répertoire de données. C'est
 `%LOCALAPPDATA%\Mailsense` sous Windows et
 `${XDG_DATA_HOME:-~/.local/share}/mailsense` sous Linux. Définissez
 `MAILSENSE_DATA_DIR` avant le lancement pour en utiliser un autre.
+
+<!-- footer:start -->
+[Code source](https://github.com/LLM-4-People/mailsense) · AGPL-3.0-or-later · [Documentation](https://llm-4-people.github.io/mailsense/fr/) · [Confidentialité](privacy.md)
+<!-- footer:end -->

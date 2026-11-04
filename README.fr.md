@@ -2,69 +2,109 @@
 
 # Mailsense
 
-**Votre boîte mail, triée. Chaque décision expliquée. Votre courrier reste sur
-votre machine ; l'analyse locale s'y exécute ; un modèle distant n'est utilisé
-que si vous en configurez un.**
+**Mailsense transforme votre boîte Outlook en une liste classée de ce qui vous
+attend, avec la raison sur chaque ligne.**
 
-Mailsense lit le courrier déjà présent dans votre profil Outlook classique sous
-Windows, indique ce que chaque message est, ce qu'il demande, et ce qui mérite
-votre attention en premier. Il montre la raison de chaque verdict, apprend de
-vos corrections et conserve tout le dossier dans une base locale que vous pouvez
-inspecter. La version Linux est un aperçu sans source de courrier en direct.
+Il lit le profil Outlook classique déjà ouvert sur votre PC. Le stockage, le
+classifieur et le profil appris restent sur votre disque. Un modèle distant ne
+s'exécute que si vous en ajoutez un.
 
-![Mailsense](docs/assets/banner-fr.svg)
+![Mailsense: Votre boîte, classée. Chaque ligne s'explique.](docs/assets/banner-fr.svg)
 
-[English](README.md) · [Documentation](docs/fr/index.md) · [Installation](docs/fr/install.md) · [Premier démarrage](docs/fr/first-run.md) · [Console](docs/fr/console.md) · [Boîtes](docs/fr/mailboxes.md) · [Fournisseurs](docs/fr/providers.md) · [Apprentissage](docs/fr/learning.md) · [FAQ](docs/fr/faq.md) · [Confidentialité](docs/fr/privacy.md) · [Sécurité](docs/fr/security.md) · [Dépannage](docs/fr/troubleshooting.md) · [Contribuer](docs/fr/contributing.md)
+[English](README.md) · [Documentation](docs/fr/index.md) · [Installation](docs/fr/install.md) · [Premier démarrage](docs/fr/first-run.md) · [Console](docs/fr/console.md) · [Boîtes](docs/fr/mailboxes.md) · [Fournisseurs](docs/fr/providers.md) · [Apprentissage](docs/fr/learning.md) · [FAQ](docs/fr/faq.md) · [Confidentialité](docs/fr/privacy.md) · [Sécurité](docs/fr/security.md) · [Dépannage](docs/fr/troubleshooting.md) · [Contribuer](docs/fr/contributing.md) · [Site de documentation](https://llm-4-people.github.io/mailsense/fr/)
 
-## Ce qu'il fait
+## Trois choses qu'il fait autrement
 
-- **Un tri que vous pouvez vérifier.** Catégorie, sujet, demande, obligation de
-  réponse, urgence, échéance, sentiment, suspicion d'hameçonnage, et la preuve
-  de chacun.
-- **Une boîte classée.** Répondre, décider, payer, planifier ou lire, dans
-  l'ordre de ce que le message exige vraiment, avec la raison sur la ligne.
-- **Une boîte qui s'améliore.** Vos corrections deviennent des exemples ; votre
-  façon de répondre devient un priori.
-- **La vérité des fils.** Qui a parlé en dernier, si vous devez une réponse, et
-  quel fil reste ouvert.
-- **Entreprises et personnes.** Les contacts déclarés fusionnés avec ce que le
-  courrier a observé.
-- **Des questions en langage courant.** Comptages et listes structurés d'abord ;
-  un résumé rédigé par un modèle seulement si vous en avez configuré un,
-  toujours avec des citations.
-- **Local par défaut.** SQLite sur disque, embeddings locaux téléchargés une
-  fois, plafonds CPU, mémoire et disque configurables, et travail de fond mis en
-  pause au plafond au lieu de lutter contre la machine.
+- **Chaque étiquette nomme sa source.** Une décision est stockée comme des
+  réponses à des questions nommées, avec la confiance de chaque réponse quand ce
+  type de question en porte une et les éléments de preuve qui la soutiennent. Le
+  détail du message montre les champs lus par le modèle. Quand un index est
+  partiel, l'écran nomme la partie manquante.
+- **La file est ordonnée par une règle locale fixe.** Un moteur Go local ordonne
+  chaque message à partir des signaux stockés : un message suspect ajoute 100,
+  une décision 45, une réponse 30, les niveaux d'urgence et d'échéance ajoutent
+  des poids fixes, et la date de réception ajoute au plus 12. Un score de 20
+  suffit pour entrer, et un signal de suspicion, de décision, de réponse,
+  d'urgence ou d'échéance entre toujours. Le courrier automatisé de masse
+  n'entre jamais, quelle que soit l'urgence de son texte.
+- **Il s'abstient tant que vos propres étiquettes ne l'ont pas certifié.** Le
+  classifieur local entraîne une tête par question sur vos corrections. Une
+  question n'est certifiée que lorsque la borne inférieure de Wilson de sa
+  précision répondue atteint 0,99 sur une partition mise de côté, avec au moins
+  200 étiquettes d'entraînement, 50 étiquettes d'évaluation et une couverture de
+  0,5. En dessous, il s'abstient, et l'écran Apprentissage nomme l'étape qui
+  bloque.
 
-## Pourquoi c'est différent
+## Ce qui quitte la machine
 
-La plupart des assistants cachent le raisonnement. Mailsense traite chaque
-étiquette comme une affirmation avec une source : le profil qui l'a produite,
-les champs lus, et la confiance associée. Quand l'indexation n'est pas terminée,
-il le dit au lieu de faire croire que la réponse est complète.
+Mailsense fait quatre types de requêtes réseau. Chacune a une raison visible.
 
-## Ce qui s'exécute où
+**Sortent, uniquement à l'exécution**
 
-| Partie | Défaut | Option |
-| --- | --- | --- |
-| Source de courrier en direct | Outlook classique sous Windows | Aucune sous Linux pour l'instant |
-| Stockage et index du courrier | SQLite local | Un répertoire de données choisi |
-| Embeddings sémantiques | Téléchargé au premier usage (environ 342 Mo sous Windows, 328 Mo sous Linux) | Un fournisseur d'embeddings distant configuré |
-| Classification des messages | Classifieur Go local ; le triage exige un décideur | Le décideur choisi, y compris un point d'accès local compatible OpenAI |
-| Réponses rédigées | Désactivées par défaut | Le fournisseur de rédaction choisi |
+- Le moteur local et le modèle de plongements épinglés, téléchargés une fois et
+  vérifiés par SHA-256 avant usage.
+- Une requête vers un fournisseur distant que vous avez configuré, y compris le
+  triage automatique après une synchronisation. Elle porte les champs du message
+  dont cet appel a besoin.
+- Une liste de modèles d'un fournisseur quand vous cliquez sur Récupérer les
+  modèles.
+- Une petite requête de test quand vous cliquez sur Tester. Un test est
+  facturable et n'est pas couvert par un budget.
 
-Mailsense lit le profil Outlook classique déjà ouvert sous Windows ; il ne
-demande pas d'identifiants Microsoft. Un fournisseur distant ne reçoit que les
-champs nécessaires à une requête, et seulement quand elle s'exécute. Voir
+**Ne sortent jamais**
+
+- Le stockage du courrier, les pièces jointes, les index et le profil appris. Ce
+  sont des fichiers SQLite dans le répertoire de données que vous avez choisi.
+- Le code de classification, de preuve et de classement. Il s'exécute en Go
+  local, pas comme un appel à un service.
+- Aucune télémétrie, aucune analyse, aucun appel de mise à jour et aucun compte
+  chez un fournisseur.
+
+Mailsense lit le profil Outlook classique déjà ouvert sous Windows. Il ne
+demande pas d'identifiants Microsoft. Les conditions d'un fournisseur distant
+régissent ce qu'il fait d'une requête que vous lui envoyez. Voir
 [confidentialité](docs/fr/privacy.md).
 
-## Démarrer
+## Ce qu'il ne fait pas encore
 
-1. [Installer Mailsense](docs/fr/install.md) sous Windows. La version Linux est
-   un aperçu sans source de courrier en direct.
-2. Suivre le [premier démarrage](docs/fr/first-run.md) : un parcours simple, et
-   un parcours avancé pour les fournisseurs, le stockage et les ressources.
-3. Lire le [modèle de confidentialité](docs/fr/privacy.md) en une page.
+- **Seul Outlook classique sous Windows est une source en direct.** Il lit le
+  profil par COM. Le nouvel Outlook, Outlook sur le web, IMAP, POP, l'API Gmail,
+  Microsoft Graph et l'import de fichiers ne sont pas connectés dans cette
+  version.
+- **La version Linux est un aperçu.** Elle s'ouvre, affiche tous les écrans et
+  explique la source manquante. La boîte reste vide parce qu'il n'y a pas encore
+  de connecteur en direct.
+- **Il lit et classe. Il n'agit pas sur la boîte.** Aucun envoi, aucune
+  suppression, aucun déplacement et aucun changement d'état de lecture. Le
+  connecteur est en lecture seule.
+- **Le triage a besoin d'un décideur.** Sans lui, le triage répond 422
+  provider_not_configured. La recherche et le classifieur local fonctionnent
+  toujours.
+- **La base n'est pas chiffrée par l'application.** Le compte du système
+  d'exploitation et le chiffrement du disque sont la protection. Les clés de
+  fournisseur sous Windows utilisent DPAPI.
+- **Il n'y a pas de console SQL ni de paquet de diagnostic.** Les journaux sont
+  locaux et lisibles dans l'écran Journaux. Ils masquent les secrets.
+
+## Installer
+
+**Windows.** Téléchargez l'installateur par utilisateur depuis la
+[page des versions](https://github.com/LLM-4-People/mailsense/releases). Il a
+besoin du runtime Microsoft Edge WebView2, déjà présent sous Windows 11 et
+Windows 10 à jour. La version n'est pas signée, Windows peut donc demander une
+confirmation.
+
+**Linux.** Téléchargez l'archive amd64, décompressez-la et lancez install.sh
+pour une entrée de menu, ou lancez directement le binaire.
+
+```bash
+tar -xzf mailsense-*-linux-amd64.tar.gz && cd mailsense-*-linux-amd64 && ./install.sh
+```
+
+Une commande pour l'aperçu Linux, depuis le répertoire qui contient l'archive
+téléchargée.
+
+[Lire le guide du premier démarrage](docs/fr/first-run.md)
 
 ## État
 
@@ -95,3 +135,5 @@ modifier et le partager. Si vous exploitez une version modifiée comme service
 réseau, l'AGPL exige d'offrir le code source correspondant aux personnes qui
 l'utilisent. Le texte complet est dans `LICENSE`, les mentions de copyright et
 de tiers dans `NOTICE`.
+
+[Documentation](https://llm-4-people.github.io/mailsense/fr/)

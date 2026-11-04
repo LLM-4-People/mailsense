@@ -6,7 +6,10 @@ lang: fr
 
 # Sécurité
 
-[English](../security.md)
+<!-- nav:start -->
+[Documentation](index.md) · [Installation](install.md) · [Premier démarrage](first-run.md) · [Console](console.md) · [Boîtes](mailboxes.md) · [Fournisseurs](providers.md) · [Apprentissage](learning.md) · [FAQ](faq.md) · [Confidentialité](privacy.md) · **Sécurité** · [Dépannage](troubleshooting.md) · [Contribuer](contributing.md) · [English](../security.md)
+<!-- nav:end -->
+
 
 Mailsense est une application de bureau locale. Elle lit un profil de courrier
 sur la même machine, sert sa propre interface sur la boucle locale et garde ses
@@ -82,3 +85,7 @@ privé.
 Les versions prises en charge sont la dernière version publiée et la branche
 `main` actuelle. N'incluez pas de courrier réel, de clé de fournisseur ni de
 donnée personnelle dans un signalement.
+
+<!-- footer:start -->
+[Code source](https://github.com/LLM-4-People/mailsense) · AGPL-3.0-or-later · [Documentation](https://llm-4-people.github.io/mailsense/fr/) · [Confidentialité](privacy.md)
+<!-- footer:end -->

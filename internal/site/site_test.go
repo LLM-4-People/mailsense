@@ -3,6 +3,7 @@ package site
 import (
 	"bytes"
 	"encoding/xml"
+	"html"
 	"io"
 	"os"
 	"path/filepath"
@@ -64,30 +65,37 @@ func TestBothLanguagesCarryEverySection(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, lang := range []string{"en", "fr"} {
-		landing := string(value.Landing(lang))
+		landing := html.UnescapeString(string(value.Landing(lang)))
 		for _, want := range []string{
-			value.Features.Title.For(lang),
-			value.Difference.Title.For(lang),
-			value.Runs.Title.For(lang),
-			value.Start.Title.For(lang),
+			value.Differences.Title.For(lang),
+			value.Boundary.Title.For(lang),
+			value.Limits.Title.For(lang),
+			value.Install.Title.For(lang),
 			value.Status.Title.For(lang),
 		} {
 			if !strings.Contains(landing, want) {
 				t.Errorf("landing %s is missing %q", lang, want)
 			}
 		}
-		if strings.Contains(landing, "{install}") || strings.Contains(landing, "{privacy}") {
-			t.Errorf("landing %s keeps an unresolved placeholder", lang)
+		for _, want := range []string{"{install}", "{privacy}", "{repository}", "{license}"} {
+			if strings.Contains(landing, want) {
+				t.Errorf("landing %s keeps the placeholder %s", lang, want)
+			}
 		}
 		readme := string(value.Readme(lang))
 		for _, want := range []string{
 			value.Build.Title.For(lang),
 			value.License.Title.For(lang),
-			"AGPL-3.0-or-later",
+			LicenseID,
+			value.Install.Command,
+			value.DocsSite,
 		} {
 			if !strings.Contains(readme, want) {
 				t.Errorf("readme %s is missing %q", lang, want)
 			}
+		}
+		if !strings.Contains(readme, value.readmeLinks(lang)["first_run"]) {
+			t.Errorf("readme %s does not link to the first-run guide", lang)
 		}
 	}
 }
@@ -101,7 +109,12 @@ func TestAssetsAreValidSVG(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, name := range []string{"docs/assets/mark.svg", "docs/assets/logo.svg", "docs/assets/banner-en.svg", "docs/assets/banner-fr.svg"} {
+	checked := 0
+	for _, name := range GeneratedPaths() {
+		if !strings.HasSuffix(name, ".svg") {
+			continue
+		}
+		checked++
 		body, ok := generated[name]
 		if !ok {
 			t.Errorf("%s is not generated", name)
@@ -134,12 +147,16 @@ func TestAssetsAreValidSVG(t *testing.T) {
 			t.Errorf("%s lacks an svg root, title, or desc", name)
 		}
 	}
+	if checked == 0 {
+		t.Fatal("no generated SVG assets were checked")
+	}
 }
 
 // TestWriteAndCheckAgree proves the check mode sees exactly what the write
 // mode would produce, in a temporary root.
-// seedAuthored copies the table's authored pages into a temporary root so the
-// write and check modes can be exercised without a full checkout.
+// seedAuthored copies the table's authored pages and the runtime catalog into
+// a temporary root so the write and check modes can be exercised without a
+// full checkout.
 func seedAuthored(t *testing.T, sourceRoot, dir string) {
 	t.Helper()
 	value, err := Load(sourceRoot)
@@ -160,6 +177,17 @@ func seedAuthored(t *testing.T, sourceRoot, dir string) {
 				t.Fatal(err)
 			}
 		}
+	}
+	catalog, err := os.ReadFile(filepath.Join(sourceRoot, filepath.FromSlash(CatalogPath)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	target := filepath.Join(dir, filepath.FromSlash(CatalogPath))
+	if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(target, catalog, 0o644); err != nil {
+		t.Fatal(err)
 	}
 }
 

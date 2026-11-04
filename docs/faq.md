@@ -5,6 +5,10 @@ title: FAQ
 
 # FAQ
 
+<!-- nav:start -->
+[Documentation](index.md) · [Install](install.md) · [First run](first-run.md) · [Console](console.md) · [Mailboxes](mailboxes.md) · [Providers](providers.md) · [Learning](learning.md) · **FAQ** · [Privacy](privacy.md) · [Security](security.md) · [Troubleshooting](troubleshooting.md) · [Contributing](contributing.md) · [Français](fr/faq.md)
+<!-- nav:end -->
+
 ## Does Mailsense send my mail to a cloud service?
 
 Not by default. The live source is the classic Outlook profile on this Windows
@@ -71,3 +75,7 @@ tests, model lists and remote provider calls need a network.
 The source is published under AGPL-3.0-or-later. This repository has no account,
 no paid tier and no vendor backend. A remote provider you configure bills you
 under its own terms.
+
+<!-- footer:start -->
+[Source](https://github.com/LLM-4-People/mailsense) · AGPL-3.0-or-later · [Documentation](https://llm-4-people.github.io/mailsense/) · [Privacy](privacy.md)
+<!-- footer:end -->

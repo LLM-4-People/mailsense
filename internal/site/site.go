@@ -1,9 +1,10 @@
 // Package site owns the public site's single data source and its renderer.
 //
 // docs/site.json holds the product facts and both languages. This package
-// renders the English and French landing pages, the two READMEs, and the brand
-// SVG assets from that one source, so a claim, a feature, or a colour cannot
-// drift between them. cmd/gensite writes the files and checks for drift.
+// renders the English and French landing pages, the two READMEs, the brand SVG
+// assets, the stylesheet and the Jekyll configuration from that one source, so
+// a claim, a feature, a colour or a page list cannot drift between them.
+// cmd/gensite writes the files and checks for drift.
 package site
 
 import (
@@ -15,11 +16,19 @@ import (
 	"path"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strings"
 )
 
 // SourcePath is the one data source, relative to the repository root.
 const SourcePath = "docs/site.json"
+
+// CatalogPath is the one owner of the local runtime and model sizes.
+const CatalogPath = "internal/sidecar/runtimes.json"
+
+// LicenseID is the one public license identifier. The truth test ties it to
+// LICENSE, so a generated page cannot claim a license the repository lacks.
+const LicenseID = "AGPL-3.0-or-later"
 
 // Localized is one fact in both shipped languages.
 type Localized struct {
@@ -35,52 +44,78 @@ func (l Localized) For(lang string) string {
 	return l.EN
 }
 
-// Feature is one product capability.
-type Feature struct {
+// Difference is one of the three mechanisms the product claims.
+type Difference struct {
+	Tag   Localized `json:"tag"`
 	Title Localized `json:"title"`
 	Body  Localized `json:"body"`
 }
 
-// Row is one row of the "what runs where" table.
-type Row struct {
-	Cells []Localized `json:"cells"`
+// Limit is one honest current limitation.
+type Limit struct {
+	Title Localized `json:"title"`
+	Body  Localized `json:"body"`
 }
 
 // NavItem is one public destination.
 type NavItem struct {
-	Key   string    `json:"key"`
-	Label Localized `json:"label"`
+	Key     string    `json:"key"`
+	Label   Localized `json:"label"`
+	Primary bool      `json:"primary"`
+}
+
+// Facts are the public numbers derived from their owners, never typed twice.
+type Facts struct {
+	RuntimeWindowsMB int
+	RuntimeLinuxMB   int
 }
 
 // Site is the complete public surface.
 type Site struct {
 	Product    string `json:"product"`
 	Repository string `json:"repository"`
+	DocsSite   string `json:"docs_site"`
+	BaseURL    string `json:"baseurl"`
 	Hero       struct {
-		Title   Localized `json:"title"`
-		Tagline Localized `json:"tagline"`
-		Intro   Localized `json:"intro"`
-		Banner  Localized `json:"banner"`
+		Eyebrow       Localized `json:"eyebrow"`
+		Title         Localized `json:"title"`
+		Promise       Localized `json:"promise"`
+		Lede          Localized `json:"lede"`
+		Banner        Localized `json:"banner"`
+		Note          Localized `json:"note"`
+		FigureAlt     Localized `json:"figure_alt"`
+		FigureCaption Localized `json:"figure_caption"`
 	} `json:"hero"`
-	Nav      []NavItem `json:"nav"`
-	Features struct {
+	Nav         []NavItem `json:"nav"`
+	Differences struct {
+		Title Localized    `json:"title"`
+		Lead  Localized    `json:"lead"`
+		Items []Difference `json:"items"`
+	} `json:"differences"`
+	Boundary struct {
+		Title       Localized   `json:"title"`
+		Lead        Localized   `json:"lead"`
+		LeavesTitle Localized   `json:"leaves_title"`
+		Leaves      []Localized `json:"leaves"`
+		StaysTitle  Localized   `json:"stays_title"`
+		Stays       []Localized `json:"stays"`
+		Note        Localized   `json:"note"`
+	} `json:"boundary"`
+	Limits struct {
 		Title Localized `json:"title"`
-		Items []Feature `json:"items"`
-	} `json:"features"`
-	Difference struct {
-		Title Localized `json:"title"`
-		Body  Localized `json:"body"`
-	} `json:"difference"`
-	Runs struct {
-		Title   Localized   `json:"title"`
-		Columns []Localized `json:"columns"`
-		Rows    []Row       `json:"rows"`
-		Note    Localized   `json:"note"`
-	} `json:"runs"`
-	Start struct {
-		Title Localized   `json:"title"`
-		Steps []Localized `json:"steps"`
-	} `json:"start"`
+		Lead  Localized `json:"lead"`
+		Items []Limit   `json:"items"`
+	} `json:"limits"`
+	Install struct {
+		Title       Localized `json:"title"`
+		Lead        Localized `json:"lead"`
+		Windows     Localized `json:"windows"`
+		Linux       Localized `json:"linux"`
+		Command     string    `json:"command"`
+		CommandNote Localized `json:"command_note"`
+		FirstRun    Localized `json:"first_run"`
+		Note        Localized `json:"note"`
+	} `json:"install"`
 	Status struct {
 		Title Localized `json:"title"`
 		Body  Localized `json:"body"`
@@ -95,9 +130,13 @@ type Site struct {
 		Title Localized `json:"title"`
 		Body  Localized `json:"body"`
 	} `json:"license"`
+
+	Facts    Facts
+	excluded []string
 }
 
-// Load reads and validates the one source.
+// Load reads and validates the one source, then derives the public facts and
+// the Jekyll exclude list from the repository.
 func Load(root string) (Site, error) {
 	body, err := os.ReadFile(filepath.Join(root, SourcePath))
 	if err != nil {
@@ -107,11 +146,90 @@ func Load(root string) (Site, error) {
 	if err := json.Unmarshal(body, &value); err != nil {
 		return Site{}, fmt.Errorf("parse %s: %w", SourcePath, err)
 	}
+	if value.Facts, err = deriveFacts(root); err != nil {
+		return Site{}, err
+	}
+	value.excluded = excludedDocs(root, value)
 	if err := value.Validate(); err != nil {
 		return Site{}, fmt.Errorf("validate %s: %w", SourcePath, err)
 	}
 	return value, nil
 }
+
+// runtimeCatalog is the part of the pinned catalog the public sizes need.
+type runtimeCatalog struct {
+	Runtimes map[string]struct {
+		Platforms map[string]struct {
+			Variants map[string]struct {
+				Artifacts []struct {
+					Size int64 `json:"size"`
+				} `json:"artifacts"`
+			} `json:"variants"`
+		} `json:"platforms"`
+	} `json:"runtimes"`
+	Models map[string]struct {
+		Size int64 `json:"size"`
+	} `json:"models"`
+	LocalEmbedder struct {
+		Runtime string `json:"runtime"`
+		Model   string `json:"model"`
+	} `json:"local_embedder"`
+}
+
+// deriveFacts reads the pinned runtime catalog and returns the rounded
+// download the public pages state. The rounding rule lives here once.
+func deriveFacts(root string) (Facts, error) {
+	body, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(CatalogPath)))
+	if err != nil {
+		return Facts{}, fmt.Errorf("read %s: %w", CatalogPath, err)
+	}
+	var catalog runtimeCatalog
+	if err := json.Unmarshal(body, &catalog); err != nil {
+		return Facts{}, fmt.Errorf("parse %s: %w", CatalogPath, err)
+	}
+	runtime, ok := catalog.Runtimes[catalog.LocalEmbedder.Runtime]
+	if !ok {
+		return Facts{}, fmt.Errorf("%s has no runtime %q", CatalogPath, catalog.LocalEmbedder.Runtime)
+	}
+	model, ok := catalog.Models[catalog.LocalEmbedder.Model]
+	if !ok {
+		return Facts{}, fmt.Errorf("%s has no model %q", CatalogPath, catalog.LocalEmbedder.Model)
+	}
+	total := func(platform string) (int64, error) {
+		entry, ok := runtime.Platforms[platform]
+		if !ok {
+			return 0, fmt.Errorf("%s has no platform %q", CatalogPath, platform)
+		}
+		names := make([]string, 0, len(entry.Variants))
+		for name := range entry.Variants {
+			names = append(names, name)
+		}
+		if len(names) != 1 {
+			return 0, fmt.Errorf("%s platform %q has %d variants, want one managed variant", CatalogPath, platform, len(names))
+		}
+		variant := entry.Variants[names[0]]
+		var bytes int64
+		for _, artifact := range variant.Artifacts {
+			bytes += artifact.Size
+		}
+		return bytes + model.Size, nil
+	}
+	win, err := total("windows/amd64")
+	if err != nil {
+		return Facts{}, err
+	}
+	linux, err := total("linux/amd64")
+	if err != nil {
+		return Facts{}, err
+	}
+	return Facts{
+		RuntimeWindowsMB: roundMB(win),
+		RuntimeLinuxMB:   roundMB(linux),
+	}, nil
+}
+
+// roundMB is the one public rounding rule for a download size.
+func roundMB(bytes int64) int { return int((bytes + 500_000) / 1_000_000) }
 
 // Validate refuses a source that would render an empty public fact. A missing
 // translation is a defect here, not a blank line on the site.
@@ -131,43 +249,68 @@ func (s Site) Validate() error {
 	if !strings.HasPrefix(s.Repository, "https://") {
 		problems = append(problems, "repository must be an https URL")
 	}
+	if !strings.HasPrefix(s.DocsSite, "https://") {
+		problems = append(problems, "docs_site must be an https URL")
+	}
+	if !strings.HasPrefix(s.BaseURL, "/") {
+		problems = append(problems, "baseurl must start with /")
+	}
+	if s.Facts.RuntimeWindowsMB <= 0 || s.Facts.RuntimeLinuxMB <= 0 {
+		problems = append(problems, "runtime facts are missing")
+	}
+	require("hero.eyebrow", s.Hero.Eyebrow)
 	require("hero.title", s.Hero.Title)
-	require("hero.tagline", s.Hero.Tagline)
-	require("hero.intro", s.Hero.Intro)
+	require("hero.promise", s.Hero.Promise)
+	require("hero.lede", s.Hero.Lede)
 	require("hero.banner", s.Hero.Banner)
-	require("features.title", s.Features.Title)
-	if len(s.Features.Items) == 0 {
-		problems = append(problems, "features.items is empty")
+	require("hero.note", s.Hero.Note)
+	require("hero.figure_alt", s.Hero.FigureAlt)
+	require("hero.figure_caption", s.Hero.FigureCaption)
+	require("differences.title", s.Differences.Title)
+	require("differences.lead", s.Differences.Lead)
+	if len(s.Differences.Items) != 3 {
+		problems = append(problems, fmt.Sprintf("differences.items has %d items, want three", len(s.Differences.Items)))
 	}
-	for index, feature := range s.Features.Items {
-		require(fmt.Sprintf("features.items[%d].title", index), feature.Title)
-		require(fmt.Sprintf("features.items[%d].body", index), feature.Body)
+	for index, item := range s.Differences.Items {
+		require(fmt.Sprintf("differences.items[%d].tag", index), item.Tag)
+		require(fmt.Sprintf("differences.items[%d].title", index), item.Title)
+		require(fmt.Sprintf("differences.items[%d].body", index), item.Body)
 	}
-	require("difference.title", s.Difference.Title)
-	require("difference.body", s.Difference.Body)
-	require("runs.title", s.Runs.Title)
-	require("runs.note", s.Runs.Note)
-	if len(s.Runs.Columns) == 0 {
-		problems = append(problems, "runs.columns is empty")
+	require("boundary.title", s.Boundary.Title)
+	require("boundary.lead", s.Boundary.Lead)
+	require("boundary.leaves_title", s.Boundary.LeavesTitle)
+	require("boundary.stays_title", s.Boundary.StaysTitle)
+	if len(s.Boundary.Leaves) == 0 {
+		problems = append(problems, "boundary.leaves is empty")
 	}
-	for index, column := range s.Runs.Columns {
-		require(fmt.Sprintf("runs.columns[%d]", index), column)
+	for index, item := range s.Boundary.Leaves {
+		require(fmt.Sprintf("boundary.leaves[%d]", index), item)
 	}
-	for index, row := range s.Runs.Rows {
-		if len(row.Cells) != len(s.Runs.Columns) {
-			problems = append(problems, fmt.Sprintf("runs.rows[%d] has %d cells, want %d", index, len(row.Cells), len(s.Runs.Columns)))
-			continue
-		}
-		for cell, value := range row.Cells {
-			require(fmt.Sprintf("runs.rows[%d].cells[%d]", index, cell), value)
-		}
+	if len(s.Boundary.Stays) == 0 {
+		problems = append(problems, "boundary.stays is empty")
 	}
-	require("start.title", s.Start.Title)
-	if len(s.Start.Steps) == 0 {
-		problems = append(problems, "start.steps is empty")
+	for index, item := range s.Boundary.Stays {
+		require(fmt.Sprintf("boundary.stays[%d]", index), item)
 	}
-	for index, step := range s.Start.Steps {
-		require(fmt.Sprintf("start.steps[%d]", index), step)
+	require("boundary.note", s.Boundary.Note)
+	require("limits.title", s.Limits.Title)
+	require("limits.lead", s.Limits.Lead)
+	if len(s.Limits.Items) == 0 {
+		problems = append(problems, "limits.items is empty")
+	}
+	for index, item := range s.Limits.Items {
+		require(fmt.Sprintf("limits.items[%d].title", index), item.Title)
+		require(fmt.Sprintf("limits.items[%d].body", index), item.Body)
+	}
+	require("install.title", s.Install.Title)
+	require("install.lead", s.Install.Lead)
+	require("install.windows", s.Install.Windows)
+	require("install.linux", s.Install.Linux)
+	require("install.command_note", s.Install.CommandNote)
+	require("install.first_run", s.Install.FirstRun)
+	require("install.note", s.Install.Note)
+	if strings.TrimSpace(s.Install.Command) == "" {
+		problems = append(problems, "install.command is empty")
 	}
 	require("status.title", s.Status.Title)
 	require("status.body", s.Status.Body)
@@ -191,25 +334,132 @@ func (s Site) Validate() error {
 		require(fmt.Sprintf("nav[%d].label", index), item.Label)
 	}
 	problems = append(problems, validatePages(s.Pages())...)
-	destinations := s.destinations()
+	facts := s.factMap()
 	placeholders := regexp.MustCompile(`\{([a-z_]+)\}`)
-	checkPlaceholders := func(name, text string) {
+	checkText := func(name, text string) {
 		for _, match := range placeholders.FindAllStringSubmatch(text, -1) {
-			if !destinations[match[1]] {
-				problems = append(problems, fmt.Sprintf("%s: placeholder {%s} has no destination", name, match[1]))
+			if _, ok := facts[match[1]]; !ok {
+				problems = append(problems, fmt.Sprintf("%s: placeholder {%s} has no value", name, match[1]))
 			}
 		}
 	}
-	checkPlaceholders("runs.note.en", s.Runs.Note.EN)
-	checkPlaceholders("runs.note.fr", s.Runs.Note.FR)
-	for index, step := range s.Start.Steps {
-		checkPlaceholders(fmt.Sprintf("start.steps[%d].en", index), step.EN)
-		checkPlaceholders(fmt.Sprintf("start.steps[%d].fr", index), step.FR)
+	for name, text := range s.localizedText() {
+		checkText(name, text)
 	}
+	checkText("install.command", s.Install.Command)
+	checkText("build.commands", s.Build.Commands)
 	if len(problems) > 0 {
 		return errors.New(strings.Join(problems, "; "))
 	}
 	return nil
+}
+
+// localizedText is every public string that can carry a placeholder. It is
+// built here so a new section cannot skip the validator.
+func (s Site) localizedText() map[string]string {
+	out := map[string]string{}
+	add := func(name string, value Localized) {
+		out[name+".en"] = value.EN
+		out[name+".fr"] = value.FR
+	}
+	add("hero.eyebrow", s.Hero.Eyebrow)
+	add("hero.title", s.Hero.Title)
+	add("hero.promise", s.Hero.Promise)
+	add("hero.lede", s.Hero.Lede)
+	add("hero.banner", s.Hero.Banner)
+	add("hero.note", s.Hero.Note)
+	add("hero.figure_alt", s.Hero.FigureAlt)
+	add("hero.figure_caption", s.Hero.FigureCaption)
+	add("differences.title", s.Differences.Title)
+	add("differences.lead", s.Differences.Lead)
+	for index, item := range s.Differences.Items {
+		add(fmt.Sprintf("differences.items[%d].tag", index), item.Tag)
+		add(fmt.Sprintf("differences.items[%d].title", index), item.Title)
+		add(fmt.Sprintf("differences.items[%d].body", index), item.Body)
+	}
+	add("boundary.title", s.Boundary.Title)
+	add("boundary.lead", s.Boundary.Lead)
+	add("boundary.leaves_title", s.Boundary.LeavesTitle)
+	add("boundary.stays_title", s.Boundary.StaysTitle)
+	add("boundary.note", s.Boundary.Note)
+	for index, item := range s.Boundary.Leaves {
+		add(fmt.Sprintf("boundary.leaves[%d]", index), item)
+	}
+	for index, item := range s.Boundary.Stays {
+		add(fmt.Sprintf("boundary.stays[%d]", index), item)
+	}
+	add("limits.title", s.Limits.Title)
+	add("limits.lead", s.Limits.Lead)
+	for index, item := range s.Limits.Items {
+		add(fmt.Sprintf("limits.items[%d].title", index), item.Title)
+		add(fmt.Sprintf("limits.items[%d].body", index), item.Body)
+	}
+	add("install.title", s.Install.Title)
+	add("install.lead", s.Install.Lead)
+	add("install.windows", s.Install.Windows)
+	add("install.linux", s.Install.Linux)
+	add("install.command_note", s.Install.CommandNote)
+	add("install.first_run", s.Install.FirstRun)
+	add("install.note", s.Install.Note)
+	add("status.title", s.Status.Title)
+	add("status.body", s.Status.Body)
+	add("build.title", s.Build.Title)
+	add("build.requirements", s.Build.Requirements)
+	add("build.note", s.Build.Note)
+	add("license.title", s.License.Title)
+	add("license.body", s.License.Body)
+	for index, item := range s.Nav {
+		add(fmt.Sprintf("nav[%d].label", index), item.Label)
+	}
+	return out
+}
+
+// factMap is the one placeholder value table.
+func (s Site) factMap() map[string]string {
+	out := map[string]string{
+		"license":         LicenseID,
+		"repository":      s.Repository,
+		"docs":            s.DocsSite,
+		"runtime_windows": fmt.Sprintf("%d MB", s.Facts.RuntimeWindowsMB),
+		"runtime_linux":   fmt.Sprintf("%d MB", s.Facts.RuntimeLinuxMB),
+	}
+	for _, item := range s.Nav {
+		out[item.Key] = item.Key
+	}
+	return out
+}
+
+// text replaces every {key} placeholder with the documentation destination.
+func (s Site) text(value string, lang string) string {
+	return s.textFor(value, lang, s.docLinks())
+}
+
+// textFor replaces every {key} placeholder with the destination set the caller
+// owns. The README needs repository-root paths, the docs pages need sibling
+// names, and both read the same source text.
+func (s Site) textFor(value string, lang string, links map[string]string) string {
+	replacements := map[string]string{
+		"license":         LicenseID,
+		"repository":      s.Repository,
+		"docs":            s.DocsSite,
+		"runtime_windows": fmt.Sprintf("%d %s", s.Facts.RuntimeWindowsMB, mbLabel(lang)),
+		"runtime_linux":   fmt.Sprintf("%d %s", s.Facts.RuntimeLinuxMB, mbLabel(lang)),
+	}
+	for key, href := range links {
+		replacements[key] = href
+	}
+	pairs := make([]string, 0, len(replacements)*2)
+	for key, value := range replacements {
+		pairs = append(pairs, "{"+key+"}", value)
+	}
+	return strings.NewReplacer(pairs...).Replace(value)
+}
+
+func mbLabel(lang string) string {
+	if lang == "fr" {
+		return "Mo"
+	}
+	return "MB"
 }
 
 // Page is one row of the public page table. The table is the single owner of
@@ -251,7 +501,7 @@ func pageFile(key string) string { return strings.ReplaceAll(key, "_", "-") + ".
 
 // Pages returns the one ordered page table. The two READMEs come first so the
 // generated output order stays stable, then the landing pages, then the nav
-// pages in docs/site.json order, then the brand assets.
+// pages in docs/site.json order, then the generated assets and configuration.
 func (s Site) Pages() []Page {
 	pages := []Page{
 		{Key: "readme", EN: "README.md", FR: "README.fr.md",
@@ -267,13 +517,28 @@ func (s Site) Pages() []Page {
 		})
 	}
 	pages = append(pages,
+		Page{Key: "queue", EN: "docs/assets/queue-en.svg", FR: "docs/assets/queue-fr.svg",
+			Render: func(site Site, lang string) []byte { return site.Queue(lang) }},
 		Page{Key: "mark", EN: "docs/assets/mark.svg", FR: "docs/assets/mark.svg",
 			Render: func(site Site, _ string) []byte { return site.Mark() }},
 		Page{Key: "logo", EN: "docs/assets/logo.svg", FR: "docs/assets/logo.svg",
 			Render: func(site Site, _ string) []byte { return site.Logo() }},
 		Page{Key: "banner", EN: "docs/assets/banner-en.svg", FR: "docs/assets/banner-fr.svg",
 			Render: func(site Site, lang string) []byte { return site.Banner(lang) }},
+		Page{Key: "stylesheet", EN: "docs/assets/main.scss", FR: "docs/assets/main.scss",
+			Render: func(site Site, _ string) []byte { return site.Stylesheet() }},
+		Page{Key: "config", EN: "docs/_config.yml", FR: "docs/_config.yml",
+			Render: func(site Site, _ string) []byte { return site.Config() }},
 	)
+	for index := range pages {
+		if pages[index].Label == (Localized{}) {
+			for _, item := range s.Nav {
+				if item.Key == pages[index].Key {
+					pages[index].Label = item.Label
+				}
+			}
+		}
+	}
 	return pages
 }
 
@@ -331,18 +596,6 @@ func validatePages(pages []Page) []string {
 	return problems
 }
 
-// destinations is the nav key set the placeholder validator uses. It comes from
-// the same table as the links, so a destination cannot be declared twice.
-func (s Site) destinations() map[string]bool {
-	out := map[string]bool{}
-	for _, page := range s.Pages() {
-		if page.Nav {
-			out[page.Key] = true
-		}
-	}
-	return out
-}
-
 // PublicPages is the documentation set shipped with a release, in reading
 // order: the landing page, then every nav page in docs/site.json order.
 func (s Site) PublicPages() []string {
@@ -381,6 +634,20 @@ func GeneratedPaths() []string {
 		if page.FR != "" && page.FR != page.EN {
 			out = append(out, page.FR)
 		}
+	}
+	return out
+}
+
+// ManagedPaths is the authored public pages whose navigation and footer blocks
+// gensite owns. They are Markdown files with authored content around two
+// generated blocks.
+func (s Site) ManagedPaths() []string {
+	var out []string
+	for _, page := range s.Pages() {
+		if page.Render != nil || !page.Public {
+			continue
+		}
+		out = append(out, page.File("en"), page.File("fr"))
 	}
 	return out
 }
@@ -436,7 +703,8 @@ func (s Site) validateFiles(root string) error {
 	return nil
 }
 
-// Write renders every output under root and returns the paths it wrote.
+// Write renders every generated output and updates the managed blocks in the
+// authored pages. It returns the paths it wrote.
 func Write(root string) ([]string, error) {
 	value, err := Load(root)
 	if err != nil {
@@ -455,16 +723,38 @@ func Write(root string) ([]string, error) {
 		if !ok {
 			return written, fmt.Errorf("no renderer for %s", name)
 		}
-		target := filepath.Join(root, filepath.FromSlash(name))
-		if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
-			return written, fmt.Errorf("create %s: %w", filepath.Dir(target), err)
+		if err := writeFile(root, name, body); err != nil {
+			return written, err
 		}
-		if err := os.WriteFile(target, body, 0o644); err != nil {
-			return written, fmt.Errorf("write %s: %w", name, err)
+		written = append(written, name)
+	}
+	for _, name := range value.ManagedPaths() {
+		target := filepath.Join(root, filepath.FromSlash(name))
+		current, err := os.ReadFile(target)
+		if err != nil {
+			return written, fmt.Errorf("read %s: %w", name, err)
+		}
+		body, err := value.applyManaged(name, current)
+		if err != nil {
+			return written, err
+		}
+		if err := writeFile(root, name, body); err != nil {
+			return written, err
 		}
 		written = append(written, name)
 	}
 	return written, nil
+}
+
+func writeFile(root, name string, body []byte) error {
+	target := filepath.Join(root, filepath.FromSlash(name))
+	if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
+		return fmt.Errorf("create %s: %w", filepath.Dir(target), err)
+	}
+	if err := os.WriteFile(target, body, 0o644); err != nil {
+		return fmt.Errorf("write %s: %w", name, err)
+	}
+	return nil
 }
 
 // Check compares every output with the source. It returns the stale paths and
@@ -496,5 +786,52 @@ func Check(root string) ([]string, error) {
 			stale = append(stale, name)
 		}
 	}
+	for _, name := range value.ManagedPaths() {
+		current, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(name)))
+		if err != nil {
+			stale = append(stale, name)
+			continue
+		}
+		body, err := value.applyManaged(name, current)
+		if err != nil {
+			return stale, err
+		}
+		if !bytes.Equal(current, body) {
+			stale = append(stale, name)
+		}
+	}
 	return stale, nil
+}
+
+// excludedDocs derives the Jekyll exclude list from the public page table and
+// the files actually present. A new internal document is excluded without a
+// hand edit, and a generated configuration cannot publish it by accident.
+func excludedDocs(root string, s Site) []string {
+	public := map[string]bool{}
+	for _, page := range s.Pages() {
+		if page.Public {
+			public[page.EN] = true
+			public[page.FR] = true
+		}
+	}
+	out := []string{"site.json"}
+	for _, dir := range []string{"docs", "docs" + string(filepath.Separator) + "fr"} {
+		entries, err := os.ReadDir(filepath.Join(root, dir))
+		if err != nil {
+			continue
+		}
+		relDir := strings.TrimPrefix(filepath.ToSlash(dir), "docs")
+		relDir = strings.TrimPrefix(relDir, "/")
+		for _, entry := range entries {
+			if entry.IsDir() || !strings.HasSuffix(entry.Name(), ".md") {
+				continue
+			}
+			rel := path.Join(relDir, entry.Name())
+			if !public[path.Join("docs", rel)] {
+				out = append(out, rel)
+			}
+		}
+	}
+	sort.Strings(out)
+	return out
 }

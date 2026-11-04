@@ -1,22 +1,40 @@
 {
   "product": "Mailsense",
   "repository": "https://github.com/LLM-4-People/mailsense",
+  "docs_site": "https://llm-4-people.github.io/mailsense/",
+  "baseurl": "/mailsense",
   "hero": {
+    "eyebrow": {
+      "en": "Local mail triage for Windows",
+      "fr": "Tri du courrier local sous Windows"
+    },
     "title": {
       "en": "Mailsense",
       "fr": "Mailsense"
     },
-    "tagline": {
-      "en": "Your mailbox, sorted. Every decision explained. Your mail is stored on your machine; the local analysis runs there; a remote model is used only when you configure one.",
-      "fr": "Votre boîte mail, triée. Chaque décision expliquée. Votre courrier reste sur votre machine ; l'analyse locale s'y exécute ; un modèle distant n'est utilisé que si vous en configurez un."
+    "promise": {
+      "en": "Mailsense turns your Outlook mailbox into a ranked list of what needs you, with the reason on every row.",
+      "fr": "Mailsense transforme votre boîte Outlook en une liste classée de ce qui vous attend, avec la raison sur chaque ligne."
     },
-    "intro": {
-      "en": "Mailsense reads the mail already in your classic Outlook profile on Windows, tells you what each message is, what it asks for, and what deserves your attention first. It shows the reason for every verdict, learns from your corrections, and keeps the whole record in a local database you can inspect. The Linux build is a preview without a live mail source.",
-      "fr": "Mailsense lit le courrier déjà présent dans votre profil Outlook classique sous Windows, indique ce que chaque message est, ce qu'il demande, et ce qui mérite votre attention en premier. Il montre la raison de chaque verdict, apprend de vos corrections et conserve tout le dossier dans une base locale que vous pouvez inspecter. La version Linux est un aperçu sans source de courrier en direct."
+    "lede": {
+      "en": "It reads the classic Outlook profile already open on your PC. The message store, the classifier and the learned profile stay on your disk. A remote model runs only when you add one.",
+      "fr": "Il lit le profil Outlook classique déjà ouvert sur votre PC. Le stockage, le classifieur et le profil appris restent sur votre disque. Un modèle distant ne s'exécute que si vous en ajoutez un."
     },
     "banner": {
-      "en": "Local-first mail triage that explains every decision.",
-      "fr": "Le tri du courrier local qui explique chaque décision."
+      "en": "Your mailbox, ranked. Every row explains itself.",
+      "fr": "Votre boîte, classée. Chaque ligne s'explique."
+    },
+    "note": {
+      "en": "Windows installer, or the Linux preview. No account, no telemetry.",
+      "fr": "Installateur Windows, ou aperçu Linux. Sans compte, sans télémétrie."
+    },
+    "figure_alt": {
+      "en": "An invented ranked queue with three rows: verify an invoice, reply to a kickoff, read workshop notes.",
+      "fr": "Une file classée inventée de trois lignes : vérifier une facture, répondre à un lancement, lire des notes d'atelier."
+    },
+    "figure_caption": {
+      "en": "An invented queue. The action and the reason sit on every row.",
+      "fr": "Une file inventée. L'action et la raison figurent sur chaque ligne."
     }
   },
   "nav": [
@@ -25,14 +43,16 @@
       "label": {
         "en": "Install",
         "fr": "Installation"
-      }
+      },
+      "primary": true
     },
     {
       "key": "first_run",
       "label": {
         "en": "First run",
         "fr": "Premier démarrage"
-      }
+      },
+      "primary": true
     },
     {
       "key": "console",
@@ -74,7 +94,8 @@
       "label": {
         "en": "Privacy",
         "fr": "Confidentialité"
-      }
+      },
+      "primary": true
     },
     {
       "key": "security",
@@ -98,219 +119,216 @@
       }
     }
   ],
-  "features": {
+  "differences": {
     "title": {
-      "en": "What it does",
-      "fr": "Ce qu'il fait"
+      "en": "Three things it does differently",
+      "fr": "Trois choses qu'il fait autrement"
+    },
+    "lead": {
+      "en": "Each one is a mechanism you can inspect.",
+      "fr": "Chacune est un mécanisme que vous pouvez inspecter."
+    },
+    "items": [
+      {
+        "tag": {
+          "en": "Evidence",
+          "fr": "Preuve"
+        },
+        "title": {
+          "en": "Every label names its source.",
+          "fr": "Chaque étiquette nomme sa source."
+        },
+        "body": {
+          "en": "A decision is stored as answers to named questions, with the confidence each answer carries where the question type has one and the evidence behind it. The message detail shows the fields the model read. When an index is partial, the screen names the missing part.",
+          "fr": "Une décision est stockée comme des réponses à des questions nommées, avec la confiance de chaque réponse quand ce type de question en porte une et les éléments de preuve qui la soutiennent. Le détail du message montre les champs lus par le modèle. Quand un index est partiel, l'écran nomme la partie manquante."
+        }
+      },
+      {
+        "tag": {
+          "en": "Queue",
+          "fr": "File"
+        },
+        "title": {
+          "en": "The queue is scored by a fixed local policy.",
+          "fr": "La file est ordonnée par une règle locale fixe."
+        },
+        "body": {
+          "en": "A local Go scorer ranks each message from stored signals: a suspicious message adds 100, a decision 45, a reply 30, urgency and deadline levels add fixed weights, and recency adds at most 12. A score of 20 is the floor, and a suspicious, decision, reply, urgent or deadline signal always enters. Bulk automated mail never enters, however urgent its text.",
+          "fr": "Un moteur Go local ordonne chaque message à partir des signaux stockés : un message suspect ajoute 100, une décision 45, une réponse 30, les niveaux d'urgence et d'échéance ajoutent des poids fixes, et la date de réception ajoute au plus 12. Un score de 20 suffit pour entrer, et un signal de suspicion, de décision, de réponse, d'urgence ou d'échéance entre toujours. Le courrier automatisé de masse n'entre jamais, quelle que soit l'urgence de son texte."
+        }
+      },
+      {
+        "tag": {
+          "en": "Learning",
+          "fr": "Apprentissage"
+        },
+        "title": {
+          "en": "It abstains until your own labels certify it.",
+          "fr": "Il s'abstient tant que vos propres étiquettes ne l'ont pas certifié."
+        },
+        "body": {
+          "en": "The local classifier trains one head per question on your corrections. A question is certified only when the Wilson lower bound of its answered precision reaches 0.99 on a held-out split, with at least 200 training labels, 50 evaluation labels and 0.5 coverage. Below that threshold it abstains, and the Learning screen names the stage that blocks it.",
+          "fr": "Le classifieur local entraîne une tête par question sur vos corrections. Une question n'est certifiée que lorsque la borne inférieure de Wilson de sa précision répondue atteint 0,99 sur une partition mise de côté, avec au moins 200 étiquettes d'entraînement, 50 étiquettes d'évaluation et une couverture de 0,5. En dessous, il s'abstient, et l'écran Apprentissage nomme l'étape qui bloque."
+        }
+      }
+    ]
+  },
+  "boundary": {
+    "title": {
+      "en": "What leaves the machine",
+      "fr": "Ce qui quitte la machine"
+    },
+    "lead": {
+      "en": "Mailsense makes four kinds of network request. Each one has a reason you can see.",
+      "fr": "Mailsense fait quatre types de requêtes réseau. Chacune a une raison visible."
+    },
+    "leaves_title": {
+      "en": "Leaves, only when it runs",
+      "fr": "Sortent, uniquement à l'exécution"
+    },
+    "leaves": [
+      {
+        "en": "The pinned local runtime and embedding model, downloaded once and checked against SHA-256 before use.",
+        "fr": "Le moteur local et le modèle de plongements épinglés, téléchargés une fois et vérifiés par SHA-256 avant usage."
+      },
+      {
+        "en": "A request to a remote provider you configured, including automatic triage after a sync. It carries the message fields that call needs.",
+        "fr": "Une requête vers un fournisseur distant que vous avez configuré, y compris le triage automatique après une synchronisation. Elle porte les champs du message dont cet appel a besoin."
+      },
+      {
+        "en": "A provider model list when you press Fetch models.",
+        "fr": "Une liste de modèles d'un fournisseur quand vous cliquez sur Récupérer les modèles."
+      },
+      {
+        "en": "One small test request when you press Test. A test is billable and is not covered by a budget.",
+        "fr": "Une petite requête de test quand vous cliquez sur Tester. Un test est facturable et n'est pas couvert par un budget."
+      }
+    ],
+    "stays_title": {
+      "en": "Never leaves",
+      "fr": "Ne sortent jamais"
+    },
+    "stays": [
+      {
+        "en": "The mail store, attachments, indexes and learned profile. They are SQLite files in the data directory you chose.",
+        "fr": "Le stockage du courrier, les pièces jointes, les index et le profil appris. Ce sont des fichiers SQLite dans le répertoire de données que vous avez choisi."
+      },
+      {
+        "en": "The classification, evidence and ranking code. They run as local Go code, not as a cloud call.",
+        "fr": "Le code de classification, de preuve et de classement. Il s'exécute en Go local, pas comme un appel à un service."
+      },
+      {
+        "en": "No telemetry, no analytics, no update ping and no vendor account.",
+        "fr": "Aucune télémétrie, aucune analyse, aucun appel de mise à jour et aucun compte chez un fournisseur."
+      }
+    ],
+    "note": {
+      "en": "Mailsense reads the classic Outlook profile already open on Windows. It does not ask for Microsoft credentials. A remote provider's terms govern what it does with a request you send. See [privacy]({privacy}).",
+      "fr": "Mailsense lit le profil Outlook classique déjà ouvert sous Windows. Il ne demande pas d'identifiants Microsoft. Les conditions d'un fournisseur distant régissent ce qu'il fait d'une requête que vous lui envoyez. Voir [confidentialité]({privacy})."
+    }
+  },
+  "limits": {
+    "title": {
+      "en": "What it cannot do yet",
+      "fr": "Ce qu'il ne fait pas encore"
+    },
+    "lead": {
+      "en": "These limits are part of the current build.",
+      "fr": "Ces limites font partie de la version actuelle."
     },
     "items": [
       {
         "title": {
-          "en": "Triage you can audit.",
-          "fr": "Un tri que vous pouvez vérifier."
+          "en": "Only classic Outlook on Windows is a live source.",
+          "fr": "Seul Outlook classique sous Windows est une source en direct."
         },
         "body": {
-          "en": "Category, topic, the ask, reply obligation, urgency, deadline, sentiment, phishing suspicion, and the evidence behind each one.",
-          "fr": "Catégorie, sujet, demande, obligation de réponse, urgence, échéance, sentiment, suspicion d'hameçonnage, et la preuve de chacun."
+          "en": "It reads the profile through COM. New Outlook, Outlook on the web, IMAP, POP, the Gmail API, Microsoft Graph and file import are not connected in this build.",
+          "fr": "Il lit le profil par COM. Le nouvel Outlook, Outlook sur le web, IMAP, POP, l'API Gmail, Microsoft Graph et l'import de fichiers ne sont pas connectés dans cette version."
         }
       },
       {
         "title": {
-          "en": "A ranked inbox.",
-          "fr": "Une boîte classée."
+          "en": "The Linux build is a preview.",
+          "fr": "La version Linux est un aperçu."
         },
         "body": {
-          "en": "Reply, decide, pay, schedule, or read, ordered by what the message actually asks of you, with the reason on the row.",
-          "fr": "Répondre, décider, payer, planifier ou lire, dans l'ordre de ce que le message exige vraiment, avec la raison sur la ligne."
+          "en": "It opens, renders every screen and explains the missing source. The inbox stays empty because there is no live connector yet.",
+          "fr": "Elle s'ouvre, affiche tous les écrans et explique la source manquante. La boîte reste vide parce qu'il n'y a pas encore de connecteur en direct."
         }
       },
       {
         "title": {
-          "en": "A mailbox that gets better.",
-          "fr": "Une boîte qui s'améliore."
+          "en": "It reads and ranks. It does not act on the mailbox.",
+          "fr": "Il lit et classe. Il n'agit pas sur la boîte."
         },
         "body": {
-          "en": "Your corrections become examples; reply behaviour becomes priors.",
-          "fr": "Vos corrections deviennent des exemples ; votre façon de répondre devient un priori."
+          "en": "No sending, deleting, moving or read-state changes. The connector is read-only.",
+          "fr": "Aucun envoi, aucune suppression, aucun déplacement et aucun changement d'état de lecture. Le connecteur est en lecture seule."
         }
       },
       {
         "title": {
-          "en": "Thread truth.",
-          "fr": "La vérité des fils."
+          "en": "Triage needs a decider.",
+          "fr": "Le triage a besoin d'un décideur."
         },
         "body": {
-          "en": "Who spoke last, whether the owner owes a reply, and which thread is still open.",
-          "fr": "Qui a parlé en dernier, si vous devez une réponse, et quel fil reste ouvert."
+          "en": "Without one, triage answers 422 provider_not_configured. Search and the local classifier still work.",
+          "fr": "Sans lui, le triage répond 422 provider_not_configured. La recherche et le classifieur local fonctionnent toujours."
         }
       },
       {
         "title": {
-          "en": "Companies and people.",
-          "fr": "Entreprises et personnes."
+          "en": "The database is not encrypted by the app.",
+          "fr": "La base n'est pas chiffrée par l'application."
         },
         "body": {
-          "en": "Declared contacts merged with what mail observed.",
-          "fr": "Les contacts déclarés fusionnés avec ce que le courrier a observé."
+          "en": "Your operating-system account and disk encryption are the protection. Provider keys on Windows use DPAPI.",
+          "fr": "Le compte du système d'exploitation et le chiffrement du disque sont la protection. Les clés de fournisseur sous Windows utilisent DPAPI."
         }
       },
       {
         "title": {
-          "en": "Ask in plain language.",
-          "fr": "Des questions en langage courant."
+          "en": "There is no SQL console and no diagnostics bundle.",
+          "fr": "Il n'y a pas de console SQL ni de paquet de diagnostic."
         },
         "body": {
-          "en": "Structured counts and lists first; a model-written summary only when you configured one, always with citations.",
-          "fr": "Comptages et listes structurés d'abord ; un résumé rédigé par un modèle seulement si vous en avez configuré un, toujours avec des citations."
-        }
-      },
-      {
-        "title": {
-          "en": "Local by default.",
-          "fr": "Local par défaut."
-        },
-        "body": {
-          "en": "SQLite on disk, local embeddings downloaded once, configurable CPU, memory and disk ceilings, and background work that pauses at the ceiling instead of fighting the machine.",
-          "fr": "SQLite sur disque, embeddings locaux téléchargés une fois, plafonds CPU, mémoire et disque configurables, et travail de fond mis en pause au plafond au lieu de lutter contre la machine."
+          "en": "Logs are local and readable in the Logs screen. They redact secrets.",
+          "fr": "Les journaux sont locaux et lisibles dans l'écran Journaux. Ils masquent les secrets."
         }
       }
     ]
   },
-  "difference": {
+  "install": {
     "title": {
-      "en": "Why it is different",
-      "fr": "Pourquoi c'est différent"
+      "en": "Install",
+      "fr": "Installer"
     },
-    "body": {
-      "en": "Most assistants hide the reasoning. Mailsense treats every label as a claim with a source: the profile that produced it, the message fields it read, and the confidence it carries. When the mailbox has not finished indexing, it says so instead of pretending the answer is complete.",
-      "fr": "La plupart des assistants cachent le raisonnement. Mailsense traite chaque étiquette comme une affirmation avec une source : le profil qui l'a produite, les champs lus, et la confiance associée. Quand l'indexation n'est pas terminée, il le dit au lieu de faire croire que la réponse est complète."
-    }
-  },
-  "runs": {
-    "title": {
-      "en": "What runs where",
-      "fr": "Ce qui s'exécute où"
+    "lead": {
+      "en": "Windows is the supported live build. Linux is a preview.",
+      "fr": "Windows est la version en direct prise en charge. Linux est un aperçu."
     },
-    "columns": [
-      {
-        "en": "Part",
-        "fr": "Partie"
-      },
-      {
-        "en": "Default",
-        "fr": "Défaut"
-      },
-      {
-        "en": "Optional",
-        "fr": "Option"
-      }
-    ],
-    "rows": [
-      {
-        "cells": [
-          {
-            "en": "Live mail source",
-            "fr": "Source de courrier en direct"
-          },
-          {
-            "en": "Classic Outlook on Windows",
-            "fr": "Outlook classique sous Windows"
-          },
-          {
-            "en": "None on Linux yet",
-            "fr": "Aucune sous Linux pour l'instant"
-          }
-        ]
-      },
-      {
-        "cells": [
-          {
-            "en": "Mail store and indexes",
-            "fr": "Stockage et index du courrier"
-          },
-          {
-            "en": "Local SQLite",
-            "fr": "SQLite local"
-          },
-          {
-            "en": "A chosen data directory",
-            "fr": "Un répertoire de données choisi"
-          }
-        ]
-      },
-      {
-        "cells": [
-          {
-            "en": "Semantic embeddings",
-            "fr": "Embeddings sémantiques"
-          },
-          {
-            "en": "Downloaded once on first use (about 342 MB on Windows, 328 MB on Linux)",
-            "fr": "Téléchargé au premier usage (environ 342 Mo sous Windows, 328 Mo sous Linux)"
-          },
-          {
-            "en": "A remote embedding provider you configure",
-            "fr": "Un fournisseur d'embeddings distant configuré"
-          }
-        ]
-      },
-      {
-        "cells": [
-          {
-            "en": "Message classification",
-            "fr": "Classification des messages"
-          },
-          {
-            "en": "Local Go classifier; triage needs a decider",
-            "fr": "Classifieur Go local ; le triage exige un décideur"
-          },
-          {
-            "en": "The decider you choose, including a local OpenAI-compatible endpoint",
-            "fr": "Le décideur choisi, y compris un point d'accès local compatible OpenAI"
-          }
-        ]
-      },
-      {
-        "cells": [
-          {
-            "en": "Written answers",
-            "fr": "Réponses rédigées"
-          },
-          {
-            "en": "Off unless configured",
-            "fr": "Désactivées par défaut"
-          },
-          {
-            "en": "The writing provider you choose",
-            "fr": "Le fournisseur de rédaction choisi"
-          }
-        ]
-      }
-    ],
+    "windows": {
+      "en": "Download the per-user installer from [Releases]({repository}/releases). It needs the Microsoft Edge WebView2 runtime, which Windows 11 and current Windows 10 already have. The build is not code-signed, so Windows may ask you to confirm the publisher.",
+      "fr": "Téléchargez l'installateur par utilisateur depuis la [page des versions]({repository}/releases). Il a besoin du runtime Microsoft Edge WebView2, déjà présent sous Windows 11 et Windows 10 à jour. La version n'est pas signée, Windows peut donc demander une confirmation."
+    },
+    "linux": {
+      "en": "Download the amd64 tarball, extract it and run install.sh for a menu entry, or run the binary directly.",
+      "fr": "Téléchargez l'archive amd64, décompressez-la et lancez install.sh pour une entrée de menu, ou lancez directement le binaire."
+    },
+    "command": "tar -xzf mailsense-*-linux-amd64.tar.gz && cd mailsense-*-linux-amd64 && ./install.sh",
+    "command_note": {
+      "en": "One command for the Linux preview, from the directory that holds the downloaded tarball.",
+      "fr": "Une commande pour l'aperçu Linux, depuis le répertoire qui contient l'archive téléchargée."
+    },
+    "first_run": {
+      "en": "Read the first-run guide",
+      "fr": "Lire le guide du premier démarrage"
+    },
     "note": {
-      "en": "Mailsense reads the classic Outlook profile already open on Windows; it does not ask for Microsoft credentials. A remote provider receives the message fields a request needs, and only when that request runs. See [privacy]({privacy}).",
-      "fr": "Mailsense lit le profil Outlook classique déjà ouvert sous Windows ; il ne demande pas d'identifiants Microsoft. Un fournisseur distant ne reçoit que les champs nécessaires à une requête, et seulement quand elle s'exécute. Voir [confidentialité]({privacy})."
+      "en": "The first run writes the setup marker, lists the Outlook stores and shows the resource ceilings. Nothing is read from mail before you pick a store.",
+      "fr": "Le premier démarrage écrit le marqueur d'installation, liste les boîtes Outlook et affiche les plafonds de ressources. Rien n'est lu dans le courrier avant que vous choisissiez une boîte."
     }
-  },
-  "start": {
-    "title": {
-      "en": "Get started",
-      "fr": "Démarrer"
-    },
-    "steps": [
-      {
-        "en": "[Install Mailsense]({install}) for Windows. The Linux build is a preview without a live mail source.",
-        "fr": "[Installer Mailsense]({install}) sous Windows. La version Linux est un aperçu sans source de courrier en direct."
-      },
-      {
-        "en": "Follow the [first run]({first_run}): a short basic path, and an advanced path when you want to control providers, storage and resources.",
-        "fr": "Suivre le [premier démarrage]({first_run}) : un parcours simple, et un parcours avancé pour les fournisseurs, le stockage et les ressources."
-      },
-      {
-        "en": "Read the [privacy model]({privacy}) in one page.",
-        "fr": "Lire le [modèle de confidentialité]({privacy}) en une page."
-      }
-    ]
   },
   "status": {
     "title": {
@@ -343,8 +361,8 @@
       "fr": "Licence"
     },
     "body": {
-      "en": "Mailsense is licensed under the GNU Affero General Public License, version 3 or later (AGPL-3.0-or-later). You can use it, study it, change it and share it. If you run a modified version as a network service, the AGPL requires you to offer the corresponding source to the people who use it. See `LICENSE` for the full text and `NOTICE` for the copyright and third-party notices.",
-      "fr": "Mailsense est publié sous la licence GNU Affero General Public License, version 3 ou ultérieure (AGPL-3.0-or-later). Vous pouvez l'utiliser, l'étudier, le modifier et le partager. Si vous exploitez une version modifiée comme service réseau, l'AGPL exige d'offrir le code source correspondant aux personnes qui l'utilisent. Le texte complet est dans `LICENSE`, les mentions de copyright et de tiers dans `NOTICE`."
+      "en": "Mailsense is licensed under the GNU Affero General Public License, version 3 or later ({license}). You can use it, study it, change it and share it. If you run a modified version as a network service, the AGPL requires you to offer the corresponding source to the people who use it. See `LICENSE` for the full text and `NOTICE` for the copyright and third-party notices.",
+      "fr": "Mailsense est publié sous la licence GNU Affero General Public License, version 3 ou ultérieure ({license}). Vous pouvez l'utiliser, l'étudier, le modifier et le partager. Si vous exploitez une version modifiée comme service réseau, l'AGPL exige d'offrir le code source correspondant aux personnes qui l'utilisent. Le texte complet est dans `LICENSE`, les mentions de copyright et de tiers dans `NOTICE`."
     }
   }
 }

@@ -5,6 +5,10 @@ title: Console
 
 # Console
 
+<!-- nav:start -->
+[Documentation](index.md) · [Install](install.md) · [First run](first-run.md) · **Console** · [Mailboxes](mailboxes.md) · [Providers](providers.md) · [Learning](learning.md) · [FAQ](faq.md) · [Privacy](privacy.md) · [Security](security.md) · [Troubleshooting](troubleshooting.md) · [Contributing](contributing.md) · [Français](fr/console.md)
+<!-- nav:end -->
+
 The console is the local Mailsense window. Every destination reads the local API
 and shows what that read returned, including partial indexes and failed jobs.
 This page walks through the navigation, every screen, the states each screen
@@ -470,3 +474,7 @@ Related screens: Learning, Sources and Settings.
 - Windows behaviour is not verified from a Linux build. The WebView2 window and
   the classic Outlook connection cannot be exercised on this host, so their
   first display and COM behaviour remain unverified here.
+
+<!-- footer:start -->
+[Source](https://github.com/LLM-4-People/mailsense) · AGPL-3.0-or-later · [Documentation](https://llm-4-people.github.io/mailsense/) · [Privacy](privacy.md)
+<!-- footer:end -->

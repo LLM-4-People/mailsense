@@ -5,6 +5,10 @@ title: Mailboxes
 
 # Mailboxes
 
+<!-- nav:start -->
+[Documentation](index.md) · [Install](install.md) · [First run](first-run.md) · [Console](console.md) · **Mailboxes** · [Providers](providers.md) · [Learning](learning.md) · [FAQ](faq.md) · [Privacy](privacy.md) · [Security](security.md) · [Troubleshooting](troubleshooting.md) · [Contributing](contributing.md) · [Français](fr/mailboxes.md)
+<!-- nav:end -->
+
 Mailsense reads live mail from the classic Outlook profile that is already
 running on a Windows machine. It does not ask for Microsoft credentials and it
 does not connect to a mail service. The Linux build has no live source yet.
@@ -68,3 +72,7 @@ it apply after 72 hours.
 There is no live mail source on Linux in this build. The window opens, the
 screens render, and Sources explains that the inbox stays empty. The file source
 is not exposed.
+
+<!-- footer:start -->
+[Source](https://github.com/LLM-4-People/mailsense) · AGPL-3.0-or-later · [Documentation](https://llm-4-people.github.io/mailsense/) · [Privacy](privacy.md)
+<!-- footer:end -->

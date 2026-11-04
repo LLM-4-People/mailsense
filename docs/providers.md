@@ -5,6 +5,10 @@ title: Providers
 
 # Providers
 
+<!-- nav:start -->
+[Documentation](index.md) · [Install](install.md) · [First run](first-run.md) · [Console](console.md) · [Mailboxes](mailboxes.md) · **Providers** · [Learning](learning.md) · [FAQ](faq.md) · [Privacy](privacy.md) · [Security](security.md) · [Troubleshooting](troubleshooting.md) · [Contributing](contributing.md) · [Français](fr/providers.md)
+<!-- nav:end -->
+
 A provider is a record you add. The app ships no built-in provider and no
 default key. The protocol decides which role a record can fill:
 
@@ -71,3 +75,7 @@ run yourself.
 - Embeddings, unless `embed.provider` points at the local runtime.
 
 Nothing else is sent. See [privacy](privacy.md) for the full request list.
+
+<!-- footer:start -->
+[Source](https://github.com/LLM-4-People/mailsense) · AGPL-3.0-or-later · [Documentation](https://llm-4-people.github.io/mailsense/) · [Privacy](privacy.md)
+<!-- footer:end -->

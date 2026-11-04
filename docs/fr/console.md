@@ -6,7 +6,10 @@ lang: fr
 
 # Console
 
-[English](../console.md)
+<!-- nav:start -->
+[Documentation](index.md) · [Installation](install.md) · [Premier démarrage](first-run.md) · **Console** · [Boîtes](mailboxes.md) · [Fournisseurs](providers.md) · [Apprentissage](learning.md) · [FAQ](faq.md) · [Confidentialité](privacy.md) · [Sécurité](security.md) · [Dépannage](troubleshooting.md) · [Contribuer](contributing.md) · [English](../console.md)
+<!-- nav:end -->
+
 
 La console est la fenêtre locale de Mailsense. Chaque destination lit l'API
 locale et affiche ce que la lecture a renvoyé, y compris un index partiel et une
@@ -537,3 +540,7 @@ est dépliée.
   WebView2 et la connexion à Outlook classique ne peuvent pas être exercées sur
   cet hôte, donc leur premier affichage et le comportement COM restent non
   vérifiés ici.
+
+<!-- footer:start -->
+[Code source](https://github.com/LLM-4-People/mailsense) · AGPL-3.0-or-later · [Documentation](https://llm-4-people.github.io/mailsense/fr/) · [Confidentialité](privacy.md)
+<!-- footer:end -->

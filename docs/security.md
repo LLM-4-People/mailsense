@@ -5,6 +5,10 @@ title: Security
 
 # Security
 
+<!-- nav:start -->
+[Documentation](index.md) · [Install](install.md) · [First run](first-run.md) · [Console](console.md) · [Mailboxes](mailboxes.md) · [Providers](providers.md) · [Learning](learning.md) · [FAQ](faq.md) · [Privacy](privacy.md) · **Security** · [Troubleshooting](troubleshooting.md) · [Contributing](contributing.md) · [Français](fr/security.md)
+<!-- nav:end -->
+
 Mailsense is a local desktop app. It reads a mail profile on the same machine,
 serves its own interface on loopback, and keeps its data in a directory you
 control. This page states what that design does and does not protect.
@@ -75,3 +79,7 @@ describes the impact without exploit details, and ask for a private channel.
 Supported versions are the latest published release and the current `main`
 branch. Please do not include real mail, provider keys or personal data in a
 report.
+
+<!-- footer:start -->
+[Source](https://github.com/LLM-4-People/mailsense) · AGPL-3.0-or-later · [Documentation](https://llm-4-people.github.io/mailsense/) · [Privacy](privacy.md)
+<!-- footer:end -->

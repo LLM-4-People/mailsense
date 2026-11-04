@@ -6,7 +6,10 @@ lang: fr
 
 # Premier démarrage
 
-[English](../first-run.md)
+<!-- nav:start -->
+[Documentation](index.md) · [Installation](install.md) · **Premier démarrage** · [Console](console.md) · [Boîtes](mailboxes.md) · [Fournisseurs](providers.md) · [Apprentissage](learning.md) · [FAQ](faq.md) · [Confidentialité](privacy.md) · [Sécurité](security.md) · [Dépannage](troubleshooting.md) · [Contribuer](contributing.md) · [English](../first-run.md)
+<!-- nav:end -->
+
 
 Le premier démarrage ouvre un court écran d'installation. Il enregistre un
 marqueur à la fin, puis ne s'ouvre plus. Vous pouvez le rouvrir en réinitialisant
@@ -69,3 +72,7 @@ récupérée quand vous le demandez.
 Chaque étape échoue séparément et peut être réessayée sans perdre les autres.
 L'erreur nomme le réglage ou le point de terminaison, pas seulement un code
 interne. Voir [dépannage](troubleshooting.md).
+
+<!-- footer:start -->
+[Code source](https://github.com/LLM-4-People/mailsense) · AGPL-3.0-or-later · [Documentation](https://llm-4-people.github.io/mailsense/fr/) · [Confidentialité](privacy.md)
+<!-- footer:end -->

@@ -5,6 +5,10 @@ title: Learning
 
 # Learning
 
+<!-- nav:start -->
+[Documentation](index.md) · [Install](install.md) · [First run](first-run.md) · [Console](console.md) · [Mailboxes](mailboxes.md) · [Providers](providers.md) · **Learning** · [FAQ](faq.md) · [Privacy](privacy.md) · [Security](security.md) · [Troubleshooting](troubleshooting.md) · [Contributing](contributing.md) · [Français](fr/learning.md)
+<!-- nav:end -->
+
 Learning is the gate that decides when Mailsense may answer on its own. It is
 not a progress bar for its own sake: every stage is a fact the app needs before
 a certified answer exists.
@@ -64,3 +68,7 @@ local one. Those requests follow the provider's terms.
 The Learning screen shows counts, question names, store keys, stage states,
 blockers and diagnostics. It does not show message content. The Hub shows how
 many questions are certified and links to the same screen.
+
+<!-- footer:start -->
+[Source](https://github.com/LLM-4-People/mailsense) · AGPL-3.0-or-later · [Documentation](https://llm-4-people.github.io/mailsense/) · [Privacy](privacy.md)
+<!-- footer:end -->

@@ -6,7 +6,10 @@ lang: fr
 
 # FAQ
 
-[English](../faq.md)
+<!-- nav:start -->
+[Documentation](index.md) · [Installation](install.md) · [Premier démarrage](first-run.md) · [Console](console.md) · [Boîtes](mailboxes.md) · [Fournisseurs](providers.md) · [Apprentissage](learning.md) · **FAQ** · [Confidentialité](privacy.md) · [Sécurité](security.md) · [Dépannage](troubleshooting.md) · [Contribuer](contributing.md) · [English](../faq.md)
+<!-- nav:end -->
+
 
 ## Mailsense envoie-t-il mon courrier à un service infonuagique ?
 
@@ -77,3 +80,7 @@ fournisseurs distants ont besoin d'un réseau.
 Le code est publié sous AGPL-3.0-or-later. Ce dépôt n'a ni compte, ni palier
 payant, ni service central. Un fournisseur distant que vous configurez vous
 facture selon ses propres conditions.
+
+<!-- footer:start -->
+[Code source](https://github.com/LLM-4-People/mailsense) · AGPL-3.0-or-later · [Documentation](https://llm-4-people.github.io/mailsense/fr/) · [Confidentialité](privacy.md)
+<!-- footer:end -->

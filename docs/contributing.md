@@ -5,6 +5,10 @@ title: Contributing
 
 # Contributing
 
+<!-- nav:start -->
+[Documentation](index.md) · [Install](install.md) · [First run](first-run.md) · [Console](console.md) · [Mailboxes](mailboxes.md) · [Providers](providers.md) · [Learning](learning.md) · [FAQ](faq.md) · [Privacy](privacy.md) · [Security](security.md) · [Troubleshooting](troubleshooting.md) · **Contributing** · [Français](fr/contributing.md)
+<!-- nav:end -->
+
 Mailsense is Go for the application and plain JavaScript for the interface. It
 has no framework on either side. The repository is the source of truth for the
 build, the tests and the public pages.
@@ -35,11 +39,15 @@ Include the version, the operating system, the screen or route, what you
 expected, what happened, and the relevant Logs entry. Remove mail content,
 addresses and provider keys before you paste a log.
 
-Security reports go through the private channel on the [security
-page](security.md).
+Security reports go through the private channel on the
+[security page](security.md).
 
 ## License
 
 The project is licensed under AGPL-3.0-or-later. By contributing, you agree that
 your contribution is distributed under the same license. There is no separate
 contributor license agreement.
+
+<!-- footer:start -->
+[Source](https://github.com/LLM-4-People/mailsense) · AGPL-3.0-or-later · [Documentation](https://llm-4-people.github.io/mailsense/) · [Privacy](privacy.md)
+<!-- footer:end -->

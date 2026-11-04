@@ -5,6 +5,10 @@ title: Install
 
 # Install Mailsense
 
+<!-- nav:start -->
+[Documentation](index.md) · **Install** · [First run](first-run.md) · [Console](console.md) · [Mailboxes](mailboxes.md) · [Providers](providers.md) · [Learning](learning.md) · [FAQ](faq.md) · [Privacy](privacy.md) · [Security](security.md) · [Troubleshooting](troubleshooting.md) · [Contributing](contributing.md) · [Français](fr/install.md)
+<!-- nav:end -->
+
 Mailsense reads live mail from the classic Outlook profile that is already open
 on a Windows machine. It does not ask for Microsoft credentials and it has no
 cloud account. The Linux build is a preview: it starts, shows the interface, and
@@ -84,3 +88,7 @@ Windows may still ask you to confirm the publisher.
   `%LOCALAPPDATA%\Mailsense` until you delete it.
 - Linux: remove the binary and the desktop entry. The data directory is
   `${XDG_DATA_HOME:-~/.local/share}/mailsense`.
+
+<!-- footer:start -->
+[Source](https://github.com/LLM-4-People/mailsense) · AGPL-3.0-or-later · [Documentation](https://llm-4-people.github.io/mailsense/) · [Privacy](privacy.md)
+<!-- footer:end -->

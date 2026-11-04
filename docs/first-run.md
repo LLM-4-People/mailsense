@@ -5,6 +5,10 @@ title: First run
 
 # First run
 
+<!-- nav:start -->
+[Documentation](index.md) · [Install](install.md) · **First run** · [Console](console.md) · [Mailboxes](mailboxes.md) · [Providers](providers.md) · [Learning](learning.md) · [FAQ](faq.md) · [Privacy](privacy.md) · [Security](security.md) · [Troubleshooting](troubleshooting.md) · [Contributing](contributing.md) · [Français](fr/first-run.md)
+<!-- nav:end -->
+
 The first start opens a short setup screen. It writes a marker when you finish,
 so it does not open again. You can reopen it by resetting `ui.setup.done` in
 Settings.
@@ -63,3 +67,7 @@ record you add, and its model list is fetched when you ask for it.
 Each step fails on its own and can be retried without losing the others. The
 error names the setting or the endpoint, not only an internal code. See
 [troubleshooting](troubleshooting.md).
+
+<!-- footer:start -->
+[Source](https://github.com/LLM-4-People/mailsense) · AGPL-3.0-or-later · [Documentation](https://llm-4-people.github.io/mailsense/) · [Privacy](privacy.md)
+<!-- footer:end -->

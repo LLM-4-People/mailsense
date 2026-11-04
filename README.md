@@ -2,65 +2,99 @@
 
 # Mailsense
 
-**Your mailbox, sorted. Every decision explained. Your mail is stored on your
-machine; the local analysis runs there; a remote model is used only when you
-configure one.**
+**Mailsense turns your Outlook mailbox into a ranked list of what needs you,
+with the reason on every row.**
 
-Mailsense reads the mail already in your classic Outlook profile on Windows,
-tells you what each message is, what it asks for, and what deserves your
-attention first. It shows the reason for every verdict, learns from your
-corrections, and keeps the whole record in a local database you can inspect. The
-Linux build is a preview without a live mail source.
+It reads the classic Outlook profile already open on your PC. The message store,
+the classifier and the learned profile stay on your disk. A remote model runs
+only when you add one.
 
-![Mailsense](docs/assets/banner-en.svg)
+![Mailsense: Your mailbox, ranked. Every row explains itself.](docs/assets/banner-en.svg)
 
-[Français](docs/fr/index.md) · [Documentation](docs/index.md) · [Install](docs/install.md) · [First run](docs/first-run.md) · [Console](docs/console.md) · [Mailboxes](docs/mailboxes.md) · [Providers](docs/providers.md) · [Learning](docs/learning.md) · [FAQ](docs/faq.md) · [Privacy](docs/privacy.md) · [Security](docs/security.md) · [Troubleshooting](docs/troubleshooting.md) · [Contributing](docs/contributing.md)
+[Français](README.fr.md) · [Documentation](docs/index.md) · [Install](docs/install.md) · [First run](docs/first-run.md) · [Console](docs/console.md) · [Mailboxes](docs/mailboxes.md) · [Providers](docs/providers.md) · [Learning](docs/learning.md) · [FAQ](docs/faq.md) · [Privacy](docs/privacy.md) · [Security](docs/security.md) · [Troubleshooting](docs/troubleshooting.md) · [Contributing](docs/contributing.md) · [Docs site](https://llm-4-people.github.io/mailsense/)
 
-## What it does
+## Three things it does differently
 
-- **Triage you can audit.** Category, topic, the ask, reply obligation, urgency,
-  deadline, sentiment, phishing suspicion, and the evidence behind each one.
-- **A ranked inbox.** Reply, decide, pay, schedule, or read, ordered by what the
-  message actually asks of you, with the reason on the row.
-- **A mailbox that gets better.** Your corrections become examples; reply
-  behaviour becomes priors.
-- **Thread truth.** Who spoke last, whether the owner owes a reply, and which
-  thread is still open.
-- **Companies and people.** Declared contacts merged with what mail observed.
-- **Ask in plain language.** Structured counts and lists first; a model-written
-  summary only when you configured one, always with citations.
-- **Local by default.** SQLite on disk, local embeddings downloaded once,
-  configurable CPU, memory and disk ceilings, and background work that pauses at
-  the ceiling instead of fighting the machine.
+- **Every label names its source.** A decision is stored as answers to named
+  questions, with the confidence each answer carries where the question type has
+  one and the evidence behind it. The message detail shows the fields the model
+  read. When an index is partial, the screen names the missing part.
+- **The queue is scored by a fixed local policy.** A local Go scorer ranks each
+  message from stored signals: a suspicious message adds 100, a decision 45, a
+  reply 30, urgency and deadline levels add fixed weights, and recency adds at
+  most 12. A score of 20 is the floor, and a suspicious, decision, reply, urgent
+  or deadline signal always enters. Bulk automated mail never enters, however
+  urgent its text.
+- **It abstains until your own labels certify it.** The local classifier trains
+  one head per question on your corrections. A question is certified only when
+  the Wilson lower bound of its answered precision reaches 0.99 on a held-out
+  split, with at least 200 training labels, 50 evaluation labels and 0.5
+  coverage. Below that threshold it abstains, and the Learning screen names the
+  stage that blocks it.
 
-## Why it is different
+## What leaves the machine
 
-Most assistants hide the reasoning. Mailsense treats every label as a claim with
-a source: the profile that produced it, the message fields it read, and the
-confidence it carries. When the mailbox has not finished indexing, it says so
-instead of pretending the answer is complete.
+Mailsense makes four kinds of network request. Each one has a reason you can
+see.
 
-## What runs where
+**Leaves, only when it runs**
 
-| Part | Default | Optional |
-| --- | --- | --- |
-| Live mail source | Classic Outlook on Windows | None on Linux yet |
-| Mail store and indexes | Local SQLite | A chosen data directory |
-| Semantic embeddings | Downloaded once on first use (about 342 MB on Windows, 328 MB on Linux) | A remote embedding provider you configure |
-| Message classification | Local Go classifier; triage needs a decider | The decider you choose, including a local OpenAI-compatible endpoint |
-| Written answers | Off unless configured | The writing provider you choose |
+- The pinned local runtime and embedding model, downloaded once and checked
+  against SHA-256 before use.
+- A request to a remote provider you configured, including automatic triage
+  after a sync. It carries the message fields that call needs.
+- A provider model list when you press Fetch models.
+- One small test request when you press Test. A test is billable and is not
+  covered by a budget.
 
-Mailsense reads the classic Outlook profile already open on Windows; it does not
-ask for Microsoft credentials. A remote provider receives the message fields a
-request needs, and only when that request runs. See [privacy](docs/privacy.md).
+**Never leaves**
 
-## Get started
+- The mail store, attachments, indexes and learned profile. They are SQLite
+  files in the data directory you chose.
+- The classification, evidence and ranking code. They run as local Go code, not
+  as a cloud call.
+- No telemetry, no analytics, no update ping and no vendor account.
 
-1. [Install Mailsense](docs/install.md) for Windows. The Linux build is a
-   preview without a live mail source.
-2. Follow the [first run](docs/first-run.md): a short basic path, and an
-   advanced path when you want to control providers, storage and resources.
-3. Read the [privacy model](docs/privacy.md) in one page.
+Mailsense reads the classic Outlook profile already open on Windows. It does not
+ask for Microsoft credentials. A remote provider's terms govern what it does
+with a request you send. See [privacy](docs/privacy.md).
+
+## What it cannot do yet
+
+- **Only classic Outlook on Windows is a live source.** It reads the profile
+  through COM. New Outlook, Outlook on the web, IMAP, POP, the Gmail API,
+  Microsoft Graph and file import are not connected in this build.
+- **The Linux build is a preview.** It opens, renders every screen and explains
+  the missing source. The inbox stays empty because there is no live connector
+  yet.
+- **It reads and ranks. It does not act on the mailbox.** No sending, deleting,
+  moving or read-state changes. The connector is read-only.
+- **Triage needs a decider.** Without one, triage answers 422
+  provider_not_configured. Search and the local classifier still work.
+- **The database is not encrypted by the app.** Your operating-system account
+  and disk encryption are the protection. Provider keys on Windows use DPAPI.
+- **There is no SQL console and no diagnostics bundle.** Logs are local and
+  readable in the Logs screen. They redact secrets.
+
+## Install
+
+**Windows.** Download the per-user installer from
+[Releases](https://github.com/LLM-4-People/mailsense/releases). It needs the
+Microsoft Edge WebView2 runtime, which Windows 11 and current Windows 10 already
+have. The build is not code-signed, so Windows may ask you to confirm the
+publisher.
+
+**Linux.** Download the amd64 tarball, extract it and run install.sh for a menu
+entry, or run the binary directly.
+
+```bash
+tar -xzf mailsense-*-linux-amd64.tar.gz && cd mailsense-*-linux-amd64 && ./install.sh
+```
+
+One command for the Linux preview, from the directory that holds the downloaded
+tarball.
+
+[Read the first-run guide](docs/first-run.md)
 
 ## Status
 
@@ -90,3 +124,5 @@ later (AGPL-3.0-or-later). You can use it, study it, change it and share it. If
 you run a modified version as a network service, the AGPL requires you to offer
 the corresponding source to the people who use it. See `LICENSE` for the full
 text and `NOTICE` for the copyright and third-party notices.
+
+[Documentation](https://llm-4-people.github.io/mailsense/)

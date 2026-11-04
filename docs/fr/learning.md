@@ -6,7 +6,10 @@ lang: fr
 
 # Apprentissage
 
-[English](../learning.md)
+<!-- nav:start -->
+[Documentation](index.md) · [Installation](install.md) · [Premier démarrage](first-run.md) · [Console](console.md) · [Boîtes](mailboxes.md) · [Fournisseurs](providers.md) · **Apprentissage** · [FAQ](faq.md) · [Confidentialité](privacy.md) · [Sécurité](security.md) · [Dépannage](troubleshooting.md) · [Contribuer](contributing.md) · [English](../learning.md)
+<!-- nav:end -->
+
 
 L'apprentissage est le seuil qui décide quand Mailsense peut répondre seul. Ce
 n'est pas une barre de progression pour elle-même : chaque étape est un fait
@@ -74,3 +77,7 @@ L'écran Apprentissage montre des comptes, des noms de questions, des clés de
 boîtes, l'état des étapes, les blocages et des diagnostics. Il ne montre pas le
 contenu des messages. L'accueil indique combien de questions sont certifiées et
 renvoie au même écran.
+
+<!-- footer:start -->
+[Code source](https://github.com/LLM-4-People/mailsense) · AGPL-3.0-or-later · [Documentation](https://llm-4-people.github.io/mailsense/fr/) · [Confidentialité](privacy.md)
+<!-- footer:end -->

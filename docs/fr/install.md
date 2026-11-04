@@ -6,7 +6,10 @@ lang: fr
 
 # Installer Mailsense
 
-[English](../install.md)
+<!-- nav:start -->
+[Documentation](index.md) · **Installation** · [Premier démarrage](first-run.md) · [Console](console.md) · [Boîtes](mailboxes.md) · [Fournisseurs](providers.md) · [Apprentissage](learning.md) · [FAQ](faq.md) · [Confidentialité](privacy.md) · [Sécurité](security.md) · [Dépannage](troubleshooting.md) · [Contribuer](contributing.md) · [English](../install.md)
+<!-- nav:end -->
+
 
 Mailsense lit le courrier en direct depuis le profil Outlook classique déjà
 ouvert sur une machine Windows. Il ne demande pas d'identifiants Microsoft et
@@ -91,3 +94,7 @@ Authenticode, Windows peut donc encore demander une confirmation.
   restent dans `%LOCALAPPDATA%\Mailsense` jusqu'à ce que vous les supprimiez.
 - Linux : supprimez le binaire et l'entrée de bureau. Les données sont dans
   `${XDG_DATA_HOME:-~/.local/share}/mailsense`.
+
+<!-- footer:start -->
+[Code source](https://github.com/LLM-4-People/mailsense) · AGPL-3.0-or-later · [Documentation](https://llm-4-people.github.io/mailsense/fr/) · [Confidentialité](privacy.md)
+<!-- footer:end -->

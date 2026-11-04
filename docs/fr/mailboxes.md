@@ -6,7 +6,10 @@ lang: fr
 
 # Boîtes
 
-[English](../mailboxes.md)
+<!-- nav:start -->
+[Documentation](index.md) · [Installation](install.md) · [Premier démarrage](first-run.md) · [Console](console.md) · **Boîtes** · [Fournisseurs](providers.md) · [Apprentissage](learning.md) · [FAQ](faq.md) · [Confidentialité](privacy.md) · [Sécurité](security.md) · [Dépannage](troubleshooting.md) · [Contribuer](contributing.md) · [English](../mailboxes.md)
+<!-- nav:end -->
+
 
 Mailsense lit le courrier en direct depuis le profil Outlook classique déjà
 ouvert sur une machine Windows. Il ne demande pas d'identifiants Microsoft et ne
@@ -78,3 +81,7 @@ Sources, ou laissez-le s'appliquer après 72 heures.
 Il n'y a pas de source de courrier en direct sous Linux dans cette version. La
 fenêtre s'ouvre, les écrans s'affichent, et Sources explique que la boîte reste
 vide. La source de fichiers n'est pas exposée.
+
+<!-- footer:start -->
+[Code source](https://github.com/LLM-4-People/mailsense) · AGPL-3.0-or-later · [Documentation](https://llm-4-people.github.io/mailsense/fr/) · [Confidentialité](privacy.md)
+<!-- footer:end -->

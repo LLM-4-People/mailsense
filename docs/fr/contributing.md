@@ -6,7 +6,10 @@ lang: fr
 
 # Contribuer
 
-[English](../contributing.md)
+<!-- nav:start -->
+[Documentation](index.md) · [Installation](install.md) · [Premier démarrage](first-run.md) · [Console](console.md) · [Boîtes](mailboxes.md) · [Fournisseurs](providers.md) · [Apprentissage](learning.md) · [FAQ](faq.md) · [Confidentialité](privacy.md) · [Sécurité](security.md) · [Dépannage](troubleshooting.md) · **Contribuer** · [English](../contributing.md)
+<!-- nav:end -->
+
 
 Mailsense est écrit en Go pour l'application et en JavaScript simple pour
 l'interface. Il n'y a pas de cadre de travail de chaque côté. Le dépôt est la
@@ -40,11 +43,15 @@ attendiez, ce qui est arrivé, et l'entrée pertinente des journaux. Retirez le
 contenu du courrier, les adresses et les clés de fournisseur avant de coller un
 journal.
 
-Les signalements de sécurité passent par le canal privé de la [page
-sécurité](security.md).
+Les signalements de sécurité passent par le canal privé de la
+[page sécurité](security.md).
 
 ## Licence
 
 Le projet est publié sous AGPL-3.0-or-later. En contribuant, vous acceptez que
 votre contribution soit distribuée sous la même licence. Il n'y a pas d'accord
 de licence de contributeur séparé.
+
+<!-- footer:start -->
+[Code source](https://github.com/LLM-4-People/mailsense) · AGPL-3.0-or-later · [Documentation](https://llm-4-people.github.io/mailsense/fr/) · [Confidentialité](privacy.md)
+<!-- footer:end -->

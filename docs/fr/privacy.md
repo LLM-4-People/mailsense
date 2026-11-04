@@ -6,7 +6,10 @@ lang: fr
 
 # Confidentialité
 
-[English](../privacy.md)
+<!-- nav:start -->
+[Documentation](index.md) · [Installation](install.md) · [Premier démarrage](first-run.md) · [Console](console.md) · [Boîtes](mailboxes.md) · [Fournisseurs](providers.md) · [Apprentissage](learning.md) · [FAQ](faq.md) · **Confidentialité** · [Sécurité](security.md) · [Dépannage](troubleshooting.md) · [Contribuer](contributing.md) · [English](../privacy.md)
+<!-- nav:end -->
+
 
 Mailsense fonctionne d'abord en local. La source en direct est le profil Outlook
 classique déjà ouvert sur votre machine Windows. Mailsense ne demande pas
@@ -67,3 +70,7 @@ Le répertoire de données est affiché dans la barre d'état de l'application.
 Supprimez-le pour retirer le stockage, les index, les réglages et les journaux.
 Sous Windows, la désinstallation conserve le répertoire ; sous Linux, supprimer
 le binaire le conserve aussi.
+
+<!-- footer:start -->
+[Code source](https://github.com/LLM-4-People/mailsense) · AGPL-3.0-or-later · [Documentation](https://llm-4-people.github.io/mailsense/fr/) · [Confidentialité](privacy.md)
+<!-- footer:end -->

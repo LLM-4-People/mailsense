@@ -6,7 +6,10 @@ lang: fr
 
 # Fournisseurs
 
-[English](../providers.md)
+<!-- nav:start -->
+[Documentation](index.md) · [Installation](install.md) · [Premier démarrage](first-run.md) · [Console](console.md) · [Boîtes](mailboxes.md) · **Fournisseurs** · [Apprentissage](learning.md) · [FAQ](faq.md) · [Confidentialité](privacy.md) · [Sécurité](security.md) · [Dépannage](troubleshooting.md) · [Contribuer](contributing.md) · [English](../providers.md)
+<!-- nav:end -->
+
 
 Un fournisseur est une fiche que vous ajoutez. L'application n'en fournit aucun
 et n'a pas de clé par défaut. Le protocole décide du rôle que la fiche peut
@@ -81,3 +84,7 @@ OpenAI que vous exécutez vous-même.
 
 Rien d'autre n'est envoyé. Voir [confidentialité](privacy.md) pour la liste
 complète des requêtes.
+
+<!-- footer:start -->
+[Code source](https://github.com/LLM-4-People/mailsense) · AGPL-3.0-or-later · [Documentation](https://llm-4-people.github.io/mailsense/fr/) · [Confidentialité](privacy.md)
+<!-- footer:end -->

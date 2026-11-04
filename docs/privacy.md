@@ -5,6 +5,10 @@ title: Privacy
 
 # Privacy
 
+<!-- nav:start -->
+[Documentation](index.md) · [Install](install.md) · [First run](first-run.md) · [Console](console.md) · [Mailboxes](mailboxes.md) · [Providers](providers.md) · [Learning](learning.md) · [FAQ](faq.md) · **Privacy** · [Security](security.md) · [Troubleshooting](troubleshooting.md) · [Contributing](contributing.md) · [Français](fr/privacy.md)
+<!-- nav:end -->
+
 Mailsense is local-first. The live source is the classic Outlook profile already
 open on your Windows machine. Mailsense does not ask for Microsoft credentials,
 does not create an account, and has no vendor backend. The local runtime
@@ -57,3 +61,7 @@ jobs, warnings and errors behind a screen. There is no hidden second record.
 The data directory is shown in the app's status bar. Delete it to remove the
 store, indexes, settings and logs. On Windows, uninstalling the app keeps the
 data directory; on Linux, removing the binary keeps it too.
+
+<!-- footer:start -->
+[Source](https://github.com/LLM-4-People/mailsense) · AGPL-3.0-or-later · [Documentation](https://llm-4-people.github.io/mailsense/) · [Privacy](privacy.md)
+<!-- footer:end -->

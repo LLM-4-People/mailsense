@@ -149,7 +149,7 @@ func TestAddingNavKeyWithoutFileFailsCheck(t *testing.T) {
 		t.Fatalf("check with a missing English page = %v, want a missing docs/release-notes.md error", err)
 	}
 
-	if err := os.WriteFile(filepath.Join(dir, "docs", "release-notes.md"), []byte("# Release notes\n"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, "docs", "release-notes.md"), []byte("# Release notes\n\n<!-- nav:start -->\n<!-- nav:end -->\n\n<!-- footer:start -->\n<!-- footer:end -->\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	_, err = Check(dir)
@@ -157,7 +157,7 @@ func TestAddingNavKeyWithoutFileFailsCheck(t *testing.T) {
 		t.Fatalf("check with a missing French page = %v, want a missing docs/fr/release-notes.md error", err)
 	}
 
-	if err := os.WriteFile(filepath.Join(dir, "docs", "fr", "release-notes.md"), []byte("# Notes de version\n"), 0o644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, "docs", "fr", "release-notes.md"), []byte("# Notes de version\n\n<!-- nav:start -->\n<!-- nav:end -->\n\n<!-- footer:start -->\n<!-- footer:end -->\n"), 0o644); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := Check(dir); err != nil {
