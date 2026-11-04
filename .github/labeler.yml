@@ -1,0 +1,33 @@
+# Path labels for pull requests. This file is the one owner of the path to
+# label mapping: the release drafter categories and the stale exemptions read
+# the same label names.
+"area: console":
+  - changed-files:
+      - any-glob-to-any-file: "internal/ui/**"
+
+"area: api":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "internal/api/**"
+          - "cmd/**"
+
+"area: inference":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "internal/engine/**"
+          - "internal/sidecar/**"
+
+"area: docs":
+  - changed-files:
+      - any-glob-to-any-file: "docs/**"
+
+"area: ci":
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/workflows/**"
+          - ".github/actionlint.yaml"
+          - ".github/actionlint.yml"
+          - ".github/dependabot.yml"
+          - ".github/labeler.yml"
+          - ".github/release-drafter.yml"
+          - "scripts/ci/**"

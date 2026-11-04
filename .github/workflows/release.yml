@@ -281,8 +281,31 @@ jobs:
         uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2
         with:
           subject-checksums: dist/SHA256SUMS
+      # A release that the release drafter published already carries the
+      # drafted body. A tag pushed without a draft still gets generated notes.
+      # Native generation is off in that first case because this action would
+      # otherwise replace the drafted body.
+      - name: release body
+        id: release-body
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          status="$(curl -s -o /dev/null -w '%{http_code}' \
+            -H "Authorization: Bearer ${GH_TOKEN}" \
+            -H "Accept: application/vnd.github+json" \
+            "${GITHUB_API_URL}/repos/${GITHUB_REPOSITORY}/releases/tags/${GITHUB_REF_NAME}")"
+          case "$status" in
+            200) echo "generate=false" >> "$GITHUB_OUTPUT" ;;
+            404) echo "generate=true" >> "$GITHUB_OUTPUT" ;;
+            *)
+              echo "error: release lookup returned $status" >&2
+              exit 1
+              ;;
+          esac
       - name: publish
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
           files: dist/*
-          generate_release_notes: true
+          generate_release_notes: ${{ steps.release-body.outputs.generate }}

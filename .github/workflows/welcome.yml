@@ -1,0 +1,64 @@
+name: first contribution
+
+on:
+  pull_request_target:
+    types: [opened]
+  issues:
+    types: [opened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: welcome-${{ github.event.pull_request.number || github.event.issue.number }}
+  cancel-in-progress: true
+
+jobs:
+  greet:
+    name: greet a first-time contributor
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const item = context.payload.pull_request ?? context.payload.issue;
+            if (item.user.type === "Bot") return;
+            if (!["FIRST_TIME_CONTRIBUTOR", "FIRST_TIMER"].includes(item.author_association)) {
+              return;
+            }
+
+            const marker = "<!-- mailsense-first-contribution -->";
+            // One bounded page is enough: a first contribution with more than
+            // 100 comments is not the case this greeting is for.
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: item.number,
+              per_page: 100,
+            });
+            if (comments.some((comment) => comment.body?.includes(marker))) return;
+
+            const repository = context.payload.repository;
+            const base = repository.html_url;
+            const branch = repository.default_branch;
+            const body = [
+              marker,
+              "Thanks for your first contribution to Mailsense.",
+              "",
+              `- Read [CONTRIBUTING.md](${base}/blob/${branch}/CONTRIBUTING.md) for the build, test, and commit rules.`,
+              `- Participation follows the [Code of Conduct](${base}/blob/${branch}/CODE_OF_CONDUCT.md).`,
+              `- Use the [issue templates](${base}/issues/new/choose) for a bug report or a feature request.`,
+              `- Report a vulnerability through the private channel in [SECURITY.md](${base}/blob/${branch}/SECURITY.md).`,
+            ].join("\n");
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: item.number,
+              body,
+            });
+            core.info(`greeted ${item.user.login} on #${item.number}`);
