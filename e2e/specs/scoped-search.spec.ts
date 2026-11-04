@@ -55,6 +55,10 @@ test("a scoped query keeps the caret in the shell bar while it filters", async (
 test("Companies keeps its placeholder, accessible name and filter across a cached Back", async ({
   app,
 }) => {
+  // A live mail or configuration event would rebuild the node whose identity
+  // the cached-restore probe asserts; this test owns the stream, exactly like
+  // the Logs and Settings cases below.
+  await installFakeEventSource(app.page);
   await mockCompanies(app.page);
   await app.goto("/companies");
   await app.expectRoute("companies");
