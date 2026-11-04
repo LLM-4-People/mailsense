@@ -1235,8 +1235,8 @@ func TestProviderlessAggregateCountAcceptsPlainCountSynonyms(t *testing.T) {
 			question string
 			person   store.PersonCandidate
 		}{
-			{"Amount of deadlines", store.PersonCandidate{Address: "noreply@macrium.com",
-				Name: "Paramount Software UK Limited", Messages: 4}},
+			{"Amount of deadlines", store.PersonCandidate{Address: "noreply@mont-amount.test",
+				Name: "Mont Amount Conseil", Messages: 4}},
 			{"Count of deadlines", store.PersonCandidate{Address: "billing@example.com",
 				Name: "Accounting Team", Messages: 4}},
 		} {
@@ -1630,15 +1630,15 @@ func TestProviderlessAggregateCountRejectsRepeatedCueName(t *testing.T) {
 	}
 }
 
-// TestProviderlessAggregateCountKeepsPlainAmountWithParamountSender pins the
+// TestProviderlessAggregateCountKeepsPlainAmountWithMontAmountSender pins the
 // plain-count side of the entity collision: "amount" is a cue, not a person
-// term, so a sender named Paramount cannot turn "Amount of deadlines" into a
+// term, so a sender named Mont Amount cannot turn "Amount of deadlines" into a
 // person-scoped freeform question.
-func TestProviderlessAggregateCountKeepsPlainAmountWithParamountSender(t *testing.T) {
+func TestProviderlessAggregateCountKeepsPlainAmountWithMontAmountSender(t *testing.T) {
 	w := newWorld(t, false)
 	w.svc.source = &fakeSource{err: ErrUnavailable}
 	w.store.people = []store.PersonCandidate{{
-		Address: "noreply@macrium.com", Name: "Paramount Software UK Limited",
+		Address: "noreply@mont-amount.test", Name: "Mont Amount Conseil",
 		Messages: 4, LastAt: "2026-10-20T09:00:00Z",
 	}}
 	w.prio.byFilter[priority.FilterDeadline] = []priority.Item{item(41, "deadline")}
@@ -1650,7 +1650,7 @@ func TestProviderlessAggregateCountKeepsPlainAmountWithParamountSender(t *testin
 		t.Fatal(err)
 	}
 	if view.Mode != ModeStructured || view.Intent != IntentDeadline || view.Counts["deadline"] != 1 {
-		t.Fatalf("plain amount with a Paramount sender = %+v, want structured/deadline count 1", view)
+		t.Fatalf("plain amount with a MontAmount sender = %+v, want structured/deadline count 1", view)
 	}
 	if len(view.Citations) != 1 || view.Citations[0].MessageID != 41 {
 		t.Fatalf("citations = %+v, want message 41", view.Citations)
@@ -1662,15 +1662,15 @@ func TestProviderlessAggregateCountKeepsPlainAmountWithParamountSender(t *testin
 	}
 }
 
-// TestProviderlessAggregateCountScopesFreeformToBobNotParamount pins the D2
+// TestProviderlessAggregateCountScopesFreeformToBobNotMontAmount pins the D2
 // freeform resolver scope: a count forced freeform by the person frame must
 // consider Bob, never the sender whose name merely contains the cue "amount".
-func TestProviderlessAggregateCountScopesFreeformToBobNotParamount(t *testing.T) {
+func TestProviderlessAggregateCountScopesFreeformToBobNotMontAmount(t *testing.T) {
 	w := newWorld(t, false)
 	w.svc.source = &fakeSource{err: ErrUnavailable}
 	w.store.people = []store.PersonCandidate{
 		{Address: "bob@example.com", Name: "Bob Martin", Messages: 3, LastAt: "2026-10-20T09:00:00Z"},
-		{Address: "noreply@macrium.com", Name: "Paramount Software UK Limited", Messages: 4, LastAt: "2026-10-21T09:00:00Z"},
+		{Address: "noreply@mont-amount.test", Name: "Mont Amount Conseil", Messages: 4, LastAt: "2026-10-21T09:00:00Z"},
 	}
 	w.prio.byFilter[priority.FilterDeadline] = []priority.Item{item(41, "deadline")}
 	w.prio.totals[priority.FilterDeadline] = 1
@@ -1684,24 +1684,24 @@ func TestProviderlessAggregateCountScopesFreeformToBobNotParamount(t *testing.T)
 		t.Fatalf("the Bob-scoped count answered as %+v", view)
 	}
 	if view.Clarify != nil {
-		t.Fatalf("the freeform resolver offered a Paramount/Bob clarification: %+v", view.Clarify)
+		t.Fatalf("the freeform resolver offered a MontAmount/Bob clarification: %+v", view.Clarify)
 	}
-	var bob, amount, paramount bool
+	var bob, amount, montamount bool
 	for _, term := range w.store.personTerms {
 		switch term {
 		case "bob":
 			bob = true
 		case "amount":
 			amount = true
-		case "paramount":
-			paramount = true
+		case "montamount":
+			montamount = true
 		}
 	}
 	if !bob {
 		t.Fatalf("Bob was not considered by the freeform resolver (terms %v)", w.store.personTerms)
 	}
-	if amount || paramount {
-		t.Fatalf("Paramount/cue terms leaked into the freeform person query: %v", w.store.personTerms)
+	if amount || montamount {
+		t.Fatalf("MontAmount/cue terms leaked into the freeform person query: %v", w.store.personTerms)
 	}
 }
 

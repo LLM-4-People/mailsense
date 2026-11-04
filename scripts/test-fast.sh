@@ -7,7 +7,7 @@
 # are refused because the gate owns the package partition.
 #
 # The exhaustive gate runs one `go test ./...` under -race. This gate keeps
-# the same gofmt, script and vet checks, runs three ordinary test shards
+# the same gofmt, script, PII and vet checks, runs three ordinary test shards
 # concurrently, runs the port-sensitive sidecar suite alone, and enables
 # -race only on the concurrency surface the recent work changed (qa, api).
 # New packages land in shard C automatically, so nothing can be skipped.
@@ -46,6 +46,7 @@ done
 gate_gofmt
 gate_scripts
 "$ROOT/scripts/check-generated.sh"
+run_stage "PII residue check" "$ROOT/scripts/check-pii.sh"
 gate_vet
 gate_race_flags
 

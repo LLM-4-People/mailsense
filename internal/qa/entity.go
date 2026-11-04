@@ -124,7 +124,7 @@ func entityMentionExcept(question string, ignore map[string]bool) entityMentions
 
 // aggregateCountEntityMentions narrows the person terms of a plain count: a
 // count cue is not a name. Without this, "Amount of deadlines" resolves a
-// sender named "Paramount ..." because personEvidence uses substring matching,
+// sender named "Mont Amount ..." because personEvidence uses substring matching,
 // and "Count of deadlines" can resolve "Accounting"; the plain count would
 // then be deferred to freeform for the wrong reason. A category noun in the
 // person-subject position is added back as a term, so a person actually named

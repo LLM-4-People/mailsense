@@ -628,7 +628,7 @@ func (s *Service) providerlessCountScopeAllowed(ctx context.Context, question st
 // error. A failed person read is not "no person": the caller must keep the
 // question freeform so a person-scoped count cannot answer a mailbox total.
 // The plain-count wording resolves with the count cues removed: a cue word is
-// not a name, so "Amount of deadlines" cannot match a sender named Paramount
+// not a name, so "Amount of deadlines" cannot match a sender named Mont Amount
 // and "Count of deadlines" cannot match Accounting.
 func (s *Service) questionNamesPerson(ctx context.Context, question string) (bool, error) {
 	entities, err := s.resolveEntityMentionsChecked(ctx, aggregateCountEntityMentions(question), question, true)
@@ -658,7 +658,7 @@ func (s *Service) askFreeform(ctx context.Context, view AskView, question, langu
 	// A recognized count that was forced onto the freeform path resolves
 	// through the same cue-filtered mentions as the strict provider-less
 	// scope gate. A cue word is not a name: "amount" must not select a sender
-	// named Paramount when the question also names Bob. Non-count freeform
+	// named Mont Amount when the question also names Bob. Non-count freeform
 	// questions keep the ordinary resolver.
 	if aggregateCountRequest(mail.Fold(strings.TrimSpace(question))) {
 		// A count that named an entity must not fall back to a mailbox-wide

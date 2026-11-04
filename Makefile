@@ -1,13 +1,14 @@
 # Thin front door for the maintained scripts. Every target delegates: the
 # scripts own the flags, the sharding and the environment, so a Makefile target
 # cannot drift from CI or from a developer's terminal.
-.PHONY: help build build-linux build-windows test fast ui race site site-check release clean
+.PHONY: help build build-linux build-windows test fast pii ui race site site-check release clean
 
 help:
 	@printf '%s\n' \
 	  'make build        build Linux and Windows binaries into dist/' \
 	  'make test         exhaustive release gate (scripts/test.sh)' \
 	  'make fast         fast inner gate (scripts/test-fast.sh)' \
+	  'make pii          scan tracked files for personal data and environment residue' \
 	  'make ui           Playwright suite (scripts/test-ui.sh)' \
 	  'make race         whole tree under -race (scripts/test-race.sh)' \
 	  'make site         regenerate the public pages and brand assets' \
@@ -25,6 +26,9 @@ build-windows:
 
 fast:
 	scripts/test-fast.sh
+
+pii:
+	scripts/check-pii.sh
 
 test:
 	scripts/test.sh

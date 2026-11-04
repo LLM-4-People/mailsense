@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Run the exhaustive quality gate: gofmt, go vet (host and Windows tags),
-# and every package's tests in parallel.
+# the PII residue scan, and every package's tests in parallel.
 # The inner loop is scripts/test-fast.sh; this gate is the release check, and
 # scripts/test-race.sh is the exhaustive race check.
 #
@@ -24,6 +24,7 @@ PARALLEL="${PARALLEL:-8}"
 
 gate_gofmt
 gate_scripts
+run_stage "PII residue check" "$ROOT/scripts/check-pii.sh"
 gate_vet
 gate_race_flags
 
