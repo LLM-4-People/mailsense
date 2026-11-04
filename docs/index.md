@@ -16,7 +16,7 @@ attention first. It shows the reason for every verdict, learns from your
 corrections, and keeps the whole record in a local database you can inspect. The
 Linux build is a preview without a live mail source.
 
-[Français](fr/) · [Install](install.md) · [First run](first-run.md) · [Mailboxes](mailboxes.md) · [Providers](providers.md) · [Learning](learning.md) · [FAQ](faq.md) · [Privacy](privacy.md) · [Security](security.md) · [Troubleshooting](troubleshooting.md) · [Contributing](contributing.md)
+[Français](fr/) · [Install](install.md) · [First run](first-run.md) · [Console](console.md) · [Mailboxes](mailboxes.md) · [Providers](providers.md) · [Learning](learning.md) · [FAQ](faq.md) · [Privacy](privacy.md) · [Security](security.md) · [Troubleshooting](troubleshooting.md) · [Contributing](contributing.md)
 
 ![Mailsense](assets/banner-en.svg)
 

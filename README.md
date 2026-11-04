@@ -14,7 +14,7 @@ Linux build is a preview without a live mail source.
 
 ![Mailsense](docs/assets/banner-en.svg)
 
-[Français](docs/fr/index.md) · [Documentation](docs/index.md) · [Install](docs/install.md) · [First run](docs/first-run.md) · [Mailboxes](docs/mailboxes.md) · [Providers](docs/providers.md) · [Learning](docs/learning.md) · [FAQ](docs/faq.md) · [Privacy](docs/privacy.md) · [Security](docs/security.md) · [Troubleshooting](docs/troubleshooting.md) · [Contributing](docs/contributing.md)
+[Français](docs/fr/index.md) · [Documentation](docs/index.md) · [Install](docs/install.md) · [First run](docs/first-run.md) · [Console](docs/console.md) · [Mailboxes](docs/mailboxes.md) · [Providers](docs/providers.md) · [Learning](docs/learning.md) · [FAQ](docs/faq.md) · [Privacy](docs/privacy.md) · [Security](docs/security.md) · [Troubleshooting](docs/troubleshooting.md) · [Contributing](docs/contributing.md)
 
 ## What it does
 

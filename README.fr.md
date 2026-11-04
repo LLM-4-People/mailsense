@@ -14,7 +14,7 @@ inspecter. La version Linux est un aperçu sans source de courrier en direct.
 
 ![Mailsense](docs/assets/banner-fr.svg)
 
-[English](README.md) · [Documentation](docs/fr/index.md) · [Installation](docs/fr/install.md) · [Premier démarrage](docs/fr/first-run.md) · [Boîtes](docs/fr/mailboxes.md) · [Fournisseurs](docs/fr/providers.md) · [Apprentissage](docs/fr/learning.md) · [FAQ](docs/fr/faq.md) · [Confidentialité](docs/fr/privacy.md) · [Sécurité](docs/fr/security.md) · [Dépannage](docs/fr/troubleshooting.md) · [Contribuer](docs/fr/contributing.md)
+[English](README.md) · [Documentation](docs/fr/index.md) · [Installation](docs/fr/install.md) · [Premier démarrage](docs/fr/first-run.md) · [Console](docs/fr/console.md) · [Boîtes](docs/fr/mailboxes.md) · [Fournisseurs](docs/fr/providers.md) · [Apprentissage](docs/fr/learning.md) · [FAQ](docs/fr/faq.md) · [Confidentialité](docs/fr/privacy.md) · [Sécurité](docs/fr/security.md) · [Dépannage](docs/fr/troubleshooting.md) · [Contribuer](docs/fr/contributing.md)
 
 ## Ce qu'il fait
 

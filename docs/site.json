@@ -35,6 +35,13 @@
       }
     },
     {
+      "key": "console",
+      "label": {
+        "en": "Console",
+        "fr": "Console"
+      }
+    },
+    {
       "key": "mailboxes",
       "label": {
         "en": "Mailboxes",

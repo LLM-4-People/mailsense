@@ -16,7 +16,7 @@ votre attention en premier. Il montre la raison de chaque verdict, apprend de
 vos corrections et conserve tout le dossier dans une base locale que vous pouvez
 inspecter. La version Linux est un aperçu sans source de courrier en direct.
 
-[English](../) · [Installation](install.md) · [Premier démarrage](first-run.md) · [Boîtes](mailboxes.md) · [Fournisseurs](providers.md) · [Apprentissage](learning.md) · [FAQ](faq.md) · [Confidentialité](privacy.md) · [Sécurité](security.md) · [Dépannage](troubleshooting.md) · [Contribuer](contributing.md)
+[English](../) · [Installation](install.md) · [Premier démarrage](first-run.md) · [Console](console.md) · [Boîtes](mailboxes.md) · [Fournisseurs](providers.md) · [Apprentissage](learning.md) · [FAQ](faq.md) · [Confidentialité](privacy.md) · [Sécurité](security.md) · [Dépannage](troubleshooting.md) · [Contribuer](contributing.md)
 
 ![Mailsense](../assets/banner-fr.svg)
 
