@@ -57,10 +57,9 @@ files. There is no separate diagnostics export bundle.
 
 ## Where the data is
 
-The status bar shows the data directory. It is
-`%LOCALAPPDATA%\Mailsense` on Windows and
-`${XDG_DATA_HOME:-~/.local/share}/mailsense` on Linux. Set
-`MAILSENSE_DATA_DIR` before launch to use another directory.
+The status bar shows the data directory. On Windows it is
+`%LOCALAPPDATA%\Mailsense`. Set `MAILSENSE_DATA_DIR` before launch to use
+another directory.
 
 <!-- footer:start -->
 [Source](https://github.com/LLM-4-People/mailsense) · AGPL-3.0-or-later · [Documentation](https://llm-4-people.github.io/mailsense/) · [Privacy](privacy.md)

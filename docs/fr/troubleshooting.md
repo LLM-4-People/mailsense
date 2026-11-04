@@ -65,10 +65,9 @@ diagnostic séparé.
 
 ## Où sont les données
 
-La barre d'état affiche le répertoire de données. C'est
-`%LOCALAPPDATA%\Mailsense` sous Windows et
-`${XDG_DATA_HOME:-~/.local/share}/mailsense` sous Linux. Définissez
-`MAILSENSE_DATA_DIR` avant le lancement pour en utiliser un autre.
+La barre d'état affiche le répertoire de données. Sous Windows, c'est
+`%LOCALAPPDATA%\Mailsense`. Définissez `MAILSENSE_DATA_DIR` avant le lancement
+pour en utiliser un autre.
 
 <!-- footer:start -->
 [Code source](https://github.com/LLM-4-People/mailsense) · AGPL-3.0-or-later · [Documentation](https://llm-4-people.github.io/mailsense/fr/) · [Confidentialité](privacy.md)

@@ -17,9 +17,8 @@ exists.
   It pre-fetches the data directory, database size, zone, language, sources,
   stores, providers, runtime, learning stage and held removals, and each read
   fails independently with its own retry.
-- Installer assets: a per-user Windows Inno Setup script and a Linux
-  `install.sh` with a desktop entry. One version owner stamps the binaries,
-  the installer name, the tarball name and the About surface.
+- Installer assets: a per-user Windows Inno Setup script. One version owner
+  stamps the binary, the installer name and the About surface.
 - A generated bilingual site with a restrained palette, system fonts only,
   accessible brand art, and a ranked-queue illustration built from invented
   senders.
@@ -28,11 +27,11 @@ exists.
   Pages, dependabot, issue and pull-request templates.
 
 ### Changed
+- The release ships the Windows installer only. The source still builds on
+  Linux as a preview with an empty inbox, and that build is not a release
+  download.
 - CI now verifies that the committed generated UI bundles match their sources,
   and a failed gate stage names the command that reruns only that stage.
-- The Linux tarball is built by `packaging/linux/package.sh`, ships its own
-  checksum and the generated brand assets, and the release workflow calls it
-  instead of rebuilding the payload inline.
 - GitHub automation now covers actionlint, a generated-site link crawl, pull
   request titles and sizes, path labels, release drafting, OSSF Scorecard, Go
   dependency submission, first-contribution guidance and a stale policy that
