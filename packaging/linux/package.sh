@@ -36,6 +36,10 @@ rm -rf -- "$stage"
 mkdir -p -- "${stage}/docs/fr"
 cp "${ROOT}/dist/mailsense" "${ROOT}/packaging/linux/install.sh" \
 	"${ROOT}/README.md" "${ROOT}/LICENSE" "${ROOT}/NOTICE" "$stage/"
+# The README and the landing pages point at the generated brand assets, so the
+# package must carry them beside the pages, not only in the repository.
+mkdir -p -- "${stage}/docs"
+cp -R -- "${ROOT}/docs/assets" "${stage}/docs/"
 printf '%s\n' "$version" >"${stage}/VERSION"
 
 for lang in en fr; do
