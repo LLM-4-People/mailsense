@@ -1,7 +1,6 @@
 import { expect, test, type Browser, type Page } from "@playwright/test";
 import { mkdirSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { pathToFileURL } from "node:url";
 import { fulfillJson, mockApi, type Mock } from "../fixtures/mock";
 import { startServer, stopServer } from "../fixtures/server";
 import {
@@ -336,20 +335,19 @@ async function captureSocialPreview(browser: Browser): Promise<void> {
     colorScheme: "light",
   });
   const page = await context.newPage();
-  await page.goto(pathToFileURL(source).href);
-  await page.evaluate(() => {
-    const html = document.documentElement;
-    html.style.margin = "0";
-    html.style.background = "#f7f3ea";
-    html.style.overflow = "hidden";
-    if (document.body) document.body.style.margin = "0";
-    const svg = document.querySelector("svg");
-    if (svg) {
-      svg.style.display = "block";
-      svg.style.width = "100vw";
-      svg.style.height = "100vh";
-    }
-  });
-  await page.screenshot({ path: target, animations: "disabled" });
+  // A standalone SVG document has no HTML element to paint a background, so
+  // Chrome letterboxes it on black. Render it inside one exact-size page
+  // instead, which also removes any scrollbar or aspect-ratio gap.
+  const svgMarkup = readFileSync(source, "utf8");
+  await page.setContent(
+    `<!doctype html><html><head><meta charset="utf-8"><style>
+      html, body { margin: 0; padding: 0; background: #f7f3ea; }
+      svg { display: block; width: ${media.social_width}px; height: ${media.social_height}px; }
+    </style></head><body>${svgMarkup}</body></html>`,
+    { waitUntil: "load" },
+  );
+  // Capture the element, not the page, so no scrollbar or page background can
+  // add a border around the card.
+  await page.locator("svg").screenshot({ path: target, animations: "disabled" });
   await context.close();
 }
