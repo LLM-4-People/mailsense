@@ -11,6 +11,7 @@ import (
 	"errors"
 	"github.com/LLM-4-People/mailsense/internal/digest"
 	"github.com/LLM-4-People/mailsense/internal/engine"
+	"github.com/LLM-4-People/mailsense/internal/fsx"
 	"github.com/LLM-4-People/mailsense/internal/jsonx"
 	"github.com/LLM-4-People/mailsense/internal/vector"
 	"log/slog"
@@ -106,19 +107,24 @@ func TestUnzipAndManifestVerification(t *testing.T) {
 		t.Fatalf("%v %+v", err, files)
 	}
 	l := &layout{root: dir}
+	root, err := os.OpenRoot(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer root.Close()
 	for name, e := range files {
-		if err := l.verifyEntry(dir, name, e); err != nil {
+		if err := l.verifyEntry(root, name, e); err != nil {
 			t.Fatal(err)
 		}
 	}
 	// The stamp cache: an unchanged file is not hashed again, a changed one is.
 	time.Sleep(10 * time.Millisecond) // a different modification time
 	_ = os.WriteFile(filepath.Join(dir, "ggml.dll"), []byte("DLL"), 0o600)
-	if err := l.verifyEntry(dir, "ggml.dll", files["ggml.dll"]); !errors.Is(err, ErrHash) {
+	if err := l.verifyEntry(root, "ggml.dll", files["ggml.dll"]); !errors.Is(err, ErrHash) {
 		t.Fatalf("a changed file: %v", err)
 	}
 	_ = os.Remove(filepath.Join(dir, "ggml.dll"))
-	if err := l.verifyEntry(dir, "ggml.dll", files["ggml.dll"]); err == nil {
+	if err := l.verifyEntry(root, "ggml.dll", files["ggml.dll"]); err == nil {
 		t.Fatal("a missing file")
 	}
 	if err := unlisted(dir, manifest{Files: map[string]FileEntry{"bin/llama-server.exe": {}}}); err != nil {
@@ -127,6 +133,27 @@ func TestUnzipAndManifestVerification(t *testing.T) {
 	_ = os.WriteFile(filepath.Join(dir, "planted.dll"), []byte("x"), 0o600)
 	if err := unlisted(dir, manifest{Files: map[string]FileEntry{"bin/llama-server.exe": {}}}); !errors.Is(err, ErrHash) {
 		t.Fatalf("a planted file is refused: %v", err)
+	}
+}
+
+// A catalog name that would leave sidecar.dir is refused before the
+// filesystem sees it, whichever layout path is built from it.
+func TestLayoutRefusesPathsOutsideTheInstallRoot(t *testing.T) {
+	l := &layout{root: t.TempDir()}
+	b := Build{
+		Runtime:     filepath.Join("..", "evil"),
+		RuntimeSpec: Runtime{Version: "1.0"},
+		Variant:     "cpu",
+		ModelFile:   Artifact{Name: filepath.Join("..", "..", "model.gguf")},
+	}
+	if _, err := l.contained(l.build(b)); !errors.Is(err, fsx.ErrUnsafePath) {
+		t.Fatalf("build directory: want ErrUnsafePath, got %v", err)
+	}
+	if _, err := l.contained(l.model(b)); !errors.Is(err, fsx.ErrUnsafePath) {
+		t.Fatalf("model file: want ErrUnsafePath, got %v", err)
+	}
+	if _, err := l.manifest(b); !errors.Is(err, fsx.ErrUnsafePath) {
+		t.Fatalf("manifest: want ErrUnsafePath, got %v", err)
 	}
 }
 

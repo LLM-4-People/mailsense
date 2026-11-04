@@ -208,7 +208,7 @@ func (m *Manager) healthy(ctx context.Context, c *child, b Build) error {
 	ctx, cancel := context.WithTimeout(ctx, m.cfg.Duration("sidecar.health.interval"))
 	defer cancel()
 	ctx = httpx.WithPolicy(ctx, func(p *httpx.Policy) { p.MaxAttempts = 1 })
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.url+b.RuntimeSpec.HealthPath, nil)
+	req, err := httpx.NewRequest(ctx, http.MethodGet, c.url+b.RuntimeSpec.HealthPath, nil)
 	if err != nil {
 		return err
 	}

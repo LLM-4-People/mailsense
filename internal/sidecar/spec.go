@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"maps"
 	"math"
-	"net/url"
 	"path/filepath"
 	"regexp"
 	"slices"
@@ -14,6 +13,7 @@ import (
 
 	"github.com/LLM-4-People/mailsense/internal/config"
 	"github.com/LLM-4-People/mailsense/internal/engine"
+	"github.com/LLM-4-People/mailsense/internal/httpx"
 	"github.com/LLM-4-People/mailsense/internal/jsonx"
 )
 
@@ -336,8 +336,8 @@ func (a *Artifact) problems(where string) []string {
 	if !nameRE.MatchString(a.Name) {
 		out = append(out, fmt.Sprintf("%s: name %q must be a plain file name", where, a.Name))
 	}
-	if u, err := url.Parse(a.URL); err != nil || (u.Scheme != "https" && u.Scheme != "http") || u.Host == "" {
-		out = append(out, fmt.Sprintf("%s: url %q must be an absolute http(s) URL", where, a.URL))
+	if err := httpx.ValidateURLString(a.URL); err != nil {
+		out = append(out, fmt.Sprintf("%s: url must be an absolute http(s) URL without credentials or a metadata host: %v", where, err))
 	}
 	if !sha256RE.MatchString(a.SHA256) || a.Size < 1 {
 		out = append(out, where+": sha256 (64 lower-case hex digits) and a positive size are required")

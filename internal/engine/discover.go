@@ -74,8 +74,8 @@ func NormalizeDiscoverRequest(req DiscoverRequest) (DiscoverRequest, error) {
 	if base == "" {
 		return req, fmt.Errorf("%w: base_url is required", ErrDiscoveryInvalidRequest)
 	}
-	if !validEndpointURL(base) {
-		return req, fmt.Errorf("%w: base_url must be an absolute http(s) URL without credentials, query or fragment", ErrDiscoveryInvalidRequest)
+	if err := endpointURLError(base); err != nil {
+		return req, fmt.Errorf("%w: base_url %v", ErrDiscoveryInvalidRequest, err)
 	}
 	req.BaseURL = base
 	req.Protocol = strings.TrimSpace(req.Protocol)
@@ -107,9 +107,9 @@ func DiscoverModels(ctx context.Context, deps Deps, req DiscoverRequest) ([]Prov
 	}
 	host := u.Host
 
-	httpReq, err := http.NewRequestWithContext(ctx, http.MethodGet, modelsURL, nil)
+	httpReq, err := httpx.NewRequest(ctx, http.MethodGet, modelsURL, nil)
 	if err != nil {
-		return nil, fmt.Errorf("%w: %s: %v", ErrDiscoveryFailed, host, err)
+		return nil, fmt.Errorf("%w: %s: %v", ErrDiscoveryInvalidRequest, host, err)
 	}
 	httpReq.Header.Set("Accept", "application/json")
 	httpx.SetBearer(httpReq, key)

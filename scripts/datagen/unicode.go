@@ -127,14 +127,22 @@ func asciiLetters(src string, chars map[rune]char) (map[string]string, error) {
 		return nil, err
 	}
 	folded := map[rune]bool{}
+	var bad error
 	if err := eachRecord(filepath.Join(src, ucdFolding), func(f []string) {
-		if len(f) >= 3 && (f[1] == "C" || f[1] == "F") {
-			if r, _, ok := codeRange(f[0]); ok {
-				folded[r] = true
-			}
+		if bad != nil || len(f) < 3 || (f[1] != "C" && f[1] != "F") {
+			return
 		}
+		r, _, err := codeRange(f[0])
+		if err != nil {
+			bad = fmt.Errorf("%s: %w", ucdFolding, err)
+			return
+		}
+		folded[r] = true
 	}); err != nil {
 		return nil, err
+	}
+	if bad != nil {
+		return nil, bad
 	}
 	raw, err := os.ReadFile(filepath.Join(src, cldrLatin))
 	if err != nil {
@@ -177,9 +185,9 @@ func questionMarksAfterScript(src string, chars map[rune]char, marks []string) (
 		if len(d) != 1 || strings.HasPrefix(d[0], "<") {
 			continue // no canonical singleton
 		}
-		target, _, ok := codeRange(d[0])
-		if !ok {
-			return nil, fmt.Errorf("%U: decomposition %q", []rune(m)[0], c.decomposition)
+		target, _, err := codeRange(d[0])
+		if err != nil {
+			return nil, fmt.Errorf("%U: decomposition %q: %w", []rune(m)[0], c.decomposition, err)
 		}
 		for _, sc := range scripts {
 			if strings.HasPrefix(c.name, strings.ToUpper(strings.ReplaceAll(sc, "_", " "))+" ") && !slices.Contains(out[string(target)], sc) {

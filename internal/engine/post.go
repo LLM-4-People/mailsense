@@ -33,7 +33,7 @@ type PostPolicy struct {
 // httpErr for anything the provider or the connection failed after that.
 func SentinelPolicy(provider string, input, httpErr error) PostPolicy {
 	return PostPolicy{
-		Input:     func(err error) error { return fmt.Errorf("%w: %v", input, err) },
+		Input:     func(err error) error { return fmt.Errorf("%w: %w", input, err) },
 		Transport: func(err error) error { return fmt.Errorf("%w: %s: %w", httpErr, provider, err) },
 		Read:      func(err error) error { return fmt.Errorf("%w: %s: read response: %v", httpErr, provider, err) },
 	}
@@ -44,7 +44,7 @@ func SentinelPolicy(provider string, input, httpErr error) PostPolicy {
 // cancelled during the exchange is the context's error, never a provider
 // failure: the run stopped for another reason.
 func PostJSON(ctx context.Context, cfg *config.Config, client *http.Client, p *Provider, spec PostSpec, policy PostPolicy) (int, []byte, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, spec.URL, bytes.NewReader(spec.Body))
+	req, err := httpx.NewRequest(ctx, http.MethodPost, spec.URL, bytes.NewReader(spec.Body))
 	if err != nil {
 		return 0, nil, policy.Input(err)
 	}

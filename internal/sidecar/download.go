@@ -14,6 +14,7 @@ import (
 
 	"github.com/LLM-4-People/mailsense/internal/digest"
 	"github.com/LLM-4-People/mailsense/internal/fsx"
+	"github.com/LLM-4-People/mailsense/internal/httpx"
 )
 
 // downloader fetches pinned artifacts: into <name>.part, resumed with an
@@ -91,7 +92,7 @@ func (d *downloader) resume(ctx context.Context, a Artifact, part string, progre
 	if have == a.Size {
 		return nil
 	}
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, a.URL, nil)
+	req, err := httpx.NewRequest(ctx, http.MethodGet, a.URL, nil)
 	if err != nil {
 		return err
 	}

@@ -7,10 +7,12 @@ import (
 	"net/http/httptest"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"testing"
 
 	"github.com/LLM-4-People/mailsense/internal/config/configtest"
 	"github.com/LLM-4-People/mailsense/internal/engine"
+	"github.com/LLM-4-People/mailsense/internal/httpx"
 	"github.com/LLM-4-People/mailsense/internal/secrets"
 )
 
@@ -286,6 +288,35 @@ func TestDiscoverModelsUnknownPriceUnitOmitPrices(t *testing.T) {
 	}
 }
 
+type countingTransport struct{ calls atomic.Int32 }
+
+func (c *countingTransport) RoundTrip(*http.Request) (*http.Response, error) {
+	c.calls.Add(1)
+	return nil, errors.New("the network must not be reached")
+}
+
+// A provider request whose URL the policy refuses is stopped by the client,
+// not written to the network, whatever built the request.
+func TestProviderRequestToRefusedURLNeverReachesTheNetwork(t *testing.T) {
+	base := &countingTransport{}
+	cfg := configtest.New(t, map[string]any{"http.retry.max_attempts": 3})
+	client, err := httpx.New(cfg, nil, "provider.test", httpx.WithBaseTransport(base))
+	if err != nil {
+		t.Fatal(err)
+	}
+	inputErr, httpErr := errors.New("input"), errors.New("http")
+	policy := engine.SentinelPolicy("provider.test", inputErr, httpErr)
+
+	_, _, err = engine.PostJSON(t.Context(), cfg, client, &engine.Provider{ID: "provider.test", Protocol: engine.ProtocolOpenAIChat},
+		engine.PostSpec{URL: "http://169.254.169.254/v1/chat/completions", Body: []byte(`{}`)}, policy)
+	if !errors.Is(err, httpx.ErrURLRefused) {
+		t.Fatalf("want ErrURLRefused, got %v", err)
+	}
+	if calls := base.calls.Load(); calls != 0 {
+		t.Fatalf("the base transport was called %d times", calls)
+	}
+}
+
 func TestNormalizeDiscoverRequest(t *testing.T) {
 	for _, tc := range []struct {
 		name string
@@ -298,6 +329,11 @@ func TestNormalizeDiscoverRequest(t *testing.T) {
 		{"relative", engine.DiscoverRequest{BaseURL: "/v1"}, false},
 		{"other scheme", engine.DiscoverRequest{BaseURL: "ftp://example.test/v1"}, false},
 		{"query", engine.DiscoverRequest{BaseURL: "https://example.test/v1?key=x"}, false},
+		{"credentials", engine.DiscoverRequest{BaseURL: "https://user:pass@example.test/v1"}, false},
+		{"metadata", engine.DiscoverRequest{BaseURL: "http://169.254.169.254"}, false},
+		{"link-local IPv6", engine.DiscoverRequest{BaseURL: "http://[fe80::1]/v1"}, false},
+		{"control character", engine.DiscoverRequest{BaseURL: "http://exa\nmple.test/v1"}, false},
+		{"local runtime", engine.DiscoverRequest{BaseURL: "http://192.168.1.10:8080/v1"}, true},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			req, err := engine.NormalizeDiscoverRequest(tc.req)

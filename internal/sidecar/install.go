@@ -27,6 +27,14 @@ type layout struct {
 
 func (l *layout) downloads() string { return filepath.Join(l.root, "downloads") }
 
+// contained proves that path is inside the install root. Every catalog name
+// that becomes a file name passes here before the filesystem sees it: the
+// catalog already validates plain names, and this is the path-level
+// invariant that keeps a name from leaving sidecar.dir.
+func (l *layout) contained(path string) (string, error) {
+	return fsx.Within(l.root, path)
+}
+
 func (l *layout) build(b Build) string {
 	return filepath.Join(l.root, b.Runtime+"-"+b.RuntimeSpec.Version+"-"+b.Variant)
 }
@@ -53,11 +61,23 @@ type manifest struct {
 // intact, no file that is not listed: a planted DLL is refused), and the
 // manifest against the pins (a changed pin means a new install).
 func (l *layout) verify(b Build) error {
-	if err := l.verifyFile(l.model(b), b.ModelFile.SHA256, b.ModelFile.Size); err != nil {
+	model, err := l.contained(l.model(b))
+	if err != nil {
 		return err
 	}
-	dir := l.build(b)
-	man, err := readManifest(dir)
+	if err := l.verifyFile(model, b.ModelFile.SHA256, b.ModelFile.Size); err != nil {
+		return err
+	}
+	dir, err := l.contained(l.build(b))
+	if err != nil {
+		return err
+	}
+	root, err := os.OpenRoot(dir)
+	if err != nil {
+		return err
+	}
+	defer root.Close()
+	man, err := readManifest(root)
 	if err != nil {
 		return err
 	}
@@ -71,21 +91,36 @@ func (l *layout) verify(b Build) error {
 		return err
 	}
 	for _, name := range slices.Sorted(maps.Keys(man.Files)) {
-		if err := l.verifyEntry(dir, name, man.Files[name]); err != nil {
+		if err := l.verifyEntry(root, name, man.Files[name]); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-func readManifest(dir string) (manifest, error) {
+// manifest reads b's manifest through a root opened on its contained build
+// directory.
+func (l *layout) manifest(b Build) (manifest, error) {
+	dir, err := l.contained(l.build(b))
+	if err != nil {
+		return manifest{}, err
+	}
+	root, err := os.OpenRoot(dir)
+	if err != nil {
+		return manifest{}, err
+	}
+	defer root.Close()
+	return readManifest(root)
+}
+
+func readManifest(root *os.Root) (manifest, error) {
 	var man manifest
-	raw, err := os.ReadFile(filepath.Join(dir, manifestName))
+	raw, err := root.ReadFile(manifestName)
 	if err != nil {
 		return man, err
 	}
 	if err := jsonx.DecodeStrict(raw, &man); err != nil {
-		return man, fmt.Errorf("%w: %s: %v", ErrHash, dir, err)
+		return man, fmt.Errorf("%w: %s: %v", ErrHash, root.Name(), err)
 	}
 	return man, nil
 }
@@ -110,19 +145,18 @@ func unlisted(dir string, man manifest) error {
 	})
 }
 
-func (l *layout) verifyEntry(dir, name string, e FileEntry) error {
+func (l *layout) verifyEntry(root *os.Root, name string, e FileEntry) error {
 	p, err := local(name)
 	if err != nil {
 		return err
 	}
-	p = filepath.Join(dir, p)
 	if e.Link != "" {
-		if got, err := os.Readlink(p); err != nil || got != e.Link {
-			return fmt.Errorf("%w: link %s changed", ErrHash, p)
+		if got, err := root.Readlink(p); err != nil || got != e.Link {
+			return fmt.Errorf("%w: link %s changed", ErrHash, filepath.Join(root.Name(), p))
 		}
 		return nil
 	}
-	return l.verifyFile(p, e.SHA256, e.Size)
+	return l.verifyFile(filepath.Join(root.Name(), p), e.SHA256, e.Size)
 }
 
 // verifyFile is verifyFile with the stamp cache.
@@ -166,7 +200,11 @@ func (m *Manager) install(ctx context.Context, b Build, report func(done, total 
 		total += a.Size
 	}
 	prog := &progress{total: total, report: report}
-	if err := m.dl.fetch(ctx, b.ModelFile, m.layout.model(b), prog.at(0)); err != nil {
+	model, err := m.layout.contained(m.layout.model(b))
+	if err != nil {
+		return err
+	}
+	if err := m.dl.fetch(ctx, b.ModelFile, model, prog.at(0)); err != nil {
 		return err
 	}
 	if err := m.layout.verify(b); err == nil {
@@ -175,7 +213,11 @@ func (m *Manager) install(ctx context.Context, b Build, report func(done, total 
 	}
 	offset := b.ModelFile.Size
 	for _, a := range b.Spec.Artifacts {
-		if err := m.dl.fetch(ctx, a, filepath.Join(m.layout.downloads(), a.Name), prog.at(offset)); err != nil {
+		dest, err := m.layout.contained(filepath.Join(m.layout.downloads(), a.Name))
+		if err != nil {
+			return err
+		}
+		if err := m.dl.fetch(ctx, a, dest, prog.at(offset)); err != nil {
 			return err
 		}
 		offset += a.Size
@@ -188,14 +230,24 @@ func (m *Manager) install(ctx context.Context, b Build, report func(done, total 
 }
 
 func (m *Manager) unpackBuild(b Build) error {
-	dir := m.layout.build(b)
-	tmp := dir + ".installing"
+	dir, err := m.layout.contained(m.layout.build(b))
+	if err != nil {
+		return err
+	}
+	tmp, err := m.layout.contained(dir + ".installing")
+	if err != nil {
+		return err
+	}
 	if err := fsx.RemoveAll(tmp, m.replace()); err != nil {
 		return err
 	}
 	man := manifest{Artifacts: pins(b), Files: map[string]FileEntry{}}
 	for _, a := range b.Spec.Artifacts {
-		files, err := unpack(filepath.Join(m.layout.downloads(), a.Name), a.Unpack, tmp)
+		archive, err := m.layout.contained(filepath.Join(m.layout.downloads(), a.Name))
+		if err != nil {
+			return err
+		}
+		files, err := unpack(archive, a.Unpack, tmp)
 		if err != nil {
 			_ = fsx.RemoveAll(tmp, m.replace())
 			return fmt.Errorf("sidecar: unpack %s: %w", a.Name, err)
@@ -212,7 +264,9 @@ func (m *Manager) unpackBuild(b Build) error {
 		return err
 	}
 	for _, a := range b.Spec.Artifacts {
-		_ = fsx.Remove(filepath.Join(m.layout.downloads(), a.Name), m.replace())
+		if archive, err := m.layout.contained(filepath.Join(m.layout.downloads(), a.Name)); err == nil {
+			_ = fsx.Remove(archive, m.replace())
+		}
 	}
 	return nil
 }

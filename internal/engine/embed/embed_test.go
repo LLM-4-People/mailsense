@@ -278,6 +278,20 @@ func TestCorruptVectorsAreRejectedAtTheBoundary(t *testing.T) {
 	}
 }
 
+func TestDecodeRejectsOutOfRangeIndex(t *testing.T) {
+	spec := &engine.EmbeddingSpec{Dimensions: 1, NormTolerance: 0.01}
+	for _, index := range []string{"2147483648", "9223372036854775808", "-1", "1.5", `"0"`} {
+		raw := []byte(`{"data":[{"index":` + index + `,"embedding":[1]}],"usage":{}}`)
+		vectors, tokens, err := decode(raw, 1, spec, 1)
+		if !errors.Is(err, ErrContract) {
+			t.Errorf("index %s: want ErrContract, got %v", index, err)
+		}
+		if vectors != nil || tokens != 0 {
+			t.Errorf("index %s: accepted %d vectors and %d tokens", index, len(vectors), tokens)
+		}
+	}
+}
+
 func TestServerErrorsAreClassified(t *testing.T) {
 	cases := map[int]error{
 		http.StatusBadRequest:          ErrRejected,

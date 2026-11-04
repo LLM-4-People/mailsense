@@ -1,6 +1,7 @@
 package engine
 
 import (
+	"errors"
 	"fmt"
 	"maps"
 	"math"
@@ -277,16 +278,27 @@ func (p *Provider) problems(l limits) []string {
 // an absolute http(s) URL with no embedded credentials, query or fragment.
 // Credentials belong in the secret store, and a query or fragment would be
 // persisted and echoed by the provider view and its validation error.
-func validEndpointURL(raw string) bool {
+func validEndpointURL(raw string) bool { return endpointURLError(raw) == nil }
+
+// endpointURLError explains why raw is not a valid provider base URL. It is
+// the single endpoint rule; the transport-level policy (httpx.ValidateURL)
+// is also applied to every request, so a record or a pasted URL cannot pass
+// here and still reach the network.
+func endpointURLError(raw string) error {
 	u, err := url.Parse(raw)
-	if err != nil || u.Host == "" || u.User != nil || u.RawQuery != "" || u.Fragment != "" {
-		return false
+	if err != nil {
+		return errors.New("is not an absolute URL")
 	}
-	switch strings.ToLower(u.Scheme) {
-	case "http", "https":
-		return true
+	if u.Host == "" {
+		return errors.New("has no host")
 	}
-	return false
+	if u.User != nil {
+		return errors.New("must not carry credentials")
+	}
+	if u.RawQuery != "" || u.Fragment != "" {
+		return errors.New("must not carry a query or fragment")
+	}
+	return httpx.ValidateURL(u)
 }
 
 func (p *Provider) endpointProblems(proto Protocol, known bool, bad func(string, string, ...any)) {
@@ -299,7 +311,7 @@ func (p *Provider) endpointProblems(proto Protocol, known bool, bad func(string,
 		}
 	} else if !validEndpointURL(p.BaseURL) {
 		// Never echo the value: it may contain a credential the owner pasted.
-		bad("base_url", "must be an absolute http(s) URL without credentials, query or fragment")
+		bad("base_url", "must be an absolute http(s) URL without credentials, query, fragment or metadata host")
 	}
 	if !strings.HasPrefix(p.Path, "/") {
 		bad("path", "must start with /, got %q", p.Path)

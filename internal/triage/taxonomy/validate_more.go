@@ -131,8 +131,8 @@ func validateContext(doc jsonx.Object, p *problems) {
 			p.add("context/%s: must be true or false", k)
 		}
 	}
-	if n, ok := jsonx.Int(get(ctx, "max_examples")); !ok || n < 0 {
-		p.add("context/max_examples: must be an integer >= 0, got %s", show(get(ctx, "max_examples")))
+	if n, ok := jsonx.Int(get(ctx, "max_examples")); !ok || n < 0 || n > maxProfileInt {
+		p.add("context/max_examples: must be an integer in [0, %d], got %s", maxProfileInt, show(get(ctx, "max_examples")))
 	}
 }
 

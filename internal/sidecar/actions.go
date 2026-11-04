@@ -80,8 +80,10 @@ func (m *Manager) buildInfo(b Build, auto bool) BuildInfo {
 	// The model is part of a from-scratch install; the card must not quote
 	// only the runtime archive (about a tenth of the real download).
 	bi.Download += b.ModelFile.Size
-	if man, err := readManifest(m.layout.build(b)); err == nil && slices.Equal(man.Artifacts, bi.Pins) {
-		bi.Installed, bi.SizeBytes = true, dirSize(m.layout.build(b))
+	if man, err := m.layout.manifest(b); err == nil && slices.Equal(man.Artifacts, bi.Pins) {
+		if dir, err := m.layout.contained(m.layout.build(b)); err == nil {
+			bi.Installed, bi.SizeBytes = true, dirSize(dir)
+		}
 	}
 	m.state.read(func(d *learned) {
 		if p, ok := d.Broken[brokenKey(b)]; ok {
@@ -118,8 +120,12 @@ func (m *Manager) Remove(runtime, variant string) error {
 			return fmt.Errorf("sidecar: %s %s is in use", runtime, variant)
 		}
 	}
+	dir, err := m.layout.contained(m.layout.build(b))
+	if err != nil {
+		return err
+	}
 	m.log.Info("runtime build removed", "runtime", runtime, "variant", variant)
-	return fsx.RemoveAll(m.layout.build(b), m.replace())
+	return fsx.RemoveAll(dir, m.replace())
 }
 
 // Reprobe forgets a runtime's auto choice, broken builds, thread tuning

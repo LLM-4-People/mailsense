@@ -73,7 +73,9 @@ func New(cfg *config.Config, bus *events.Bus, name string, opts ...Option) (*htt
 		total = *o.total
 	}
 	return &http.Client{
-		Transport: &retryTransport{next: logging, cfg: cfg, bus: bus, name: name, log: log, clock: o.clock, rand: o.rand},
+		// The URL guard is outermost so a refused destination never reaches
+		// the retry policy or the network, and no caller can bypass it.
+		Transport: &urlGuard{next: &retryTransport{next: logging, cfg: cfg, bus: bus, name: name, log: log, clock: o.clock, rand: o.rand}},
 		Timeout:   total,
 		// Follow only same-origin redirects: a provider must not downgrade
 		// https to http or forward the bearer key and the prompt body to a

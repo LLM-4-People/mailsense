@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 // confusables reads UTS #39 confusables.txt: "source ; target ; type"
@@ -16,9 +17,17 @@ func confusables(path string) (map[string]string, error) {
 			bad = append(bad, strings.Join(f, ";"))
 			return
 		}
-		src, ok1 := codePoints(f[0])
-		dst, ok2 := codePoints(f[1])
-		if !ok1 || !ok2 || len([]rune(src)) != 1 {
+		src, srcErr := codePoints(f[0])
+		dst, dstErr := codePoints(f[1])
+		if srcErr != nil {
+			bad = append(bad, fmt.Sprintf("%s: %v", f[0], srcErr))
+			return
+		}
+		if dstErr != nil {
+			bad = append(bad, fmt.Sprintf("%s: %v", f[1], dstErr))
+			return
+		}
+		if len([]rune(src)) != 1 {
 			bad = append(bad, f[0])
 			return
 		}
@@ -30,15 +39,22 @@ func confusables(path string) (map[string]string, error) {
 	return out, err
 }
 
-// codePoints parses space-separated hex code points.
-func codePoints(s string) (string, bool) {
+// codePoints parses space-separated hex code points. A value that is not a
+// Unicode scalar value is an error: rune(v) would silently truncate it.
+func codePoints(s string) (string, error) {
 	var b strings.Builder
 	for _, h := range strings.Fields(strings.TrimPrefix(s, "\ufeff")) {
 		v, err := strconv.ParseUint(h, 16, 32)
 		if err != nil {
-			return "", false
+			return "", fmt.Errorf("code point %q: %w", h, err)
+		}
+		if v > unicode.MaxRune || (v >= 0xD800 && v <= 0xDFFF) {
+			return "", fmt.Errorf("code point %q is not a Unicode scalar value", h)
 		}
 		b.WriteRune(rune(v))
 	}
-	return b.String(), b.Len() > 0
+	if b.Len() == 0 {
+		return "", fmt.Errorf("no code points")
+	}
+	return b.String(), nil
 }

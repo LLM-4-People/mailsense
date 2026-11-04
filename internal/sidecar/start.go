@@ -206,10 +206,18 @@ const launchAttempts = 3
 func (m *Manager) launchReady(ctx context.Context, b Build, threads int) (*child, error) {
 	rt := b.RuntimeSpec
 	stopGrace := m.cfg.Duration("sidecar.stop_timeout")
+	exe, err := m.layout.contained(m.layout.exe(b))
+	if err != nil {
+		return nil, err
+	}
+	model, err := m.layout.contained(m.layout.model(b))
+	if err != nil {
+		return nil, err
+	}
 	var last *child
 	var lastErr error
 	for attempt := 1; attempt <= launchAttempts; attempt++ {
-		c, err := launch(launchSpec{exe: m.layout.exe(b), model: m.layout.model(b), args: append(append([]string(nil), rt.Args...), b.Spec.Args...),
+		c, err := launch(launchSpec{exe: exe, model: model, args: append(append([]string(nil), rt.Args...), b.Spec.Args...),
 			env: b.Spec.Env, envAllow: rt.EnvAllow, keyEnv: rt.KeyEnv, key: m.key, threads: threads, slots: rt.Slots, slotCtx: rt.SlotContext,
 			waitDelay: stopGrace},
 			m.log.With("runtime", b.Runtime, "variant", b.Variant))

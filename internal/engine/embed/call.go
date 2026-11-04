@@ -76,7 +76,7 @@ func (a *Adapter) send(ctx context.Context, url, key string, body []byte, n int)
 	status, raw, err := engine.PostJSON(ctx, a.deps.Config, a.client, &a.p,
 		engine.PostSpec{URL: url, Key: key, Body: body},
 		engine.PostPolicy{
-			Input:     func(err error) error { return fmt.Errorf("%w: %v", ErrInput, err) },
+			Input:     func(err error) error { return fmt.Errorf("%w: %w", ErrInput, err) },
 			Transport: func(err error) error { return transportError(ctx, a.p.ID, err) },
 			Read:      func(err error) error { return fmt.Errorf("%w: %s: read response: %w", a.serverFailure(), a.p.ID, err) },
 		})

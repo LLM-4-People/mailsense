@@ -7,9 +7,9 @@ import (
 	"github.com/LLM-4-People/mailsense/internal/jsonx"
 )
 
-// maxProfileInt bounds the two profile counts a document can set. They are
-// batch sizes, never more than a few thousand; the bound keeps a hostile or
-// corrupt document from narrowing an int64 into a negative int.
+// maxProfileInt bounds the profile counts a document can set. They are batch
+// sizes, never more than a few thousand; the bound keeps a hostile or corrupt
+// document from narrowing an int64 into a negative int.
 const maxProfileInt = 1<<31 - 1
 
 // build turns a validated document into a Profile.
@@ -26,13 +26,12 @@ func build(doc jsonx.Object) (*Profile, error) {
 	}
 	bodyChars, _ := jsonx.Int(get(doc, "body_chars"))
 	minSamples, _ := jsonx.Int(get(doc, "prior_min_samples"))
-	if bodyChars < 0 || bodyChars > maxProfileInt {
-		return nil, fmt.Errorf("body_chars must be in [0, %d]", maxProfileInt)
+	if p.BodyChars, err = profileCount(bodyChars, "body_chars"); err != nil {
+		return nil, err
 	}
-	if minSamples < 0 || minSamples > maxProfileInt {
-		return nil, fmt.Errorf("prior_min_samples must be in [0, %d]", maxProfileInt)
+	if p.PriorMinSamples, err = profileCount(minSamples, "prior_min_samples"); err != nil {
+		return nil, err
 	}
-	p.BodyChars, p.PriorMinSamples = int(bodyChars), int(minSamples)
 	p.StateTemplate, _ = get(doc, "state_template").(string)
 	p.template, _ = ParseTemplate(p.StateTemplate) // validated
 	for _, m := range questions {
@@ -48,7 +47,9 @@ func build(doc jsonx.Object) (*Profile, error) {
 	for _, m := range mustObject(doc, "prior_blend") {
 		p.PriorBlend[Role(m.Key)], _ = numOf(m.Value)
 	}
-	buildContext(p, mustObject(doc, "context"))
+	if err := buildContext(p, mustObject(doc, "context")); err != nil {
+		return nil, err
+	}
 	for _, m := range mustObject(doc, "escalation") {
 		rule := m.Value.(jsonx.Object)
 		var r EscalationRule
@@ -62,12 +63,27 @@ func build(doc jsonx.Object) (*Profile, error) {
 	return p, nil
 }
 
-func buildContext(p *Profile, ctx jsonx.Object) {
+func buildContext(p *Profile, ctx jsonx.Object) error {
 	p.IncludeHistory, _ = get(ctx, "include_history").(bool)
 	p.IncludeExamples, _ = get(ctx, "include_examples").(bool)
 	p.IncludeFacts, _ = get(ctx, "include_facts").(bool)
 	n, _ := jsonx.Int(get(ctx, "max_examples"))
-	p.MaxExamples = int(n)
+	count, err := profileCount(n, "context/max_examples")
+	if err != nil {
+		return err
+	}
+	p.MaxExamples = count
+	return nil
+}
+
+// profileCount narrows a document count to int, refusing a value outside
+// [0, maxProfileInt]. Every profile count conversion goes through it, so no
+// site can silently truncate an int64 into a negative int.
+func profileCount(v int64, field string) (int, error) {
+	if v < 0 || v > maxProfileInt {
+		return 0, fmt.Errorf("%s must be in [0, %d]", field, maxProfileInt)
+	}
+	return int(v), nil
 }
 
 func stringList(v any) []string {
