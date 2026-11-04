@@ -157,6 +157,11 @@ func (s Site) Head() []byte {
 	out.WriteString("\n  </script>\n")
 	out.WriteString("  {%- endif -%}\n")
 	out.WriteString("  {%- seo -%}\n")
+	// Every page declares the same icon. The SVG is the brand mark, and the
+	// PNG pair covers browsers and touch screens that ignore SVG favicons.
+	out.WriteString("  <link rel=\"icon\" type=\"image/svg+xml\" href=\"{{ \"/assets/mark.svg\" | relative_url }}\">\n")
+	out.WriteString("  <link rel=\"icon\" type=\"image/png\" sizes=\"32x32\" href=\"{{ \"/assets/favicon-32.png\" | relative_url }}\">\n")
+	out.WriteString("  <link rel=\"apple-touch-icon\" href=\"{{ \"/assets/apple-touch-icon.png\" | relative_url }}\">\n")
 	out.WriteString("  <link rel=\"stylesheet\" href=\"{{ \"/assets/main.css\" | relative_url }}\">\n")
 	out.WriteString("  {%- feed_meta -%}\n")
 	out.WriteString("  {%- if jekyll.environment == 'production' and site.google_analytics -%}\n")
