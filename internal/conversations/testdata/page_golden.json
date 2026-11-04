@@ -1,0 +1,5168 @@
+{
+  "pages": [
+    {
+      "GeneratedAt": "2026-10-26T09:00:00Z",
+      "Conversations": [
+        {
+          "ConversationID": "C28",
+          "Subject": "Invoice item 28",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 28,
+          "LastAt": "2026-11-28T04:00:00Z",
+          "FirstAt": "2026-11-28T04:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 28.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-28T04:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C28",
+            "state": "answered_by_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C27",
+          "Subject": "Budget item 27",
+          "SenderName": "Sender m27",
+          "SenderAddress": "sender-m27@example.org",
+          "LastMessageID": 27,
+          "LastAt": "2026-11-27T03:00:00Z",
+          "FirstAt": "2026-11-27T03:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 27.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m27",
+              "address": "sender-m27@example.org",
+              "messages": 1,
+              "last_at": "2026-11-27T03:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C27",
+            "state": "answered_by_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C26",
+          "Subject": "Invoice item 26",
+          "SenderName": "Bob Stone",
+          "SenderAddress": "bob@beta.ca",
+          "LastMessageID": 26,
+          "LastAt": "2026-11-26T02:00:00Z",
+          "FirstAt": "2026-11-26T02:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 26.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Bob Stone",
+              "address": "bob@beta.ca",
+              "messages": 1,
+              "last_at": "2026-11-26T02:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:beta works",
+            "Label": "Beta Works",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C26",
+            "state": "awaiting_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C25",
+          "Subject": "Budget item 25",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 25,
+          "LastAt": "2026-11-25T01:00:00Z",
+          "FirstAt": "2026-11-25T01:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 25.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-25T01:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C25",
+            "state": "awaiting_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C24",
+          "Subject": "Invoice item 24",
+          "SenderName": "Sender m24",
+          "SenderAddress": "sender-m24@example.org",
+          "LastMessageID": 24,
+          "LastAt": "2026-11-24T12:00:00Z",
+          "FirstAt": "2026-11-24T12:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 24.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m24",
+              "address": "sender-m24@example.org",
+              "messages": 1,
+              "last_at": "2026-11-24T12:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C24",
+            "state": "unknown",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C23",
+          "Subject": "Budget item 23",
+          "SenderName": "Sender m23",
+          "SenderAddress": "sender-m23@example.org",
+          "LastMessageID": 23,
+          "LastAt": "2026-11-23T11:00:00Z",
+          "FirstAt": "2026-11-23T11:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 23.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m23",
+              "address": "sender-m23@example.org",
+              "messages": 1,
+              "last_at": "2026-11-23T11:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C23",
+            "state": "no_action",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C22",
+          "Subject": "Invoice item 22",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 22,
+          "LastAt": "2026-11-22T10:00:00Z",
+          "FirstAt": "2026-11-22T10:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": true,
+          "Snippet": "A short body for conversation 22.",
+          "DueDate": "2026-12-01",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-22T10:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C22",
+            "state": "answered_by_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        }
+      ],
+      "Total": 40,
+      "Counts": {
+        "answered_by_other": 7,
+        "answered_by_owner": 7,
+        "awaiting_other": 7,
+        "awaiting_owner": 7,
+        "no_action": 6,
+        "unknown": 6
+      },
+      "NextBefore": "eyJhdCI6IjIwMjYtMTEtMjJUMTA6MDA6MDBaIiwiaWQiOiJDMjIiLCJxIjoiIiwic3RhdGUiOiIifQ",
+      "HasMore": true,
+      "Preview": false,
+      "Coverage": {
+        "Messages": 40,
+        "Conversations": 40,
+        "Unthreaded": 0
+      }
+    },
+    {
+      "GeneratedAt": "2026-10-26T09:00:00Z",
+      "Conversations": [
+        {
+          "ConversationID": "C21",
+          "Subject": "Budget item 21",
+          "SenderName": "Bob Stone",
+          "SenderAddress": "bob@beta.ca",
+          "LastMessageID": 21,
+          "LastAt": "2026-11-21T09:00:00Z",
+          "FirstAt": "2026-11-21T09:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 21.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Bob Stone",
+              "address": "bob@beta.ca",
+              "messages": 1,
+              "last_at": "2026-11-21T09:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:beta works",
+            "Label": "Beta Works",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C21",
+            "state": "answered_by_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C20",
+          "Subject": "Invoice item 20",
+          "SenderName": "Sender m20",
+          "SenderAddress": "sender-m20@example.org",
+          "LastMessageID": 20,
+          "LastAt": "2026-11-20T08:00:00Z",
+          "FirstAt": "2026-11-20T08:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 20.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m20",
+              "address": "sender-m20@example.org",
+              "messages": 1,
+              "last_at": "2026-11-20T08:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C20",
+            "state": "awaiting_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C19",
+          "Subject": "Budget item 19",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 19,
+          "LastAt": "2026-11-19T07:00:00Z",
+          "FirstAt": "2026-11-19T07:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 19.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-19T07:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C19",
+            "state": "awaiting_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C18",
+          "Subject": "Invoice item 18",
+          "SenderName": "Sender m18",
+          "SenderAddress": "sender-m18@example.org",
+          "LastMessageID": 18,
+          "LastAt": "2026-11-18T06:00:00Z",
+          "FirstAt": "2026-11-18T06:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 18.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m18",
+              "address": "sender-m18@example.org",
+              "messages": 1,
+              "last_at": "2026-11-18T06:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C18",
+            "state": "unknown",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C17",
+          "Subject": "Budget item 17",
+          "SenderName": "Sender m17",
+          "SenderAddress": "sender-m17@example.org",
+          "LastMessageID": 17,
+          "LastAt": "2026-11-17T05:00:00Z",
+          "FirstAt": "2026-11-17T05:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 17.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m17",
+              "address": "sender-m17@example.org",
+              "messages": 1,
+              "last_at": "2026-11-17T05:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C17",
+            "state": "no_action",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C16",
+          "Subject": "Invoice item 16",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 16,
+          "LastAt": "2026-11-16T04:00:00Z",
+          "FirstAt": "2026-11-16T04:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 16.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-16T04:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C16",
+            "state": "answered_by_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C15",
+          "Subject": "Budget item 15",
+          "SenderName": "Sender m15",
+          "SenderAddress": "sender-m15@example.org",
+          "LastMessageID": 15,
+          "LastAt": "2026-11-15T03:00:00Z",
+          "FirstAt": "2026-11-15T03:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": true,
+          "Snippet": "A short body for conversation 15.",
+          "DueDate": "2026-12-01",
+          "Participants": [
+            {
+              "name": "Sender m15",
+              "address": "sender-m15@example.org",
+              "messages": 1,
+              "last_at": "2026-11-15T03:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C15",
+            "state": "answered_by_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        }
+      ],
+      "Total": 40,
+      "Counts": {
+        "answered_by_other": 7,
+        "answered_by_owner": 7,
+        "awaiting_other": 7,
+        "awaiting_owner": 7,
+        "no_action": 6,
+        "unknown": 6
+      },
+      "NextBefore": "eyJhdCI6IjIwMjYtMTEtMTVUMDM6MDA6MDBaIiwiaWQiOiJDMTUiLCJxIjoiIiwic3RhdGUiOiIifQ",
+      "HasMore": true,
+      "Preview": false,
+      "Coverage": {
+        "Messages": 40,
+        "Conversations": 40,
+        "Unthreaded": 0
+      }
+    },
+    {
+      "GeneratedAt": "2026-10-26T09:00:00Z",
+      "Conversations": [
+        {
+          "ConversationID": "C28",
+          "Subject": "Invoice item 28",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 28,
+          "LastAt": "2026-11-28T04:00:00Z",
+          "FirstAt": "2026-11-28T04:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 28.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-28T04:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C28",
+            "state": "answered_by_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        }
+      ],
+      "Total": 40,
+      "Counts": {
+        "answered_by_other": 7,
+        "answered_by_owner": 7,
+        "awaiting_other": 7,
+        "awaiting_owner": 7,
+        "no_action": 6,
+        "unknown": 6
+      },
+      "NextBefore": "eyJhdCI6IjIwMjYtMTEtMjhUMDQ6MDA6MDBaIiwiaWQiOiJDMjgiLCJxIjoiIiwic3RhdGUiOiIifQ",
+      "HasMore": true,
+      "Preview": false,
+      "Coverage": {
+        "Messages": 40,
+        "Conversations": 40,
+        "Unthreaded": 0
+      }
+    },
+    {
+      "GeneratedAt": "2026-10-26T09:00:00Z",
+      "Conversations": [
+        {
+          "ConversationID": "C28",
+          "Subject": "Invoice item 28",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 28,
+          "LastAt": "2026-11-28T04:00:00Z",
+          "FirstAt": "2026-11-28T04:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 28.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-28T04:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C28",
+            "state": "answered_by_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C27",
+          "Subject": "Budget item 27",
+          "SenderName": "Sender m27",
+          "SenderAddress": "sender-m27@example.org",
+          "LastMessageID": 27,
+          "LastAt": "2026-11-27T03:00:00Z",
+          "FirstAt": "2026-11-27T03:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 27.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m27",
+              "address": "sender-m27@example.org",
+              "messages": 1,
+              "last_at": "2026-11-27T03:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C27",
+            "state": "answered_by_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C26",
+          "Subject": "Invoice item 26",
+          "SenderName": "Bob Stone",
+          "SenderAddress": "bob@beta.ca",
+          "LastMessageID": 26,
+          "LastAt": "2026-11-26T02:00:00Z",
+          "FirstAt": "2026-11-26T02:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 26.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Bob Stone",
+              "address": "bob@beta.ca",
+              "messages": 1,
+              "last_at": "2026-11-26T02:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:beta works",
+            "Label": "Beta Works",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C26",
+            "state": "awaiting_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C25",
+          "Subject": "Budget item 25",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 25,
+          "LastAt": "2026-11-25T01:00:00Z",
+          "FirstAt": "2026-11-25T01:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 25.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-25T01:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C25",
+            "state": "awaiting_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C24",
+          "Subject": "Invoice item 24",
+          "SenderName": "Sender m24",
+          "SenderAddress": "sender-m24@example.org",
+          "LastMessageID": 24,
+          "LastAt": "2026-11-24T12:00:00Z",
+          "FirstAt": "2026-11-24T12:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 24.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m24",
+              "address": "sender-m24@example.org",
+              "messages": 1,
+              "last_at": "2026-11-24T12:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C24",
+            "state": "unknown",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C23",
+          "Subject": "Budget item 23",
+          "SenderName": "Sender m23",
+          "SenderAddress": "sender-m23@example.org",
+          "LastMessageID": 23,
+          "LastAt": "2026-11-23T11:00:00Z",
+          "FirstAt": "2026-11-23T11:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 23.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m23",
+              "address": "sender-m23@example.org",
+              "messages": 1,
+              "last_at": "2026-11-23T11:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C23",
+            "state": "no_action",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C22",
+          "Subject": "Invoice item 22",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 22,
+          "LastAt": "2026-11-22T10:00:00Z",
+          "FirstAt": "2026-11-22T10:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": true,
+          "Snippet": "A short body for conversation 22.",
+          "DueDate": "2026-12-01",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-22T10:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C22",
+            "state": "answered_by_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C21",
+          "Subject": "Budget item 21",
+          "SenderName": "Bob Stone",
+          "SenderAddress": "bob@beta.ca",
+          "LastMessageID": 21,
+          "LastAt": "2026-11-21T09:00:00Z",
+          "FirstAt": "2026-11-21T09:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 21.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Bob Stone",
+              "address": "bob@beta.ca",
+              "messages": 1,
+              "last_at": "2026-11-21T09:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:beta works",
+            "Label": "Beta Works",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C21",
+            "state": "answered_by_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C20",
+          "Subject": "Invoice item 20",
+          "SenderName": "Sender m20",
+          "SenderAddress": "sender-m20@example.org",
+          "LastMessageID": 20,
+          "LastAt": "2026-11-20T08:00:00Z",
+          "FirstAt": "2026-11-20T08:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 20.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m20",
+              "address": "sender-m20@example.org",
+              "messages": 1,
+              "last_at": "2026-11-20T08:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C20",
+            "state": "awaiting_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C19",
+          "Subject": "Budget item 19",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 19,
+          "LastAt": "2026-11-19T07:00:00Z",
+          "FirstAt": "2026-11-19T07:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 19.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-19T07:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C19",
+            "state": "awaiting_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C18",
+          "Subject": "Invoice item 18",
+          "SenderName": "Sender m18",
+          "SenderAddress": "sender-m18@example.org",
+          "LastMessageID": 18,
+          "LastAt": "2026-11-18T06:00:00Z",
+          "FirstAt": "2026-11-18T06:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 18.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m18",
+              "address": "sender-m18@example.org",
+              "messages": 1,
+              "last_at": "2026-11-18T06:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C18",
+            "state": "unknown",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C17",
+          "Subject": "Budget item 17",
+          "SenderName": "Sender m17",
+          "SenderAddress": "sender-m17@example.org",
+          "LastMessageID": 17,
+          "LastAt": "2026-11-17T05:00:00Z",
+          "FirstAt": "2026-11-17T05:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 17.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m17",
+              "address": "sender-m17@example.org",
+              "messages": 1,
+              "last_at": "2026-11-17T05:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C17",
+            "state": "no_action",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C16",
+          "Subject": "Invoice item 16",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 16,
+          "LastAt": "2026-11-16T04:00:00Z",
+          "FirstAt": "2026-11-16T04:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 16.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-16T04:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C16",
+            "state": "answered_by_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C15",
+          "Subject": "Budget item 15",
+          "SenderName": "Sender m15",
+          "SenderAddress": "sender-m15@example.org",
+          "LastMessageID": 15,
+          "LastAt": "2026-11-15T03:00:00Z",
+          "FirstAt": "2026-11-15T03:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": true,
+          "Snippet": "A short body for conversation 15.",
+          "DueDate": "2026-12-01",
+          "Participants": [
+            {
+              "name": "Sender m15",
+              "address": "sender-m15@example.org",
+              "messages": 1,
+              "last_at": "2026-11-15T03:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C15",
+            "state": "answered_by_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C14",
+          "Subject": "Invoice item 14",
+          "SenderName": "Sender m14",
+          "SenderAddress": "sender-m14@example.org",
+          "LastMessageID": 14,
+          "LastAt": "2026-11-14T02:00:00Z",
+          "FirstAt": "2026-11-14T02:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 14.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m14",
+              "address": "sender-m14@example.org",
+              "messages": 1,
+              "last_at": "2026-11-14T02:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C14",
+            "state": "awaiting_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C13",
+          "Subject": "Budget item 13",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 13,
+          "LastAt": "2026-11-13T01:00:00Z",
+          "FirstAt": "2026-11-13T01:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 13.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-13T01:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C13",
+            "state": "awaiting_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C12",
+          "Subject": "Invoice item 12",
+          "SenderName": "Sender m12",
+          "SenderAddress": "sender-m12@example.org",
+          "LastMessageID": 12,
+          "LastAt": "2026-11-12T12:00:00Z",
+          "FirstAt": "2026-11-12T12:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 12.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m12",
+              "address": "sender-m12@example.org",
+              "messages": 1,
+              "last_at": "2026-11-12T12:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C12",
+            "state": "unknown",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C11",
+          "Subject": "Budget item 11",
+          "SenderName": "Bob Stone",
+          "SenderAddress": "bob@beta.ca",
+          "LastMessageID": 11,
+          "LastAt": "2026-11-11T11:00:00Z",
+          "FirstAt": "2026-11-11T11:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 11.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Bob Stone",
+              "address": "bob@beta.ca",
+              "messages": 1,
+              "last_at": "2026-11-11T11:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:beta works",
+            "Label": "Beta Works",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C11",
+            "state": "no_action",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C39",
+          "Subject": "Budget item 39",
+          "SenderName": "Sender m39",
+          "SenderAddress": "sender-m39@example.org",
+          "LastMessageID": 39,
+          "LastAt": "2026-11-11T03:00:00Z",
+          "FirstAt": "2026-11-11T03:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 39.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m39",
+              "address": "sender-m39@example.org",
+              "messages": 1,
+              "last_at": "2026-11-11T03:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C39",
+            "state": "answered_by_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C10",
+          "Subject": "Invoice item 10",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 10,
+          "LastAt": "2026-11-10T10:00:00Z",
+          "FirstAt": "2026-11-10T10:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 10.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-10T10:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C10",
+            "state": "answered_by_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C38",
+          "Subject": "Invoice item 38",
+          "SenderName": "Sender m38",
+          "SenderAddress": "sender-m38@example.org",
+          "LastMessageID": 38,
+          "LastAt": "2026-11-10T02:00:00Z",
+          "FirstAt": "2026-11-10T02:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 38.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m38",
+              "address": "sender-m38@example.org",
+              "messages": 1,
+              "last_at": "2026-11-10T02:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C38",
+            "state": "awaiting_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C09",
+          "Subject": "Budget item 09",
+          "SenderName": "Sender m09",
+          "SenderAddress": "sender-m09@example.org",
+          "LastMessageID": 9,
+          "LastAt": "2026-11-09T09:00:00Z",
+          "FirstAt": "2026-11-09T09:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 09.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m09",
+              "address": "sender-m09@example.org",
+              "messages": 1,
+              "last_at": "2026-11-09T09:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C09",
+            "state": "answered_by_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C37",
+          "Subject": "Budget item 37",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 37,
+          "LastAt": "2026-11-09T01:00:00Z",
+          "FirstAt": "2026-11-09T01:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 37.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-09T01:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C37",
+            "state": "awaiting_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C36",
+          "Subject": "Invoice item 36",
+          "SenderName": "Bob Stone",
+          "SenderAddress": "bob@beta.ca",
+          "LastMessageID": 36,
+          "LastAt": "2026-11-08T12:00:00Z",
+          "FirstAt": "2026-11-08T12:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": true,
+          "Snippet": "A short body for conversation 36.",
+          "DueDate": "2026-12-01",
+          "Participants": [
+            {
+              "name": "Bob Stone",
+              "address": "bob@beta.ca",
+              "messages": 1,
+              "last_at": "2026-11-08T12:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:beta works",
+            "Label": "Beta Works",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C36",
+            "state": "unknown",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C08",
+          "Subject": "Invoice item 08",
+          "SenderName": "Sender m08",
+          "SenderAddress": "sender-m08@example.org",
+          "LastMessageID": 8,
+          "LastAt": "2026-11-08T08:00:00Z",
+          "FirstAt": "2026-11-08T08:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": true,
+          "Snippet": "A short body for conversation 08.",
+          "DueDate": "2026-12-01",
+          "Participants": [
+            {
+              "name": "Sender m08",
+              "address": "sender-m08@example.org",
+              "messages": 1,
+              "last_at": "2026-11-08T08:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C08",
+            "state": "awaiting_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C35",
+          "Subject": "Budget item 35",
+          "SenderName": "Sender m35",
+          "SenderAddress": "sender-m35@example.org",
+          "LastMessageID": 35,
+          "LastAt": "2026-11-07T11:00:00Z",
+          "FirstAt": "2026-11-07T11:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 35.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m35",
+              "address": "sender-m35@example.org",
+              "messages": 1,
+              "last_at": "2026-11-07T11:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C35",
+            "state": "no_action",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C07",
+          "Subject": "Budget item 07",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 7,
+          "LastAt": "2026-11-07T07:00:00Z",
+          "FirstAt": "2026-11-07T07:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 07.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-07T07:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C07",
+            "state": "awaiting_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C34",
+          "Subject": "Invoice item 34",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 34,
+          "LastAt": "2026-11-06T10:00:00Z",
+          "FirstAt": "2026-11-06T10:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 34.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-06T10:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C34",
+            "state": "answered_by_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C06",
+          "Subject": "Invoice item 06",
+          "SenderName": "Bob Stone",
+          "SenderAddress": "bob@beta.ca",
+          "LastMessageID": 6,
+          "LastAt": "2026-11-06T06:00:00Z",
+          "FirstAt": "2026-11-06T06:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 06.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Bob Stone",
+              "address": "bob@beta.ca",
+              "messages": 1,
+              "last_at": "2026-11-06T06:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:beta works",
+            "Label": "Beta Works",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C06",
+            "state": "unknown",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C33",
+          "Subject": "Budget item 33",
+          "SenderName": "Sender m33",
+          "SenderAddress": "sender-m33@example.org",
+          "LastMessageID": 33,
+          "LastAt": "2026-11-05T09:00:00Z",
+          "FirstAt": "2026-11-05T09:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 33.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m33",
+              "address": "sender-m33@example.org",
+              "messages": 1,
+              "last_at": "2026-11-05T09:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C33",
+            "state": "answered_by_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C05",
+          "Subject": "Budget item 05",
+          "SenderName": "Sender m05",
+          "SenderAddress": "sender-m05@example.org",
+          "LastMessageID": 5,
+          "LastAt": "2026-11-05T05:00:00Z",
+          "FirstAt": "2026-11-05T05:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 05.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m05",
+              "address": "sender-m05@example.org",
+              "messages": 1,
+              "last_at": "2026-11-05T05:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C05",
+            "state": "no_action",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C32",
+          "Subject": "Invoice item 32",
+          "SenderName": "Sender m32",
+          "SenderAddress": "sender-m32@example.org",
+          "LastMessageID": 32,
+          "LastAt": "2026-11-04T08:00:00Z",
+          "FirstAt": "2026-11-04T08:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 32.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m32",
+              "address": "sender-m32@example.org",
+              "messages": 1,
+              "last_at": "2026-11-04T08:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C32",
+            "state": "awaiting_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C04",
+          "Subject": "Invoice item 04",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 4,
+          "LastAt": "2026-11-04T04:00:00Z",
+          "FirstAt": "2026-11-04T04:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 04.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-04T04:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C04",
+            "state": "answered_by_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C31",
+          "Subject": "Budget item 31",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 31,
+          "LastAt": "2026-11-03T07:00:00Z",
+          "FirstAt": "2026-11-03T07:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 31.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-03T07:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C31",
+            "state": "awaiting_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C03",
+          "Subject": "Budget item 03",
+          "SenderName": "Sender m03",
+          "SenderAddress": "sender-m03@example.org",
+          "LastMessageID": 3,
+          "LastAt": "2026-11-03T03:00:00Z",
+          "FirstAt": "2026-11-03T03:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 03.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m03",
+              "address": "sender-m03@example.org",
+              "messages": 1,
+              "last_at": "2026-11-03T03:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C03",
+            "state": "answered_by_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C30",
+          "Subject": "Invoice item 30",
+          "SenderName": "Sender m30",
+          "SenderAddress": "sender-m30@example.org",
+          "LastMessageID": 30,
+          "LastAt": "2026-11-02T06:00:00Z",
+          "FirstAt": "2026-11-02T06:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 30.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m30",
+              "address": "sender-m30@example.org",
+              "messages": 1,
+              "last_at": "2026-11-02T06:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C30",
+            "state": "unknown",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C02",
+          "Subject": "Invoice item 02",
+          "SenderName": "Sender m02",
+          "SenderAddress": "sender-m02@example.org",
+          "LastMessageID": 2,
+          "LastAt": "2026-11-02T02:00:00Z",
+          "FirstAt": "2026-11-02T02:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 02.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m02",
+              "address": "sender-m02@example.org",
+              "messages": 1,
+              "last_at": "2026-11-02T02:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C02",
+            "state": "awaiting_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C29",
+          "Subject": "Budget item 29",
+          "SenderName": "Sender m29",
+          "SenderAddress": "sender-m29@example.org",
+          "LastMessageID": 29,
+          "LastAt": "2026-11-01T05:00:00Z",
+          "FirstAt": "2026-11-01T05:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": true,
+          "Snippet": "A short body for conversation 29.",
+          "DueDate": "2026-12-01",
+          "Participants": [
+            {
+              "name": "Sender m29",
+              "address": "sender-m29@example.org",
+              "messages": 1,
+              "last_at": "2026-11-01T05:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C29",
+            "state": "no_action",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C01",
+          "Subject": "Budget item 01",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 1,
+          "LastAt": "2026-11-01T01:00:00Z",
+          "FirstAt": "2026-11-01T01:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": true,
+          "Snippet": "A short body for conversation 01.",
+          "DueDate": "2026-12-01",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-01T01:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C01",
+            "state": "awaiting_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C40",
+          "Subject": "Invoice item 40",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 40,
+          "LastAt": "",
+          "FirstAt": "",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 40.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": ""
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C40",
+            "state": "answered_by_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        }
+      ],
+      "Total": 40,
+      "Counts": {
+        "answered_by_other": 7,
+        "answered_by_owner": 7,
+        "awaiting_other": 7,
+        "awaiting_owner": 7,
+        "no_action": 6,
+        "unknown": 6
+      },
+      "NextBefore": "",
+      "HasMore": false,
+      "Preview": false,
+      "Coverage": {
+        "Messages": 40,
+        "Conversations": 40,
+        "Unthreaded": 0
+      }
+    },
+    {
+      "GeneratedAt": "2026-10-26T09:00:00Z",
+      "Conversations": [
+        {
+          "ConversationID": "C25",
+          "Subject": "Budget item 25",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 25,
+          "LastAt": "2026-11-25T01:00:00Z",
+          "FirstAt": "2026-11-25T01:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 25.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-25T01:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C25",
+            "state": "awaiting_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C19",
+          "Subject": "Budget item 19",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 19,
+          "LastAt": "2026-11-19T07:00:00Z",
+          "FirstAt": "2026-11-19T07:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 19.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-19T07:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C19",
+            "state": "awaiting_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C13",
+          "Subject": "Budget item 13",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 13,
+          "LastAt": "2026-11-13T01:00:00Z",
+          "FirstAt": "2026-11-13T01:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 13.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-13T01:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C13",
+            "state": "awaiting_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C37",
+          "Subject": "Budget item 37",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 37,
+          "LastAt": "2026-11-09T01:00:00Z",
+          "FirstAt": "2026-11-09T01:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 37.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-09T01:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C37",
+            "state": "awaiting_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        }
+      ],
+      "Total": 7,
+      "Counts": {
+        "answered_by_other": 7,
+        "answered_by_owner": 7,
+        "awaiting_other": 7,
+        "awaiting_owner": 7,
+        "no_action": 6,
+        "unknown": 6
+      },
+      "NextBefore": "eyJhdCI6IjIwMjYtMTEtMDlUMDE6MDA6MDBaIiwiaWQiOiJDMzciLCJxIjoiIiwic3RhdGUiOiJhd2FpdGluZ19vd25lciJ9",
+      "HasMore": true,
+      "Preview": false,
+      "Coverage": {
+        "Messages": 40,
+        "Conversations": 40,
+        "Unthreaded": 0
+      }
+    },
+    {
+      "GeneratedAt": "2026-10-26T09:00:00Z",
+      "Conversations": [
+        {
+          "ConversationID": "C26",
+          "Subject": "Invoice item 26",
+          "SenderName": "Bob Stone",
+          "SenderAddress": "bob@beta.ca",
+          "LastMessageID": 26,
+          "LastAt": "2026-11-26T02:00:00Z",
+          "FirstAt": "2026-11-26T02:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 26.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Bob Stone",
+              "address": "bob@beta.ca",
+              "messages": 1,
+              "last_at": "2026-11-26T02:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:beta works",
+            "Label": "Beta Works",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C26",
+            "state": "awaiting_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C20",
+          "Subject": "Invoice item 20",
+          "SenderName": "Sender m20",
+          "SenderAddress": "sender-m20@example.org",
+          "LastMessageID": 20,
+          "LastAt": "2026-11-20T08:00:00Z",
+          "FirstAt": "2026-11-20T08:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 20.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m20",
+              "address": "sender-m20@example.org",
+              "messages": 1,
+              "last_at": "2026-11-20T08:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C20",
+            "state": "awaiting_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C14",
+          "Subject": "Invoice item 14",
+          "SenderName": "Sender m14",
+          "SenderAddress": "sender-m14@example.org",
+          "LastMessageID": 14,
+          "LastAt": "2026-11-14T02:00:00Z",
+          "FirstAt": "2026-11-14T02:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 14.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m14",
+              "address": "sender-m14@example.org",
+              "messages": 1,
+              "last_at": "2026-11-14T02:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C14",
+            "state": "awaiting_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C38",
+          "Subject": "Invoice item 38",
+          "SenderName": "Sender m38",
+          "SenderAddress": "sender-m38@example.org",
+          "LastMessageID": 38,
+          "LastAt": "2026-11-10T02:00:00Z",
+          "FirstAt": "2026-11-10T02:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 38.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m38",
+              "address": "sender-m38@example.org",
+              "messages": 1,
+              "last_at": "2026-11-10T02:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C38",
+            "state": "awaiting_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        }
+      ],
+      "Total": 7,
+      "Counts": {
+        "answered_by_other": 7,
+        "answered_by_owner": 7,
+        "awaiting_other": 7,
+        "awaiting_owner": 7,
+        "no_action": 6,
+        "unknown": 6
+      },
+      "NextBefore": "eyJhdCI6IjIwMjYtMTEtMTBUMDI6MDA6MDBaIiwiaWQiOiJDMzgiLCJxIjoiIiwic3RhdGUiOiJhd2FpdGluZ19vdGhlciJ9",
+      "HasMore": true,
+      "Preview": false,
+      "Coverage": {
+        "Messages": 40,
+        "Conversations": 40,
+        "Unthreaded": 0
+      }
+    },
+    {
+      "GeneratedAt": "2026-10-26T09:00:00Z",
+      "Conversations": [
+        {
+          "ConversationID": "C27",
+          "Subject": "Budget item 27",
+          "SenderName": "Sender m27",
+          "SenderAddress": "sender-m27@example.org",
+          "LastMessageID": 27,
+          "LastAt": "2026-11-27T03:00:00Z",
+          "FirstAt": "2026-11-27T03:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 27.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m27",
+              "address": "sender-m27@example.org",
+              "messages": 1,
+              "last_at": "2026-11-27T03:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C27",
+            "state": "answered_by_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C21",
+          "Subject": "Budget item 21",
+          "SenderName": "Bob Stone",
+          "SenderAddress": "bob@beta.ca",
+          "LastMessageID": 21,
+          "LastAt": "2026-11-21T09:00:00Z",
+          "FirstAt": "2026-11-21T09:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 21.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Bob Stone",
+              "address": "bob@beta.ca",
+              "messages": 1,
+              "last_at": "2026-11-21T09:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:beta works",
+            "Label": "Beta Works",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C21",
+            "state": "answered_by_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C15",
+          "Subject": "Budget item 15",
+          "SenderName": "Sender m15",
+          "SenderAddress": "sender-m15@example.org",
+          "LastMessageID": 15,
+          "LastAt": "2026-11-15T03:00:00Z",
+          "FirstAt": "2026-11-15T03:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": true,
+          "Snippet": "A short body for conversation 15.",
+          "DueDate": "2026-12-01",
+          "Participants": [
+            {
+              "name": "Sender m15",
+              "address": "sender-m15@example.org",
+              "messages": 1,
+              "last_at": "2026-11-15T03:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C15",
+            "state": "answered_by_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C39",
+          "Subject": "Budget item 39",
+          "SenderName": "Sender m39",
+          "SenderAddress": "sender-m39@example.org",
+          "LastMessageID": 39,
+          "LastAt": "2026-11-11T03:00:00Z",
+          "FirstAt": "2026-11-11T03:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 39.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m39",
+              "address": "sender-m39@example.org",
+              "messages": 1,
+              "last_at": "2026-11-11T03:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C39",
+            "state": "answered_by_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        }
+      ],
+      "Total": 7,
+      "Counts": {
+        "answered_by_other": 7,
+        "answered_by_owner": 7,
+        "awaiting_other": 7,
+        "awaiting_owner": 7,
+        "no_action": 6,
+        "unknown": 6
+      },
+      "NextBefore": "eyJhdCI6IjIwMjYtMTEtMTFUMDM6MDA6MDBaIiwiaWQiOiJDMzkiLCJxIjoiIiwic3RhdGUiOiJhbnN3ZXJlZF9ieV9vd25lciJ9",
+      "HasMore": true,
+      "Preview": false,
+      "Coverage": {
+        "Messages": 40,
+        "Conversations": 40,
+        "Unthreaded": 0
+      }
+    },
+    {
+      "GeneratedAt": "2026-10-26T09:00:00Z",
+      "Conversations": [
+        {
+          "ConversationID": "C28",
+          "Subject": "Invoice item 28",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 28,
+          "LastAt": "2026-11-28T04:00:00Z",
+          "FirstAt": "2026-11-28T04:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 28.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-28T04:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C28",
+            "state": "answered_by_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C22",
+          "Subject": "Invoice item 22",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 22,
+          "LastAt": "2026-11-22T10:00:00Z",
+          "FirstAt": "2026-11-22T10:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": true,
+          "Snippet": "A short body for conversation 22.",
+          "DueDate": "2026-12-01",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-22T10:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C22",
+            "state": "answered_by_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C16",
+          "Subject": "Invoice item 16",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 16,
+          "LastAt": "2026-11-16T04:00:00Z",
+          "FirstAt": "2026-11-16T04:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 16.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-16T04:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C16",
+            "state": "answered_by_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C10",
+          "Subject": "Invoice item 10",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 10,
+          "LastAt": "2026-11-10T10:00:00Z",
+          "FirstAt": "2026-11-10T10:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 10.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-10T10:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C10",
+            "state": "answered_by_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        }
+      ],
+      "Total": 7,
+      "Counts": {
+        "answered_by_other": 7,
+        "answered_by_owner": 7,
+        "awaiting_other": 7,
+        "awaiting_owner": 7,
+        "no_action": 6,
+        "unknown": 6
+      },
+      "NextBefore": "eyJhdCI6IjIwMjYtMTEtMTBUMTA6MDA6MDBaIiwiaWQiOiJDMTAiLCJxIjoiIiwic3RhdGUiOiJhbnN3ZXJlZF9ieV9vdGhlciJ9",
+      "HasMore": true,
+      "Preview": false,
+      "Coverage": {
+        "Messages": 40,
+        "Conversations": 40,
+        "Unthreaded": 0
+      }
+    },
+    {
+      "GeneratedAt": "2026-10-26T09:00:00Z",
+      "Conversations": [
+        {
+          "ConversationID": "C23",
+          "Subject": "Budget item 23",
+          "SenderName": "Sender m23",
+          "SenderAddress": "sender-m23@example.org",
+          "LastMessageID": 23,
+          "LastAt": "2026-11-23T11:00:00Z",
+          "FirstAt": "2026-11-23T11:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 23.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m23",
+              "address": "sender-m23@example.org",
+              "messages": 1,
+              "last_at": "2026-11-23T11:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C23",
+            "state": "no_action",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C17",
+          "Subject": "Budget item 17",
+          "SenderName": "Sender m17",
+          "SenderAddress": "sender-m17@example.org",
+          "LastMessageID": 17,
+          "LastAt": "2026-11-17T05:00:00Z",
+          "FirstAt": "2026-11-17T05:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 17.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m17",
+              "address": "sender-m17@example.org",
+              "messages": 1,
+              "last_at": "2026-11-17T05:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C17",
+            "state": "no_action",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C11",
+          "Subject": "Budget item 11",
+          "SenderName": "Bob Stone",
+          "SenderAddress": "bob@beta.ca",
+          "LastMessageID": 11,
+          "LastAt": "2026-11-11T11:00:00Z",
+          "FirstAt": "2026-11-11T11:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 11.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Bob Stone",
+              "address": "bob@beta.ca",
+              "messages": 1,
+              "last_at": "2026-11-11T11:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:beta works",
+            "Label": "Beta Works",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C11",
+            "state": "no_action",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C35",
+          "Subject": "Budget item 35",
+          "SenderName": "Sender m35",
+          "SenderAddress": "sender-m35@example.org",
+          "LastMessageID": 35,
+          "LastAt": "2026-11-07T11:00:00Z",
+          "FirstAt": "2026-11-07T11:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 35.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m35",
+              "address": "sender-m35@example.org",
+              "messages": 1,
+              "last_at": "2026-11-07T11:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C35",
+            "state": "no_action",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        }
+      ],
+      "Total": 6,
+      "Counts": {
+        "answered_by_other": 7,
+        "answered_by_owner": 7,
+        "awaiting_other": 7,
+        "awaiting_owner": 7,
+        "no_action": 6,
+        "unknown": 6
+      },
+      "NextBefore": "eyJhdCI6IjIwMjYtMTEtMDdUMTE6MDA6MDBaIiwiaWQiOiJDMzUiLCJxIjoiIiwic3RhdGUiOiJub19hY3Rpb24ifQ",
+      "HasMore": true,
+      "Preview": false,
+      "Coverage": {
+        "Messages": 40,
+        "Conversations": 40,
+        "Unthreaded": 0
+      }
+    },
+    {
+      "GeneratedAt": "2026-10-26T09:00:00Z",
+      "Conversations": [
+        {
+          "ConversationID": "C24",
+          "Subject": "Invoice item 24",
+          "SenderName": "Sender m24",
+          "SenderAddress": "sender-m24@example.org",
+          "LastMessageID": 24,
+          "LastAt": "2026-11-24T12:00:00Z",
+          "FirstAt": "2026-11-24T12:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 24.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m24",
+              "address": "sender-m24@example.org",
+              "messages": 1,
+              "last_at": "2026-11-24T12:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C24",
+            "state": "unknown",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C18",
+          "Subject": "Invoice item 18",
+          "SenderName": "Sender m18",
+          "SenderAddress": "sender-m18@example.org",
+          "LastMessageID": 18,
+          "LastAt": "2026-11-18T06:00:00Z",
+          "FirstAt": "2026-11-18T06:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 18.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m18",
+              "address": "sender-m18@example.org",
+              "messages": 1,
+              "last_at": "2026-11-18T06:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C18",
+            "state": "unknown",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C12",
+          "Subject": "Invoice item 12",
+          "SenderName": "Sender m12",
+          "SenderAddress": "sender-m12@example.org",
+          "LastMessageID": 12,
+          "LastAt": "2026-11-12T12:00:00Z",
+          "FirstAt": "2026-11-12T12:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 12.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m12",
+              "address": "sender-m12@example.org",
+              "messages": 1,
+              "last_at": "2026-11-12T12:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C12",
+            "state": "unknown",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C36",
+          "Subject": "Invoice item 36",
+          "SenderName": "Bob Stone",
+          "SenderAddress": "bob@beta.ca",
+          "LastMessageID": 36,
+          "LastAt": "2026-11-08T12:00:00Z",
+          "FirstAt": "2026-11-08T12:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": true,
+          "Snippet": "A short body for conversation 36.",
+          "DueDate": "2026-12-01",
+          "Participants": [
+            {
+              "name": "Bob Stone",
+              "address": "bob@beta.ca",
+              "messages": 1,
+              "last_at": "2026-11-08T12:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:beta works",
+            "Label": "Beta Works",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C36",
+            "state": "unknown",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        }
+      ],
+      "Total": 6,
+      "Counts": {
+        "answered_by_other": 7,
+        "answered_by_owner": 7,
+        "awaiting_other": 7,
+        "awaiting_owner": 7,
+        "no_action": 6,
+        "unknown": 6
+      },
+      "NextBefore": "eyJhdCI6IjIwMjYtMTEtMDhUMTI6MDA6MDBaIiwiaWQiOiJDMzYiLCJxIjoiIiwic3RhdGUiOiJ1bmtub3duIn0",
+      "HasMore": true,
+      "Preview": false,
+      "Coverage": {
+        "Messages": 40,
+        "Conversations": 40,
+        "Unthreaded": 0
+      }
+    },
+    {
+      "GeneratedAt": "2026-10-26T09:00:00Z",
+      "Conversations": [
+        {
+          "ConversationID": "C27",
+          "Subject": "Budget item 27",
+          "SenderName": "Sender m27",
+          "SenderAddress": "sender-m27@example.org",
+          "LastMessageID": 27,
+          "LastAt": "2026-11-27T03:00:00Z",
+          "FirstAt": "2026-11-27T03:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 27.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m27",
+              "address": "sender-m27@example.org",
+              "messages": 1,
+              "last_at": "2026-11-27T03:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C27",
+            "state": "answered_by_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C25",
+          "Subject": "Budget item 25",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 25,
+          "LastAt": "2026-11-25T01:00:00Z",
+          "FirstAt": "2026-11-25T01:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 25.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-25T01:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C25",
+            "state": "awaiting_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C23",
+          "Subject": "Budget item 23",
+          "SenderName": "Sender m23",
+          "SenderAddress": "sender-m23@example.org",
+          "LastMessageID": 23,
+          "LastAt": "2026-11-23T11:00:00Z",
+          "FirstAt": "2026-11-23T11:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 23.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m23",
+              "address": "sender-m23@example.org",
+              "messages": 1,
+              "last_at": "2026-11-23T11:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C23",
+            "state": "no_action",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C21",
+          "Subject": "Budget item 21",
+          "SenderName": "Bob Stone",
+          "SenderAddress": "bob@beta.ca",
+          "LastMessageID": 21,
+          "LastAt": "2026-11-21T09:00:00Z",
+          "FirstAt": "2026-11-21T09:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 21.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Bob Stone",
+              "address": "bob@beta.ca",
+              "messages": 1,
+              "last_at": "2026-11-21T09:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:beta works",
+            "Label": "Beta Works",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C21",
+            "state": "answered_by_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C19",
+          "Subject": "Budget item 19",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 19,
+          "LastAt": "2026-11-19T07:00:00Z",
+          "FirstAt": "2026-11-19T07:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 19.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-19T07:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C19",
+            "state": "awaiting_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C17",
+          "Subject": "Budget item 17",
+          "SenderName": "Sender m17",
+          "SenderAddress": "sender-m17@example.org",
+          "LastMessageID": 17,
+          "LastAt": "2026-11-17T05:00:00Z",
+          "FirstAt": "2026-11-17T05:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 17.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m17",
+              "address": "sender-m17@example.org",
+              "messages": 1,
+              "last_at": "2026-11-17T05:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C17",
+            "state": "no_action",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        }
+      ],
+      "Total": 20,
+      "Counts": {
+        "answered_by_other": 0,
+        "answered_by_owner": 7,
+        "awaiting_other": 0,
+        "awaiting_owner": 7,
+        "no_action": 6,
+        "unknown": 0
+      },
+      "NextBefore": "eyJhdCI6IjIwMjYtMTEtMTdUMDU6MDA6MDBaIiwiaWQiOiJDMTciLCJxIjoiYnVkZ2V0Iiwic3RhdGUiOiIifQ",
+      "HasMore": true,
+      "Preview": false,
+      "Coverage": {
+        "Messages": 40,
+        "Conversations": 40,
+        "Unthreaded": 0
+      }
+    },
+    {
+      "GeneratedAt": "2026-10-26T09:00:00Z",
+      "Conversations": [
+        {
+          "ConversationID": "C23",
+          "Subject": "Budget item 23",
+          "SenderName": "Sender m23",
+          "SenderAddress": "sender-m23@example.org",
+          "LastMessageID": 23,
+          "LastAt": "2026-11-23T11:00:00Z",
+          "FirstAt": "2026-11-23T11:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 23.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m23",
+              "address": "sender-m23@example.org",
+              "messages": 1,
+              "last_at": "2026-11-23T11:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C23",
+            "state": "no_action",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C17",
+          "Subject": "Budget item 17",
+          "SenderName": "Sender m17",
+          "SenderAddress": "sender-m17@example.org",
+          "LastMessageID": 17,
+          "LastAt": "2026-11-17T05:00:00Z",
+          "FirstAt": "2026-11-17T05:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 17.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m17",
+              "address": "sender-m17@example.org",
+              "messages": 1,
+              "last_at": "2026-11-17T05:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C17",
+            "state": "no_action",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C11",
+          "Subject": "Budget item 11",
+          "SenderName": "Bob Stone",
+          "SenderAddress": "bob@beta.ca",
+          "LastMessageID": 11,
+          "LastAt": "2026-11-11T11:00:00Z",
+          "FirstAt": "2026-11-11T11:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 11.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Bob Stone",
+              "address": "bob@beta.ca",
+              "messages": 1,
+              "last_at": "2026-11-11T11:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:beta works",
+            "Label": "Beta Works",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C11",
+            "state": "no_action",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C35",
+          "Subject": "Budget item 35",
+          "SenderName": "Sender m35",
+          "SenderAddress": "sender-m35@example.org",
+          "LastMessageID": 35,
+          "LastAt": "2026-11-07T11:00:00Z",
+          "FirstAt": "2026-11-07T11:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 35.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m35",
+              "address": "sender-m35@example.org",
+              "messages": 1,
+              "last_at": "2026-11-07T11:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C35",
+            "state": "no_action",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C05",
+          "Subject": "Budget item 05",
+          "SenderName": "Sender m05",
+          "SenderAddress": "sender-m05@example.org",
+          "LastMessageID": 5,
+          "LastAt": "2026-11-05T05:00:00Z",
+          "FirstAt": "2026-11-05T05:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 05.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m05",
+              "address": "sender-m05@example.org",
+              "messages": 1,
+              "last_at": "2026-11-05T05:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C05",
+            "state": "no_action",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C29",
+          "Subject": "Budget item 29",
+          "SenderName": "Sender m29",
+          "SenderAddress": "sender-m29@example.org",
+          "LastMessageID": 29,
+          "LastAt": "2026-11-01T05:00:00Z",
+          "FirstAt": "2026-11-01T05:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": true,
+          "Snippet": "A short body for conversation 29.",
+          "DueDate": "2026-12-01",
+          "Participants": [
+            {
+              "name": "Sender m29",
+              "address": "sender-m29@example.org",
+              "messages": 1,
+              "last_at": "2026-11-01T05:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C29",
+            "state": "no_action",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        }
+      ],
+      "Total": 6,
+      "Counts": {
+        "answered_by_other": 0,
+        "answered_by_owner": 7,
+        "awaiting_other": 0,
+        "awaiting_owner": 7,
+        "no_action": 6,
+        "unknown": 0
+      },
+      "NextBefore": "",
+      "HasMore": false,
+      "Preview": false,
+      "Coverage": {
+        "Messages": 40,
+        "Conversations": 40,
+        "Unthreaded": 0
+      }
+    },
+    {
+      "GeneratedAt": "2026-10-26T09:00:00Z",
+      "Conversations": [],
+      "Total": 0,
+      "Counts": {
+        "answered_by_other": 0,
+        "answered_by_owner": 0,
+        "awaiting_other": 0,
+        "awaiting_owner": 0,
+        "no_action": 0,
+        "unknown": 0
+      },
+      "NextBefore": "",
+      "HasMore": false,
+      "Preview": false,
+      "Coverage": {
+        "Messages": 40,
+        "Conversations": 40,
+        "Unthreaded": 0
+      }
+    },
+    {
+      "GeneratedAt": "2026-10-26T09:00:00Z",
+      "Conversations": [
+        {
+          "ConversationID": "C28",
+          "Subject": "Invoice item 28",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 28,
+          "LastAt": "2026-11-28T04:00:00Z",
+          "FirstAt": "2026-11-28T04:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 28.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-28T04:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C28",
+            "state": "answered_by_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C27",
+          "Subject": "Budget item 27",
+          "SenderName": "Sender m27",
+          "SenderAddress": "sender-m27@example.org",
+          "LastMessageID": 27,
+          "LastAt": "2026-11-27T03:00:00Z",
+          "FirstAt": "2026-11-27T03:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 27.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m27",
+              "address": "sender-m27@example.org",
+              "messages": 1,
+              "last_at": "2026-11-27T03:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C27",
+            "state": "answered_by_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C26",
+          "Subject": "Invoice item 26",
+          "SenderName": "Bob Stone",
+          "SenderAddress": "bob@beta.ca",
+          "LastMessageID": 26,
+          "LastAt": "2026-11-26T02:00:00Z",
+          "FirstAt": "2026-11-26T02:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 26.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Bob Stone",
+              "address": "bob@beta.ca",
+              "messages": 1,
+              "last_at": "2026-11-26T02:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:beta works",
+            "Label": "Beta Works",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C26",
+            "state": "awaiting_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C25",
+          "Subject": "Budget item 25",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 25,
+          "LastAt": "2026-11-25T01:00:00Z",
+          "FirstAt": "2026-11-25T01:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 25.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-25T01:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C25",
+            "state": "awaiting_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C24",
+          "Subject": "Invoice item 24",
+          "SenderName": "Sender m24",
+          "SenderAddress": "sender-m24@example.org",
+          "LastMessageID": 24,
+          "LastAt": "2026-11-24T12:00:00Z",
+          "FirstAt": "2026-11-24T12:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 24.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m24",
+              "address": "sender-m24@example.org",
+              "messages": 1,
+              "last_at": "2026-11-24T12:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C24",
+            "state": "unknown",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C23",
+          "Subject": "Budget item 23",
+          "SenderName": "Sender m23",
+          "SenderAddress": "sender-m23@example.org",
+          "LastMessageID": 23,
+          "LastAt": "2026-11-23T11:00:00Z",
+          "FirstAt": "2026-11-23T11:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 23.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m23",
+              "address": "sender-m23@example.org",
+              "messages": 1,
+              "last_at": "2026-11-23T11:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C23",
+            "state": "no_action",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C22",
+          "Subject": "Invoice item 22",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 22,
+          "LastAt": "2026-11-22T10:00:00Z",
+          "FirstAt": "2026-11-22T10:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": true,
+          "Snippet": "A short body for conversation 22.",
+          "DueDate": "2026-12-01",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-22T10:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C22",
+            "state": "answered_by_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        }
+      ],
+      "Total": 40,
+      "Counts": {
+        "answered_by_other": 7,
+        "answered_by_owner": 7,
+        "awaiting_other": 7,
+        "awaiting_owner": 7,
+        "no_action": 6,
+        "unknown": 6
+      },
+      "NextBefore": "eyJhdCI6IjIwMjYtMTEtMjJUMTA6MDA6MDBaIiwiaWQiOiJDMjIiLCJxIjoiIiwic3RhdGUiOiIifQ",
+      "HasMore": true,
+      "Preview": false,
+      "Coverage": {
+        "Messages": 40,
+        "Conversations": 40,
+        "Unthreaded": 0
+      }
+    },
+    {
+      "GeneratedAt": "2026-10-26T09:00:00Z",
+      "Conversations": [
+        {
+          "ConversationID": "C28",
+          "Subject": "Invoice item 28",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 28,
+          "LastAt": "2026-11-28T04:00:00Z",
+          "FirstAt": "2026-11-28T04:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 28.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-28T04:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C28",
+            "state": "answered_by_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C27",
+          "Subject": "Budget item 27",
+          "SenderName": "Sender m27",
+          "SenderAddress": "sender-m27@example.org",
+          "LastMessageID": 27,
+          "LastAt": "2026-11-27T03:00:00Z",
+          "FirstAt": "2026-11-27T03:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 27.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m27",
+              "address": "sender-m27@example.org",
+              "messages": 1,
+              "last_at": "2026-11-27T03:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C27",
+            "state": "answered_by_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C26",
+          "Subject": "Invoice item 26",
+          "SenderName": "Bob Stone",
+          "SenderAddress": "bob@beta.ca",
+          "LastMessageID": 26,
+          "LastAt": "2026-11-26T02:00:00Z",
+          "FirstAt": "2026-11-26T02:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 26.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Bob Stone",
+              "address": "bob@beta.ca",
+              "messages": 1,
+              "last_at": "2026-11-26T02:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:beta works",
+            "Label": "Beta Works",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C26",
+            "state": "awaiting_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C25",
+          "Subject": "Budget item 25",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 25,
+          "LastAt": "2026-11-25T01:00:00Z",
+          "FirstAt": "2026-11-25T01:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 25.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-25T01:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C25",
+            "state": "awaiting_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C24",
+          "Subject": "Invoice item 24",
+          "SenderName": "Sender m24",
+          "SenderAddress": "sender-m24@example.org",
+          "LastMessageID": 24,
+          "LastAt": "2026-11-24T12:00:00Z",
+          "FirstAt": "2026-11-24T12:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 24.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m24",
+              "address": "sender-m24@example.org",
+              "messages": 1,
+              "last_at": "2026-11-24T12:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C24",
+            "state": "unknown",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C23",
+          "Subject": "Budget item 23",
+          "SenderName": "Sender m23",
+          "SenderAddress": "sender-m23@example.org",
+          "LastMessageID": 23,
+          "LastAt": "2026-11-23T11:00:00Z",
+          "FirstAt": "2026-11-23T11:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": false,
+          "Snippet": "A short body for conversation 23.",
+          "DueDate": "",
+          "Participants": [
+            {
+              "name": "Sender m23",
+              "address": "sender-m23@example.org",
+              "messages": 1,
+              "last_at": "2026-11-23T11:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "State": {
+            "conversation_id": "C23",
+            "state": "no_action",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        },
+        {
+          "ConversationID": "C22",
+          "Subject": "Invoice item 22",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastMessageID": 22,
+          "LastAt": "2026-11-22T10:00:00Z",
+          "FirstAt": "2026-11-22T10:00:00Z",
+          "Messages": 1,
+          "Sent": 0,
+          "Received": 1,
+          "Unread": 0,
+          "LastSent": false,
+          "LastIsRead": true,
+          "HasAttachments": true,
+          "Snippet": "A short body for conversation 22.",
+          "DueDate": "2026-12-01",
+          "Participants": [
+            {
+              "name": "Alice Martin",
+              "address": "alice@atelier-nord.test",
+              "messages": 1,
+              "last_at": "2026-11-22T10:00:00Z"
+            }
+          ],
+          "ParticipantCount": 1,
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "State": {
+            "conversation_id": "C22",
+            "state": "answered_by_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "StateSource": "priority"
+        }
+      ],
+      "Total": 40,
+      "Counts": {
+        "answered_by_other": 7,
+        "answered_by_owner": 7,
+        "awaiting_other": 7,
+        "awaiting_owner": 7,
+        "no_action": 6,
+        "unknown": 6
+      },
+      "NextBefore": "eyJhdCI6IjIwMjYtMTEtMjJUMTA6MDA6MDBaIiwiaWQiOiJDMjIiLCJxIjoiIiwic3RhdGUiOiIifQ",
+      "HasMore": true,
+      "Preview": true,
+      "Coverage": {
+        "Messages": 40,
+        "Conversations": 40,
+        "Unthreaded": 0
+      }
+    }
+  ],
+  "facts": [
+    {
+      "GeneratedAt": "2026-10-26T09:00:00Z",
+      "Total": 40,
+      "Messages": 40,
+      "Counts": {
+        "answered_by_other": 7,
+        "answered_by_owner": 7,
+        "awaiting_other": 7,
+        "awaiting_owner": 7,
+        "no_action": 6,
+        "unknown": 6
+      },
+      "RecentTotal": 40,
+      "Recent": [
+        {
+          "ConversationID": "C28",
+          "Subject": "Invoice item 28",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastAt": "2026-11-28T04:00:00Z",
+          "LastMessageID": 28,
+          "Messages": 1,
+          "Unread": 0,
+          "State": {
+            "conversation_id": "C28",
+            "state": "answered_by_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          }
+        },
+        {
+          "ConversationID": "C27",
+          "Subject": "Budget item 27",
+          "SenderName": "Sender m27",
+          "SenderAddress": "sender-m27@example.org",
+          "LastAt": "2026-11-27T03:00:00Z",
+          "LastMessageID": 27,
+          "Messages": 1,
+          "Unread": 0,
+          "State": {
+            "conversation_id": "C27",
+            "state": "answered_by_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          }
+        },
+        {
+          "ConversationID": "C26",
+          "Subject": "Invoice item 26",
+          "SenderName": "Bob Stone",
+          "SenderAddress": "bob@beta.ca",
+          "LastAt": "2026-11-26T02:00:00Z",
+          "LastMessageID": 26,
+          "Messages": 1,
+          "Unread": 0,
+          "State": {
+            "conversation_id": "C26",
+            "state": "awaiting_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "Organization": {
+            "Key": "c:beta works",
+            "Label": "Beta Works",
+            "Declared": true
+          }
+        },
+        {
+          "ConversationID": "C25",
+          "Subject": "Budget item 25",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastAt": "2026-11-25T01:00:00Z",
+          "LastMessageID": 25,
+          "Messages": 1,
+          "Unread": 0,
+          "State": {
+            "conversation_id": "C25",
+            "state": "awaiting_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          }
+        },
+        {
+          "ConversationID": "C24",
+          "Subject": "Invoice item 24",
+          "SenderName": "Sender m24",
+          "SenderAddress": "sender-m24@example.org",
+          "LastAt": "2026-11-24T12:00:00Z",
+          "LastMessageID": 24,
+          "Messages": 1,
+          "Unread": 0,
+          "State": {
+            "conversation_id": "C24",
+            "state": "unknown",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          }
+        }
+      ],
+      "OrganizationsOpenTotal": 3,
+      "Organizations": [
+        {
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "Conversations": 14,
+          "Messages": 14,
+          "AwaitingOwner": 7,
+          "AwaitingOther": 0,
+          "LastAt": "2026-11-28T04:00:00Z",
+          "LastMessageID": 28,
+          "LastSubject": "Invoice item 28"
+        },
+        {
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "Conversations": 21,
+          "Messages": 21,
+          "AwaitingOwner": 0,
+          "AwaitingOther": 6,
+          "LastAt": "2026-11-27T03:00:00Z",
+          "LastMessageID": 27,
+          "LastSubject": "Budget item 27"
+        },
+        {
+          "Organization": {
+            "Key": "c:beta works",
+            "Label": "Beta Works",
+            "Declared": true
+          },
+          "Conversations": 5,
+          "Messages": 5,
+          "AwaitingOwner": 0,
+          "AwaitingOther": 1,
+          "LastAt": "2026-11-26T02:00:00Z",
+          "LastMessageID": 26,
+          "LastSubject": "Invoice item 26"
+        }
+      ]
+    },
+    {
+      "GeneratedAt": "2026-10-26T09:00:00Z",
+      "Total": 40,
+      "Messages": 40,
+      "Counts": {
+        "answered_by_other": 7,
+        "answered_by_owner": 7,
+        "awaiting_other": 7,
+        "awaiting_owner": 7,
+        "no_action": 6,
+        "unknown": 6
+      },
+      "RecentTotal": 39,
+      "Recent": [
+        {
+          "ConversationID": "C28",
+          "Subject": "Invoice item 28",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastAt": "2026-11-28T04:00:00Z",
+          "LastMessageID": 28,
+          "Messages": 1,
+          "Unread": 0,
+          "State": {
+            "conversation_id": "C28",
+            "state": "answered_by_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          }
+        },
+        {
+          "ConversationID": "C27",
+          "Subject": "Budget item 27",
+          "SenderName": "Sender m27",
+          "SenderAddress": "sender-m27@example.org",
+          "LastAt": "2026-11-27T03:00:00Z",
+          "LastMessageID": 27,
+          "Messages": 1,
+          "Unread": 0,
+          "State": {
+            "conversation_id": "C27",
+            "state": "answered_by_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          }
+        },
+        {
+          "ConversationID": "C26",
+          "Subject": "Invoice item 26",
+          "SenderName": "Bob Stone",
+          "SenderAddress": "bob@beta.ca",
+          "LastAt": "2026-11-26T02:00:00Z",
+          "LastMessageID": 26,
+          "Messages": 1,
+          "Unread": 0,
+          "State": {
+            "conversation_id": "C26",
+            "state": "awaiting_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "Organization": {
+            "Key": "c:beta works",
+            "Label": "Beta Works",
+            "Declared": true
+          }
+        },
+        {
+          "ConversationID": "C25",
+          "Subject": "Budget item 25",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastAt": "2026-11-25T01:00:00Z",
+          "LastMessageID": 25,
+          "Messages": 1,
+          "Unread": 0,
+          "State": {
+            "conversation_id": "C25",
+            "state": "awaiting_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          }
+        },
+        {
+          "ConversationID": "C24",
+          "Subject": "Invoice item 24",
+          "SenderName": "Sender m24",
+          "SenderAddress": "sender-m24@example.org",
+          "LastAt": "2026-11-24T12:00:00Z",
+          "LastMessageID": 24,
+          "Messages": 1,
+          "Unread": 0,
+          "State": {
+            "conversation_id": "C24",
+            "state": "unknown",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          }
+        }
+      ],
+      "OrganizationsOpenTotal": 3,
+      "Organizations": [
+        {
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "Conversations": 14,
+          "Messages": 14,
+          "AwaitingOwner": 7,
+          "AwaitingOther": 0,
+          "LastAt": "2026-11-28T04:00:00Z",
+          "LastMessageID": 28,
+          "LastSubject": "Invoice item 28"
+        },
+        {
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "Conversations": 21,
+          "Messages": 21,
+          "AwaitingOwner": 0,
+          "AwaitingOther": 6,
+          "LastAt": "2026-11-27T03:00:00Z",
+          "LastMessageID": 27,
+          "LastSubject": "Budget item 27"
+        },
+        {
+          "Organization": {
+            "Key": "c:beta works",
+            "Label": "Beta Works",
+            "Declared": true
+          },
+          "Conversations": 5,
+          "Messages": 5,
+          "AwaitingOwner": 0,
+          "AwaitingOther": 1,
+          "LastAt": "2026-11-26T02:00:00Z",
+          "LastMessageID": 26,
+          "LastSubject": "Invoice item 26"
+        }
+      ]
+    },
+    {
+      "GeneratedAt": "2026-10-26T09:00:00Z",
+      "Total": 40,
+      "Messages": 40,
+      "Counts": {
+        "answered_by_other": 7,
+        "answered_by_owner": 7,
+        "awaiting_other": 7,
+        "awaiting_owner": 7,
+        "no_action": 6,
+        "unknown": 6
+      },
+      "RecentTotal": 9,
+      "Recent": [
+        {
+          "ConversationID": "C28",
+          "Subject": "Invoice item 28",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastAt": "2026-11-28T04:00:00Z",
+          "LastMessageID": 28,
+          "Messages": 1,
+          "Unread": 0,
+          "State": {
+            "conversation_id": "C28",
+            "state": "answered_by_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          }
+        },
+        {
+          "ConversationID": "C27",
+          "Subject": "Budget item 27",
+          "SenderName": "Sender m27",
+          "SenderAddress": "sender-m27@example.org",
+          "LastAt": "2026-11-27T03:00:00Z",
+          "LastMessageID": 27,
+          "Messages": 1,
+          "Unread": 0,
+          "State": {
+            "conversation_id": "C27",
+            "state": "answered_by_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          }
+        },
+        {
+          "ConversationID": "C26",
+          "Subject": "Invoice item 26",
+          "SenderName": "Bob Stone",
+          "SenderAddress": "bob@beta.ca",
+          "LastAt": "2026-11-26T02:00:00Z",
+          "LastMessageID": 26,
+          "Messages": 1,
+          "Unread": 0,
+          "State": {
+            "conversation_id": "C26",
+            "state": "awaiting_other",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "Organization": {
+            "Key": "c:beta works",
+            "Label": "Beta Works",
+            "Declared": true
+          }
+        },
+        {
+          "ConversationID": "C25",
+          "Subject": "Budget item 25",
+          "SenderName": "Alice Martin",
+          "SenderAddress": "alice@atelier-nord.test",
+          "LastAt": "2026-11-25T01:00:00Z",
+          "LastMessageID": 25,
+          "Messages": 1,
+          "Unread": 0,
+          "State": {
+            "conversation_id": "C25",
+            "state": "awaiting_owner",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          }
+        },
+        {
+          "ConversationID": "C24",
+          "Subject": "Invoice item 24",
+          "SenderName": "Sender m24",
+          "SenderAddress": "sender-m24@example.org",
+          "LastAt": "2026-11-24T12:00:00Z",
+          "LastMessageID": 24,
+          "Messages": 1,
+          "Unread": 0,
+          "State": {
+            "conversation_id": "C24",
+            "state": "unknown",
+            "reason": "inbound_last",
+            "visibility": "complete",
+            "confidence": 0.85,
+            "messages": 0
+          },
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          }
+        }
+      ],
+      "OrganizationsOpenTotal": 3,
+      "Organizations": [
+        {
+          "Organization": {
+            "Key": "c:atelier nord",
+            "Label": "Atelier Nord",
+            "Declared": true
+          },
+          "Conversations": 14,
+          "Messages": 14,
+          "AwaitingOwner": 7,
+          "AwaitingOther": 0,
+          "LastAt": "2026-11-28T04:00:00Z",
+          "LastMessageID": 28,
+          "LastSubject": "Invoice item 28"
+        },
+        {
+          "Organization": {
+            "Key": "d:example.org",
+            "Label": "example.org",
+            "Declared": false
+          },
+          "Conversations": 21,
+          "Messages": 21,
+          "AwaitingOwner": 0,
+          "AwaitingOther": 6,
+          "LastAt": "2026-11-27T03:00:00Z",
+          "LastMessageID": 27,
+          "LastSubject": "Budget item 27"
+        },
+        {
+          "Organization": {
+            "Key": "c:beta works",
+            "Label": "Beta Works",
+            "Declared": true
+          },
+          "Conversations": 5,
+          "Messages": 5,
+          "AwaitingOwner": 0,
+          "AwaitingOther": 1,
+          "LastAt": "2026-11-26T02:00:00Z",
+          "LastMessageID": 26,
+          "LastSubject": "Invoice item 26"
+        }
+      ]
+    }
+  ]
+}

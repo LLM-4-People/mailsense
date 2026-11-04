@@ -1,0 +1,15 @@
+{
+  "_doc": "What a question's layer-1 answers must reach before the app answers it (the questions stage; the gate never relaxes on its own). defaults apply to every question; questions.<name> overrides fields for one question (null removes the override). min_effective_train: the effective number of training examples, (\u03a3w)\u00b2/\u03a3w\u00b2; min_eval_labels: evaluation labels (the teacher sources with eval) a question needs to be measured at all; target_accuracy and z: the precision whose Wilson lower bound (at z) the answers given on their own must reach; family_wise: correct z for the number of questions tested (a two-sided Bonferroni bound, so the target is a family-wise statement; the report carries both the effective z and the base z); min_coverage: the share of the certification labels those answers must cover. The evaluation labels split by conversation (layer1.certify.fraction): the operating threshold is chosen on the selection part and tested once on the certification part, against the labels of certify_sources only (the teacher sources whose agreement is certified: a judge's labels certify agreement with the judge); the model that answers never trained on the certification part. request_labels: the evaluation labels the labels stage asks for per question (null: the fewest that can open the gate \u2014 the certification part must answer n labels without an error, n/n having a Wilson lower bound \u2265 target_accuracy at z (381 at 0.99, z 1.96), on at least min_coverage of itself: \u2308n / (min_coverage \u00d7 layer1.certify.fraction)\u2309, at least min_eval_labels; 1,524 with the defaults). An answer whose confidence is below its question's certified threshold abstains and escalates. report_targets: the precision targets every report measures the coverage at. An override may reflect the question's wording (a low agreement ceiling), never one mailbox.",
+  "defaults": {
+    "min_effective_train": 200,
+    "min_eval_labels": 50,
+    "target_accuracy": 0.99,
+    "min_coverage": 0.5,
+    "z": 1.96,
+    "family_wise": true,
+    "request_labels": null,
+    "certify_sources": ["manual", "judge"]
+  },
+  "report_targets": [0.95, 0.98, 0.99, 1.0],
+  "questions": {}
+}

@@ -1,0 +1,15 @@
+{
+  "_doc": "Limits of mail.CleanBody (structural, language-neutral reply/signature stripping). rules_version: the version of CleanBody's rules, raised with every change of them (2: attribution lines before a tab-indented quote; 3: an attribution cuts only when its quote runs to the end, never on a quoted line, and is never own text), so every view of the cleaned text is computed again (evidence values and vectors carry the digest of this file's content). header_min_lines: consecutive 'Label: value' lines that make a reply header block (From/Sent/To/Subject has four; prose rarely has three). rule_lookahead_lines: a bare separator rule (======, ________) is a reply boundary only when one of the next this-many non-blank lines is a header line or a quoted line (a report underlined with ==== is kept). intro_max_runes: longest 'On …, X wrote:' line (an attribution line). contact_*: a closing paragraph of at most contact_max_lines lines of at most contact_max_runes characters, at least contact_min_hits of them with a phone number, an address or a link, is a signature block. rule_min_chars: a bare rule is a line of at least this many of - _ = *. caption_min_rule_chars / caption_max_runes: a captioned separator (-----Original Message-----) is a caption of 1..caption_max_runes other characters between two runs of at least caption_min_rule_chars rule characters. label_max_runes: longest label of a 'Label: value' header line. phone_min_chars: shortest phone number (digits, spaces, ( ) . -, starting and ending with a digit).",
+  "rules_version": 3,
+  "header_min_lines": 3,
+  "rule_lookahead_lines": 2,
+  "intro_max_runes": 200,
+  "contact_max_lines": 8,
+  "contact_max_runes": 80,
+  "contact_min_hits": 2,
+  "rule_min_chars": 8,
+  "caption_min_rule_chars": 3,
+  "caption_max_runes": 40,
+  "label_max_runes": 25,
+  "phone_min_chars": 8
+}

@@ -1,0 +1,17 @@
+# Release-note categories for the generated notes. A label that is not listed
+# falls into "Other changes", so a new label never hides a change.
+changelog:
+  exclude:
+    labels:
+      - skip-changelog
+  categories:
+    - title: Features
+      labels: [enhancement, feature]
+    - title: Fixes
+      labels: [bug, fix]
+    - title: Documentation
+      labels: [documentation, docs]
+    - title: Maintenance
+      labels: [chore, dependencies, ci, tests]
+    - title: Other changes
+      labels: ["*"]

@@ -1,0 +1,98 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "41 3 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fast:
+    name: fast gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      # scripts/test-fast.sh owns gofmt, script checks, vet, and every fast
+      # suite. CI does not restate any of them.
+      - run: scripts/test-fast.sh
+      - name: upload logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: fast-gate-logs
+          path: /tmp/*.log
+          if-no-files-found: ignore
+
+  exhaustive:
+    name: exhaustive gate
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      # The release gate is stricter than the fast gate: every package and
+      # every tagged configuration.
+      - run: scripts/test.sh
+
+  windows:
+    name: windows build
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      # The Outlook connector and the GUI shell are windows-only. A Linux-only
+      # CI would never compile the code most likely to break.
+      - run: go vet ./...
+        shell: bash
+      - run: go build ./...
+        shell: bash
+      # Compile every test binary without running the suites, so a windows-only
+      # test file cannot rot unnoticed.
+      - run: go test -run '^$' ./...
+        shell: bash
+
+  vuln:
+    name: vulnerability scan
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: golang/govulncheck-action@v1
+        with:
+          go-version-input: "1.27"
+          go-package: ./...
+          repo-checkout: false
+
+  dependency-review:
+    name: dependency review
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/dependency-review-action@v4

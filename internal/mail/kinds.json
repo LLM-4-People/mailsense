@@ -1,0 +1,31 @@
+{
+  "_doc": "What kind of item a message is, from protocol data only (never its words): Outlook/MAPI message classes by prefix (MS-OXOCAL, MS-OXOMSG, MS-OXOOOF), then RFC headers: Content-Type multipart/report report-type (RFC 6522: delivery-status RFC 3464, disposition-notification RFC 8098), text/calendar METHOD (RFC 5546), Auto-Submitted (RFC 3834). The longest matching class prefix wins; matching is case-insensitive. Anything else is an ordinary message. Non-ordinary items never count as replies or as mail waiting for one.",
+  "message_class_prefixes": {
+    "IPM.Note": "ordinary",
+    "IPM.Schedule.Meeting.Request": "meeting_request",
+    "IPM.Schedule.Meeting.Canceled": "meeting_cancel",
+    "IPM.Schedule.Meeting.Resp": "meeting_response",
+    "IPM.Schedule.Meeting.Notification.Forward": "meeting_response",
+    "REPORT.IPM.Note.NDR": "delivery_report",
+    "REPORT.IPM.Note.DR": "delivery_report",
+    "REPORT.IPM.Note.Relayed": "delivery_report",
+    "REPORT.IPM.Note.Delayed": "delivery_report",
+    "REPORT.IPM.Note.IPNRN": "read_receipt",
+    "REPORT.IPM.Note.IPNNRN": "read_receipt",
+    "REPORT.IPM.Schedule.Meeting": "delivery_report",
+    "REPORT.": "delivery_report",
+    "IPM.Note.Rules.OofTemplate": "auto_reply",
+    "IPM.Note.Rules.ReplyTemplate": "auto_reply",
+    "IPM.Outlook.Recall": "recall",
+    "IPM.Recall.Report": "recall"
+  },
+  "report_types": {"delivery-status": "delivery_report", "disposition-notification": "read_receipt"},
+  "calendar_methods": {"REQUEST": "meeting_request", "CANCEL": "meeting_cancel", "REPLY": "meeting_response", "COUNTER": "meeting_response"},
+  "auto_submitted": {"auto-replied": "auto_reply"},
+  "automated": {
+    "_doc": "Machine-sent mail (mail.Automated), from transport headers only: List-Id (RFC 2919) and List-Unsubscribe (RFC 2369) by presence; Precedence bulk/list/junk (de facto, RFC 3834 §3.1.8 notes it); any Auto-Submitted keyword except no (RFC 3834 §5).",
+    "present": ["List-Id", "List-Unsubscribe"],
+    "values": {"Precedence": ["bulk", "list", "junk"]},
+    "auto_submitted_human": ["no"]
+  }
+}

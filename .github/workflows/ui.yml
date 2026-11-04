@@ -1,0 +1,49 @@
+name: ui
+
+on:
+  pull_request:
+    paths:
+      - "internal/ui/**"
+      - "e2e/**"
+      - "scripts/test-ui.sh"
+      - ".github/workflows/ui.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ui-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  playwright:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: e2e/package-lock.json
+      - run: npm ci
+        working-directory: e2e
+      - name: install browser
+        run: npx playwright install --with-deps chromium
+        working-directory: e2e
+      # scripts/test-ui.sh is the one UI gate: it builds the binary the same
+      # way the release does, then runs the suite. CI does not restate it.
+      - run: scripts/test-ui.sh
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            e2e/playwright-report/
+            e2e/test-results/
+          if-no-files-found: ignore

@@ -1,0 +1,43 @@
+.env
+out/
+__pycache__/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+labels.jsonl
+profile.json
+*.log
+*.tmp
+build/
+dist/
+# build outputs (scripts/build.sh writes dist/; nothing is built into the root)
+/mailsense
+/mailsense.exe
+*.test
+*.prof
+*.out
+
+# browser E2E (e2e/)
+e2e/node_modules/
+e2e/.cache/
+e2e/test-results/
+e2e/playwright-report/
+
+# root-level development artifacts (never ship)
+/server-*.pid
+/test-results/
+/playwright-report/
+/.pytest_cache/
+/.env
+.env.*
+!.env.example
+*.coverprofile
+coverage.out
+
+# docs site output
+/docs/_site/
+/_site/
+
+# Inno Setup output when a developer runs it from packaging/windows
+packaging/dist/

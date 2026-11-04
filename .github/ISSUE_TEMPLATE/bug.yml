@@ -1,0 +1,26 @@
+name: Bug report
+description: Something is wrong
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Do not paste mail contents, addresses or keys. Redact before posting.
+  - type: input
+    id: version
+    attributes: { label: Version, description: "Settings, Diagnostics, or the release tag" }
+    validations: { required: true }
+  - type: input
+    id: platform
+    attributes: { label: Platform, placeholder: "Windows 11 / Ubuntu 24.04" }
+    validations: { required: true }
+  - type: textarea
+    id: steps
+    attributes: { label: Steps to reproduce }
+    validations: { required: true }
+  - type: textarea
+    id: expected
+    attributes: { label: Expected and actual }
+    validations: { required: true }
+  - type: textarea
+    id: diagnostics
+    attributes: { label: Redacted diagnostics, description: "Settings, Diagnostics export; secrets are removed automatically" }

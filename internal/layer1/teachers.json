@@ -1,0 +1,10 @@
+{
+  "_doc": "Where layer 1's training targets come from (docs/LAYER1.md). Users override a source, or a question's sources, in layer1.teachers.file: members replace per name, null removes. Each source: from (labels: the labels table rows of label_source; decisions: the triage_decisions of a decider — 'triage' = the configured triage.decider, any other value a stored decider key; rules: the layer-0 rules that fire on the message's causal evidence), precedence (unique; for each message and question the source with the lowest number that has a target wins), weight (> 0: the example's weight in the loss), eval (labels only: the source also evaluates and calibrates — cross-fitted, never scored on its own training), temperature (decisions: the soft target p^(1/T), 1 = as answered), provider (decisions of a stored decider key: the catalog provider whose probability_tolerance a distribution must meet, else the answer is dropped and counted; 'triage' uses the configured decider's provider), min_lower_bound (rules: a rule teaches only when the Wilson lower bound of its precision on the eval labels reaches it), unmeasured_precision (rules: the precision assumed for a rule that fired on no eval label; null = such a rule does not teach). questions.<name>.<source>: null removes the source for that question, an object replaces its fields.",
+  "sources": {
+    "manual": {"from": "labels", "label_source": "manual", "precedence": 1, "weight": 4, "eval": true},
+    "judge": {"from": "labels", "label_source": "judge", "precedence": 2, "weight": 2, "eval": true},
+    "decider": {"from": "decisions", "decider": "triage", "precedence": 3, "weight": 1, "temperature": 1},
+    "rules": {"from": "rules", "precedence": 5, "weight": 0.3, "min_lower_bound": 0.7, "unmeasured_precision": null}
+  },
+  "questions": {}
+}

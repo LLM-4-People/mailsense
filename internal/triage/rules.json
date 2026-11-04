@@ -1,0 +1,79 @@
+{
+  "_doc": "Text and bands of the triage state context (the taxonomy owns the questions). A state is CAUSAL: its history and examples come only from mail, replies and labels dated before the message itself, quoted through these bands, so later mail can never change an existing state (no re-billing). Speed bands are the threads.response_buckets; urgency_prior maps the median response time (the average of the two middle values for an even count) to an urgency level as legacy did: the median at resolution_minutes (0.1) compared with ≤ — a median up to 120 minutes is 3.25, and so on; above the last bound the last level. Users override any key in triage.rules.file (per key, null removes); a change changes every state. Placeholders are {name}. Facts (facts) are measured on the message's own text (mail.CleanBody) with Unicode sentence terminals and the question marks of every script; arrival is rendered in the sender's own Date-header offset.",
+  "volume_bands": {
+    "bounds": [
+      3,
+      10,
+      30,
+      100
+    ],
+    "labels": [
+      "1-2",
+      "3-9",
+      "10-29",
+      "30-99",
+      "100+"
+    ]
+  },
+  "reply_bands": {
+    "bounds": [
+      0.1,
+      0.4,
+      0.7,
+      0.9
+    ],
+    "labels": [
+      "rarely",
+      "sometimes",
+      "often",
+      "usually",
+      "almost always"
+    ]
+  },
+  "urgency_prior": {
+    "bounds_minutes": [
+      120,
+      480,
+      1440,
+      4320
+    ],
+    "levels": [
+      3.25,
+      2.5,
+      1.75,
+      1.25,
+      0.75
+    ],
+    "resolution_minutes": 0.1
+  },
+  "facts": {
+    "_doc": "Question marks are Unicode data (mail.QuestionMarks: the characters named QUESTION MARK with Terminal_Punctuation, generated from the pinned UCD). A text is spaceless (length in characters, no word count) when more than spaceless_share of its letters are in a spaceless script (mail/scripts.json), and uncased (no all-caps fact) when fewer than cased_share of its letters have a case; a word counts as all caps from caps_min_letters letters.",
+    "spaceless_share": 0.5,
+    "cased_share": 0.5,
+    "caps_min_letters": 3
+  },
+  "phrases": {
+    "history": "How you handled this sender before: {lines}",
+    "history_sender": "You {reply} reply to this sender ({volume} previous messages){speed}.",
+    "history_domain": "You {reply} reply to the domain of this sender ({volume} previous messages){speed}.",
+    "history_overall": "Overall you {reply} reply to incoming mail ({volume} messages){speed}.",
+    "history_speed": ", typically within {speed}",
+    "examples": "How the owner handled similar mail in the past:\n{lines}",
+    "example_reply": "- You answered after {minutes} min a mail with subject \"{subject}\"",
+    "example_reply_preview": " with: \"{preview}\"",
+    "example_label": "- Your decision on a mail from \"{sender}\" with subject \"{subject}\": {question}={value}",
+    "facts": "Observed facts:\n{lines}",
+    "fact_thread": "Subject is part of an ongoing thread (Re:/Fwd:).",
+    "fact_recipients": "Addressed to {to} recipient(s) plus {cc} in Cc.",
+    "fact_attachments": "Has attachments.",
+    "fact_questions": "Contains {n} question mark(s).",
+    "fact_links": "Contains {n} link(s).",
+    "fact_caps": "{n} words are in all caps.",
+    "fact_length": "Length: {words} words in {sentences} sentences ({chars} characters).",
+    "fact_length_chars": "Length: {chars} characters in {sentences} sentences.",
+    "fact_shape": "Length: {words} words in {sentences} sentences.",
+    "fact_shape_sentences": "Length: {sentences} sentences.",
+    "fact_arrival": "Arrived {weekday} at {hour}:00 in the sender's time (UTC{offset}).",
+    "unknown_sender": "(unknown sender)"
+  }
+}

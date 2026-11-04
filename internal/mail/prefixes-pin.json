@@ -1,0 +1,12 @@
+{
+  "source": "https://en.wikipedia.org/wiki/List_of_email_subject_abbreviations",
+  "url": "https://en.wikipedia.org/w/index.php?title=List_of_email_subject_abbreviations&oldid=1359795836&action=raw",
+  "oldid": 1359795836,
+  "revision_at": "2026-06-17T07:14:28Z",
+  "sha256": "6026511cf2d72763253b6c025d3bb9c6565eac1c153f314069b1ced0f4ce28e6",
+  "license": "CC-BY-SA-4.0",
+  "generator": "scripts/datagen (prefixes)",
+  "outputs": {
+    "subject_prefixes.json": "f4603e8591989c8061e97c5fac5ab4c60ea5387cbfc9adbcc237828b89b8fccb"
+  }
+}

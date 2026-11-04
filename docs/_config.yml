@@ -1,0 +1,49 @@
+title: Mailsense
+description: Local-first email triage that explains every decision.
+theme: minima
+baseurl: "/mailsense"
+url: ""
+lang: en
+header_pages:
+  - index.md
+  - install.md
+  - first-run.md
+  - mailboxes.md
+  - providers.md
+  - learning.md
+  - faq.md
+  - privacy.md
+  - security.md
+  - troubleshooting.md
+  - contributing.md
+  - fr/index.md
+markdown: kramdown
+plugins:
+  - jekyll-relative-links
+relative_links:
+  enabled: true
+  collections: false
+# Internal engineering documents are part of the repository but not of the
+# public site: they carry the round ledger, benchmarks and architecture
+# contracts, which are useful to contributors and not to visitors.
+exclude:
+  - API.md
+  - ARCHITECTURE.md
+  - DECISION_PROVIDERS.md
+  - DEVELOPMENT.md
+  - EMBEDDINGS.md
+  - EVIDENCE.md
+  - LAYER1.md
+  - OUTLOOK_SYNC.md
+  - PORTING.md
+  - PROGRESS.md
+  - RELEASE_PLAN.md
+  - SELLING.md
+  - UI.md
+  - site.json
+  - vendor
+defaults:
+  - scope: { path: "" }
+    values: { lang: "en" }
+  - scope: { path: "fr" }
+    values: { lang: "fr" }

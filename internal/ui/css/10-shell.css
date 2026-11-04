@@ -1,0 +1,417 @@
+/* ---------- shell ---------- */
+
+.app {
+  display: grid;
+  grid-template-columns: var(--sidebar) minmax(0, 1fr);
+  height: 100vh;
+  height: 100dvh;
+  min-height: 0;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: clip;
+  border-right: 1px solid var(--line);
+  background: var(--surface-sidebar);
+  padding: 22px 14px 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 0 8px 20px;
+}
+.brand-mark { display: block; width: 30px; height: 30px; flex: none; }
+.brand-text { display: grid; min-width: 0; }
+.brand-name { font-family: var(--font-display); font-size: 20px; font-weight: 600; letter-spacing: -0.015em; }
+.brand-sub { color: var(--muted); font-size: 10.5px; letter-spacing: 0.09em; text-transform: uppercase; }
+
+.nav { display: grid; gap: 3px; padding: 6px 0 14px; }
+.nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 37px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  color: var(--ink-soft);
+  text-decoration: none;
+  font-size: 13.5px;
+  font-weight: 540;
+  transition: background var(--ease), color var(--ease);
+}
+.nav-item:hover { background: rgba(253, 251, 246, 0.66); color: var(--ink); }
+.nav-item[aria-current="page"] {
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+.nav-item .icon { color: var(--muted); }
+.nav-item[aria-current="page"] .icon { color: var(--accent); }
+.nav-badge {
+  margin-left: auto;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: var(--radius-pill);
+  background: var(--warn-soft);
+  border: 1px solid var(--warn-line);
+  color: var(--warn-ink);
+  font-size: 10.5px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  display: grid;
+  place-items: center;
+}
+.nav-kbd {
+  flex: none;
+  margin-left: auto;
+  color: var(--muted);
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 0 4px;
+  line-height: 1.5;
+}
+.nav-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 10px 5px;
+  color: var(--muted);
+  font-size: 9.5px;
+  font-weight: 650;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+.nav-divider::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+
+.sidebar-foot {
+  margin-top: auto;
+  display: grid;
+  gap: 13px;
+  padding: 15px 8px 0;
+  border-top: 1px solid var(--line);
+}
+.connection { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 11.5px; }
+.connection-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--faint); flex: none; }
+.connection.live { color: var(--ok-ink); }
+.connection.live .connection-dot { background: var(--ok-ink); }
+.connection.reconnecting { color: var(--warn-ink); }
+.connection.reconnecting .connection-dot { background: var(--warn-ink); animation: pulse 1.4s ease-in-out infinite; }
+.connection.offline { color: var(--danger-ink); }
+.connection.offline .connection-dot { background: var(--danger-ink); }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+
+.meta {
+  display: grid;
+  grid-template-columns: max-content minmax(0, 1fr);
+  gap: 3px 7px;
+  font-size: 11px;
+}
+.meta dt { color: var(--muted); }
+.meta dd { color: var(--ink-soft); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.workspace { display: flex; flex-direction: column; min-width: 0; min-height: 0; overflow: hidden; }
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 20px 13px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+  flex: none;
+}
+.topbar-title { display: flex; align-items: baseline; gap: 9px; min-width: 0; }
+.topbar-title h1 { font-size: 22px; line-height: 1.15; font-weight: 650; letter-spacing: -0.025em; margin-top: 0; }
+.topbar .eyebrow { font-size: 11px; letter-spacing: 0.1em; }
+.topbar-tools { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+
+/* The one search box: it lives in the shell, not in a route, so it is in the
+   same place on every screen. Results are a local listbox under the input;
+   focus stays in the input while Arrow keys move the active row. */
+.topbar-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 1 1 320px;
+  min-width: 0;
+  max-width: 620px;
+}
+.topbar-search-icon {
+  position: absolute;
+  left: 12px;
+  width: 16px;
+  height: 16px;
+  color: var(--muted);
+  pointer-events: none;
+}
+.topbar-search-input {
+  width: 100%;
+  height: 36px;
+  padding: 0 64px 0 36px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--ink);
+  font: inherit;
+  font-size: 13.5px;
+}
+.topbar-search-input::placeholder { color: var(--muted); }
+.topbar-search-input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.topbar-search-hint {
+  position: absolute;
+  right: 9px;
+  min-width: 18px;
+  padding: 1px 5px;
+  border: 1px solid var(--line-strong);
+  border-radius: 5px;
+  background: var(--surface-sunken);
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 16px;
+  text-align: center;
+  pointer-events: none;
+}
+.topbar-search-input:not(:placeholder-shown) ~ .topbar-search-hint { display: none; }
+.topbar-search-clear {
+  position: absolute;
+  right: 4px;
+  width: 28px;
+  height: 28px;
+}
+.topbar-search-results {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 30;
+  padding: 4px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface-raised);
+  box-shadow: 0 14px 34px rgba(20, 28, 24, 0.14);
+  max-height: min(60vh, 420px);
+  overflow-y: auto;
+}
+.topbar-suggest {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  cursor: pointer;
+}
+.topbar-suggest.active,
+.topbar-suggest:hover { background: var(--surface-hover); }
+.topbar-suggest-main { display: flex; flex: 1; flex-direction: column; gap: 1px; min-width: 0; }
+.topbar-suggest-subject {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.topbar-suggest-meta {
+  font-size: 11.5px;
+  color: var(--muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.topbar-suggest-score {
+  color: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.topbar-suggest-all { border-top: 1px solid var(--line); border-radius: 0 0 7px 7px; }
+.topbar-suggest-note { margin: 0; padding: 10px 12px; color: var(--muted); font-size: 12.5px; }
+.topbar-meta { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; justify-content: flex-end; min-height: 22px; }
+.topbar-update {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--warn-ink);
+  font-size: 11px;
+  font-weight: 600;
+}
+.update-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+/* The one global job strip: every running (or just-finished) background
+   job folds into one aggregate summary and one meter, fed by the same
+   jobs.update snapshot the API returns. */
+.job-strip {
+  flex: none;
+  padding: 7px 20px 8px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-head);
+}
+.job-summary { display: grid; gap: 5px; min-width: 0; }
+.job-summary-line {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-width: 0;
+}
+.job-summary-lead {
+  color: var(--ink);
+  font-size: 12px;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+}
+.job-summary-sep { color: var(--muted); }
+.job-summary-names {
+  min-width: 0;
+  color: var(--ink-soft);
+  font-size: 11.5px;
+  overflow-wrap: anywhere;
+}
+.job-summary-metrics {
+  color: var(--muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.job-aggregate { width: 100%; height: 5px; }
+.job-actions { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+
+/* The job strip and the boot strip are fixed chrome: they report status and
+   must never squeeze the route out of the window. A failure can carry a long
+   provider or connector message, so both are bounded and scroll instead of
+   growing. */
+.job-strip { max-height: 22vh; overflow-y: auto; overflow-x: clip; overscroll-behavior: contain; }
+.job-summary-names { overflow-wrap: anywhere; }
+
+/* The boot strip is the honest progress line while the derived warm runs.
+   It uses the same track and accent as every other progress bar. */
+.boot-strip {
+  flex: none;
+  padding: 8px 20px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface-head);
+}
+.boot-strip-inner {
+  display: grid;
+  grid-template-columns: auto minmax(120px, 280px) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 4px 12px;
+}
+.boot-strip-title { color: var(--ink); font-size: 12px; font-weight: 650; letter-spacing: -0.01em; }
+.boot-strip-count { color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
+.boot-strip-current { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--muted); font-size: 10.5px; }
+/* A ready warm with failed views is a warning, not success: the strip stays
+   visible and names the views until the owner dismisses it. */
+.boot-strip.warning { border-bottom-color: var(--danger-line); background: var(--danger-soft); }
+.boot-strip.warning .boot-strip-title { color: var(--danger-ink); }
+.boot-strip-inner.boot-strip-warning { grid-template-columns: auto auto minmax(0, 1fr) auto; }
+.boot-strip-dismiss {
+  justify-self: end;
+  padding: 2px 8px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--muted);
+  font: inherit;
+  font-size: 10.5px;
+  cursor: pointer;
+}
+.boot-strip-dismiss:hover { color: var(--ink); }
+@media (max-width: 640px) {
+  .boot-strip { padding: 7px 12px; }
+  .boot-strip-inner { grid-template-columns: auto minmax(80px, 1fr) auto; }
+  .boot-strip-inner.boot-strip-warning { grid-template-columns: auto auto minmax(0, 1fr); }
+  .boot-strip-current { grid-column: 1 / -1; }
+  .boot-strip-dismiss { grid-column: 1 / -1; justify-self: start; }
+}
+
+.eyebrow {
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+#main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 14px 20px;
+  outline: none;
+}
+
+.screen {
+  width: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.screen > * { flex: 0 0 auto; }
+.screen:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.screen.narrow { max-width: 960px; overflow-y: auto; overflow-x: clip; overscroll-behavior: contain; }
+.screen.locked-screen { overflow-y: auto; overflow-x: clip; overscroll-behavior: contain; }
+.screen-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; flex-wrap: wrap; }
+.screen-head .lede { max-width: 760px; }
+
+/* One shared contract for every bounded scroll region: vertical only, no
+   sideways growth, and the scrollbar appears only when the content needs it. */
+.section-scroll {
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: clip;
+  overscroll-behavior: contain;
+  scrollbar-width: thin;
+  scrollbar-color: var(--line-strong) transparent;
+}
+.route-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.lede { color: var(--ink-soft); font-size: 14.5px; line-height: 1.55; }
+.fine { color: var(--muted); font-size: 12px; }
+.muted { color: var(--muted); }
+.warn-text { color: var(--warn-ink); }
+.ok-text { color: var(--ok-ink); }
+.nowrap { white-space: nowrap; }
+.spacer { flex: 1; }
+.secondary { color: var(--muted); font-size: 11.5px; }
+.wrap { white-space: normal; overflow-wrap: anywhere; }
+

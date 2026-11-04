@@ -1,0 +1,337 @@
+/* ---------- accessibility and responsive ---------- */
+
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+
+@media (max-width: 1200px) {
+  .home-brief-grid,
+  .home-brief-grid-locked { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); }
+  .home-brief-grid > .home-section-important { grid-column: 1 / -1; }
+  .home-more-body { grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); }
+}
+
+@media (max-width: 1180px) {
+  :root { --sidebar: 208px; }
+  .topbar { padding: 12px 18px 11px; }
+  #main { padding: 12px 18px; }
+  .mail-layout { grid-template-columns: minmax(300px, 0.9fr) minmax(0, 1.25fr); gap: 14px; }
+  .companies-layout { grid-template-columns: minmax(300px, 322px) minmax(0, 1fr); gap: 12px; }
+  .ask-layout { grid-template-columns: minmax(0, 1.25fr) minmax(250px, 0.65fr); gap: 16px; }
+  .labels-task-layout { grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr); gap: 14px; }
+  .setting-row { grid-template-columns: minmax(0, 1fr) minmax(210px, 0.85fr); gap: 14px; }
+  .settings-layout { grid-template-columns: 170px minmax(0, 1fr); gap: 16px; }
+}
+
+@media (max-width: 1024px) {
+  :root { --sidebar: 190px; }
+  .sidebar { padding-left: 10px; padding-right: 10px; }
+  .brand { padding-left: 6px; padding-right: 6px; gap: 8px; }
+  .brand-sub { display: none; }
+  .nav-item { padding-left: 8px; padding-right: 8px; }
+  .topbar { padding: 10px 16px 9px; }
+  .topbar-title h1 { font-size: 20px; }
+  #main { padding: 12px 16px; }
+
+  /* Stacked layouts cannot give every card a useful independent height on a
+     narrow window. The route body is the one bounded scroll region here; the
+     shell chrome and the primary navigation stay fixed. */
+  .screen { overflow-y: auto; overflow-x: clip; overscroll-behavior: contain; }
+  .screen > * { flex: 0 0 auto; }
+  .home-screen > .home-brief-grid,
+  .brief-screen > .brief-grid,
+  .mail-screen > .mail-layout,
+  .mail-screen > .mail-search-results,
+  .mail-screen > .mail-search-empty,
+  .companies-screen > .companies-layout,
+  .ask-screen > .ask-layout,
+  .labels-screen > .labels-workbench-host,
+  .settings-screen > .settings-layout,
+  .learning-screen > .learning-body,
+  .answers-screen > .answers-body,
+  .logs-screen > .section { flex: 0 0 auto; height: auto; min-height: 0; }
+
+  /* The route body owns the one scroll region here; a nested workbench
+     scroll would trap the queue-unavailable state. */
+  .labels-screen > .labels-workbench-host { overflow: visible; }
+
+  .home-brief-grid,
+  .home-brief-grid-locked {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+    grid-auto-rows: auto;
+    align-items: start;
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+  }
+  .home-brief-grid > .home-section-important { grid-column: auto; }
+  .home-section-host { display: block; }
+  .home-section,
+  .home-more[open],
+  .home-more[open] > .home-more-body { max-height: none; height: auto; overflow: visible; }
+  .home-section-body { overflow: visible; }
+
+  .brief-grid {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+    grid-auto-rows: auto;
+    align-items: start;
+    height: auto;
+  }
+  .brief-section { display: block; overflow: visible; }
+  .brief-section-must { grid-column: auto; }
+  .brief-body { overflow: visible; }
+
+  .mail-layout { grid-template-columns: 1fr; grid-template-rows: none; height: auto; }
+  .mail-list-pane,
+  .mail-detail-pane,
+  .mail-detail-body { height: auto; max-height: none; overflow: visible; }
+  .mail-list-pane .mail-list { flex: none; max-height: 55vh; min-height: 180px; overflow-y: auto; }
+  .mail-search-results { display: flex; height: auto; overflow: visible; }
+  .mail-search-empty { height: auto; overflow: visible; }
+
+  .companies-layout { grid-template-columns: 1fr; grid-template-rows: none; height: auto; }
+  .companies-list-pane { height: auto; max-height: none; }
+  .companies-profile { height: auto; max-height: none; overflow: visible; }
+
+  .ask-layout { grid-template-columns: 1fr; grid-template-rows: none; height: auto; align-items: start; }
+  .ask-main { height: auto; overflow: visible; }
+  .ask-history { position: static; height: auto; display: block; }
+  .ask-history-card { display: block; }
+  .ask-history-list { display: block; }
+  .history-list { flex: none; max-height: 56vh; overflow-y: auto; }
+
+  .labels-task-layout { grid-template-columns: 1fr; grid-template-rows: none; height: auto; align-items: start; }
+  .labels-message-pane { height: auto; max-height: 55vh; overflow-y: auto; }
+  .labels-answer-pane { position: static; height: auto; max-height: none; }
+  .labels-answer-scroll { overflow: visible; }
+
+  .settings-layout { grid-template-columns: 1fr; grid-template-rows: none; height: auto; }
+  .settings-list { max-height: none; overflow: visible; }
+
+  .learning-summary { grid-template-columns: 1fr; max-height: none; overflow: visible; }
+  .learning-body { overflow: visible; }
+
+  .answers-body { overflow: visible; }
+  .route-scroll { flex: none; overflow: visible; }
+
+  .logs { height: auto; max-height: 60vh; min-height: 240px; overflow-y: auto; }
+
+  .companies-list-body { max-height: 320px; overflow-y: auto; }
+  .learning-callout-top { grid-template-columns: 1fr; }
+  .learning-next .button-row { justify-content: flex-start; }
+  .labels-answer-pane::after { display: none; }
+  .review-suggestion { flex-direction: column; }
+  .provider-role-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .provider-form-grid,
+  .provider-field-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .subnav { position: static; display: flex; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
+  .subnav button { border: 1px solid transparent; }
+  .subnav button[aria-current="page"] { border-color: var(--accent-line); box-shadow: none; }
+  .setting-row { grid-template-columns: 1fr; gap: 8px; }
+  .runtime-head { flex-direction: column; }
+  .stat { flex-basis: 90px; padding: 8px 10px; }
+  .answers-filters .select { width: 100%; min-width: 0; max-width: none; }
+  .answer-label-row { grid-template-columns: auto minmax(0, 1fr); }
+  .answer-label-time { grid-column: 2; }
+  .brief-head { align-items: flex-start; flex-direction: column; gap: 8px; }
+  .brief-stats-host,
+  .brief-stats { width: 100%; }
+  .stat-strip.head-stats .stat { flex: 1; min-width: 0; }
+}
+
+@media (max-width: 900px) {
+  .home-brief-grid,
+  .home-brief-grid-locked { grid-template-columns: 1fr; }
+  .home-more-body { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 760px) {
+  :root { --sidebar: 0px; }
+  .app { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
+  /* The sidebar is the only primary navigation. Below the desktop breakpoint
+     it becomes a wrapping top bar instead of disappearing: every route and
+     the shut-down action stay reachable by pointer and by Tab. */
+  .sidebar {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 6px;
+    overflow: visible;
+    padding: 6px 10px;
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+    position: relative;
+    z-index: 5;
+  }
+  .brand { padding: 0 6px 0 0; flex: none; }
+  .brand-text { display: none; }
+  .brand-mark { width: 26px; height: 26px; }
+  .nav { display: flex; flex: 1 1 auto; flex-wrap: wrap; gap: 2px; padding: 0; min-width: 0; }
+  .nav-item { flex: none; min-height: 34px; padding: 6px 8px; gap: 7px; font-size: 12.5px; }
+  .nav-item[aria-current="page"] { box-shadow: inset 0 -2px 0 var(--accent); }
+  .nav-kbd { display: none; }
+  .nav-divider { display: none; }
+  .sidebar-foot { display: flex; align-items: center; gap: 6px; margin: 0 0 0 auto; padding: 0; border: 0; }
+  .sidebar-foot .meta,
+  .sidebar-foot .connection { display: none; }
+  .sidebar-foot .button { width: auto; padding: 5px 9px; }
+  .home-head { align-items: flex-start; flex-direction: column; gap: 8px; }
+  .home-head-counts { width: 100%; }
+  .home-more-body { grid-template-columns: 1fr; }
+  .held-removal { grid-template-columns: 1fr; }
+  .held-removal .button { justify-self: start; }
+  .topbar { flex-wrap: wrap; align-items: flex-start; }
+  .topbar-search { order: 3; flex: 1 1 100%; max-width: none; }
+  .topbar-tools { align-items: flex-end; }
+  /* Phone width: the job and startup cards stack, and several of them used
+     to consume the whole workspace (the route was left 65px tall and the
+     document scrolled). They describe background work, so they scroll
+     inside a bounded strip and the route keeps its height. */
+  #job-strip,
+  #boot-strip {
+    flex: 0 1 auto;
+    min-height: 0;
+    max-height: 20vh;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .filter-chips { flex-wrap: wrap; }
+  .filter-chip-group { flex-wrap: wrap; }
+  .mail-row { grid-template-columns: 30px minmax(0, 1fr); gap: 9px; padding: 9px 11px; }
+  .mail-avatar { width: 28px; height: 28px; font-size: 10px; }
+  .mail-row-compact { grid-template-columns: minmax(0, 1fr); }
+  .conversation-row { grid-template-columns: minmax(0, 1fr); gap: 1px; padding: 8px 10px; }
+  .conversation-org { max-width: 30%; }
+  .conversation-people { max-width: 40%; }
+  .companies-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .companies-kpis .stat-strip-note { padding-left: 14px; padding-right: 14px; }
+  .companies-kpis .stat { border-top: 1px solid var(--line); border-left: 0; }
+  .companies-kpis .stat:nth-of-type(-n+2) { border-top: 0; }
+  .companies-kpis .stat:nth-of-type(even) { border-left: 1px solid var(--line); }
+  .companies-profile-head { padding: 12px 14px 10px; }
+  .companies-section { padding-left: 14px; padding-right: 14px; }
+  .companies-ledger { grid-template-columns: 1fr; gap: 12px; }
+  .companies-chart { height: 92px; gap: 3px; }
+  .companies-recent-side,
+  .companies-deadline-side { flex-wrap: wrap; justify-content: flex-end; }
+  .ask-answer { padding: 14px; }
+  .ask-answer-foot { gap: 6px 10px; }
+  .labels-toolbar-row { flex-direction: column; }
+  .labels-toolbar-actions { width: 100%; justify-content: space-between; }
+  .answers-head { align-items: flex-start; }
+  .answers-head-copy h2 { font-size: 24px; }
+  .settings-actions { width: 100%; justify-content: flex-start; }
+  .settings-actions .search-field { width: 100%; min-width: 0; }
+  .settings-simple-note { align-items: flex-start; }
+  .provider-roles { padding: 10px; }
+  .provider-role-grid,
+  .provider-form-grid,
+  .provider-field-grid { grid-template-columns: 1fr; }
+  .provider-field.span-2 { grid-column: auto; }
+  .provider-card-head { align-items: flex-start; flex-direction: column; }
+  .provider-form-actions { justify-content: flex-start; }
+  .labels-qchip { min-width: 132px; }
+  .labels-queue-count { margin-left: 0; }
+  .labels-progress { padding: 10px 12px; }
+  .labels-answer-scroll { padding: 12px 12px 18px; }
+  .labels-action-row { align-items: stretch; }
+  .labels-choice-grid { grid-template-columns: 1fr 1fr; }
+  .labels-scale-track { gap: 3px; }
+  .labels-scale-dot { min-height: 36px; font-size: 10px; }
+  .labels-scale-ends { font-size: 9.5px; }
+  .brief-row { grid-template-columns: 1fr; }
+  .brief-row-side { justify-content: flex-start; }
+  .stat-strip.head-stats .stat { padding: 5px 9px; }
+  .stat-strip.head-stats .stat-label { font-size: 10.5px; }
+  .brief-section-head { padding: 10px 12px 8px; }
+  .brief-row,
+  .brief-topics,
+  .brief-empty,
+  .brief-skeleton-row { padding-left: 12px; padding-right: 12px; }
+}
+
+@media (max-width: 600px) {
+  /* Routes wrap into as many rows as they need: the top bar never scrolls
+     sideways. */
+  .sidebar { flex-wrap: wrap; }
+  .nav { flex-wrap: wrap; }
+  .nav-item { padding: 6px 9px; }
+  /* The icon remains, but the label must keep its accessible name: hide it
+     visually instead of removing it from the accessibility tree. */
+  .sidebar-foot .button span {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .sidebar-foot .button { position: relative; padding: 6px; }
+  /* The log time/component cells are deliberately nowrap on a desktop table.
+     At phone width they must yield instead of widening the route. */
+  .log-table { table-layout: fixed; }
+  .log-table th:nth-child(1), .log-table td:nth-child(1) { width: 26px; }
+  .log-table th:nth-child(2), .log-table td:nth-child(2) { width: 26%; }
+  .log-table th:nth-child(3), .log-table td:nth-child(3) { width: 14%; }
+  .log-table th:nth-child(4), .log-table td:nth-child(4) { width: 18%; }
+  .log-time,
+  .log-component { white-space: normal; overflow-wrap: anywhere; }
+  .log-msg { overflow-wrap: anywhere; }
+}
+
+@media (max-width: 460px) {
+  .labels-qchip.selected { min-width: 180px; }
+  .labels-choice-grid { grid-template-columns: 1fr; }
+  .labels-yesno { gap: 6px; }
+  .labels-task-strip { flex-wrap: wrap; }
+}
+
+@media (max-height: 800px) and (min-width: 1025px) {
+  .labels-screen { gap: 8px; }
+  .labels-toolbar { padding: 7px 10px 8px; gap: 5px; }
+  .labels-toolbar-copy { display: none; }
+  .labels-toolbar-row { align-items: center; }
+  .labels-toolbar-actions { flex: 1; justify-content: space-between; }
+  .labels-progress { padding: 7px 10px; gap: 4px; }
+  .labels-progress-main { gap: 4px; }
+  .labels-progress-head h2 { font-size: 17px; }
+  .labels-stats { gap: 2px 12px; }
+  .labels-stat-label { font-size: 10.5px; }
+  .labels-stat strong { font-size: 13px; }
+  .labels-task-strip { padding: 4px 10px; }
+  .labels-answer-scroll { padding: 8px 14px calc(8px + var(--labels-actions-h, 96px)); gap: 7px; }
+  .labels-task-subject { font-size: 21px; }
+  .labels-task-sender { font-size: 11px; }
+  .labels-actions { padding: 5px 10px; gap: 3px; }
+  .review-suggestion { padding: 9px 13px; }
+  .labels-suggestion .review-suggestion-value strong { font-size: 21px; }
+  .labels-question-title { font-size: 16px; }
+  .labels-question-primary { gap: 6px; }
+  .labels-yesno-option { min-height: 44px; padding: 9px 12px; font-size: 14px; }
+}
+
+@media (max-height: 700px) and (min-width: 1025px) {
+  .labels-answer-pane { height: 100%; max-height: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; transition-duration: 0.001ms !important; scroll-behavior: auto !important; }
+}
+
+@media print {
+  html, body { height: auto; overflow: visible; }
+  .sidebar, .toasts, .button, .toast { display: none !important; }
+  .app { display: block; height: auto; }
+  #main { display: block; overflow: visible; padding: 0; }
+  .screen { display: block; height: auto; }
+  .screen > * + * { margin-top: 14px; }
+  .section-scroll, .route-scroll { overflow: visible; }
+  .table-wrap { overflow: visible; }
+}
+
+.button[hidden] { display: none; }
+

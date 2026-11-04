@@ -1,0 +1,221 @@
+{
+  "_doc": "Bucket bounds of the numeric signals for the feature view (layer 1) and the observed facts: a value v falls in bucket k = how many bounds are ≤ v (bucket 0: below the first bound, the last: at or above the last), so a feature is stable whatever the mailbox. A list signal (date_days) is bucketed by its length. Every numeric signal needs bounds (the coverage report buckets the non-causal ones too) (TestEveryNumericSignalHasBins). Bounds are structural scales (counts, minutes, days, characters, bytes as powers of ten), never fitted to one mailbox.",
+  "bins": {
+    "hop_count": [
+      1,
+      2,
+      4,
+      8,
+      16
+    ],
+    "spam_scl": [
+      0,
+      1,
+      5,
+      7
+    ],
+    "recipient_count": [
+      1,
+      2,
+      3,
+      5,
+      10,
+      25
+    ],
+    "external_recipients": [
+      1,
+      2,
+      5,
+      10
+    ],
+    "thread_position": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "sender_reminders": [
+      1,
+      2,
+      3
+    ],
+    "thread_gap_minutes": [
+      5,
+      60,
+      240,
+      1440,
+      4320,
+      10080
+    ],
+    "back_and_forth": [
+      1,
+      2,
+      4,
+      8
+    ],
+    "sender_received_before": [
+      1,
+      2,
+      5,
+      10,
+      50,
+      200
+    ],
+    "owner_sent_before": [
+      1,
+      2,
+      5,
+      10,
+      50,
+      200
+    ],
+    "owner_share": [
+      0.01,
+      0.25,
+      0.5,
+      0.75
+    ],
+    "exchange_years": [
+      1,
+      2,
+      3,
+      5
+    ],
+    "sender_first_seen_days": [
+      1,
+      7,
+      30,
+      365,
+      1095
+    ],
+    "sender_last_seen_days": [
+      1,
+      7,
+      30,
+      90,
+      365
+    ],
+    "reply_rate": [
+      0.01,
+      0.25,
+      0.5,
+      0.75
+    ],
+    "reply_latency_band": [
+      1,
+      2,
+      3,
+      4
+    ],
+    "attachment_count": [
+      1,
+      2,
+      4
+    ],
+    "inline_count": [
+      1,
+      2,
+      5
+    ],
+    "attachment_bytes": [
+      1,
+      10000,
+      100000,
+      1000000,
+      10000000
+    ],
+    "quoted_ratio": [
+      0.01,
+      0.25,
+      0.5,
+      0.75,
+      0.95
+    ],
+    "link_count": [
+      1,
+      2,
+      5,
+      10,
+      25
+    ],
+    "question_marks": [
+      1,
+      2,
+      4
+    ],
+    "own_chars": [
+      1,
+      100,
+      300,
+      1000,
+      3000
+    ],
+    "currency_count": [
+      1,
+      2,
+      5
+    ],
+    "amount_magnitude": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6
+    ],
+    "date_days": [
+      1,
+      2,
+      4
+    ],
+    "date_count": [
+      1,
+      2,
+      4
+    ],
+    "date_unresolved": [
+      1,
+      2
+    ],
+    "date_next_days": [
+      1,
+      2,
+      8,
+      31,
+      92,
+      366
+    ],
+    "date_past_days": [
+      1,
+      2,
+      7,
+      30,
+      90
+    ],
+    "time_count": [
+      1,
+      2,
+      4
+    ],
+    "template_matches": [
+      1,
+      2,
+      5,
+      20
+    ],
+    "flag_due_days": [
+      -30,
+      -7,
+      0,
+      1,
+      2,
+      8,
+      31
+    ],
+    "weekday_days": [
+      1,
+      2,
+      4
+    ]
+  }
+}

@@ -1,0 +1,8 @@
+* text=auto eol=lf
+*.go text eol=lf
+*.sh text eol=lf
+*.ps1 text eol=crlf
+*.exe binary
+*.ico binary
+*.png binary
+*.gguf binary

@@ -1,0 +1,27 @@
+{
+  "ucd": {
+    "version": "17.0.0",
+    "url": "https://www.unicode.org/Public/17.0.0/ucd"
+  },
+  "cldr": {
+    "tag": "release-48-2",
+    "commit": "11299982335beb974c1c63c45265184e759c0f41",
+    "url": "https://raw.githubusercontent.com/unicode-org/cldr/11299982335beb974c1c63c45265184e759c0f41"
+  },
+  "license": "Unicode-3.0",
+  "generator": "scripts/datagen (unicode)",
+  "inputs": {
+    "UnicodeData.txt": "2e1efc1dcb59c575eedf5ccae60f95229f706ee6d031835247d843c11d96470c",
+    "PropList.txt": "130dcddcaadaf071008bdfce1e7743e04fdfbc910886f017d9f9ac931d8c64dd",
+    "Scripts.txt": "9f5e50d3abaee7d6ce09480f325c706f485ae3240912527e651954d2d6b035bf",
+    "PropertyValueAliases.txt": "64e9a5f76f7a1e8b5a47d6a1f9a26522a251208f5276bdfa1559dac7cf2e827a",
+    "CaseFolding.txt": "ff8d8fefbf123574205085d6714c36149eb946d717a0c585c27f0f4ef58c4183",
+    "scriptMetadata.txt": "50a0499acddd7a5ce935e8d77b59ab789f91b16c15b95b00236d90137fe662a4",
+    "Latin-ASCII.xml": "4686f5643c75039583281cf3a91688ef7dfb665420f185c03982664740e66523"
+  },
+  "outputs": {
+    "scripts.json": "80af49acb1397772b28b9029a2446d3b0efe18aec62b4d8d589e0e7aa34741ed",
+    "fold.json": "0320e865a1b1c759a66d8432db9a6738c00939cb40d7233b09b2267114828368",
+    "punctuation.json": "d25fecf200d7dbe5c42b17e71fc3e82d3c2c4e5317826b0bb5d847caca020d41"
+  }
+}

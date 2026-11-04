@@ -1,0 +1,343 @@
+{
+  "product": "Mailsense",
+  "repository": "https://github.com/LLM-4-People/mailsense",
+  "hero": {
+    "title": {
+      "en": "Mailsense",
+      "fr": "Mailsense"
+    },
+    "tagline": {
+      "en": "Your mailbox, sorted. Every decision explained. Your mail is stored on your machine; the local analysis runs there; a remote model is used only when you configure one.",
+      "fr": "Votre boîte mail, triée. Chaque décision expliquée. Votre courrier reste sur votre machine ; l'analyse locale s'y exécute ; un modèle distant n'est utilisé que si vous en configurez un."
+    },
+    "intro": {
+      "en": "Mailsense reads the mail already in your classic Outlook profile on Windows, tells you what each message is, what it asks for, and what deserves your attention first. It shows the reason for every verdict, learns from your corrections, and keeps the whole record in a local database you can inspect. The Linux build is a preview without a live mail source.",
+      "fr": "Mailsense lit le courrier déjà présent dans votre profil Outlook classique sous Windows, indique ce que chaque message est, ce qu'il demande, et ce qui mérite votre attention en premier. Il montre la raison de chaque verdict, apprend de vos corrections et conserve tout le dossier dans une base locale que vous pouvez inspecter. La version Linux est un aperçu sans source de courrier en direct."
+    },
+    "banner": {
+      "en": "Local-first mail triage that explains every decision.",
+      "fr": "Le tri du courrier local qui explique chaque décision."
+    }
+  },
+  "nav": [
+    {
+      "key": "install",
+      "label": {
+        "en": "Install",
+        "fr": "Installation"
+      }
+    },
+    {
+      "key": "first_run",
+      "label": {
+        "en": "First run",
+        "fr": "Premier démarrage"
+      }
+    },
+    {
+      "key": "mailboxes",
+      "label": {
+        "en": "Mailboxes",
+        "fr": "Boîtes"
+      }
+    },
+    {
+      "key": "providers",
+      "label": {
+        "en": "Providers",
+        "fr": "Fournisseurs"
+      }
+    },
+    {
+      "key": "learning",
+      "label": {
+        "en": "Learning",
+        "fr": "Apprentissage"
+      }
+    },
+    {
+      "key": "faq",
+      "label": {
+        "en": "FAQ",
+        "fr": "FAQ"
+      }
+    },
+    {
+      "key": "privacy",
+      "label": {
+        "en": "Privacy",
+        "fr": "Confidentialité"
+      }
+    },
+    {
+      "key": "security",
+      "label": {
+        "en": "Security",
+        "fr": "Sécurité"
+      }
+    },
+    {
+      "key": "troubleshooting",
+      "label": {
+        "en": "Troubleshooting",
+        "fr": "Dépannage"
+      }
+    },
+    {
+      "key": "contributing",
+      "label": {
+        "en": "Contributing",
+        "fr": "Contribuer"
+      }
+    }
+  ],
+  "features": {
+    "title": {
+      "en": "What it does",
+      "fr": "Ce qu'il fait"
+    },
+    "items": [
+      {
+        "title": {
+          "en": "Triage you can audit.",
+          "fr": "Un tri que vous pouvez vérifier."
+        },
+        "body": {
+          "en": "Category, topic, the ask, reply obligation, urgency, deadline, sentiment, phishing suspicion, and the evidence behind each one.",
+          "fr": "Catégorie, sujet, demande, obligation de réponse, urgence, échéance, sentiment, suspicion d'hameçonnage, et la preuve de chacun."
+        }
+      },
+      {
+        "title": {
+          "en": "A ranked inbox.",
+          "fr": "Une boîte classée."
+        },
+        "body": {
+          "en": "Reply, decide, pay, schedule, or read, ordered by what the message actually asks of you, with the reason on the row.",
+          "fr": "Répondre, décider, payer, planifier ou lire, dans l'ordre de ce que le message exige vraiment, avec la raison sur la ligne."
+        }
+      },
+      {
+        "title": {
+          "en": "A mailbox that gets better.",
+          "fr": "Une boîte qui s'améliore."
+        },
+        "body": {
+          "en": "Your corrections become examples; reply behaviour becomes priors.",
+          "fr": "Vos corrections deviennent des exemples ; votre façon de répondre devient un priori."
+        }
+      },
+      {
+        "title": {
+          "en": "Thread truth.",
+          "fr": "La vérité des fils."
+        },
+        "body": {
+          "en": "Who spoke last, whether the owner owes a reply, and which thread is still open.",
+          "fr": "Qui a parlé en dernier, si vous devez une réponse, et quel fil reste ouvert."
+        }
+      },
+      {
+        "title": {
+          "en": "Companies and people.",
+          "fr": "Entreprises et personnes."
+        },
+        "body": {
+          "en": "Declared contacts merged with what mail observed.",
+          "fr": "Les contacts déclarés fusionnés avec ce que le courrier a observé."
+        }
+      },
+      {
+        "title": {
+          "en": "Ask in plain language.",
+          "fr": "Des questions en langage courant."
+        },
+        "body": {
+          "en": "Structured counts and lists first; a model-written summary only when you configured one, always with citations.",
+          "fr": "Comptages et listes structurés d'abord ; un résumé rédigé par un modèle seulement si vous en avez configuré un, toujours avec des citations."
+        }
+      },
+      {
+        "title": {
+          "en": "Local by default.",
+          "fr": "Local par défaut."
+        },
+        "body": {
+          "en": "SQLite on disk, local embeddings downloaded once, configurable CPU, memory and disk ceilings, and background work that pauses at the ceiling instead of fighting the machine.",
+          "fr": "SQLite sur disque, embeddings locaux téléchargés une fois, plafonds CPU, mémoire et disque configurables, et travail de fond mis en pause au plafond au lieu de lutter contre la machine."
+        }
+      }
+    ]
+  },
+  "difference": {
+    "title": {
+      "en": "Why it is different",
+      "fr": "Pourquoi c'est différent"
+    },
+    "body": {
+      "en": "Most assistants hide the reasoning. Mailsense treats every label as a claim with a source: the profile that produced it, the message fields it read, and the confidence it carries. When the mailbox has not finished indexing, it says so instead of pretending the answer is complete.",
+      "fr": "La plupart des assistants cachent le raisonnement. Mailsense traite chaque étiquette comme une affirmation avec une source : le profil qui l'a produite, les champs lus, et la confiance associée. Quand l'indexation n'est pas terminée, il le dit au lieu de faire croire que la réponse est complète."
+    }
+  },
+  "runs": {
+    "title": {
+      "en": "What runs where",
+      "fr": "Ce qui s'exécute où"
+    },
+    "columns": [
+      {
+        "en": "Part",
+        "fr": "Partie"
+      },
+      {
+        "en": "Default",
+        "fr": "Défaut"
+      },
+      {
+        "en": "Optional",
+        "fr": "Option"
+      }
+    ],
+    "rows": [
+      {
+        "cells": [
+          {
+            "en": "Live mail source",
+            "fr": "Source de courrier en direct"
+          },
+          {
+            "en": "Classic Outlook on Windows",
+            "fr": "Outlook classique sous Windows"
+          },
+          {
+            "en": "None on Linux yet",
+            "fr": "Aucune sous Linux pour l'instant"
+          }
+        ]
+      },
+      {
+        "cells": [
+          {
+            "en": "Mail store and indexes",
+            "fr": "Stockage et index du courrier"
+          },
+          {
+            "en": "Local SQLite",
+            "fr": "SQLite local"
+          },
+          {
+            "en": "A chosen data directory",
+            "fr": "Un répertoire de données choisi"
+          }
+        ]
+      },
+      {
+        "cells": [
+          {
+            "en": "Semantic embeddings",
+            "fr": "Embeddings sémantiques"
+          },
+          {
+            "en": "Downloaded once on first use (about 342 MB on Windows, 328 MB on Linux)",
+            "fr": "Téléchargé au premier usage (environ 342 Mo sous Windows, 328 Mo sous Linux)"
+          },
+          {
+            "en": "A remote embedding provider you configure",
+            "fr": "Un fournisseur d'embeddings distant configuré"
+          }
+        ]
+      },
+      {
+        "cells": [
+          {
+            "en": "Message classification",
+            "fr": "Classification des messages"
+          },
+          {
+            "en": "Local Go classifier; triage needs a decider",
+            "fr": "Classifieur Go local ; le triage exige un décideur"
+          },
+          {
+            "en": "The decider you choose, including a local OpenAI-compatible endpoint",
+            "fr": "Le décideur choisi, y compris un point d'accès local compatible OpenAI"
+          }
+        ]
+      },
+      {
+        "cells": [
+          {
+            "en": "Written answers",
+            "fr": "Réponses rédigées"
+          },
+          {
+            "en": "Off unless configured",
+            "fr": "Désactivées par défaut"
+          },
+          {
+            "en": "The writing provider you choose",
+            "fr": "Le fournisseur de rédaction choisi"
+          }
+        ]
+      }
+    ],
+    "note": {
+      "en": "Mailsense reads the classic Outlook profile already open on Windows; it does not ask for Microsoft credentials. A remote provider receives the message fields a request needs, and only when that request runs. See [privacy]({privacy}).",
+      "fr": "Mailsense lit le profil Outlook classique déjà ouvert sous Windows ; il ne demande pas d'identifiants Microsoft. Un fournisseur distant ne reçoit que les champs nécessaires à une requête, et seulement quand elle s'exécute. Voir [confidentialité]({privacy})."
+    }
+  },
+  "start": {
+    "title": {
+      "en": "Get started",
+      "fr": "Démarrer"
+    },
+    "steps": [
+      {
+        "en": "[Install Mailsense]({install}) for Windows. The Linux build is a preview without a live mail source.",
+        "fr": "[Installer Mailsense]({install}) sous Windows. La version Linux est un aperçu sans source de courrier en direct."
+      },
+      {
+        "en": "Follow the [first run]({first_run}): a short basic path, and an advanced path when you want to control providers, storage and resources.",
+        "fr": "Suivre le [premier démarrage]({first_run}) : un parcours simple, et un parcours avancé pour les fournisseurs, le stockage et les ressources."
+      },
+      {
+        "en": "Read the [privacy model]({privacy}) in one page.",
+        "fr": "Lire le [modèle de confidentialité]({privacy}) en une page."
+      }
+    ]
+  },
+  "status": {
+    "title": {
+      "en": "Status",
+      "fr": "État"
+    },
+    "body": {
+      "en": "Mailsense is in active development. Interfaces and stored schemas may change between releases; the changelog and the release notes call out anything that requires a migration.",
+      "fr": "Mailsense est en développement actif. Les interfaces et les schémas stockés peuvent changer entre les versions ; le journal des modifications et les notes de version signalent tout ce qui demande une migration."
+    }
+  },
+  "build": {
+    "title": {
+      "en": "Build from source",
+      "fr": "Construire depuis les sources"
+    },
+    "requirements": {
+      "en": "Go (the version in `go.mod`), Node 22 for the UI test harnesses, and optionally Playwright for the browser suite.",
+      "fr": "Go (la version de `go.mod`), Node 22 pour les harnais d'interface, et Playwright pour la suite navigateur."
+    },
+    "commands": "scripts/build.sh all        # dist/mailsense and dist/mailsense.exe\nscripts/test-fast.sh        # gofmt, vet, script checks, unit and contract suites\nscripts/test.sh             # exhaustive release gate",
+    "note": {
+      "en": "The UI is plain modules under `internal/ui/js`, concatenated into one bundle by `go generate ./internal/ui`. Architecture and ownership rules are in `docs/ARCHITECTURE.md`.",
+      "fr": "L'interface est en modules simples sous `internal/ui/js`, concaténés en un seul bundle par `go generate ./internal/ui`. L'architecture et les règles de propriété sont dans `docs/ARCHITECTURE.md`."
+    }
+  },
+  "license": {
+    "title": {
+      "en": "License",
+      "fr": "Licence"
+    },
+    "body": {
+      "en": "Mailsense is licensed under the GNU Affero General Public License, version 3 or later (AGPL-3.0-or-later). You can use it, study it, change it and share it. If you run a modified version as a network service, the AGPL requires you to offer the corresponding source to the people who use it. See `LICENSE` for the full text and `NOTICE` for the copyright and third-party notices.",
+      "fr": "Mailsense est publié sous la licence GNU Affero General Public License, version 3 ou ultérieure (AGPL-3.0-or-later). Vous pouvez l'utiliser, l'étudier, le modifier et le partager. Si vous exploitez une version modifiée comme service réseau, l'AGPL exige d'offrir le code source correspondant aux personnes qui l'utilisent. Le texte complet est dans `LICENSE`, les mentions de copyright et de tiers dans `NOTICE`."
+    }
+  }
+}

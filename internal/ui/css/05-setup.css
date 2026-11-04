@@ -1,0 +1,232 @@
+/* The first-run overlay. It sits above the shell but reuses the same paper,
+   ink and accent tokens, so setup looks like the rest of the app. */
+
+.setup-root {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: grid;
+  place-items: center;
+  padding: var(--space-5);
+  background: var(--bg);
+  overflow: auto;
+}
+
+.setup-card {
+  width: min(680px, 100%);
+  padding: var(--space-6);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface-raised);
+  box-shadow: var(--shadow);
+}
+
+.setup-head .eyebrow {
+  margin: 0 0 var(--space-2);
+  color: var(--accent);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.setup-head h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--display-size);
+  font-weight: 500;
+  line-height: 1.15;
+  color: var(--ink);
+}
+
+.setup-head .lede {
+  margin: var(--space-3) 0 0;
+  max-width: 54ch;
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.setup-steps {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin: var(--space-5) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.setup-step {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 5px 11px 5px 6px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-pill);
+  background: var(--surface-chip);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.setup-step.current {
+  border-color: var(--accent-line);
+  background: var(--accent-soft);
+  color: var(--accent-ink);
+}
+
+.setup-step.done {
+  border-color: var(--ok-line);
+  background: var(--ok-soft);
+  color: var(--ok-ink);
+}
+
+.setup-step-number {
+  display: inline-grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--surface);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.setup-body {
+  margin: var(--space-5) 0 0;
+  padding: var(--space-5) 0 0;
+  border-top: 1px solid var(--line);
+}
+
+.setup-form {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.setup-form p {
+  margin: 0;
+  max-width: 60ch;
+  color: var(--ink-soft);
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.setup-facts {
+  display: grid;
+  gap: var(--space-2);
+  margin: 0;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+}
+
+.setup-facts > div {
+  display: grid;
+  grid-template-columns: minmax(120px, 34%) 1fr;
+  gap: var(--space-3);
+  align-items: baseline;
+}
+
+.setup-facts dt {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.setup-facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font-size: 12.5px;
+}
+
+.setup-list {
+  display: grid;
+  gap: var(--space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.setup-list li {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.setup-list strong {
+  margin-inline-end: 0.35em;
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.setup-mailbox-list {
+  display: grid;
+  gap: var(--space-2);
+  max-height: 240px;
+  margin: 0;
+  padding: var(--space-2);
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+}
+
+.setup-mailbox {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas: "check name" "check key";
+  gap: 2px var(--space-3);
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.setup-mailbox:hover {
+  background: var(--surface-hover);
+}
+
+.setup-mailbox input {
+  grid-area: check;
+  align-self: center;
+  margin: 0;
+}
+
+.setup-mailbox-name {
+  grid-area: name;
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.setup-mailbox .fine {
+  grid-area: key;
+  overflow-wrap: anywhere;
+}
+
+.setup-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--space-2);
+  margin: var(--space-5) 0 0;
+  padding: var(--space-4) 0 0;
+  border-top: 1px solid var(--line);
+}
+
+@container (max-width: 560px) {
+  .setup-card { padding: var(--space-5); }
+  .setup-actions { justify-content: stretch; }
+  .setup-actions .button { flex: 1 1 auto; }
+}
+
+@media (max-width: 560px) {
+  .setup-root { padding: var(--space-3); }
+  .setup-card { padding: var(--space-5); }
+  .setup-actions { justify-content: stretch; }
+  .setup-actions .button { flex: 1 1 auto; }
+  .setup-facts > div { grid-template-columns: 1fr; gap: 2px; }
+}
