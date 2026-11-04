@@ -51,7 +51,7 @@ for arg in "$@"; do
 	esac
 done
 
-if [[ "$STAGES" != "tests" ]]; then
+if [[ "$STAGES" == "all" || "$STAGES" == "lint" ]]; then
 	gate_gofmt
 	gate_scripts
 	"$ROOT/scripts/check-generated.sh"
@@ -175,11 +175,11 @@ wait_shard() { # name package-count
 }
 
 if ((${#RACE_FLAGS[@]})); then
-	# One shard each: the race build is the slowest single item, and two
-	# packages in one shard ran back to back instead of sharing the cores.
-	say "race shards (qa, api)"
-	start_shard RACE_QA env CGO_ENABLED=1 "$GO" test "${RACE_FLAGS[@]}" -vet=off -count=1 -timeout "${TEST_TIMEOUT}s" "$@" ./internal/qa
-	start_shard RACE_API env CGO_ENABLED=1 "$GO" test "${RACE_FLAGS[@]}" -vet=off -count=1 -timeout "${TEST_TIMEOUT}s" "$@" ./internal/api
+	# One shard keeps the process count at four, which is the runner's core
+	# count. Two race builds and three shards oversubscribed it and made the
+	# whole stage slower than this single shard.
+	say "race shard (qa, api)"
+	start_shard RACE env CGO_ENABLED=1 "$GO" test "${RACE_FLAGS[@]}" -vet=off -count=1 -timeout "${TEST_TIMEOUT}s" "$@" ./internal/qa ./internal/api
 else
 	say "race check skipped (RACE=off, or no cgo/C compiler)"
 fi
@@ -194,8 +194,7 @@ wait_shard A "${#pkgs_a[@]}" || failed=1
 wait_shard B "${#pkgs_b[@]}" || failed=1
 wait_shard C "${#shard_c[@]}" || failed=1
 if ((${#RACE_FLAGS[@]})); then
-	wait_shard RACE_QA 1 || failed=1
-	wait_shard RACE_API 1 || failed=1
+	wait_shard RACE 2 || failed=1
 fi
 ((failed == 0)) || die "test shards failed; each FAIL above names the shard and the command that reruns it"
 

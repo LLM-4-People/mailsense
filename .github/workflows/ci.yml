@@ -126,24 +126,26 @@ jobs:
 
   windows:
     name: windows build
-    runs-on: windows-latest
-    timeout-minutes: 30
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version-file: go.mod
           cache: true
-      # The Outlook connector and the GUI shell are windows-only. A Linux-only
-      # CI would never compile the code most likely to break.
-      - run: go vet ./...
-        shell: bash
-      - run: go build ./...
-        shell: bash
-      # Compile every test binary without running the suites, so a windows-only
-      # test file cannot rot unnoticed.
-      - run: go test -run '^$' ./...
-        shell: bash
+      # The Outlook connector and the GUI shell are windows-only, so this job
+      # compiles every package for windows. The tree has no cgo and no
+      # assembly, so the same toolchain cross-compiles exactly what a windows
+      # runner would, without its queue and cache restore. Vet typechecks the
+      # test files too, so a windows-only test cannot rot unnoticed. The
+      # release workflow still builds the installer on a windows runner.
+      - name: vet every package for windows
+        run: env GOOS=windows GOARCH=amd64 CGO_ENABLED=0 go vet ./...
+      # scripts/build.sh owns the shipped flags, so this links the real
+      # binary, including the GUI subsystem that a plain go build misses.
+      - name: build the shipped windows binary
+        run: scripts/build.sh windows
 
   vuln:
     name: vulnerability scan

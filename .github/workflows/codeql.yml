@@ -17,17 +17,38 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
+  # One analysis per language, in parallel. The two databases share no work,
+  # and one job analyzing both ran them back to back.
   analyze:
+    name: analyze (${{ matrix.language }})
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [go, javascript-typescript]
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        if: matrix.language == 'go'
         with:
           go-version-file: go.mod
           cache: true
       - uses: github/codeql-action/init@a3d1b77a1ba1550fbb5c74db1dc3a11f4a481126 # v3
         with:
-          languages: go, javascript-typescript
+          languages: ${{ matrix.language }}
+      # Only Go needs a build. The JavaScript and TypeScript extractor reads
+      # the sources directly.
       - uses: github/codeql-action/autobuild@a3d1b77a1ba1550fbb5c74db1dc3a11f4a481126 # v3
+        if: matrix.language == 'go'
       - uses: github/codeql-action/analyze@a3d1b77a1ba1550fbb5c74db1dc3a11f4a481126 # v3
+
+  # The ruleset requires the "analyze" context. This job keeps that one name
+  # while each language analysis runs in parallel.
+  analyze-gate:
+    name: analyze
+    needs: [analyze]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - run: echo "every language analysis passed"
