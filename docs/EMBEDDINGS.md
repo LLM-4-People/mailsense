@@ -461,8 +461,8 @@ exposes only a faux DRM device (`DRIVER=faux_driver`), has no Vulkan ICD
 
 ### Pinned canary reference (2026-10-27)
 
-The catalog's canary sentence was embedded by the cpu build on the live
-Windows machine for this exact model: **768 values, all finite, norm
+The catalog's canary sentence was embedded by the cpu build on a Windows
+machine for this exact model: **768 values, all finite, norm
 1.000000**, stored verbatim as `canary_vector` in `runtimes.json` with
 `canary_sentence_sha256` =
 `f93987314012a9db8ab92ea790970d005a69e472a9483a603aa728dcf270bde3`.
@@ -471,7 +471,7 @@ it, above `sidecar.canary.min_cosine` (0.99). That pinned vector is now
 the Windows reference: the canary no longer downloads or launches a cpu
 build, and the vector is never logged.
 
-### Live (<agent>, 2026-10-14, `scripts/embed-live.sh`)
+### Windows measurements (2026-10-14)
 
 These measurements were taken with the earlier catalog that also offered
 Windows cpu and cuda builds; the product catalog now has neither (the cpu
@@ -482,8 +482,7 @@ i5-13500T (20 logical CPUs), NVIDIA T400 4 GB, driver 596.51. Every
 artifact was downloaded on the machine by the sidecar, hash-checked and
 installed in `%LOCALAPPDATA%\Mailsense\runtime`. Sample: the newest 300
 complete messages of the primary Inbox (20,075 synced read-only in 336 s
-into a temporary database, removed afterwards). Report:
-`out/embed-live-report.json` (aggregates only).
+into a temporary database, removed afterwards).
 
 | Build | Served by | Canary (cos vs cpu) | Throughput, 300 mails (61,180 tokens) | GPU memory while loaded |
 | --- | --- | --- | --- | --- |
@@ -506,20 +505,19 @@ into a temporary database, removed afterwards). Report:
 
 #### Review round 2b re-run (2026-10-15, `auto`)
 
-`scripts/embed-live.sh <agent> full 300` with `sidecar.variant =
-auto` after a re-probe: the cpu build tuned again (4 → 722, **6 → 894**,
-8 → 859 tok/s), then the auto list's vulkan build passed the canary
-(0.99981) at **1,787 tok/s = 2.00× cpu** and was chosen; the choice and
-the probe are in `state.json`. First start (tuning + probe) 22.0 s; the
-**second start took 2.3 s and did not probe**. On the 300 newest Inbox
-mails: vulkan 1,651 tok/s / **7.84 mails/s**, cpu 599 tok/s / 2.85
-mails/s (same sample, same machine load); the index job 300/300 at 7.42
-mails/s; search p50 38 ms, p95 44 ms, semantic used on 100/100 queries,
-hit@10 99/100 (full text 95/100). GPU memory: 1,607 MiB free before,
-1,112 while vulkan was loaded, 1,645 after. The job object ended the
-runtime with its app. The sidecar test suite also passes on Windows
-(`embed-live.sh <agent> unit`). Left in the runtime directory:
-cpu 47.6 MiB, vulkan 87.2 MiB, model 295.5 MiB, state.json 16 KB.
+A re-run with `sidecar.variant = auto` after a re-probe: the cpu build
+tuned again (4 → 722, **6 → 894**, 8 → 859 tok/s), then the auto list's
+vulkan build passed the canary (0.99981) at **1,787 tok/s = 2.00× cpu**
+and was chosen; the choice and the probe are in `state.json`. First start
+(tuning + probe) 22.0 s; the **second start took 2.3 s and did not
+probe**. On the 300 newest Inbox mails: vulkan 1,651 tok/s / **7.84
+mails/s**, cpu 599 tok/s / 2.85 mails/s (same sample, same machine load);
+the index job 300/300 at 7.42 mails/s; search p50 38 ms, p95 44 ms,
+semantic used on 100/100 queries, hit@10 99/100 (full text 95/100). GPU
+memory: 1,607 MiB free before, 1,112 while vulkan was loaded, 1,645
+after. The job object ended the runtime with its app. The sidecar test
+suite also passes on Windows. Left in the runtime directory: cpu
+47.6 MiB, vulkan 87.2 MiB, model 295.5 MiB, state.json 16 KB.
 
 **Windows product: one build, Vulkan, chosen by `auto`.** These runs used
 the earlier catalog that also offered cpu and cuda; Windows no longer has
@@ -537,7 +535,5 @@ stopped: there is no CPU fallback and no hidden download.
 - `scripts/embed-local.sh [messages]` — dev box benchmark through the real
   sidecar path with the pinned Linux build (downloaded once into
   `~/.cache/mailsense-runtime`, hash-checked).
-- `scripts/embed-live.sh <agent> [full [messages] | jobobject | unit]` —
-  the live verification on the Windows machine (DEVELOPMENT.md).
 - Settings: `embed.*`, `sidecar.*`, `index.*`, `search.*` in
   `internal/config/schema.json`.

@@ -58,11 +58,11 @@ setup, and documentation that a new owner can follow without help.
    canonical FSF text is installed verbatim in `LICENSE`; `NOTICE` carries the
    copyright and the third-party notices.
 2. **Legacy prototype:** removed. The Python prototype, its tests, the benchmark
-   campaign documents, and the environment-specific conduit tooling are gone.
+   campaign documents, and the environment-specific tooling are gone.
 3. **Environment-specific material:** removed. The module path is
    `github.com/LLM-4-People/mailsense`; employer names, real mailbox data,
-   machine names, real client domains, and conduit scripts are not part of the
-   public tree.
+   machine names, real client domains, and environment-specific scripts are
+   not part of the public tree.
 4. **Publication target:** the `LLM-4-People` organization, repository
    `mailsense`, public.
 5. **Voice:** plain, specific, non-promotional, in both languages. The
@@ -84,8 +84,8 @@ setup, and documentation that a new owner can follow without help.
 - `LICENSE` is the verbatim AGPL-3.0 text; `NOTICE`, both READMEs,
   `CHANGELOG.md` and this plan state the license.
 - The module path is `github.com/LLM-4-People/mailsense`.
-- Legacy Python, benchmark documents, conduit scripts, environment live scripts,
-  root binaries, caches and `.env` are removed.
+- Legacy Python, benchmark documents, environment-specific scripts,
+  environment live scripts, root binaries, caches and `.env` are removed.
 - The PII substitution is complete: one invented business cast and invented
   people. Business stems, real person names, machine paths and internal vendor
   names return zero hits in the contract greps. Addresses and display labels
@@ -208,8 +208,7 @@ setup, and documentation that a new owner can follow without help.
       names, mailbox addresses, internal vendor names and environment paths.
       Add the residue patterns to a mechanical check so a reappearance fails
       the gate.
-- [ ] Remove all environment-specific references, conduit scripts and
-      documentation.
+- [ ] Remove all environment-specific references and documentation.
 - [ ] Extend `internal/prose` to reject em dashes, spaced en dashes, double
       hyphen punctuation, stock phrases and generated-prose markers in every
       public English and French file, including the console catalogs.

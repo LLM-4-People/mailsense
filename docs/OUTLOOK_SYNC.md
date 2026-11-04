@@ -79,7 +79,7 @@ against a fake object model; COM lives only in `*_windows.go`.
   off by default; on, it is walked once per connector for its counts).
   Off, it is listed without counts (`-1`): a whole-profile walk is ≈2,600
   calls, most of them on online mailboxes, and an offline delegate can
-  block a call. The live tests keep it off for the same reason. The key
+  block a call. The key
   is `store-` + 12 hex digits of SHA-256(source id, StoreID) for every store,
   the default one included: stable across restarts and renames, never the
   localized display name, never a name that could start pointing at
@@ -109,12 +109,11 @@ against a fake object model; COM lives only in `*_windows.go`.
   PST delivery stores). Sources: Microsoft Learn (Outlook VBA:
   ExchangeUser.PrimarySmtpAddress, PropertyAccessor, Store.ExchangeStoreType,
   OlExchangeStoreType, Account.DeliveryStore) and [MS-OXOABK] §2.2.3.23
-  (PidTagAddressBookProxyAddresses). Live 2026-10-15
-  (`scripts/conduit/probes/identity-probe.ps1`, `outlook-live.sh … mailboxes`):
-  the default store's owner has 6 proxies (1 `SMTP`, 3 `smtp`, 2 `SPO`) and
-  a DN → identity of 5 addresses; delegate owners resolve to an Exchange
-  user with a DN and a one-entry proxy list (probe re-run 2026-10-15,
-  review round L0). Only picked stores' addresses are reported and
+  (PidTagAddressBookProxyAddresses). Measured 2026-10-15 on the live
+  profile: the default store's owner has 6 proxies (1 `SMTP`, 3 `smtp`,
+  2 `SPO`) and a DN → identity of 5 addresses; delegate owners resolve to
+  an Exchange user with a DN and a one-entry proxy list (probe re-run
+  2026-10-15, review round L0). Only picked stores' addresses are reported and
   recorded, and only from a COMPLETE read (`Mailbox.IdentityComplete`):
   every read above either succeeds or finds the property absent
   (`MAPI_E_NOT_FOUND`); any other failure (an offline address book:
@@ -224,7 +223,7 @@ against a fake object model; COM lives only in `*_windows.go`.
 
 Incident: on the target, OUTLOOK.EXE crashed twice (Application log event
 1000, faulting module `ntdll.dll`, exception `0xc0000374`: heap
-corruption) during back-to-back reruns of `scripts/evidence-live.sh`.
+corruption) during back-to-back full sync reruns.
 The investigation found no memory bug in the connector's COM code (COM
 marshalling copies every argument; ownership of BSTRs, SAFEARRAYs and
 objects checked); the most likely cause is load: ≈1,250 calls per second,
@@ -319,23 +318,6 @@ choke point:
   still be downloading or processing newer ones; the incident's second
   rerun read newest first right after a restart); `sync.details.max_per_run`
   (0: no cap) bounds one run's detail reads (a short verification run).
-- **Harness.** `scripts/conduit/outlook-guard.sh` around every live run that
-  reads Outlook — `outlook-live.sh`, `evidence-live.sh` and, since review
-  3, `embed-live.sh full` (`docs/DEVELOPMENT.md`, "Live Outlook test"):
-  refuses unless Outlook has been up `OUTLOOK_MIN_UPTIME` (900 s);
-  afterwards prints `OUTLOOK CRASHED` and exits 3 if the PID or start time
-  changed or the Application log names OUTLOOK.EXE (events 1000/1001, and
-  1002 Application Hang) since the start; an event query that fails fails
-  the check (it passed before); never reruns. Every live test starts
-  through `livetest.Open`: the limits before the first Outlook call
-  (`-live.rate` in every mode, unpicked stores not walked), then one
-  Discover and the pick; `-live.details` is the WHOLE test's budget of
-  detail reads (`livetest.Budget`: `full`'s three syncs and its unread
-  probe draw from it; spent, `sync.details.enabled` goes off), not a
-  per-run cap. A job still running after `stop.sh`'s grace period is
-  reported (exit ≥ 1, scratch directory kept: `conduit_live_finish`). Live
-  runs default to a short verification run (newest 1,000 detail reads in
-  all, at 100 calls/s away).
 
 Not verified on the target yet (needs the user's approval): a run at the
 new pace with Outlook up ≥ 15 min and the user away, then stepping the
@@ -343,15 +325,15 @@ rate up; whether an add-in is involved (the WER reports were not
 retained; the read-only diagnostic showed the current Outlook was
 restarted from explorer.exe, not through COM).
 
-## Target machine (probed live 2026-10-14, read-only, via device conduit)
+## Target machine (probed 2026-10-14, read-only)
 
-`<agent>`: Windows 11 Pro 24H2, i5-13500T, 47.6 GB RAM, 126 GB free;
+Target machine: Windows 11 Pro 24H2, i5-13500T, 47.6 GB RAM, 126 GB free;
 GPU **NVIDIA T400 4 GB** (Turing, compute 7.5, driver 596.51, 31 W) — **2,955 MiB
 already in use** by the desktop at probe time, so ≈1 GB VRAM is free for
 embeddings (plus Intel UHD 770 iGPU). An earlier "no GPU" note was an
 unprobed assumption, corrected here; classic Outlook x64 16.0.20430 running (new Outlook not running);
 WebView2 155; Windows Defender up to date (⇒ no Object Model Guard prompts);
-conduit agent runs **unelevated as the user in session 1** (same session as
+Mailsense runs **unelevated as the user in session 1** (same session as
 Outlook) — `GetActiveObject('Outlook.Application')` succeeds. Ollama absent.
 `ExchangeConnectionMode` 700 (cached, connected). Stores: the owner's mailbox
 (type 0, cached OST) + 6 delegate stores (type 1, **online, not cached**):
@@ -359,7 +341,7 @@ four shared mailboxes, a colleague's mailbox and that colleague's online
 archive. Folder names are localized (`Boîte de réception`, `Éléments
 envoyés`) — never match folders by name; use `GetDefaultFolder` / folder role.
 
-## Go connector — MEASURED on <agent> (2026-10-14, `scripts/outlook-live.sh full`)
+## Go connector — MEASURED (2026-10-14)
 
 Why the default is the primary store only: the whole profile holds 100,684
 items in 589 mail folders, and 64 % of them (63,929 items, 570 folders) sit
@@ -372,8 +354,8 @@ process, so calls from more client threads would serialise there. This is
 reasoned, not measured.
 
 Whole profile: 7 stores (1 cached primary, 6 online delegates incl. one online
-archive), 589 mail folders, 100,684 items at the start. Aggregate report:
-`out/outlook-live-report.json` (counts, timings, HRESULTs, hashes only).
+archive), 589 mail folders, 100,684 items at the start. The run's aggregate
+report held counts, timings, HRESULTs and hashes only.
 
 | Phase | Measured |
 | --- | --- |

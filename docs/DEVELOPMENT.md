@@ -22,16 +22,13 @@ the local HTTP surface is `API.md`; the open work is in `RELEASE_PLAN.md`.
 | `test-fast.sh [go test flags]` | Fast gate for the inner loop: the same gofmt, script, vet and taxonomy checks, three test shards concurrently, the port-sensitive sidecar suite alone, and `-race` only on `qa` and `api`. Every package is assigned exactly once; a new package outside the named groups lands in shard C. Use `test.sh` before a release. | `SHARD_P` (default 4), `RACE`, `SIDECAR=on\|off`, `TEST_TIMEOUT` (seconds, default 300), `GO` |
 | `test-ui.sh [playwright args]` | Browser end-to-end gate: builds the real binary, starts one server per Playwright worker on an isolated temporary data directory, and runs `e2e/specs` in Chromium. Auth, CSP, static serving, 401 and SSE are real; mail content endpoints are synthetic fixtures. Covers the token handshake, primary routes, Ask conversation, Mail, Companies, live Learning progress and Logs. Windows-only fidelity stays in the manual/live sweeps. | `MAILSENSE_E2E_INSTALL=1` installs the pinned Chromium |
 | `fixture-import.sh [file]` | Imports a legacy JSONL export (plain or gzip) into a fresh DB through archive → syncer → store → scope and prints counts, wall time, DB size, verdicts per rule and FTS checks; then indexes it with the lexical fake embedder and checks search (full-text precision, known-item retrieval, filters, coverage, degraded path, latency). The export names no owner: the fixture config (`fixtureconf`) picks its mailbox and declares the owner's addresses and time zone from `<export>.owner` (private, next to the export: one address per line and a `zone=` line). With the default `$FIXTURE_DIR/mailbox.jsonl` (`lib.sh`: `~/.local/share/mailsense/fixture`, mode 700/600 — the developer's personal fixture lives there, never in the repository nor `out/`) it asserts the ground truth (the one place that number lives) and uses its French check words; another export must set `FIXTURE_TERMS` (the pair check is skipped, with a notice, without `FIXTURE_FTS_PAIRS`). | `FIXTURE_EXPECT`, `FIXTURE_FTS_PAIRS`, `FIXTURE_TERMS`, `FIXTURE_OWNER`, `FIXTURE_ZONE`, `FIXTURE_DATA_DIR`, `GO` |
-| `outlook-live.sh <agent> [smoke\|full\|mailboxes] [report]` | Live Outlook test on a Windows machine through the device conduit (below). | `LIVE_DETAILS` (default 1000; 0: all), `LIVE_RATE` (default 100 calls/s), `OUTLOOK_MIN_UPTIME` (default 900 s), `POLL_INTERVAL`, `MAX_WAIT`, `TEST_TIMEOUT`, `GO` |
 | `update-unicode-data.sh [<ucd-version> <cldr-tag>]` | Regenerates `internal/mail/scripts.json` (spaceless: CLDR scriptMetadata "LB letters"), `fold.json` letters (CLDR Latin-ASCII) and `punctuation.json` (UCD: "QUESTION MARK" + Terminal_Punctuation) from the pinned UCD/CLDR with `scripts/datagen`; hand-kept keys (`substring_extra` — Hangul and the 10 matra-based Indic scripts — and `strip_marks`) are preserved; records inputs and outputs (SHA-256) in `internal/mail/unicode-pin.json`; without arguments re-downloads the pin and verifies it. The UCD version must be Go's `unicode.Version` (a test checks). | `GO` |
 | `update-locale-data.sh [<cldr-tag> <udhr-commit> <unicode-version>]` | Regenerates `internal/locale` (`langid.json`, `locales.json`, `currency.json`, `confusables.json`) from pinned CLDR (coverage levels, supplemental data, likely subtags, language aliases, the main files of `params.json`'s coverage levels, their regional locales (`regional_status`) and their parents — the list is `datagen locale-ids`; a regional locale CLDR ships no file for answers 404 and is skipped), the UDHR in XML project at one commit and UTS #39 confusables, with `scripts/datagen locale` and the hand-kept choices of `internal/locale/params.json`; records every input and output SHA-256 in `internal/locale/pin.json` (a test checks the outputs); without arguments re-downloads the pin and verifies it (`docs/EVIDENCE.md`). | `LOCALE_KEEP` (keep the downloaded sources in a new directory), `GO` |
 | `evidence-fixture.sh [file]` | Imports the fixture, indexes it with the lexical fake embedder, runs the evidence engine twice (first and unchanged) and writes aggregate reports: `out/evidence-fixture.json` (import wall in the same process, runtime, database growth, the stage, coverage and distribution per signal) and `out/evidence-rules.json` (the rule table on a gold sample's TRAIN and DEV labels only; the test split is never read). | `EVIDENCE_GOLD_DIR` (default: the newest `~/.local/share/mailsense/bench/sample-*`; `none` skips), `EVIDENCE_REPORT_DIR`, `FIXTURE_OWNER`, `FIXTURE_ZONE`, `GO` |
-| `evidence-live.sh <agent> [pick]` | Live evidence on the Windows machine through the device conduit: the picked stores (default: the profile's default store) synced read-only into a temporary database there (full transport headers), the engine run twice, the rules measured on the gold sample's TRAIN and DEV labels found in the mailbox by Message-ID (uploaded as labels keyed by a digest of the Message-ID; the test split is never read); downloads `out/evidence-live.json` and `out/evidence-live-rules.json` (aggregates). | `LIVE_ZONE` (default: the `zone=` line of `out/mailbox.owner`), `EVIDENCE_GOLD_DIR` (`none` skips), `LIVE_DETAILS` (default 1000; 0: all), `LIVE_RATE` (default 100 calls/s), `OUTLOOK_MIN_UPTIME` (default 900 s), `TEST_TIMEOUT`, `MAX_WAIT`, `POLL_INTERVAL`, `GO` |
 | `update-prefixes.sh [oldid]` | Regenerates `internal/mail/subject_prefixes.json` from a pinned revision of Wikipedia's "List of email subject abbreviations" (+ the kept extras with provenance), pinned in `prefixes-pin.json`. | `GO` |
 | `update-psl.sh [commit]` | Downloads the Public Suffix List at a pinned commit of github.com/publicsuffix/list into `internal/psl/public_suffix_list.dat` and records source, commit, date, size, SHA-256 and licence in `internal/psl/pin.json`; without an argument re-downloads the pinned commit and checks its hash (a test checks the shipped file against the pin). | `GO` |
 | `gen-taxonomy.sh [--check]` | Regenerates `internal/triage/taxonomy/default_profile.json` from the legacy Python taxonomy (or checks it is unchanged; `test.sh` runs the check while the Python source exists). | `PYTHON` |
 | `embed-local.sh [messages]` | Dev-box benchmark with the real model: the pinned Linux llama-server and model through the sidecar (downloaded once, hash-checked, into `~/.cache/mailsense-runtime`), a fixture sample indexed (throughput), int8 vs float32 recall, hybrid vs full-text known-item retrieval, search latency (`docs/EMBEDDINGS.md`). The `embedlocal` test reads the private provider catalog (`EMBEDLOCAL_PROVIDERS`, default the app data dir's `providers.json`, record `EMBEDLOCAL_PROVIDER`, default `local-embedder`) and accepts `EMBEDLOCAL_BATCH` to override `embed.batch_size` for an A/B; neither is read by the shipped app. | `FIXTURE_JSONL`, `EMBEDLOCAL_RUNTIME_DIR`, `EMBEDLOCAL_BATCH`, `EMBEDLOCAL_PROVIDERS`, `EMBEDLOCAL_PROVIDER`, `GO` |
-| `embed-live.sh <agent> [full [messages] [report] \| jobobject \| unit]` | Live semantic-stack check, the job-object check, or the sidecar test suite on the Windows machine through the device conduit (below); `full` reads Outlook, so it runs inside the crash guard under the live limits. | `LIVE_DETAILS` (default 1000, at least the sample; 0: all), `LIVE_RATE` (default 100 calls/s), `OUTLOOK_MIN_UPTIME` (default 900 s), `TEST_TIMEOUT`, `MAX_WAIT`, `POLL_INTERVAL`, `GO` |
 | `triage-live.sh <record-id> [messages] [repeat]` | Small live check against one decider record: the protocol probe (a 402 stops it), then at most 30 fixture messages triaged in a temporary database and `repeat` of them decided again (agreement). The record's `api_key_secret` names the key read from `.env`; only that key enters the test process, never printed. Its run budget is set in the script (the one place). | `ENV_FILE`, `PROVIDERS_FILE`, `TRIAGE_JSONL`, `GO` |
 | `judge-gold.sh <record-id> [messages]` | Live gold validation of one generator record (dev only): the newest sealed gold sample's DEV labels, a deterministic sample, the real judge calls, per-question agreement and calls/tokens/USD. The record's `api_key_secret` names the key read from `.env`; only that key enters the test process. | `JUDGE_GOLD_MAX_USD`, `PROVIDERS_FILE`, `GO` |
 | `run-windows.sh` | Starts `dist/mailsense.exe` (or `RUN_EXE`), waits for the loopback API's `runtime/api.json`, and prints the base URL. Never prints the token. On a non-Windows host it starts the named Linux dev binary instead (smoke tests). | `RUN_EXE`, `RUN_TIMEOUT` (seconds, default 60), `MAILSENSE_DATA_DIR` |
@@ -50,135 +47,8 @@ Long runs (full gate, fixture import) are best started in the background.
 Never stop processes with `kill`/`pkill`: `scripts/stop-windows.sh` asks the
 app to stop through its own API and waits for it.
 
-## Windows machine tooling (`scripts/conduit/`)
-
-Outlook lives on a Windows machine (`<agent>`), reached through the
-device conduit. The scripts are bash + curl + jq, take the agent name as first
-argument, and read the conduit from `CONDUIT_URL`/`CONDUIT_TOKEN` or `~/.conduit.cfg`
-(`url=…`, `token=…`; `CONDUIT_CFG` overrides the path). The token goes to curl
-on stdin: it never appears in a process list or in output. Remote files live
-in the agent user's scratch directory `%LOCALAPPDATA%\Temp\mailsense-dev`
-(`CONDUIT_REMOTE_DIR` overrides).
-
-| Script | What it does |
-| --- | --- |
-| `exec.sh <agent> '<cmd>' [timeout]` | One cmd.exe command, synchronous (conduit cap ≈ 600 s); exits with the remote code. |
-| `ps.sh <agent> <file.ps1> [timeout] [-- args]` | Uploads a PowerShell script, runs it (`-ExecutionPolicy Bypass -File`), deletes it. |
-| `upload.sh <agent> <file> [name\|path]` | Copies a file (script, executable) to the scratch directory (or an absolute path), prints the remote path; SHA-256 checked by the conduit. |
-| `download.sh` | Fetches a file; checked against the conduit's SHA-256 header. |
-| `detach.sh <agent> <job> <program> [args]` | Starts a long job through WMI `Win32_Process.Create`: the conduit waits for every process it starts itself, while a WMI process is outside that tree, runs in the user's interactive session (same as Outlook, so `GetActiveObject` works) and returns at once. Output → `<job>.log`, exit code → `<job>.exit`. No scheduled task. |
-| `poll.sh <agent> <job> [interval] [max]` | Waits for a detached job: 0 = exited 0, 1 = failed or died without an exit code (PID gone), 2 = still running, 3 = the conduit failed 3 probes in a row. |
-| `stop.sh <agent> <job> [grace]` | Graceful stop: writes `<job>.stop` (the live test cancels and cleans up on it) and waits; never kills (exit 2 = still running, PID printed). The live scripts end through `conduit_live_finish` (`lib.sh`): a job still running after the grace period is reported (exit ≥ 1, scratch directory kept), never hidden. |
-| `logs.sh <agent> <job> [lines]` | Tail of a job's log. |
-| `cleanup.sh <agent> [--keep name…]` | Empties the scratch directory. Refuses unless it ends in `\\mailsense-dev` and carries the marker `conduit_remote_dir` wrote, and while a job runs. |
-| `outlook-guard.sh <agent> before\|after <state file>` | The Outlook crash guard of the live scripts, read-only (process list and Application log; Outlook is never called): `before` records the session's OUTLOOK.EXE PID, start time and the agent's clock and refuses when Outlook is not running or up less than `OUTLOOK_MIN_UPTIME` s (default 900); `after` prints `OUTLOOK CRASHED` and exits 3 when the PID or start time changed or the Application log names OUTLOOK.EXE in an event 1000/1001/1002 (crash, error report, hang) since the start; an event-log query that fails (anything but "no events") fails the check, exit 1. |
-| `selftest.sh` | Offline test of the helpers (config parsing incl. tokens ending in `=`, token escaping, argument checks, the crash guard's probe parsing and its failed-query rule, the live scripts' common finish and guard); run by `test.sh`. |
-| `probes/*.ps1` | Probes run with `ps.sh`: `com-probe` (attach, stores), `folder-enum-probe` (folder walk methods), `dialog-probe` (modal dialogs, class names only), `gpu-probe`, `webview2-dom` (real WebView2 DOM and a PNG capture through the DevTools endpoint; start the app with `WEBVIEW2_ADDITIONAL_BROWSER_ARGUMENTS=--remote-debugging-port=9222`), and `outlook-inline-probe` (opt-in synthetic inline-image item: `-Draft` saves and moves it into the Inbox, `-Status`/`-Cleanup` report and remove it; `-Send` is refused by the Object Model Guard on this host). Column acceptance, store survey and per-item costs are part of the Go live test now. |
-
-Rules for anything run on that machine: read-only on the mailbox (no
-Save/Delete/Move/Send, no property set, UnRead untouched, no Outlook setting
-changed, Outlook never killed); output and downloads are aggregates only
-(counts, timings, HRESULTs, hashes) — never a subject, body or address.
-`outlook-inline-probe.ps1` is the one deliberate exception, only on explicit
-owner approval for an inline-image verification: it creates one clearly
-labelled synthetic item, moves it to the Inbox and removes every item whose
-subject starts with the probe prefix before and after the run.
-
-## Live Outlook test
-
-Nothing syncs until a mailbox is picked, so every live test picks
-explicitly, as a user would: `-live.pick=default` (the profile's default
-store, the default of the flag) or a comma list of store keys.
-
-`scripts/outlook-live.sh <agent> smoke` (≈1 min) checks the COM layer:
-Discover, every table column's acceptance, one Inbox sync, 30 detail reads.
-`scripts/outlook-live.sh <agent> mailboxes` (≈1 min, no message read)
-checks the explicit selection: every store listed with none picked (kind,
-default, cached, counts, online), a run with nothing picked reads no item,
-picking the default store records its owner identity (counts only: primary
-SMTP, SMTP aliases, DNs; the read must be complete, `identity_complete`
-per store), the learning gate stays closed; aggregate report
-`out/outlook-live-mailboxes.json`. The agent name is always a parameter;
-no machine name is written in the repository.
-`scripts/outlook-live.sh <agent> full` syncs the picked stores into a
-temporary database on the machine. Then it:
-- reads 25 unread items twice, to prove reading never marks them read;
-- runs an incremental sync, then one with the snapshot backstop forced on
-  every folder (`outlook.sync.recheck_after = 0`);
-- compares every folder with live `Items.Count` and a fresh
-  id/stamp/read-flag table, and counts implausible timestamps;
-- downloads `out/outlook-live-report.json`.
-
-A live run is a SHORT VERIFICATION run by default (`LIVE_DETAILS=1000`,
-`LIVE_RATE=100`), and every live test starts the same way
-(`livetest.Open`): the limits are applied before the first Outlook call —
-`-live.rate` caps the calls per second in every mode (the active pace
-stays at most 20/s while the user works), unpicked stores are listed but
-never walked (`outlook.discover.count_unpicked` is off by default and in
-every live test: a whole-profile walk was ≈2,600 calls, most on online
-mailboxes, and an offline delegate can block one) — then one Discover and
-the explicit pick. `-live.details` is the WHOLE test's budget of detail reads
-(`livetest.Budget`): `full`'s three syncs and its unread probe draw from
-it (spent, the detail pass is off: `sync.details.enabled`); `smoke` reads
-at most 30; the table pass still lists every message (a few calls per 500
-rows). `LIVE_DETAILS=0` reads every message: a full sync, to be approved
-by the user first (≈1 h for the primary store at the default pace).
-Every paced call is counted, the final `Release` of every object
-included (`Stats.Members["…Release"]`).
-
-Outlook safety (incident 2026-10-15: OUTLOOK.EXE crashed twice under
-back-to-back reruns, `docs/OUTLOOK_SYNC.md` "Load and crash safety"):
-`outlook-guard.sh` runs before (Outlook running and up ≥
-`OUTLOOK_MIN_UPTIME`, else refused) and after every run (the same PID and
-start time, no Application Error / WER / Application Hang event naming
-OUTLOOK.EXE since the start — a log query that fails is a failed check,
-never a pass — else `OUTLOOK CRASHED`, exit 3). `embed-live.sh full` reads
-Outlook too and runs inside the same guard and limits. **Never rerun automatically**,
-and never after a crash: report to the user and wait. The log excerpt
-includes the tests' own `_test.go:` lines, so a failed run's error is
-always captured.
-
-Safety: once the binary is uploaded, an EXIT trap stops a still-running job
-gracefully (`stop.sh`) and empties the scratch directory, whatever failed.
-The test stops by itself 3 minutes before `-test.timeout` and when its stop
-file appears. Its deferred cleanup then always removes the database.
-`MAX_WAIT` must exceed `TEST_TIMEOUT`.
-
-The test is a test binary (`go test -c -tags outlooklive`,
-`internal/source/outlook/live*_test.go`, build tags `windows && outlooklive`)
-rather than a command under `cmd/`: it reuses the package's unexported
-internals (tables, folder state) without exporting them, and a test binary
-can never end up in the shipped exe.
-
-## Live embedding test
-
-`scripts/embed-live.sh <agent> [full [messages]] | jobobject | unit`
-builds a Windows test binary and runs it detached (the conduit refuses
-commas, `^` and `$` in arguments).
-- `full` (`-tags embedlive ./internal/search`): reads GPU memory
-  (`nvidia-smi`, read-only); inside the Outlook crash guard and under the
-  live limits (`LIVE_DETAILS`, default 1000 and at least the sample;
-  `LIVE_RATE`, default 100 calls/s), picks the default store and syncs its
-  Inbox into a temporary database (read-only on Outlook) and keeps its
-  newest complete messages;
-  with `sidecar.variant = auto` and a fresh re-probe, downloads,
-  verifies, installs and starts the one managed Windows build (Vulkan) in
-  the app's real runtime directory (`%LOCALAPPDATA%\Mailsense\runtime`;
-  missing artifacts are downloaded ON THE MACHINE), checks the canary
-  against the model's pinned reference vector and chooses it; times the
-  sample on it; starts a second manager that must use the persisted choice
-  without probing; runs the index job and 100 known-item searches (p50/p95,
-  hit@10 vs full text, semantic used); checks the job object with a helper
-  "app"; lists the builds; writes the aggregate report
-  (`out/embed-live-report.json`) and removes the database. Windows has no
-  cpu build, so there is no cpu throughput comparison and no fallback.
-- `jobobject`: only the job-object check against the installed managed
-  runtime (≈1 min, no Outlook; the managed Vulkan build is installed on
-  first use if missing).
-- `unit`: the whole `internal/sidecar` test suite on Windows (the fake
-  runtime is the test binary itself, zipped as `llama-server.exe`): job
-  object, suspended start, port ownership through `GetExtendedTcpTable`,
-  installs, restarts, pinned canary, auto.
+The repository does not ship a live Outlook harness, so the live checks
+against a real mailbox cannot be run from a clone.
 
 ## Running the app
 
@@ -408,7 +278,7 @@ They report problems through errors, counters and events instead.
 | `internal/search` | Hybrid retrieval: FTS5 BM25 + in-memory int8 scan over the current space, one shared filter, triage filters, RRF, body snippets prepared once per hydrated page (word mode anchors whole FTS token sequences — unicode61 L*/N*/Co tokens, marks are separators — adjacent tokens for a punctuation-joined or quoted term; substring/scan mode anchors substrings and drops a lone one-rune scan term when a longer term exists (a matra-based Indic term keeps its dependent vowel sign: कि anchors कि, never the first की); a full-text hit with no body match has an empty snippet, a semantic-only hit keeps the cleaned-body preview; plain text under `search.snippet_chars`), coverage disclosure, term-mode disclosure (word, substring, scan) and capped match counts, vectors streamed into one copy and filtered by a bitset, the learning gate (`Deps.Gate`, required: `New` refuses a searcher without it; no answer before learning is done), the zero filter's ids cached per `MailGeneration` (selection included, label clicks not), full text first, semantic merged within the `search.embed_timeout` budget (150 ms default) or explicitly degraded, `Warm` (one fixed query embedding and vector refresh within 60 s after startup, no gate, safe beside searches); `SearchFilter.OwnerOnly` is the Q&A opt-in (both rankings use the same filter, `/api/search` keeps the default); topic `search.semantic`. |
 | `internal/priority` | Pure deterministic important-mail ranking from `route.Answer` values and the optional preview, with the one `triage.ApplyPreview` substitution rule; the reply pass and the scoring pass read no body (route/preview answers and metadata only), then one bounded `PriorityHeads` query reads the first 2,000 characters, truncation flag and revision of the cached top 200 for their 180-rune snippets, with a rare per-item `MessageBody` fallback for a whitespace-heavy head; a bounded top-200 heap, per-filter totals, one cold single-flight and a cache per preview flag that keeps an unchanged snapshot for up to 5 minutes (a mail/route generation, route-key or preview change rebuilds immediately); the gated owner-only `/api/priority` page. `Close` cancels and waits up to 10 s for cold/refresh builds (a non-cooperative read is logged). No model call, no I/O in `Score`. |
 | `internal/qa` | Gated Q&A: accent/case-folded EN+FR intent parser (structured intents read priority filters, `sender` uses owner-only search), free-form owner-only retrieval, one grounded generator call over numbered messages (`qa.provider`, `qa.max_messages`, `qa.max_answer_tokens`, `qa.call_timeout`, `qa.budget.*`), strict citation validation, explicit `retrieval` fallback with cause-specific notices (`qa_unavailable`, `qa_index_warming`, `qa_generation_failed`, `qa_no_grounded_answer`, `no_matches`), and the capped local history (migration 0016); `NewSource` is the provider factory. No content in logs. |
-| `internal/livetest` | Test support of the live tests on the Windows machine: `Context` (ends before the deadline or on the stop file), `Pick` (the explicit pick of `-live.pick`) and `Limit` (`-live.details`, `-live.rate`: a short verification run through the user's settings `sync.details.max_per_run` and `outlook.pace.*calls_per_second`). |
+| `internal/livetest` | Test support of the live tests on a Windows machine: `Context` (ends before the deadline or on the stop file), `Pick` (the explicit pick of `-live.pick`) and `Limit` (`-live.details`, `-live.rate`: a short verification run through the user's settings `sync.details.max_per_run` and `outlook.pace.*calls_per_second`). |
 | `internal/fixturetest` | Test support: imports the legacy export (or a sample) into a fresh store for fixture/benchmark tests; `fixtureconf`: the fixture's source configuration (its mailbox picked, its owner and time zone declared from `FIXTURE_OWNER`/`FIXTURE_ZONE`); `VectorCache` (real embedder vectors by space and exact input, append-only files in a private directory: a slow local model is paid once across runs and stores). |
 | `internal/engine/decision` | The one decision-model adapter: codecs `systemone` (Ondelle, Zelvane, Aubelle; Cloudflare `result` envelope) and `openai_decisions` (arrays, predicate, refusals); chunking at `max_questions` (earlier chunks' answers kept when a later one fails), context budget before sending, strict and self-consistent decoding (complete probabilities summing to 1, choice = argmax, score = expected level), error classes (402/401/403/quota/422…), per-provider retry overrides through httpx, usage per call (event + counters; possibly billed failures at the estimate; a provider-reported charge, `cost.request_cost_usd`, is accounted as billed; `truncated: true` is a contract error). |
 | `internal/threads` | Header-first threading over every owner folder of `CausalRoles` (every folder but drafts: the causal view of evidence and triage) or of `threads.folder_roles` (the install-profile learners) (direction from scope: sent by the owner), conversations grown in time order (`EarlierMembers`: the members known at a message's instant; `KnownReplies`/`KnownHistory`: replies paired at their own instant; `Exchange`: both-way standings), reply matching in both directions (sent items use `sent_on`; meeting responses, reports and automatic replies never reply or wait), senders grouped by organisation (`mail.Domains`), the behaviour profile per sender/domain in the owner's zone (`time.zone`), response buckets (`threads.response_buckets`), reply examples, `KnownHistory` (causal standings at any instant: only mail and replies before it, replies as paired at their own instant). Pure except `Load`. |
@@ -1231,7 +1101,7 @@ files 600), and checks that every id of `BENCH_KEEP_LABELS` (the earlier
   `bootstrap/notify_windows.go`, `source/outlook/*_windows.go`,
   `sidecar/proc_windows.go`, `sidecar/vulkan_windows.go`) is compiled by
   `GOOS=windows go vet` in `test.sh`; it runs only on Windows (Outlook, the
-  job object and the Vulkan probe through the live tests above). The
+  job object and the Vulkan probe). The
   non-Windows `sidecar/vulkan_other.go` returns `ErrVulkanProbe`, never nil.
 - The Vulkan preflight is injected (`Options.VulkanProbe`) in every manager
   test, so the Linux fake-artifact suites can prove the no-device path
@@ -1247,6 +1117,6 @@ files 600), and checks that every id of `BENCH_KEEP_LABELS` (the earlier
   `MAILSENSE_FAKE_LLAMA=1` makes it serve), from a test artifact server,
   so download, verification, install, launch, key, port ownership,
   health, restart, crash recovery, pinned canary, no-cpu fallback rules,
-  auto, tuning and the parent-death signal / job object run on Linux and,
-  with `embed-live.sh <agent> unit`, on Windows. They poll real processes
-  with short timeouts (the one place tests wait on wall time).
+  auto, tuning and the parent-death signal / job object run on Linux. They
+  poll real processes with short timeouts (the one place tests wait on wall
+  time).

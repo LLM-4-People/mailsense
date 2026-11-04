@@ -4,7 +4,7 @@ title: "Mailsense"
 description: "Mailsense turns your Outlook mailbox into a ranked list of what needs you, with the reason on every row."
 theme: "minima"
 baseurl: "/mailsense"
-url: ""
+url: "https://llm-4-people.github.io"
 lang: "en"
 header_pages:
   - "install.md"

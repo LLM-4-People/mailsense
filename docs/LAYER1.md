@@ -386,7 +386,7 @@ selective); `internal/layer1/route.go` feeds it and stores the result;
   injection, never a flag in production code), a guard that fails the run
   when an excluded message has any target, then the dev measurement:
   layer 1, the legacy Ondelle answers of the same messages, the majority
-  class, the agreement ceiling (`WORDING-ISSUES.md`), per language.
+  class, the agreement ceiling, per language.
   Reports `out/layer1-<experiment>.json` (aggregates, and the process's
   peak RSS after training), a line in `out/layer1-dev-ledger.jsonl` per
   dev evaluation; per-item correctness and the per-item error list

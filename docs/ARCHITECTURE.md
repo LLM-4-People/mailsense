@@ -159,11 +159,9 @@ internal/
   desktop/            the one bootstrap-URL validator; WebView2 window on Windows, non-blocking default browser elsewhere
   bootstrap/          startup error report: file in the data dir + native message box (Windows)
   buildinfo/          version stamped at link time
-scripts/              build.sh, test.sh, fixture-import.sh (phase 1a); gen-taxonomy.sh, triage-live.sh (2a); bench-deciders.sh (decider benchmark); embed-local.sh, embed-live.sh (2b);
+scripts/              build.sh, test.sh, fixture-import.sh (phase 1a); gen-taxonomy.sh, triage-live.sh (2a); bench-deciders.sh (decider benchmark); embed-local.sh (2b);
                       update-psl.sh, update-unicode-data.sh, update-prefixes.sh, update-locale-data.sh + datagen/ (pinned data, L0);
                       evidence-fixture.sh (layer 0 over the fixture); gold-seal.sh, layer1-fixture.sh (layer 1);
-                      outlook-live.sh and conduit/ (Windows
-                      machine through the device conduit: exec, transfer, detached jobs, probes; phase 1b);
                       run-windows.sh, stop-windows.sh
                       (graceful, via API) come with the API in phase 4
 docs/                 ARCHITECTURE.md (this), DEVELOPMENT.md (how-to), RELEASE_PLAN.md (release goal,
@@ -797,12 +795,11 @@ JSON mode; no new provider key or dependency exists.
   `Connector.op` (growing cooldown, Outlook's minimum uptime, reduced pace,
   a stop after repeated losses that the user resumes); a lost connection
   is a `source.ErrUnavailable`, which ends the whole sync run; the detail
-  pass defers mail received moments ago and can be capped per run; the
-  live harness refuses a young Outlook and reports a crash, never
-  reruns. Triage reads the causal threads view only
-  (`triage.causal_threads` and the filed-view history removed; no paid
-  answer existed). A year-less all-numeric date is a resolved date only
-  if no region of its language writes numeric dates in the other order.
+  pass defers mail received moments ago and can be capped per run. Triage
+  reads the causal threads view only (`triage.causal_threads` and the
+  filed-view history removed; no paid answer existed). A year-less
+  all-numeric date is a resolved date only if no region of its language
+  writes numeric dates in the other order.
   `mail.CleanBody` cuts attribution lines before a tab-indented quote
   (Outlook's rendering of quoted HTML), structurally.
 - 2026-10-15 (review of the Outlook crash-safety round): every call into
@@ -817,10 +814,7 @@ JSON mode; no new provider key or dependency exists.
   exception is set aside (persisted, disclosed, `Syncer.RetryDetails`)
   so it is not read first again; the breaker's state is kept in the
   store (`source.StateKeeper`); state reads and actions never wait for an
-  operation (two mutexes). Every live test starts through `livetest.Open`
-  (limits before the first call, unpicked stores not walked, a per-test
-  detail budget); `embed-live.sh` reads Outlook inside the crash guard; a
-  failed event-log query fails the guard. **Paid decisions:** a decision
+  operation (two mutexes). **Paid decisions:** a decision
   stays valid for its message until the message's own revision changes
   (or the question set or decider, another key); a change of derived data
   (cleaning, evidence, thread views) only makes it stale — disclosed with
