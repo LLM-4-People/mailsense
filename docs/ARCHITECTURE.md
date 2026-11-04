@@ -111,7 +111,7 @@ internal/
   selective/          the one selective/abstain module: confidence per answer kind, coverage at precision,
                       split certification, the abstained answer form (layer 1, feedback, triage uncertainty)
   route/              the certified answer route (pure): the escalation cascade layer-0 key → layer 1 →
-                      SubQ, each layer answering only above its own gate chosen on the selection labels;
+                      Ondelle, each layer answering only above its own gate chosen on the selection labels;
                       the cascade's decisions are tested once on the disjoint certification labels
                       (built and wired as the `calibration` stage)
   optim/              L-BFGS (the one optimiser)
@@ -162,12 +162,12 @@ internal/
 scripts/              build.sh, test.sh, fixture-import.sh (phase 1a); gen-taxonomy.sh, triage-live.sh (2a); bench-deciders.sh (decider benchmark); embed-local.sh, embed-live.sh (2b);
                       update-psl.sh, update-unicode-data.sh, update-prefixes.sh, update-locale-data.sh + datagen/ (pinned data, L0);
                       evidence-fixture.sh (layer 0 over the fixture); gold-seal.sh, layer1-fixture.sh (layer 1);
-                      outlook-live.sh and relay/ (Windows
-                      machine through the device relay: exec, transfer, detached jobs, probes; phase 1b);
+                      outlook-live.sh and conduit/ (Windows
+                      machine through the device conduit: exec, transfer, detached jobs, probes; phase 1b);
                       run-windows.sh, stop-windows.sh
                       (graceful, via API) come with the API in phase 4
-docs/                 ARCHITECTURE.md (this), DEVELOPMENT.md (how-to), PROGRESS.md (log + issues),
-                      PORTING.md (legacy lessons), EMBEDDINGS.md (local embeddings: decision, design, measurements),
+docs/                 ARCHITECTURE.md (this), DEVELOPMENT.md (how-to), RELEASE_PLAN.md (release goal,
+                      decisions and next actions), EMBEDDINGS.md (local embeddings: decision, design, measurements),
                       EVIDENCE.md (layer 0: every signal and rule), LAYER1.md (layer 1)
 ```
 
@@ -843,9 +843,9 @@ JSON mode; no new provider key or dependency exists.
   judge), grouped by conversation; requirements are data
   (`requirements.json`), the gate never relaxes. Layer-1 answers are
   triage decisions of decider `layer1`, local and free: recomputed
-  whenever the active models change (lead decision); SubQ/Gemma states
-  stay immutable. The legacy SubQ answers are a teacher under their own
-  decider key (`legacy:subq-snap-preview`), never mixed with live ones,
+  whenever the active models change (lead decision); Ondelle/Gemma states
+  stay immutable. The legacy Ondelle answers are a teacher under their own
+  decider key (`legacy:ondelle-snap-preview`), never mixed with live ones,
   never a paid call. The in-memory int8 vector set moved from `search`
   to `vector.Set` (one implementation for search and kNN). The gold test
   split is sealed (`internal/goldset`): read once, on the lead's call.
@@ -866,8 +866,8 @@ JSON mode; no new provider key or dependency exists.
   1, feedback and the route share it. `selective.NoThreshold` moved from
   2.0 to 4.0. `internal/route` is the pure certified route.
 - 2026-10-25 (route completed): the first implementation cut every layer
-  with one global score (`band + confidence`), which starved SubQ: layer 1
-  offers on nearly every message, so SubQ's gate had almost no rows and
+  with one global score (`band + confidence`), which starved Ondelle: layer 1
+  offers on nearly every message, so Ondelle's gate had almost no rows and
   the route measured exactly like layer 1 alone (25.54 % vs 25.56 % dev
   coverage at 0.99). Replaced by the lead's escalation CASCADE: each
   layer's gate is chosen on all of that layer's labelled selection
@@ -877,7 +877,7 @@ JSON mode; no new provider key or dependency exists.
   `selective.CertifyFixed` — no cut is chosen on the certification labels
   at all — so `Certification.Threshold` is 0 for a route and every
   consumer reads `Certified`. On dev at 0.99 the route now covers
-  69.82 % (layer 1 25.56 %, SubQ 45.00 %) with SubQ giving 914 of 2,085
+  69.82 % (layer 1 25.56 %, Ondelle 45.00 %) with Ondelle giving 914 of 2,085
   answers; honest certification is still 0/17 at 0.99 because the
   certification part has 117 labels and 381 error-free answers are
   needed. The route is stored in `route_answers` (migration 0012, one

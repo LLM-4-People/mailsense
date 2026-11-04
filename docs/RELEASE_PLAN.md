@@ -1,8 +1,8 @@
 # Mailsense release plan
 
 This file is the single owner of the release goal, the decisions already made,
-the current state, and the next actions. `docs/PROGRESS.md` is the chronological
-ledger; when the two disagree about what to do next, this file wins.
+the current state, and the next actions; when they disagree about what to do
+next, this file wins.
 
 ## Working agreement
 
@@ -58,10 +58,10 @@ setup, and documentation that a new owner can follow without help.
    canonical FSF text is installed verbatim in `LICENSE`; `NOTICE` carries the
    copyright and the third-party notices.
 2. **Legacy prototype:** removed. The Python prototype, its tests, the benchmark
-   campaign documents, and the environment-specific relay tooling are gone.
+   campaign documents, and the environment-specific conduit tooling are gone.
 3. **Environment-specific material:** removed. The module path is
    `github.com/LLM-4-People/mailsense`; employer names, real mailbox data,
-   machine names, real client domains, and relay scripts are not part of the
+   machine names, real client domains, and conduit scripts are not part of the
    public tree.
 4. **Publication target:** the `LLM-4-People` organization, repository
    `mailsense`, public.
@@ -84,7 +84,7 @@ setup, and documentation that a new owner can follow without help.
 - `LICENSE` is the verbatim AGPL-3.0 text; `NOTICE`, both READMEs,
   `CHANGELOG.md` and this plan state the license.
 - The module path is `github.com/LLM-4-People/mailsense`.
-- Legacy Python, benchmark documents, relay scripts, environment live scripts,
+- Legacy Python, benchmark documents, conduit scripts, environment live scripts,
   root binaries, caches and `.env` are removed.
 - The PII substitution is complete: one invented business cast and invented
   people. Business stems, real person names, machine paths and internal vendor
@@ -208,7 +208,7 @@ setup, and documentation that a new owner can follow without help.
       names, mailbox addresses, internal vendor names and environment paths.
       Add the residue patterns to a mechanical check so a reappearance fails
       the gate.
-- [ ] Remove all environment-specific references, relay scripts and
+- [ ] Remove all environment-specific references, conduit scripts and
       documentation.
 - [ ] Extend `internal/prose` to reject em dashes, spaced en dashes, double
       hyphen punctuation, stock phrases and generated-prose markers in every
@@ -255,7 +255,7 @@ that blocks the first-run setup, the installer or a documented public flow.
 ## Verification per round
 
 Record the change, the regression test, the mutation that proves the test bites,
-the gate output, and the residual risk. See `docs/PROGRESS.md`.
+the gate output, and the residual risk in the round's entry below.
 
 ## Recent rounds
 
@@ -323,8 +323,8 @@ and the missing bilingual guides were added.
 
 Round 125 (final gate): `scripts/test-fast.sh` exit 0 and `scripts/test.sh` exit
 0 on the final tree, after the language repaint fix. The setup predicate
-regression, the new bilingual guides and the PII contract greps are recorded in
-the newest `docs/PROGRESS.md` entry.
+regression, the new bilingual guides and the PII contract greps were verified
+in that final gate.
 
 Round 126 (CI round): the first hosted run exposed a first-paint regression in
 the E2E harness, one reachable `x/net` advisory and a cluster of CodeQL

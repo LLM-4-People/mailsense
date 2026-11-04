@@ -39,11 +39,10 @@ const fallbackDeadline = 30 * time.Minute
 //     (an internal unread-repair measurement: "evidence then ran
 //     **7.108920023 s** and wrote **33,842 rows**"), so 30m is a >250x
 //     backstop for a pass that normally takes seconds.
-//   - layer1: a 17-question training pass took ~60 s (docs/PROGRESS.md,
-//     "One layer-1 pass ... in ~60 s"), and its worst measured commit held
-//     the SQLite writer for ~13 minutes at 34,763 messages
-//     (docs/DEVELOPMENT.md, "the commit held the SQLite writer for ~13
-//     minutes"), so 30m covers that commit plus training and calibration.
+//   - layer1: a 17-question training pass took ~60 s, and its worst
+//     measured commit held the SQLite writer for ~13 minutes at 34,763
+//     messages (docs/DEVELOPMENT.md, "the commit held the SQLite writer for
+//     ~13 minutes"), so 30m covers that commit plus training and calibration.
 //   - index: the first full index of 35k messages takes about an hour at the
 //     live box's measured ~10 messages/s (docs/EMBEDDINGS.md: "at the live
 //     box's measured ≈10 messages/s, 35k messages take about an hour"), so
@@ -53,8 +52,7 @@ const fallbackDeadline = 30 * time.Minute
 //     triage.workers (default 4) parallel calls; 60m covers a paid batch on a
 //     local decider with headroom, and the decisions it already wrote stay
 //     valid across the stop.
-//   - labels.judge: 500 messages were labelled in 20.5 minutes
-//     (docs/PROGRESS.md: "500 messages labelled in 20.5 minutes"), about
+//   - labels.judge: 500 messages were labelled in 20.5 minutes, about
 //     2.5 s per message; the automatic batch is
 //     labels.auto.batch (default 200, ≈8m) and an explicit request asks for a
 //     count the UI computes, so 30m covers the observed 500-message run with

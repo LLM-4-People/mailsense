@@ -3,7 +3,6 @@
 Researched 2026-10-14 (sources inline). Built and measured on the target
 machine in phase 1b: "As built" and the measured tables below describe the
 code. The research notes are kept where they still hold.
-Field mapping and SMTP resolution chain: `docs/PORTING.md` §1–2.
 
 ## Preconditions (checked at connect, each a named, user-facing error)
 
@@ -111,7 +110,7 @@ against a fake object model; COM lives only in `*_windows.go`.
   ExchangeUser.PrimarySmtpAddress, PropertyAccessor, Store.ExchangeStoreType,
   OlExchangeStoreType, Account.DeliveryStore) and [MS-OXOABK] §2.2.3.23
   (PidTagAddressBookProxyAddresses). Live 2026-10-15
-  (`scripts/relay/probes/identity-probe.ps1`, `outlook-live.sh … mailboxes`):
+  (`scripts/conduit/probes/identity-probe.ps1`, `outlook-live.sh … mailboxes`):
   the default store's owner has 6 proxies (1 `SMTP`, 3 `smtp`, 2 `SPO`) and
   a DN → identity of 5 addresses; delegate owners resolve to an Exchange
   user with a DN and a one-entry proxy list (probe re-run 2026-10-15,
@@ -320,7 +319,7 @@ choke point:
   still be downloading or processing newer ones; the incident's second
   rerun read newest first right after a restart); `sync.details.max_per_run`
   (0: no cap) bounds one run's detail reads (a short verification run).
-- **Harness.** `scripts/relay/outlook-guard.sh` around every live run that
+- **Harness.** `scripts/conduit/outlook-guard.sh` around every live run that
   reads Outlook — `outlook-live.sh`, `evidence-live.sh` and, since review
   3, `embed-live.sh full` (`docs/DEVELOPMENT.md`, "Live Outlook test"):
   refuses unless Outlook has been up `OUTLOOK_MIN_UPTIME` (900 s);
@@ -334,7 +333,7 @@ choke point:
   detail reads (`livetest.Budget`: `full`'s three syncs and its unread
   probe draw from it; spent, `sync.details.enabled` goes off), not a
   per-run cap. A job still running after `stop.sh`'s grace period is
-  reported (exit ≥ 1, scratch directory kept: `relay_live_finish`). Live
+  reported (exit ≥ 1, scratch directory kept: `conduit_live_finish`). Live
   runs default to a short verification run (newest 1,000 detail reads in
   all, at 100 calls/s away).
 
@@ -344,7 +343,7 @@ rate up; whether an add-in is involved (the WER reports were not
 retained; the read-only diagnostic showed the current Outlook was
 restarted from explorer.exe, not through COM).
 
-## Target machine (probed live 2026-10-14, read-only, via device relay)
+## Target machine (probed live 2026-10-14, read-only, via device conduit)
 
 `<agent>`: Windows 11 Pro 24H2, i5-13500T, 47.6 GB RAM, 126 GB free;
 GPU **NVIDIA T400 4 GB** (Turing, compute 7.5, driver 596.51, 31 W) — **2,955 MiB
@@ -352,7 +351,7 @@ already in use** by the desktop at probe time, so ≈1 GB VRAM is free for
 embeddings (plus Intel UHD 770 iGPU). An earlier "no GPU" note was an
 unprobed assumption, corrected here; classic Outlook x64 16.0.20430 running (new Outlook not running);
 WebView2 155; Windows Defender up to date (⇒ no Object Model Guard prompts);
-relay agent runs **unelevated as the user in session 1** (same session as
+conduit agent runs **unelevated as the user in session 1** (same session as
 Outlook) — `GetActiveObject('Outlook.Application')` succeeds. Ollama absent.
 `ExchangeConnectionMode` 700 (cached, connected). Stores: the owner's mailbox
 (type 0, cached OST) + 6 delegate stores (type 1, **online, not cached**):

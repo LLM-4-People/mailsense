@@ -243,9 +243,8 @@ outputs); `params.json` holds the generator's choices.
 
 ## Measured on the fixture (2026-10-15, `scripts/evidence-fixture.sh`)
 
-See `docs/PROGRESS.md` ("Layer 0: the structural evidence engine" and the
-later rounds) for the numbers and
-`out/evidence-fixture.json` / `out/evidence-rules.json` (aggregates).
+See `out/evidence-fixture.json` / `out/evidence-rules.json` (aggregates) for
+the numbers.
 
 ## Signal reference
 

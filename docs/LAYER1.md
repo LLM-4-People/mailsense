@@ -1,8 +1,8 @@
 # Layer 1 — the local per-install classifier
 
 Single source of truth for layer 1 (`internal/layer1`): what it learns,
-from what, how it is measured, and the dev-time experiments. Numbers and
-history live in `docs/PROGRESS.md`; aggregate reports in `out/layer1-*.json`.
+from what, how it is measured, and the dev-time experiments. Aggregate
+reports in `out/layer1-*.json`.
 
 ## What it is
 
@@ -61,9 +61,9 @@ and is never a feedback prompt, prior or reference.
 
 The dev harness adds a `legacy` source (its own teachers override, not a
 shipped source: it exists in the developer's fixture only): the legacy
-SubQ answers (`$FIXTURE_DIR/classifications.jsonl.gz`, fingerprint
+Ondelle answers (`$FIXTURE_DIR/classifications.jsonl.gz`, fingerprint
 `9c9956169b0c`) imported under their own decider key
-`legacy:subq-snap-preview` (`archive.ImportLegacyAnswers` refuses any key
+`legacy:ondelle-snap-preview` (`archive.ImportLegacyAnswers` refuses any key
 without the `legacy:` prefix or with a `/`: never a live decider's), never
 mixed with live decisions, never a reason for a paid call (the
 paid-decision policy). They were made from leaky legacy states (the
@@ -156,7 +156,7 @@ an **operating threshold**: the certified one (step 7 above), or
 the answer abstains: `engine.Answer.Abstain = "below_target"`, and an
 abstained answer carries NO choice, value or confidence — only the
 reason and its distribution (`probabilities`; yes/no: `no`/`yes`) for
-diagnostics and the next layer (layer-0 key → layer 1 → SubQ → Gemma →
+diagnostics and the next layer (layer-0 key → layer 1 → Ondelle → Gemma →
 the user), so no consumer can use it by mistake. That distribution and
 the pre-blend model value are stored in `engine.Answer`, `route_answers`
 and `triage_decisions` and stay diagnostic: the triage wire
@@ -214,8 +214,8 @@ report stays answerable exactly as it was. That fallback exists only for
 those stored reports: every certification written now carries the bound.
 
 Reports measure, per question and for the route (layer-0 key → layer 1
-→ legacy SubQ; see "Route" below), at each `report_targets` precision
-(0.95, 0.98, 0.99, 1.00), for layer 1, legacy SubQ (its own
+→ legacy Ondelle; see "Route" below), at each `report_targets` precision
+(0.95, 0.98, 0.99, 1.00), for layer 1, legacy Ondelle (its own
 probabilities as confidence) and the route:
 
 - the **dev certification** (the honest method on dev): dev split by
@@ -247,14 +247,14 @@ selective); `internal/layer1/route.go` feeds it and stores the result;
   with its soft distribution), then layer 1 (the out-of-fold calibrated
   distribution on selection items, the answering model's own on
   certification items), then the configured decider's stored answer
-  (SubQ). The paid answer is read from the store; the route never calls
+  (Ondelle). The paid answer is read from the store; the route never calls
   a provider.
 - **Gates (selection labels only):** each layer's gate is
   `selective.Targets` on **all** of that layer's labelled selection
   offers, independently of the other layers. A layer whose gate is
   `NoThreshold` is not a member and cannot answer. (Measuring a lower
   layer only where no higher layer offered was the first implementation;
-  it starved SubQ and made the route equal layer 1 alone.) Layer 1's
+  it starved Ondelle and made the route equal layer 1 alone.) Layer 1's
   selection offer is the model's **out-of-fold** prediction
   (`Holdout.Select`: the fold models' calibrated probabilities, none of
   which trained on its own labels), never the final model's: the final
@@ -264,7 +264,7 @@ selective); `internal/layer1/route.go` feeds it and stores the result;
   not score it, or the active model never scored it) offers no layer 1 for
   selection; it is never replaced by the final model. The re-score rebuilds
   the same offers from the active model's `Holdout.Select`, and key and
-  SubQ offers are unchanged.
+  Ondelle offers are unchanged.
 - **Answering (cascade):** the first member that offered and whose
   confidence reaches its gate answers. A higher member below its gate
   **falls through** to the next member. If a member offered but none
@@ -296,7 +296,7 @@ selective); `internal/layer1/route.go` feeds it and stores the result;
   `route_not_routed` with `run_layer1`. `questions` certifies the route.
 - **Measured (dev, `v8-route-cascade`, 240 per question):** dev-curve
   coverage at 0.95/0.98/0.99/1.00 = 0.8483/0.8023/0.6982/0.5518 (layer 1
-  alone 0.4255/0.3145/0.2556/0.2096). At 0.99 SubQ gives 914 of 2,085
+  alone 0.4255/0.3145/0.2556/0.2096). At 0.99 Ondelle gives 914 of 2,085
   point-op answers. Honest certification at 0.99 is still 0/17: C holds
   117 labels and needs 381 error-free answers. Point op at 0.99: 2,085
   answers, 37 errors (0.9823), never what the app answers.
@@ -385,7 +385,7 @@ selective); `internal/layer1/route.go` feeds it and stores the result;
   as `judge` labels, `Train` run through `harnessInputs` (dependency
   injection, never a flag in production code), a guard that fails the run
   when an excluded message has any target, then the dev measurement:
-  layer 1, the legacy SubQ answers of the same messages, the majority
+  layer 1, the legacy Ondelle answers of the same messages, the majority
   class, the agreement ceiling (`WORDING-ISSUES.md`), per language.
   Reports `out/layer1-<experiment>.json` (aggregates, and the process's
   peak RSS after training), a line in `out/layer1-dev-ledger.jsonl` per
@@ -400,7 +400,7 @@ selective); `internal/layer1/route.go` feeds it and stores the result;
   `GOLD_UNSEAL` naming the frozen model's digest (exclusive lock and
   ledger).
 
-## Experiments (dev only; the full tables are in docs/PROGRESS.md)
+## Experiments (dev only)
 
 Method: one change per round against the round's baseline; mean over the
 17 questions of the dev accuracy and (from round v4, the primary metric)
@@ -411,7 +411,7 @@ the 240 dev messages; every evaluation appended to
 
 | Finding | Outcome |
 | --- | --- |
-| v1 → v2: the held-out evaluation messages kept their own SubQ answer as a target | out-of-fold ≫ dev, λ at the grid's edge; fixed (no target of any source for a held-out message) |
+| v1 → v2: the held-out evaluation messages kept their own Ondelle answer as a target | out-of-fold ≫ dev, λ at the grid's edge; fixed (no target of any source for a held-out message) |
 | E1 prompts (sample) | classification +0.56 pt [−0.42, +1.52]: document vectors kept |
 | E1 inputs | no embedding −3.7 pt, no layer-0 cells −1.3 pt, 256-d −0.7 pt: both inputs, 768-d kept |
 | E2 | λ grid: no effect; tolerance 1e-4: same answers at 2.5× less cost (adopted); class balancing −0.4 pt; softmax score heads +0.83 pt on the whole fixture (adopted) |
@@ -424,9 +424,9 @@ the 240 dev messages; every evaluation appended to
 | Data | the whole fixture (33,096 teachers vs 8,119): +0.5 pt accuracy, +4.5 pt coverage at 0.99 |
 
 Final (v6 = the review round's fixed method, shipped defaults, whole
-fixture): mean dev accuracy 0.781 vs legacy SubQ 0.827 (v5 0.782);
+fixture): mean dev accuracy 0.781 vs legacy Ondelle 0.827 (v5 0.782);
 dev-curve coverage at 0.99 0.256 vs 0.450; certified coverage at 0.99 —
-on dev by the honest split, and in the app — 0 for layer 1, SubQ and the
+on dev by the honest split, and in the app — 0 for layer 1, Ondelle and the
 stack (≈ 120 certification items bound the Wilson bound at 0.969).
 
 ### Queued (not run yet)

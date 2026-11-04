@@ -928,7 +928,7 @@
         "ordinal"
       ],
       "group": "Layer 1",
-      "description": "The head of score questions: multinomial (a softmax over the levels) or ordinal (cumulative logit, proportional odds: one direction for every level). The default was chosen by the dev-time measurement recorded in docs/PROGRESS.md; ordinal is kept for mailboxes where it measures better."
+      "description": "The head of score questions: multinomial (a softmax over the levels) or ordinal (cumulative logit, proportional odds: one direction for every level). The default was chosen by a dev-time measurement; ordinal is kept for mailboxes where it measures better."
     },
     {
       "key": "layer1.knn.enabled",

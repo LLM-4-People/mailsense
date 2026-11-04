@@ -18,8 +18,8 @@ import (
 	"github.com/LLM-4-People/mailsense/internal/triage/taxonomy"
 )
 
-// Regressions of the layer-1 review round (docs/PROGRESS.md, review round
-// L1), at the runner's level.
+// Regressions of the layer-1 review round (review round L1), at the runner's
+// level.
 
 func reportOf(rep Report, q string) (QuestionReport, Verdict) {
 	var qr QuestionReport
