@@ -1426,6 +1426,8 @@ window.MailsenseI18nCatalogs.en = {
   "shell.job.aggregate_aria": { "one": "Overall progress of {count} background task", "other": "Overall progress of {count} background tasks" },
   "shell.job.cancel_job": "Cancel {name}",
   "shell.job.dismiss_job": "Dismiss {name}",
+  "shell.job.dismiss_short": "Dismiss",
+  "shell.job.failed_count": "{name} ({count} times)",
   "shell.job.announce_started": "{name} started.",
   "shell.job.announce_done": "{name} finished.",
   "shell.job.failed_with_reason": "{name} failed: {reason}",

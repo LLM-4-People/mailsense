@@ -105,7 +105,14 @@ async function waitForExit(proc: ChildProcess, timeout: number): Promise<void> {
   });
 }
 
-export async function startServer(): Promise<Server> {
+export type ServerOptions = {
+  // Existing specs run the shell, not the wizard. The setup spec starts its
+  // own server with the marker unset and drives the overlay.
+  setupDone?: boolean;
+};
+
+export async function startServer(options: ServerOptions = {}): Promise<Server> {
+  const setupDone = options.setupDone ?? true;
   const dataDir = await mkdtemp(path.join(tmpdir(), "mailsense-e2e-"));
   const env: NodeJS.ProcessEnv = {
     ...process.env,
@@ -119,6 +126,12 @@ export async function startServer(): Promise<Server> {
     MAILSENSE_RESOURCE_GUARD: "false",
     TZ: "UTC",
   };
+  // The shared worker server runs the shell, not the wizard. A fresh data
+  // directory would otherwise open the first-run overlay over every screen.
+  // The setup spec leaves the variable unset: an env override outranks the
+  // file layer, so MAILSENSE_UI_SETUP_DONE=false would make the marker
+  // impossible to persist.
+  if (setupDone) env.MAILSENSE_UI_SETUP_DONE = "true";
   // The desktop opener must never fire during a test run.
   delete env.DISPLAY;
   delete env.WAYLAND_DISPLAY;

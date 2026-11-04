@@ -35,14 +35,18 @@ type Progress struct {
 
 // Info is an immutable snapshot of a job.
 type Info struct {
-	ID         string         `json:"id"`
-	Kind       string         `json:"kind"`
-	Name       string         `json:"name"`
-	Status     runstate.State `json:"status"`
-	Progress   Progress       `json:"progress"`
-	Error      string         `json:"error,omitempty"`
-	StartedAt  time.Time      `json:"started_at"`
-	FinishedAt time.Time      `json:"finished_at,omitzero"`
+	ID       string         `json:"id"`
+	Kind     string         `json:"kind"`
+	Name     string         `json:"name"`
+	Status   runstate.State `json:"status"`
+	Progress Progress       `json:"progress"`
+	Error    string         `json:"error,omitempty"`
+	// Cause is the stable, translatable identity of a source precondition
+	// ("outlook_not_running"). A screen translates it through its catalog;
+	// Error stays the English diagnostic for Logs and for unknown causes.
+	Cause      string    `json:"cause,omitempty"`
+	StartedAt  time.Time `json:"started_at"`
+	FinishedAt time.Time `json:"finished_at,omitzero"`
 	// Paused is the resource ceiling currently stopping this job. It is nil
 	// while the job runs. The UI names the ceiling and its limit, so a job
 	// that waits for the host is never mistaken for a hang.

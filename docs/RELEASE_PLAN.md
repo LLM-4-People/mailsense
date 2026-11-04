@@ -222,6 +222,22 @@ Round 125 (final gate): `scripts/test-fast.sh` exit 0 and `scripts/test.sh` exit
 regression, the new bilingual guides and the PII contract greps are recorded in
 the newest `docs/PROGRESS.md` entry.
 
+Round 126 (CI round): the first hosted run exposed a first-paint regression in
+the E2E harness, one reachable `x/net` advisory and a cluster of CodeQL
+secret-name flows. The shared E2E server now sets the setup marker; the setup
+spec starts its own server with the variable unset so the marker can persist.
+`x/net` is `v0.62.0` and `go.mod` declares `go 1.27.3`; `govulncheck ./...`
+reports no vulnerabilities. Provider error text no longer contains the secret
+name, and the two narrowing conversions are bounded. The full Playwright suite
+passes: 180 tests. The final fast and exhaustive gates were rerun after these
+changes.
+
+Round 127 (job strip): repeated source failures are one incident with one
+action. The job payload carries a stable cause, and the console translates it
+instead of printing the Go wrapper chain. The French action no longer reads as
+"close Outlook". The manager and grouping contracts have tests; the fast gate
+and the live/resilience Playwright specs pass.
+
 ## Residual risks
 
 - The deleted `.env` keys are still valid until the owner revokes them.
@@ -234,3 +250,6 @@ the newest `docs/PROGRESS.md` entry.
   registered in the shipped app.
 - WebView2 first paint is unverified on this host.
 - The deployed build predates the release work.
+- CodeQL keeps two design-intended findings visible: the generic filesystem
+  choke points (`fsx`, `digest`) and the user-configured provider base URL.
+  They are not dismissed silently; the reason is in the CI round entry.

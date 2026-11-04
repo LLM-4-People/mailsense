@@ -100,7 +100,7 @@ func (a *Adapter) endpoint(ctx context.Context) (string, string, error) {
 		}
 		key, err := a.deps.Secrets.Get(a.p.APIKeySecret)
 		if err != nil || key == "" {
-			return "", "", fmt.Errorf("%w: secret %s for provider %s: %v", ErrNoKey, a.p.APIKeySecret, a.p.ID, err)
+			return "", "", fmt.Errorf("%w: provider %s has no usable key: %v", ErrNoKey, a.p.ID, err)
 		}
 		return url, key, nil
 	}

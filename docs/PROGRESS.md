@@ -2,6 +2,81 @@
 
 Newest first. Each entry: date, what changed, evidence, open issues.
 
+## 2026-11-04 — One Outlook failure, one line, one dismiss
+
+The job strip rendered every failed job as its own line and its own action.
+Repeated Outlook reconnects and discovery failures piled up as many "Fermer
+Outlook" buttons, and each line carried the raw Go wrapper chain
+("syncer: details of outlook: outlook: ..."). The action label also read as an
+instruction to close Outlook itself.
+
+The fix is at the two owners, not in the copy.
+
+**Server.** `jobs.Info` now carries `cause`, the stable translatable identity of
+a source precondition. The manager reads it through a small structural
+interface, so `internal/jobs` does not import the source package. The Outlook
+unavailability errors already exposed the code; the unexported type now also
+has a `Cause()` method for callers that only know the interface.
+
+**Console.** `jobGroups` folds failed jobs with the same producer and cause into
+one incident, keeps the newest attempt as the representative, and shows the
+attempt count. `jobCauseText` translates `api.source_cause.<code>` and falls
+back to the bounded redacted diagnostic only when the producer named no cause.
+`paintJobActions` emits one action per incident; dismissing it removes every job
+in the group. The visible button is one short verb, while the accessible label
+and title still name the job. French now says "Masquer l'avis" and "Annuler la
+tâche" instead of "Fermer Outlook" and "Annuler Classifieur local".
+
+**Evidence.** `go test ./internal/jobs ./internal/source ./internal/ui
+./internal/api` passes. The new manager test finds the cause through a wrapped
+error and proves a plain failure has no cause. The new Node harness proves three
+warming-up failures become one group with the newest representative and a
+translated cause, while an unknown cause keeps its bounded diagnostic. The
+Playwright live and resilience specs pass (16 tests). `scripts/test-fast.sh`
+exits 0; the exhaustive gate result is recorded after it completes.
+
+**Residual risk.** A producer that has no stable cause still shows its redacted
+diagnostic. The group key includes the cause, so two different causes for the
+same producer remain two incidents, which is intended.
+
+
+## 2026-11-04 — CI round: first paint, dependency and analysis
+
+The first CI run found three causes, not 157 separate UI bugs.
+
+**Playwright.** The shared E2E server booted a fresh data directory with the
+setup marker unset, so the first-run overlay hid `#app` and every spec timed out
+on it. The shared server now sets `MAILSENSE_UI_SETUP_DONE=true`. A dedicated
+`e2e/specs/setup.spec.ts` starts its own server with the variable **unset**, not
+false: an env override outranks the file layer, so `false` made the marker
+impossible to persist. The spec drives the overlay in English, saves French,
+skips the mail step, finishes, and proves a reload does not reopen it. The full
+suite passes: 180 tests.
+
+**Vulnerability scan.** `govulncheck` found GO-2026-6860 reachable through
+`golang.org/x/net@v0.61.0` in `internal/render`. Upgraded to `v0.62.0` and
+declared `go 1.27.3` in `go.mod` so the standard-library fixes in 1.27.2 and
+1.27.3 are in scope. `govulncheck ./...` now reports no vulnerabilities.
+
+**CodeQL.** Nineteen alerts came from provider secret **names** embedded in
+error text and then logged. The three error owners no longer include the name:
+the provider id and "no usable key" are enough. Two `int64` to `int` narrowing
+sites now have explicit bounds (`body_chars`, `prior_min_samples`, embedding
+index). The repository's default CodeQL setup was disabled because the advanced
+workflow already analyzes both Go and JavaScript; two analyses of the same PR
+produced a duplicate failing check.
+
+**Evidence.** Full Playwright suite 180 passed. `govulncheck ./...` reports no
+vulnerabilities. The final fast and exhaustive runs on this tree are recorded
+below in this entry once they complete.
+
+**Residual risk.** CodeQL's path-injection query flags the deliberate `fsx` and
+`digest` filesystem choke points, and its SSRF query flags the user-configured
+provider base URL. Both are design constraints, not exploitable paths for a
+local desktop app, but they remain visible as code-scanning alerts. The setup
+overlay still has no full focus trap.
+
+
 ## 2026-11-04 — First run, honest docs, and a clean public tree
 
 The release round closed three gaps at once.

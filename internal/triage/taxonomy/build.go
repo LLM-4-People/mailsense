@@ -1,9 +1,16 @@
 package taxonomy
 
 import (
+	"fmt"
+
 	"github.com/LLM-4-People/mailsense/internal/engine"
 	"github.com/LLM-4-People/mailsense/internal/jsonx"
 )
+
+// maxProfileInt bounds the two profile counts a document can set. They are
+// batch sizes, never more than a few thousand; the bound keeps a hostile or
+// corrupt document from narrowing an int64 into a negative int.
+const maxProfileInt = 1<<31 - 1
 
 // build turns a validated document into a Profile.
 func build(doc jsonx.Object) (*Profile, error) {
@@ -19,6 +26,12 @@ func build(doc jsonx.Object) (*Profile, error) {
 	}
 	bodyChars, _ := jsonx.Int(get(doc, "body_chars"))
 	minSamples, _ := jsonx.Int(get(doc, "prior_min_samples"))
+	if bodyChars < 0 || bodyChars > maxProfileInt {
+		return nil, fmt.Errorf("body_chars must be in [0, %d]", maxProfileInt)
+	}
+	if minSamples < 0 || minSamples > maxProfileInt {
+		return nil, fmt.Errorf("prior_min_samples must be in [0, %d]", maxProfileInt)
+	}
 	p.BodyChars, p.PriorMinSamples = int(bodyChars), int(minSamples)
 	p.StateTemplate, _ = get(doc, "state_template").(string)
 	p.template, _ = ParseTemplate(p.StateTemplate) // validated

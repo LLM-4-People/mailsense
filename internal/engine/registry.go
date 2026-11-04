@@ -183,7 +183,7 @@ func (r *Registry) TestProvider(ctx context.Context, cat *Catalog, id string, de
 	if p.APIKeySecret != "" {
 		value, err := deps.Secrets.Get(p.APIKeySecret)
 		if err != nil || value == "" {
-			return ProviderTestResult{}, fmt.Errorf("%w: record %q has no value for secret %s", ErrNoKey, id, p.APIKeySecret)
+			return ProviderTestResult{}, fmt.Errorf("%w: record %q has no usable key", ErrNoKey, id)
 		}
 	}
 	res := ProviderTestResult{Model: p.Model}

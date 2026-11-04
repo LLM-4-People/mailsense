@@ -209,6 +209,15 @@ func (m *Manager) finalize(j *Job, err error, expired bool) {
 			// job record is published on the API and SSE, so it keeps the
 			// redacted text, not the raw error.
 			j.info.Error = logx.Redact(err.Error())
+			// A connector's stable cause is the one fact a bilingual screen
+			// can render without parsing the wrapper chain. The interface is
+			// structural, so jobs does not import the source package.
+			var caused interface{ Cause() (string, string) }
+			if errors.As(err, &caused) {
+				if code, _ := caused.Cause(); code != "" {
+					j.info.Cause = code
+				}
+			}
 		}
 		j.finished = true
 		info := j.info

@@ -3,6 +3,7 @@ package jobs
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 	"sync"
 	"testing"
@@ -75,6 +76,36 @@ func TestFailureCancelAndPanic(t *testing.T) {
 	}
 	if _, ok := m.Get(failed.Info().ID); !ok {
 		t.Fatal("get")
+	}
+}
+
+// causedFailure carries the stable identity a connector exposes. The wrapper
+// chain is deliberately present: the manager must find the cause through it.
+type causedFailure struct{}
+
+func (causedFailure) Error() string { return "outer: boom" }
+func (causedFailure) Cause() (string, string) {
+	return "outlook_not_running", "classic Outlook is not running"
+}
+
+func TestFailureCarriesTheStableCause(t *testing.T) {
+	m := NewManager(configtest.New(t, nil), nil, nil)
+	j, _ := m.Start("sync", "Outlook", func(context.Context, func(Progress)) error {
+		return fmt.Errorf("syncer: details of outlook: %w", causedFailure{})
+	})
+	info := wait(t, j)
+	if info.Status != runstate.Failed || info.Cause != "outlook_not_running" {
+		t.Fatalf("info %+v, want the wrapped stable cause", info)
+	}
+	if !strings.Contains(info.Error, "outer: boom") {
+		t.Fatalf("diagnostic %q, want the redacted chain", info.Error)
+	}
+
+	plain, _ := m.Start("sync", "Outlook", func(context.Context, func(Progress)) error {
+		return errors.New("plain failure")
+	})
+	if got := wait(t, plain); got.Cause != "" {
+		t.Fatalf("plain failure cause %q, want empty", got.Cause)
 	}
 }
 

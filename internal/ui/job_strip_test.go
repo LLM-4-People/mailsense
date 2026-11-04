@@ -29,7 +29,7 @@ func TestJobStripIsOneAggregate(t *testing.T) {
 		`t("shell.job.background")`,
 		`t("shell.job.cancel_job"`,
 		`t("shell.job.dismiss_job"`,
-		"cancelJob(id, event.currentTarget)",
+		"cancelJob(key, event.currentTarget)",
 		"forgetJob(id);",
 	} {
 		if !strings.Contains(jobs, want) {
@@ -67,6 +67,8 @@ func TestJobStripCopyIsLocalized(t *testing.T) {
 		"shell.job.aggregate_aria",
 		"shell.job.cancel_job",
 		"shell.job.dismiss_job",
+		"shell.job.dismiss_short",
+		"shell.job.failed_count",
 		"shell.job.failed_with_reason",
 	} {
 		if _, ok := en[key]; !ok {
@@ -90,14 +92,83 @@ func TestJobStripCopyIsLocalized(t *testing.T) {
 			}
 		}
 	}
-	for _, key := range []string{"shell.job.cancel_job", "shell.job.dismiss_job", "shell.job.failed_with_reason"} {
+	for _, key := range []string{"shell.job.cancel_job", "shell.job.dismiss_job", "shell.job.failed_count", "shell.job.failed_with_reason"} {
 		for _, catalog := range []map[string]catalogEntry{en, fr} {
 			if !strings.Contains(catalog[key].text, "{name}") {
 				t.Errorf("%s lacks {name}", key)
 			}
 		}
 	}
+	for _, catalog := range []map[string]catalogEntry{en, fr} {
+		if !strings.Contains(catalog["shell.job.failed_count"].text, "{count}") {
+			t.Error("shell.job.failed_count lacks {count}")
+		}
+	}
 }
+
+// Repeated failures of the same producer and cause are one incident: the
+// strip must not grow one line and one dismiss button per reconnect attempt.
+func TestJobFailuresGroupByCause(t *testing.T) {
+	runUISandbox(t, "job_groups", jobGroupsHarness, "job groups: ok")
+}
+
+const jobGroupsHarness = `"use strict";
+
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
+const vm = require("node:vm");
+
+const dir = process.env.UI_DIR;
+if (!dir) throw new Error("UI_DIR is required");
+const app = fs.readFileSync(path.join(dir, "app.js"), "utf8");
+function extract(name) {
+  const start = app.indexOf("function " + name + "(");
+  assert.ok(start >= 0, name + " not found");
+  const end = app.indexOf("\n  }", start);
+  assert.ok(end > start, name + " has no end");
+  return app.slice(start, end + 4);
+}
+const scope = {
+  JOB_REASON_MAX_CHARS: 200,
+  I18N: { has: (key) => key === "api.source_cause.outlook_warming_up" },
+  t: (key, params) => key === "api.source_cause.outlook_warming_up" ? "Outlook is warming up" : "raw:" + params.reason,
+};
+vm.createContext(scope);
+vm.runInContext(
+  [extract("boundedReason"), extract("jobFinishedAt"), extract("jobGroups"), extract("jobCauseText")].join("\n") +
+    "\n({ jobGroups, jobCauseText });",
+  scope,
+  { filename: "app.js#job-groups" },
+);
+const { jobGroups, jobCauseText } = scope;
+
+const failed = (id, cause, error, finished) => ({
+  id,
+  status: "failed",
+  name: "Outlook",
+  cause,
+  error,
+  finished_at: finished,
+});
+const groups = jobGroups([
+  failed("1", "outlook_warming_up", "warming up 27s", "2026-11-04T10:00:00Z"),
+  failed("2", "outlook_warming_up", "warming up 1m28s", "2026-11-04T10:01:00Z"),
+  failed("3", "outlook_warming_up", "warming up 2m29s", "2026-11-04T10:02:00Z"),
+  failed("4", "outlook_not_running", "not running", "2026-11-04T10:03:00Z"),
+  { id: "5", status: "running", name: "Index", progress: { done: 1, total: 10 } },
+]);
+assert.equal(groups.length, 3, "failures were not grouped by cause");
+const warming = groups.find((group) => group.info.cause === "outlook_warming_up");
+assert.equal(warming.jobs.length, 3, "the warming group lost attempts");
+assert.equal(warming.info.id, "3", "the newest attempt is not the representative");
+assert.equal(jobCauseText(warming.info), "Outlook is warming up", "the stable cause is not translated");
+
+const unknown = failed("6", "", "syncer: provider exploded", "2026-11-04T10:04:00Z");
+assert.equal(jobCauseText(unknown), "syncer: provider exploded", "an unknown cause lost its bounded diagnostic");
+
+console.log("job groups: ok");
+`
 
 const jobAggregateHarness = `"use strict";
 
@@ -182,8 +253,11 @@ console.log("job aggregate: ok");
 func TestFailedJobShowsItsReasonAndStays(t *testing.T) {
 	jobs := readUIModule(t, "13-jobs.js")
 	for _, want := range []string{
-		`info.status === "failed" && info.error`,
-		`t("shell.job.failed_with_reason", { name, reason: boundedReason(info.error) })`,
+		`info.status === "failed" && (info.cause || info.error)`,
+		`t("shell.job.failed_with_reason", { name, reason: jobCauseText(info) })`,
+		`"api.source_cause." + code`,
+		"function jobCauseText(info)",
+		"function jobGroups(jobs)",
 		"function boundedReason(reason)",
 		"JOB_REASON_MAX_CHARS",
 		`return info.status === "failed" ? Infinity : JOB_STRIP_LINGER_MS;`,

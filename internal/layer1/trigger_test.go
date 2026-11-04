@@ -243,7 +243,10 @@ func TestATriggerQueuedBeforeThePauseDoesNotStartARun(t *testing.T) {
 	if r.single.Busy() || r.single.Pending() {
 		t.Fatal("the queued trigger kept the run slot")
 	}
-	r.resumeTriggers()
+	// Keep the pause for teardown. A queued closure can run late; with the
+	// pause still on it re-checks the gate and returns instead of starting a
+	// job after the test's manager has shut down. Resuming here made TempDir
+	// cleanup race a late start and fail with "directory not empty".
 }
 
 // The judge's post-run request and a label event arriving at the same

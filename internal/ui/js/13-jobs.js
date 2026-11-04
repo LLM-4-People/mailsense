@@ -197,16 +197,64 @@
     });
   }
 
+  // jobCauseText is the owner-facing cause of a failed job. A connector's
+  // stable code is translated by the catalog, so the strip never shows the
+  // Go wrapper chain ("syncer: details of outlook: outlook: ..."). An unknown
+  // cause keeps the redacted diagnostic, bounded.
+  function jobCauseText(info) {
+    const code = String(info && info.cause ? info.cause : "").trim();
+    if (code) {
+      const key = "api.source_cause." + code;
+      if (I18N.has(key)) return t(key);
+    }
+    return boundedReason(info && info.error);
+  }
+
+  // Failed jobs with the same producer and cause are one incident. Repeated
+  // Outlook reconnects must not grow the fixed strip by one line and one
+  // dismiss button per attempt.
+  function jobFinishedAt(info) {
+    return Date.parse(info && info.finished_at ? info.finished_at : "") || 0;
+  }
+
+  function jobGroups(jobs) {
+    const groups = [];
+    const failed = new Map();
+    for (const info of Array.isArray(jobs) ? jobs : []) {
+      if (!info || !info.id) continue;
+      if (info.status !== "failed") {
+        groups.push({ key: String(info.id), jobs: [info], info });
+        continue;
+      }
+      const identity = [info.name || info.kind || "", info.cause || info.error || ""].join("\u0000");
+      const key = "failed:" + identity;
+      let group = failed.get(key);
+      if (!group) {
+        group = { key, jobs: [], info };
+        failed.set(key, group);
+        groups.push(group);
+      }
+      group.jobs.push(info);
+      if (jobFinishedAt(info) >= jobFinishedAt(group.info)) group.info = info;
+    }
+    return groups;
+  }
+
+  function jobGroupName(group) {
+    const name = jobSummaryName(group.info);
+    return group.jobs.length > 1
+      ? t("shell.job.failed_count", { name, count: group.jobs.length })
+      : name;
+  }
+
   function jobSummaryName(info) {
     const name = jobNameLabel(info.name || info.kind || info.id);
     if (info.status === "running") return jobPauseNote(info) || name;
-    if (info.status === "failed" && info.error) {
-      // The producer's redacted error is the only cause the owner can see;
-      // the strip must not report a failure with no reason. It is bounded:
-      // a provider or connector failure can carry a multi-kilobyte URL, and
-      // an unbounded line would grow the fixed strip until it squeezed the
-      // route out of the window.
-      return t("shell.job.failed_with_reason", { name, reason: boundedReason(info.error) });
+    if (info.status === "failed" && (info.cause || info.error)) {
+      // The reason is the translated cause when the producer named one; the
+      // redacted diagnostic is the fallback. Both are bounded, because a
+      // provider or connector failure can carry a multi-kilobyte URL.
+      return t("shell.job.failed_with_reason", { name, reason: jobCauseText(info) });
     }
     return name + " (" + statusLabel(info.status) + ")";
   }
@@ -255,48 +303,57 @@
     action.setAttribute("aria-label", label);
     action.title = label;
     const textNode = action.querySelector("span");
-    // withBusy owns the label while a cancel is in flight; a progress tick
-    // must not replace "Cancelling…" with the idle text.
-    if (textNode && !action.disabled) textNode.textContent = label;
+    // The visible control is one verb. The job name lives in the accessible
+    // label and the title, so the strip never shows "Fermer Outlook" (which
+    // read as an instruction to close Outlook itself).
+    // withBusy owns the label while a cancel is in flight.
+    if (textNode && !action.disabled) {
+      textNode.textContent = kind === "cancel" ? t("common.cancel") : t("shell.job.dismiss_short");
+    }
   }
 
-  function jobActionButton(info, kind) {
-    const id = String(info.id);
+  function jobActionButton(info, kind, key, ids) {
     const action = kind === "cancel"
-      ? button(t("common.cancel"), (event) => cancelJob(id, event.currentTarget), { small: true, kind: "quiet" })
-      : button(t("common.dismiss"), () => {
-        forgetJob(id);
+      ? button(t("common.cancel"), (event) => cancelJob(key, event.currentTarget), { small: true, kind: "quiet" })
+      : button(t("shell.job.dismiss_short"), () => {
+        for (const id of ids) forgetJob(id);
         scheduleJobPaint();
       }, { small: true, kind: "quiet" });
     action.classList.add("job-action");
-    action.dataset.jobId = id;
+    action.dataset.jobId = key;
+    action.dataset.jobIds = ids.join(",");
     action.dataset.action = kind;
     updateJobAction(action, info, kind);
     return action;
   }
 
   function paintJobActions(host, jobs) {
-    const wanted = jobs.filter((info) => info.status === "running" || info.status === "failed");
+    const wanted = [];
+    for (const group of jobGroups(jobs)) {
+      if (group.info.status === "running") {
+        wanted.push({ key: group.key, info: group.info, kind: "cancel", ids: [String(group.info.id)] });
+      } else if (group.info.status === "failed") {
+        wanted.push({ key: group.key, info: group.info, kind: "dismiss", ids: group.jobs.map((info) => String(info.id)) });
+      }
+    }
     const keep = new Set();
-    for (const info of wanted) {
-      const id = String(info.id);
-      const kind = info.status === "running" ? "cancel" : "dismiss";
-      keep.add(id);
+    for (const item of wanted) {
+      keep.add(item.key);
       let action = null;
       for (const node of host.children) {
-        if (node.dataset.jobId === id && node.dataset.action === kind) {
+        if (node.dataset.jobId === item.key && node.dataset.action === item.kind) {
           action = node;
           break;
         }
       }
       if (!action) {
         for (const node of Array.from(host.children)) {
-          if (node.dataset.jobId === id) node.remove();
+          if (node.dataset.jobId === item.key) node.remove();
         }
-        action = jobActionButton(info, kind);
+        action = jobActionButton(item.info, item.kind, item.key, item.ids);
         host.append(action);
       } else {
-        updateJobAction(action, info, kind);
+        updateJobAction(action, item.info, item.kind);
       }
     }
     for (const node of Array.from(host.children)) {
@@ -316,7 +373,7 @@
     lead.textContent = aggregate.running.length
       ? t("shell.job.active", { count: aggregate.running.length })
       : t("shell.job.background");
-    names.textContent = jobs.map(jobSummaryName).join(", ");
+    names.textContent = jobGroups(jobs).map(jobGroupName).join(", ");
     const parts = [];
     if (aggregate.total > 0) {
       parts.push(jobProgressText(aggregate.done, aggregate.total, aggregate.unit));

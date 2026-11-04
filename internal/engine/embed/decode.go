@@ -48,7 +48,10 @@ func item1(item any, n int, spec *engine.EmbeddingSpec, dims int) (int, []float3
 		return 0, nil, fmt.Errorf("is %s, not an object", jsonx.Kind(item))
 	}
 	idx, ok := jsonx.Int(m["index"])
-	if !ok || idx < 0 || idx >= int64(n) {
+	// The upper bound is explicit, not only "less than n", so the int64 to
+	// int narrowing below has a range CodeQL and a reader can both see.
+	const maxEmbeddingIndex = 1<<31 - 1
+	if !ok || idx < 0 || idx >= int64(n) || idx > maxEmbeddingIndex {
 		return 0, nil, fmt.Errorf("index must be an integer in [0, %d)", n)
 	}
 	values, ok := m["embedding"].([]any)

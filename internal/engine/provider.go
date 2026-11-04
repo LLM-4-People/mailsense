@@ -452,7 +452,7 @@ func (p *Provider) AccountedUsage(u Usage, body []byte, billed bool) Usage {
 func (p *Provider) APIKey(sec secrets.Store) (string, error) {
 	key, err := sec.Get(p.APIKeySecret)
 	if err != nil || key == "" {
-		return "", fmt.Errorf("%w: secret %s for provider %s: %v", ErrNoKey, p.APIKeySecret, p.ID, err)
+		return "", fmt.Errorf("%w: provider %s has no usable key: %v", ErrNoKey, p.ID, err)
 	}
 	return key, nil
 }

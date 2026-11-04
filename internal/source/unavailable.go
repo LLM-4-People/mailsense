@@ -29,6 +29,11 @@ type unavailable struct {
 func (e *unavailable) Error() string        { return e.msg }
 func (e *unavailable) Is(target error) bool { return target == ErrUnavailable }
 
+// Cause exposes the stable code and diagnostic to a caller that only knows
+// the small structural interface, such as the job manager. The package-level
+// Cause function remains the helper for an error chain.
+func (e *unavailable) Cause() (string, string) { return e.code, e.msg }
+
 // Cause returns the stable code and owner-readable message of a source
 // unavailability ("" when err is not one). The message never carries mail
 // content; the code is what a bilingual screen translates.

@@ -102,8 +102,14 @@ func TestProviderAPIKeyIsOneRefusal(t *testing.T) {
 			if key != "" || !errors.Is(err, engine.ErrNoKey) {
 				t.Fatalf("key %q err %v", key, err)
 			}
-			if !strings.Contains(err.Error(), "secret KEY for provider prov") {
+			// The refusal is one ErrNoKey regardless of the adapter. The
+			// message names the provider, never the secret-store name: that
+			// name must not reach a log through an error string.
+			if !strings.Contains(err.Error(), "provider prov has no usable key") {
 				t.Fatalf("message %q", err)
+			}
+			if strings.Contains(err.Error(), p.APIKeySecret) {
+				t.Fatalf("the secret name reached the error: %q", err)
 			}
 		})
 	}
