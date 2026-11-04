@@ -314,7 +314,7 @@ func TestTeachersAsData(t *testing.T) {
 		"bad unmeasured":         `{"sources": {"a": {"from": "rules", "precedence": 1, "weight": 1, "unmeasured_precision": 1.5}}}`,
 		"empty sources":          `{"sources": {}}`,
 		// rules review #8: layer 1 configured to train on its own answers
-		"layer 1 teaching itself": `{"sources": {"a": {"from": "decisions", "decider": "layer1", "provider": "subq", "temperature": 1, "precedence": 1, "weight": 1}}}`,
+		"layer 1 teaching itself": `{"sources": {"a": {"from": "decisions", "decider": "layer1", "provider": "ondelle", "temperature": 1, "precedence": 1, "weight": 1}}}`,
 	} {
 		if _, err := parseTeachers([]byte(doc), names); err == nil {
 			t.Errorf("%s accepted", name)

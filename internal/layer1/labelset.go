@@ -46,7 +46,7 @@ type gathered struct {
 	labels    map[string]map[int64]map[string]string // label source → message → question → value (JSON)
 	decisions map[string]map[string]*compactAnswers  // decisions source → question → answers by design row
 	keys      map[string]string                      // decisions source → decider key
-	subq      map[string]*compactAnswers             // the configured decider (the route's SubQ participant) → answers by design row
+	ondelle   map[string]*compactAnswers             // the configured decider (the route's Ondelle participant) → answers by design row
 	rules     []RuleInfo
 	fires     map[int64][]int
 }

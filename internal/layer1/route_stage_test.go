@@ -333,7 +333,7 @@ func TestRouteStageDoneWhenRouted(t *testing.T) {
 // `meets` when its route certifies: the gate judges what answers. The
 // active model's holdout is corrupted (its predictions, and so the
 // stored route offers, stay good); the model is kept by the regression
-// guard, its verdict fails, and keys + SubQ + layer 1 certify the route.
+// guard, its verdict fails, and keys + Ondelle + layer 1 certify the route.
 func TestQuestionsStageJudgesTheRoute(t *testing.T) {
 	t.Parallel()
 	w := newWorld(t, 60, map[string]any{SettingMaxNLLRegression: 0})

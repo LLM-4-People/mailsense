@@ -23,8 +23,8 @@ type experiment struct {
 	plan     func(*Plan)    // a pass-level choice under test (E2 heads)
 }
 
-// noSubQ is the cold start: no decider answers, live or legacy.
-const noSubQ = `{"sources": {"decider": null, "legacy": null}}`
+// noOndelle is the cold start: no decider answers, live or legacy.
+const noOndelle = `{"sources": {"decider": null, "legacy": null}}`
 
 // experiments by name; "e1-<purpose>-<dims>" names are built in experimentNamed.
 var experiments = map[string]experiment{
@@ -45,12 +45,12 @@ var experiments = map[string]experiment{
 	"e3-knn-t02": {settings: map[string]any{SettingKNN: true, SettingKNNTemperature: 0.02}},
 	"e3-knn-t10": {settings: map[string]any{SettingKNN: true, SettingKNNTemperature: 0.1}},
 	// E4
-	"e4-coldstart":        {teachers: noSubQ},
-	"e4-coldstart-knn":    {teachers: noSubQ, settings: map[string]any{SettingKNN: true}},
+	"e4-coldstart":        {teachers: noOndelle},
+	"e4-coldstart-knn":    {teachers: noOndelle, settings: map[string]any{SettingKNN: true}},
 	"e4-legacy-only":      {teachers: `{"sources": {"judge": {"from": "labels", "label_source": "judge", "precedence": 2, "weight": 2, "eval": true}, "rules": null}}`},
 	"e4-rules-unmeasured": {teachers: `{"sources": {"rules": {"from": "rules", "precedence": 5, "weight": 0.3, "min_lower_bound": 0.7, "unmeasured_precision": 0.6}}}`},
-	"e4-hard":             {teachers: `{"sources": {"legacy": {"from": "decisions", "decider": "legacy:subq-snap-preview", "provider": "subq", "precedence": 4, "weight": 1, "temperature": 0.05}}}`},
-	"e4-T2":               {teachers: `{"sources": {"legacy": {"from": "decisions", "decider": "legacy:subq-snap-preview", "provider": "subq", "precedence": 4, "weight": 1, "temperature": 2}}}`},
+	"e4-hard":             {teachers: `{"sources": {"legacy": {"from": "decisions", "decider": "legacy:ondelle-snap-preview", "provider": "ondelle", "precedence": 4, "weight": 1, "temperature": 0.05}}}`},
+	"e4-T2":               {teachers: `{"sources": {"legacy": {"from": "decisions", "decider": "legacy:ondelle-snap-preview", "provider": "ondelle", "precedence": 4, "weight": 1, "temperature": 2}}}`},
 	"e4-noleak":           {teachers: `{"questions": {"reply_needed": {"legacy": null}, "call_to_action": {"legacy": null}, "decision_needed": {"legacy": null}, "urgency": {"legacy": null}}}`},
 	"e4-judge-heavy":      {teachers: `{"sources": {"judge": {"from": "labels", "label_source": "judge", "precedence": 2, "weight": 50, "eval": true}}}`},
 	// E5

@@ -1,6 +1,6 @@
 // Package route is the certified answer route for one question: an
 // escalation cascade of the layer-0 rule key, then layer 1, then the
-// stored SubQ answer. Each layer answers only above the gate chosen for
+// stored Ondelle answer. Each layer answers only above the gate chosen for
 // it on the selection labels; a higher layer that offered below its gate
 // falls through to the next, and the cascade answers only when its
 // decisions, fixed by those gates, were certified once on the disjoint
@@ -28,10 +28,14 @@ import (
 type Layer string
 
 // The participants, in the lead's escalation order.
+//
+// An answer stored before this value was renamed keeps its former layer
+// string; every reader decodes the layer without comparing it, so no
+// migration is needed.
 const (
-	LayerKey  Layer = "key"    // a layer-0 rule key (the evidence rule's answer)
-	Layer1    Layer = "layer1" // the active local head's calibrated distribution
-	LayerSubQ Layer = "subq"   // the configured triage decider's stored answer
+	LayerKey     Layer = "key"     // a layer-0 rule key (the evidence rule's answer)
+	Layer1       Layer = "layer1"  // the active local head's calibrated distribution
+	LayerOndelle Layer = "ondelle" // the configured triage decider's stored answer
 )
 
 // The abstain reasons the route adds to the engine's vocabulary
@@ -55,7 +59,7 @@ const (
 // priority first. The cascade walks this order: the first member whose
 // offer reaches its gate answers, and a higher member below its gate does
 // not veto the item (it falls through).
-var layers = [...]Layer{LayerKey, Layer1, LayerSubQ}
+var layers = [...]Layer{LayerKey, Layer1, LayerOndelle}
 
 // probsTolerance is how far an offer's probabilities may sum from 1
 // (rounding only: the float32 storage bound); a malformed offer is
@@ -90,7 +94,7 @@ type Item struct {
 // Member is one gate-qualified participant. Gate is the confidence
 // threshold chosen for it on the selection items where it offered (never
 // selective.NoThreshold: that is not a member). Band is its priority band
-// in the lead's order (key 2, layer1 1, SubQ 0); it orders and reports the
+// in the lead's order (key 2, layer1 1, Ondelle 0); it orders and reports the
 // members and is never compared with a confidence: the cascade answers at
 // each layer's own gate, not at a shared score.
 type Member struct {
@@ -441,7 +445,7 @@ func layerRank(l Layer) (int, bool) {
 }
 
 // layerBand is a layer's priority band in the report: the number of
-// layers below it (key 2, layer1 1, SubQ 0). It orders and reports the
+// layers below it (key 2, layer1 1, Ondelle 0). It orders and reports the
 // members; it is never a score.
 func layerBand(l Layer) (float64, bool) {
 	rank, ok := layerRank(l)

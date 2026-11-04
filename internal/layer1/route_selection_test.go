@@ -36,7 +36,7 @@ func memberOfState(st route.State, layer route.Layer) (route.Member, bool) {
 // The layer-1 offer follows the item kind, never the data: a selection item
 // carries its model's out-of-fold distribution, a certification item the
 // final model's, and a selection label without an out-of-fold prediction
-// offers no layer 1 at all (the key and SubQ offers stay).
+// offers no layer 1 at all (the key and Ondelle offers stay).
 func TestSelectionOffersUseOutOfFoldPredictions(t *testing.T) {
 	t.Parallel()
 	truth := true
@@ -48,7 +48,7 @@ func TestSelectionOffersUseOutOfFoldPredictions(t *testing.T) {
 	p := routeParticipants{
 		rules: []RuleInfo{rule},
 		fires: map[int64][]int{1: {0}, 2: {0}},
-		subq: map[string]*compactAnswers{q.Name: {classes: 2,
+		ondelle: map[string]*compactAnswers{q.Name: {classes: 2,
 			probs: []float32{0.75, 0.25, 0.75, 0.25}, state: []answerState{answerOK, answerOK}}},
 		rows: membership{1: 0, 2: 1},
 		layer1: func(*settled, int64) (engine.Answer, bool) {
@@ -68,7 +68,7 @@ func TestSelectionOffersUseOutOfFoldPredictions(t *testing.T) {
 	if !ok || !slices.Equal(got.Probs, oof) {
 		t.Fatalf("selection item's layer-1 offer is %v, want the out-of-fold %v", got.Probs, oof)
 	}
-	for _, layer := range []route.Layer{route.LayerKey, route.LayerSubQ} {
+	for _, layer := range []route.Layer{route.LayerKey, route.LayerOndelle} {
 		if _, ok := layerOffer(selection, layer); !ok {
 			t.Fatalf("selection item lost its %s offer: %+v", layer, selection)
 		}
@@ -80,7 +80,7 @@ func TestSelectionOffersUseOutOfFoldPredictions(t *testing.T) {
 	if !ok || !slices.Equal(got.Probs, final) {
 		t.Fatalf("certification item's layer-1 offer is %v, want the final model's %v", got.Probs, final)
 	}
-	for _, layer := range []route.Layer{route.LayerKey, route.LayerSubQ} {
+	for _, layer := range []route.Layer{route.LayerKey, route.LayerOndelle} {
 		if _, ok := layerOffer(certification, layer); !ok {
 			t.Fatalf("certification item lost its %s offer: %+v", layer, certification)
 		}
@@ -92,7 +92,7 @@ func TestSelectionOffersUseOutOfFoldPredictions(t *testing.T) {
 	if o, ok := layerOffer(missing, route.Layer1); ok {
 		t.Fatalf("a selection label with no out-of-fold prediction offered the final model: %v", o.Probs)
 	}
-	for _, layer := range []route.Layer{route.LayerKey, route.LayerSubQ} {
+	for _, layer := range []route.Layer{route.LayerKey, route.LayerOndelle} {
 		if _, ok := layerOffer(missing, layer); !ok {
 			t.Fatalf("a selection label without an out-of-fold prediction lost its %s offer: %+v", layer, missing)
 		}
@@ -260,8 +260,8 @@ func TestRouteGatesFollowOutOfFoldNotAnOverconfidentFinalModel(t *testing.T) {
 	if reflect.DeepEqual(oofState.Members, oldState.Members) {
 		t.Fatalf("the out-of-fold and final-model selection offers chose the same members: %+v", oofState.Members)
 	}
-	// The key and SubQ offers are unchanged: both states still see them.
-	for _, layer := range []route.Layer{route.LayerKey, route.LayerSubQ} {
+	// The key and Ondelle offers are unchanged: both states still see them.
+	for _, layer := range []route.Layer{route.LayerKey, route.LayerOndelle} {
 		if (memberOf(oldState, layer)) != (memberOf(oofState, layer)) {
 			t.Fatalf("%s membership changed with the layer-1 offer source: old %+v, out-of-fold %+v", layer, oldState.Members, oofState.Members)
 		}

@@ -1,5 +1,5 @@
-// Package livetest is the shared support of the live tests run on the
-// Windows machine through the device relay (scripts/*-live.sh): a context
+// Package livetest is the shared support of the live tests run on a remote
+// Windows machine through the test harness (scripts/*-live.sh): a context
 // that ends before the test deadline or when the stop file appears, the
 // explicit pick of the mailboxes to read, and the limits of a small
 // verification run (Limit, applied before the first call; Budget, the

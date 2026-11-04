@@ -150,7 +150,7 @@ func TestChooseTeacherRefusesMisuseWithoutWriting(t *testing.T) {
 	for _, choice := range []TeacherChoice{
 		{Question: "not_a_question", Source: "judge"},
 		{Question: "category", Source: "not_a_source"},
-		{Question: "category", Source: "judge", Provider: "subq"},
+		{Question: "category", Source: "judge", Provider: "ondelle"},
 		{Question: "category", Source: "decider"},
 		{Question: "category", Source: "decider", Provider: "embeddinggemma"},
 		{Question: "category", Source: "decider", Provider: "nope"},

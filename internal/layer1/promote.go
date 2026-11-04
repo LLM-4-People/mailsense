@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"github.com/LLM-4-People/mailsense/internal/logx"
 	"github.com/LLM-4-People/mailsense/internal/store"
 )
 
@@ -54,7 +55,7 @@ func (r *Runner) active(ctx context.Context) (map[string]*activeModel, error) {
 	for _, row := range rows {
 		a, err := decodeStored(row)
 		if err != nil {
-			r.log.Warn("layer1 active model ignored", "question_key", row.Question, "id", row.ID, "err", err)
+			r.log.Warn("layer1 active model ignored", "question_key", row.Question, "id", row.ID, "err", logx.RedactedError(err))
 			continue
 		}
 		out[row.Question] = a

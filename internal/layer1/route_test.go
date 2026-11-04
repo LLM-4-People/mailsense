@@ -99,7 +99,7 @@ func TestRouteAnswersAreWrittenAndDeterministic(t *testing.T) {
 			category = &rep.Routes[i]
 		}
 	}
-	if category == nil || !category.Certification.Certified || category.Certification.Eligible == 0 || category.Given[route.Layer1]+category.Given[route.LayerSubQ]+category.Given[route.LayerKey] == 0 {
+	if category == nil || !category.Certification.Certified || category.Certification.Eligible == 0 || category.Given[route.Layer1]+category.Given[route.LayerOndelle]+category.Given[route.LayerKey] == 0 {
 		t.Fatalf("category %+v", category)
 	}
 	firstRaw := w.rawRouteAnswers(t)
@@ -162,7 +162,7 @@ func TestRouteCertifiesOnlyAgainstTheConfiguredSources(t *testing.T) {
 	t.Fatal("category has no route report")
 }
 
-// A stored SubQ answer that refused, abstained or did not survive
+// A stored Ondelle answer that refused, abstained or did not survive
 // validation offers nothing; a valid one offers the stored distribution
 // bit for bit (the read's float32 form, never re-decided), and a pass
 // spends no paid call.
@@ -170,7 +170,7 @@ func TestRouteOffersUseTheStoredAnswersOnly(t *testing.T) {
 	t.Parallel()
 	w := newWorld(t, 60, nil)
 	ctx := t.Context()
-	if err := w.st.AddUsage(ctx, engine.UsageRecord{Provider: "subq", Model: "snap", Usage: engine.Usage{Calls: 1, EstimatedUSD: 0.5}}); err != nil {
+	if err := w.st.AddUsage(ctx, engine.UsageRecord{Provider: "ondelle", Model: "snap", Usage: engine.Usage{Calls: 1, EstimatedUSD: 0.5}}); err != nil {
 		t.Fatal(err)
 	}
 	before, err := w.st.ListUsage(ctx, 365)
@@ -214,21 +214,21 @@ func TestRouteOffersUseTheStoredAnswersOnly(t *testing.T) {
 	s := &settled{q: cq, model: tr.Models["category"]}
 	for i := range bad {
 		for _, o := range routeOffers(plan, tr, s, w.ids[i]) {
-			if o.Layer == route.LayerSubQ {
+			if o.Layer == route.LayerOndelle {
 				t.Fatalf("message %d: a refused/abstained/invalid stored answer offered %v", w.ids[i], o.Probs)
 			}
 		}
 	}
 	id := w.ids[len(bad)]
 	offers := routeOffers(plan, tr, s, id)
-	var subq *route.Offer
+	var ondelle *route.Offer
 	for i := range offers {
-		if offers[i].Layer == route.LayerSubQ {
-			subq = &offers[i]
+		if offers[i].Layer == route.LayerOndelle {
+			ondelle = &offers[i]
 		}
 	}
-	if subq == nil {
-		t.Fatal("a valid stored answer gave no SubQ offer")
+	if ondelle == nil {
+		t.Fatal("a valid stored answer gave no Ondelle offer")
 	}
 	stored, err := w.st.LoadDecisions(ctx, key)
 	if err != nil {
@@ -239,12 +239,12 @@ func TestRouteOffersUseTheStoredAnswersOnly(t *testing.T) {
 		t.Fatal(err)
 	}
 	want := answers["category"].Probabilities
-	if len(subq.Probs) != len(cq.Options) {
-		t.Fatalf("%d probabilities for %d options", len(subq.Probs), len(cq.Options))
+	if len(ondelle.Probs) != len(cq.Options) {
+		t.Fatalf("%d probabilities for %d options", len(ondelle.Probs), len(cq.Options))
 	}
 	for k, opt := range cq.Options {
-		if subq.Probs[k] != float64(float32(want[opt.Name])) {
-			t.Fatalf("%s: offer %v, stored %v (bit for bit)", opt.Name, subq.Probs[k], want[opt.Name])
+		if ondelle.Probs[k] != float64(float32(want[opt.Name])) {
+			t.Fatalf("%s: offer %v, stored %v (bit for bit)", opt.Name, ondelle.Probs[k], want[opt.Name])
 		}
 	}
 }
@@ -260,7 +260,7 @@ func (c *countingInputs) Decisions(ctx context.Context, key store.TriageKey, fn 
 	return c.StoreInputs.Decisions(ctx, key, fn)
 }
 
-// The route's SubQ read is the configured decider's, and a teacher source
+// The route's Ondelle read is the configured decider's, and a teacher source
 // with the same decider key reuses it: one read, one validation.
 func TestTheRouteDeciderIsReadOnce(t *testing.T) {
 	t.Parallel()

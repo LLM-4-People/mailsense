@@ -11,6 +11,7 @@ import (
 	"github.com/LLM-4-People/mailsense/internal/feedback"
 	"github.com/LLM-4-People/mailsense/internal/index"
 	"github.com/LLM-4-People/mailsense/internal/jobs"
+	"github.com/LLM-4-People/mailsense/internal/logx"
 	"github.com/LLM-4-People/mailsense/internal/runstate"
 	"github.com/LLM-4-People/mailsense/internal/triage"
 	"github.com/LLM-4-People/mailsense/internal/triage/taxonomy"
@@ -140,7 +141,7 @@ func (r *Runner) startAfter(m *jobs.Manager, why string) {
 			r.single.End()
 		}
 		if err != nil {
-			r.log.Warn("layer1 run not started", "after", why, "err", err)
+			r.log.Warn("layer1 run not started", "after", why, "err", logx.RedactedError(err))
 		}
 	})
 }
@@ -162,7 +163,7 @@ func (r *Runner) startTrigger(m *jobs.Manager, why string) (started bool, err er
 	rescore := false
 	switch {
 	case err != nil:
-		r.log.Warn("layer1 state not read: training", "after", why, "err", err)
+		r.log.Warn("layer1 state not read: training", "after", why, "err", logx.RedactedError(err))
 	case lr.planErr != nil && last != nil && last.Code == BlockConfig && last.Error == lr.planErr.Error():
 		return false, nil // the same problem is already recorded
 	case lr.planErr != nil:

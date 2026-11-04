@@ -4,8 +4,8 @@ package layer1
 
 // Selective evaluation on dev (lead directive "1.0 accuracy": an answer
 // given on its own must be right; below the target the route abstains
-// and escalates), for layer 1, legacy SubQ (its own probabilities as
-// confidence) and the production route of layer-0 keys + layer 1 + SubQ:
+// and escalates), for layer 1, legacy Ondelle (its own probabilities as
+// confidence) and the production route of layer-0 keys + layer 1 + Ondelle:
 //   - the honest dev certification (selective.Certify for a single layer,
 //     selective.CertifyFixed for the route's fixed cascade): dev split by
 //     conversation (layer1.certify.fraction), the cuts chosen on the dev
@@ -37,28 +37,28 @@ import (
 // The distributions are what the participants offer the route; the class
 // and confidence are the diagnostics (accuracy, error analysis).
 type devAnswer struct {
-	item      devItem
-	class     int // the gold label's class
-	l1        int
-	l1Conf    float64
-	l1Probs   []float64
-	key       int // a layer-0 key's answer
-	keyLB     float64
-	keyProbs  []float64
-	keyRule   string
-	subq      int
-	subqConf  float64
-	subqProbs []float64
+	item         devItem
+	class        int // the gold label's class
+	l1           int
+	l1Conf       float64
+	l1Probs      []float64
+	key          int // a layer-0 key's answer
+	keyLB        float64
+	keyProbs     []float64
+	keyRule      string
+	ondelle      int
+	ondelleConf  float64
+	ondelleProbs []float64
 }
 
 // Selective is one question's selective measurement on dev.
 type Selective struct {
 	// Certified is the honest dev certification at each report target.
-	Certified map[string][]selective.Certification `json:"certified"` // layer1, subq, stack (the route)
+	Certified map[string][]selective.Certification `json:"certified"` // layer1, ondelle, stack (the route)
 	// dev curves (scanned on dev: diagnostics)
-	Layer1 []selective.TargetPoint `json:"layer1"`
-	SubQ   []selective.TargetPoint `json:"subq"`
-	Stack  []selective.TargetPoint `json:"stack"`
+	Layer1  []selective.TargetPoint `json:"layer1"`
+	Ondelle []selective.TargetPoint `json:"ondelle"`
+	Stack   []selective.TargetPoint `json:"stack"`
 	// the operating points on dev: layer 1's own thresholds and the
 	// route's (its per-layer gates, and the answers the app gives when
 	// the cascade certified)
@@ -103,7 +103,7 @@ type ErrorItem struct {
 	Agreement string  `json:"agreement"` // single, agreed, adjudicated
 	Label     string  `json:"label"`
 	Answer    string  `json:"answer"`
-	By        string  `json:"by"` // key, layer1 or subq
+	By        string  `json:"by"` // key, layer1 or ondelle
 	Conf      float64 `json:"confidence"`
 }
 
@@ -112,10 +112,10 @@ type ErrorItem struct {
 // none), labels its own evaluation labels (its holdout's re-score), z
 // and fraction the requirement's and the split's. The route is the
 // production escalation cascade (route.Build with the key, layer 1 and
-// legacy SubQ offers) on the dev split: the honest split certification of
+// legacy Ondelle offers) on the dev split: the honest split certification of
 // its fixed decisions, the per-layer gates chosen on its selection part,
 // the answers those gates give and, when it certified, the answers the app
-// gives. The layer-1 and SubQ solo curves stay selective.Targets scans
+// gives. The layer-1 and Ondelle solo curves stay selective.Targets scans
 // (diagnostics, optimistic by construction).
 func selectiveOf(q *engine.Question, dq *DevQuestion, model *Model, labels map[int64]evalLabel, cutoff float64, req Requirement,
 	targets []float64, fraction float64, kinds map[string]string) (*Selective, error) {
@@ -130,8 +130,8 @@ func selectiveOf(q *engine.Question, dq *DevQuestion, model *Model, labels map[i
 		if a.l1 >= 0 {
 			l1 = append(l1, selective.Ranked{ID: a.item.id, Correct: a.l1 == a.class, Confidence: a.l1Conf})
 		}
-		if a.subq >= 0 {
-			sq = append(sq, selective.Ranked{ID: a.item.id, Correct: a.subq == a.class, Confidence: a.subqConf})
+		if a.ondelle >= 0 {
+			sq = append(sq, selective.Ranked{ID: a.item.id, Correct: a.ondelle == a.class, Confidence: a.ondelleConf})
 		}
 		var offers []route.Offer
 		if a.keyProbs != nil {
@@ -141,13 +141,13 @@ func selectiveOf(q *engine.Question, dq *DevQuestion, model *Model, labels map[i
 		if a.l1Probs != nil {
 			offers = append(offers, route.Offer{Layer: route.Layer1, Probs: a.l1Probs})
 		}
-		if a.subqProbs != nil {
-			offers = append(offers, route.Offer{Layer: route.LayerSubQ, Probs: a.subqProbs})
+		if a.ondelleProbs != nil {
+			offers = append(offers, route.Offer{Layer: route.LayerOndelle, Probs: a.ondelleProbs})
 		}
 		items = append(items, route.Item{ID: a.item.id, Class: a.class, Certify: part[a.item.id], Offers: offers})
 	}
 	l1, sq = selective.Rank(l1), selective.Rank(sq)
-	sel.Layer1, sel.SubQ = selective.Targets(l1, targets, req.Z), selective.Targets(sq, targets, req.Z)
+	sel.Layer1, sel.Ondelle = selective.Targets(l1, targets, req.Z), selective.Targets(sq, targets, req.Z)
 	split := func(rows []selective.Ranked) (s, c []selective.Ranked) {
 		for _, r := range rows {
 			if part[r.ID] {
@@ -162,7 +162,7 @@ func selectiveOf(q *engine.Question, dq *DevQuestion, model *Model, labels map[i
 	ssq, csq := split(sq)
 	for _, t := range targets {
 		sel.Certified["layer1"] = append(sel.Certified["layer1"], selective.Certify(sl1, cl1, t, req.Z))
-		sel.Certified["subq"] = append(sel.Certified["subq"], selective.Certify(ssq, csq, t, req.Z))
+		sel.Certified["ondelle"] = append(sel.Certified["ondelle"], selective.Certify(ssq, csq, t, req.Z))
 	}
 	states := make(map[float64]route.State, len(targets))
 	cascade := make(map[float64][]routeRow, len(targets))
@@ -285,8 +285,8 @@ func devClass(a route.Answer, d devAnswer) (int, bool) {
 		return d.key, d.keyProbs != nil
 	case route.Layer1:
 		return d.l1, d.l1Probs != nil
-	case route.LayerSubQ:
-		return d.subq, d.subqProbs != nil
+	case route.LayerOndelle:
+		return d.ondelle, d.ondelleProbs != nil
 	}
 	return 0, false
 }
@@ -331,7 +331,7 @@ func agreementKinds(t interface{ Fatal(...any) }, gold *goldset.Set) map[string]
 
 // stackSummary is the mean over questions at each target: the honest dev
 // certification (coverage, and how many questions are certified), the
-// dev-curve coverage (layer 1, SubQ, the route), the route's operating
+// dev-curve coverage (layer 1, Ondelle, the route), the route's operating
 // points on dev (its per-layer gates: coverage, answers, errors,
 // precision; the app's answers when it certified), and the answers each
 // layer gives.
@@ -345,7 +345,7 @@ func stackSummary(qs []DevQuestion, targets []float64) []map[string]float64 {
 				continue
 			}
 			s := q.Select
-			for _, name := range []string{"layer1", "subq", "stack"} {
+			for _, name := range []string{"layer1", "ondelle", "stack"} {
 				c := s.Certified[name][i]
 				m[name+"_certified_coverage"] += c.Coverage
 				if c.Certified {
@@ -354,15 +354,15 @@ func stackSummary(qs []DevQuestion, targets []float64) []map[string]float64 {
 			}
 			m["layer1_coverage"] += s.Layer1[i].Coverage
 			m["layer1_coverage_lb"] += s.Layer1[i].CoverageLB
-			m["subq_coverage"] += s.SubQ[i].Coverage
-			m["subq_coverage_lb"] += s.SubQ[i].CoverageLB
+			m["ondelle_coverage"] += s.Ondelle[i].Coverage
+			m["ondelle_coverage_lb"] += s.Ondelle[i].CoverageLB
 			m["stack_coverage"] += s.Stack[i].Coverage
 			m["stack_coverage_lb"] += s.Stack[i].CoverageLB
 			if s.StackAt[i].N > 0 {
 				m["stack_point_coverage"] += float64(s.StackAt[i].Covered) / float64(s.StackAt[i].N)
 				m["stack_certified_op_coverage"] += float64(s.StackAt[i].CoveredCertified) / float64(s.StackAt[i].N)
 			}
-			for _, l := range []route.Layer{route.LayerKey, route.Layer1, route.LayerSubQ} {
+			for _, l := range []route.Layer{route.LayerKey, route.Layer1, route.LayerOndelle} {
 				m["given_"+string(l)] += float64(s.Given[i][l])
 				m["certified_given_"+string(l)] += float64(s.CertifiedGiven[i][l])
 			}
@@ -371,7 +371,7 @@ func stackSummary(qs []DevQuestion, targets []float64) []map[string]float64 {
 		}
 		n := float64(len(qs))
 		for k := range m {
-			if k != "target" && !slices.Contains([]string{"layer1_certified_questions", "subq_certified_questions", "stack_certified_questions"}, k) {
+			if k != "target" && !slices.Contains([]string{"layer1_certified_questions", "ondelle_certified_questions", "stack_certified_questions"}, k) {
 				m[k] /= n
 			}
 		}

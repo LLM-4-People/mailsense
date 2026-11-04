@@ -37,7 +37,7 @@ var testKey = source.StoreKey("src", "store-1")
 func writeTestProviders(t *testing.T, cfg *config.Config) {
 	t.Helper()
 	records := map[string]engine.Provider{
-		"subq": {Protocol: engine.ProtocolSystemOne, BaseURL: "http://127.0.0.1:9/v1", Path: "/systemone",
+		"ondelle": {Protocol: engine.ProtocolSystemOne, BaseURL: "http://127.0.0.1:9/v1", Path: "/systemone",
 			Model: "snap-1", APIKeySecret: "PROVIDER_DECIDER_API_KEY", MaxQuestions: 16, ContextTokens: 100000,
 			CharsPerToken: 3, ReserveTokensPerByte: 1, ProbabilityTolerance: 0.02,
 			PriceInput: ptr(0.05), PriceOutput: ptr(0)},
@@ -72,7 +72,7 @@ func testConfig(t *testing.T, overrides map[string]any) *config.Config {
 	t.Helper()
 	cfg := configtest.New(t, overrides)
 	writeTestProviders(t, cfg)
-	for key, id := range map[string]string{triage.DeciderSetting: "subq", "judge.provider": "example-provider-gemma", "embed.provider": "embeddinggemma"} {
+	for key, id := range map[string]string{triage.DeciderSetting: "ondelle", "judge.provider": "example-provider-gemma", "embed.provider": "embeddinggemma"} {
 		if _, ok := overrides[key]; ok {
 			continue
 		}
@@ -94,7 +94,7 @@ type fakeSource struct{}
 func (fakeSource) Embedder() (engine.Embedder, error) { return fakeEmbedder{}, nil }
 
 // world is a store with n received owner messages of two kinds (their
-// vectors and their senders differ), the subq teacher's answers to the
+// vectors and their senders differ), the ondelle teacher's answers to the
 // category question and judge labels on some.
 type world struct {
 	t   *testing.T
@@ -110,7 +110,7 @@ func newWorld(t *testing.T, n int, overrides map[string]any) *world {
 	t.Helper()
 	settings := map[string]any{source.SettingSelected: []any{testKey}, source.SettingDeclared: []any{testKey + "=" + mailtest.Owner},
 		"time.zone": "Europe/Paris", SettingFolds: 3, SettingGrid: []any{-2, -1}, SettingWorkers: 2,
-		SettingShardRows: 16, triage.DeciderSetting: "subq", "judge.provider": "example-provider-gemma", "embed.provider": "embeddinggemma"}
+		SettingShardRows: 16, triage.DeciderSetting: "ondelle", "judge.provider": "example-provider-gemma", "embed.provider": "embeddinggemma"}
 	for k, v := range overrides {
 		settings[k] = v
 	}

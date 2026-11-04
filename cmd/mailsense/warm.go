@@ -41,7 +41,7 @@ const warmProfiles = 3
 // warmHeavyBuilds bounds how many store-scanning warm stages build at once.
 // The bound is measured, not guessed: starting the four derived scans beside
 // the ranking build made ready 15.7 s instead of 13.6 s on the live host's
-// 4-connection / 8 MiB SQLite cache (docs/PROGRESS.md, 2026-11-03). The three
+// 4-connection / 8 MiB SQLite cache. The three
 // slots leave one pool connection for the owner's first click while the warm
 // runs, and they are one short of the four-scan group that measured slower
 // beside the ranking. Cheap stages compose cached read models and do not take
@@ -224,7 +224,7 @@ func (p *warmPolicy) build(ctx context.Context, view warmView, fn func(context.C
 		p.log.Info("startup view warm", "view", string(view),
 			"duration_ms", time.Since(viewStart).Milliseconds(),
 			"offset_ms", viewStart.Sub(p.origin).Milliseconds())
-		p.log.Warn("startup warm incomplete", "view", string(view), "err", err)
+		p.log.Warn("startup warm incomplete", "view", string(view), "err", logx.RedactedError(err))
 		p.boot.finish(view, err)
 	}
 }
@@ -246,7 +246,7 @@ func (p *warmPolicy) admit(ctx context.Context, view warmView) *resource.LimitEr
 	paused, err := p.guard.Admission(ctx, view)
 	if err != nil {
 		p.log.Debug("resource guard readings unavailable; building the startup view",
-			"view", string(view), "err", err)
+			"view", string(view), "err", logx.RedactedError(err))
 		return nil
 	}
 	if paused == nil {

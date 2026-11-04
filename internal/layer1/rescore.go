@@ -6,6 +6,7 @@ import (
 	"slices"
 
 	"github.com/LLM-4-People/mailsense/internal/engine"
+	"github.com/LLM-4-People/mailsense/internal/logx"
 	"github.com/LLM-4-People/mailsense/internal/route"
 	"github.com/LLM-4-People/mailsense/internal/runstate"
 	"github.com/LLM-4-People/mailsense/internal/selective"
@@ -98,7 +99,7 @@ func (r *Runner) rescore(ctx context.Context, report func(stage string, done, to
 		cur, decoded = id, nil
 		if d, ok := stored[id]; ok {
 			if err := json.Unmarshal([]byte(d.Answers), &decoded); err != nil {
-				r.log.Warn("layer1 stored answer unreadable: left out", "message", id, "err", err)
+				r.log.Warn("layer1 stored answer unreadable: left out", "message", id, "err", logx.RedactedError(err))
 				decoded = nil
 			}
 		}
@@ -159,11 +160,11 @@ func (r *Runner) rescoreRoute(ctx context.Context, plan *Plan, rows []store.Labe
 		return routeParticipants{}, nil, err
 	}
 	key := store.TriageKey{Fingerprint: plan.Profile.Fingerprint, Decider: plan.DeciderKey}
-	subq, err := readDecisions(ctx, r.in, key, plan.Profile, membershipOf(ids), plan.DeciderTolerance)
+	ondelle, err := readDecisions(ctx, r.in, key, plan.Profile, membershipOf(ids), plan.DeciderTolerance)
 	if err != nil {
 		return routeParticipants{}, nil, err
 	}
-	return routeParticipants{rules: rules, fires: fires, subq: subq, rows: membershipOf(ids)}, groups, nil
+	return routeParticipants{rules: rules, fires: fires, ondelle: ondelle, rows: membershipOf(ids)}, groups, nil
 }
 
 // evalLabelsNow are the current evaluation labels per question (the

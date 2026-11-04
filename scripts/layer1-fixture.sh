@@ -22,7 +22,7 @@
 # Environment:
 #   FIXTURE_JSONL           the export (default $FIXTURE_DIR/mailbox.jsonl, lib.sh); FIXTURE_OWNER/FIXTURE_ZONE as for fixture-import.sh
 #   LAYER1_GOLD_DIR         the sealed gold sample (default: the newest ~/.local/share/mailsense/bench/sample-*)
-#   LAYER1_LEGACY           the legacy SubQ answers (default $FIXTURE_DIR/classifications.jsonl.gz)
+#   LAYER1_LEGACY           the legacy Ondelle answers (default $FIXTURE_DIR/classifications.jsonl.gz)
 #   LAYER1_CACHE_DIR        the private vector cache (default ~/.cache/mailsense-layer1/vectors, mode 700)
 #   LAYER1_SAMPLE           the experiment sample's draw besides the gold (default 8000)
 #   EMBEDLOCAL_RUNTIME_DIR  the pinned runtime (default ~/.cache/mailsense-runtime)
@@ -77,11 +77,11 @@ compare)
 summary)
 	f="$LAYER1_REPORT_DIR/layer1-${2:?run name}.json"
 	[[ -f "$f" ]] || die "no report $f"
-	jq -r '"run \(.run // .experiment) (\(.population // "?")): mean dev accuracy layer1 \(.mean_accuracy.layer1*1000|round/1000) subq \(.mean_accuracy.subq*1000|round/1000); train \(.wall_ms.train/1000|round) s; model \(.model_bytes) bytes",
+	jq -r '"run \(.run // .experiment) (\(.population // "?")): mean dev accuracy layer1 \(.mean_accuracy.layer1*1000|round/1000) ondelle \(.mean_accuracy.ondelle*1000|round/1000); train \(.wall_ms.train/1000|round) s; model \(.model_bytes) bytes",
 		(.compare // empty | "vs \(.baseline): \(.mean_diff*1000|round/1000) [\(.ci95[0]*1000|round/1000), \(.ci95[1]*1000|round/1000)]"),
-		"question           n    layer1 subq   ceil  cert@.99 l1/subq/stack  curve@.99 l1/subq/stack  meets  lambda   eval",
+		"question           n    layer1 ondelle   ceil  cert@.99 l1/ondelle/stack  curve@.99 l1/ondelle/stack  meets  lambda   eval",
 		(.questions[] | (.selective.certified) as $c |
-			"\(.question|.+"                 "|.[0:17]) \(.n|tostring|.+"   "|.[0:4]) \(.layer1.accuracy*1000|round/1000|tostring|.+"      "|.[0:6]) \(.subq.accuracy*1000|round/1000|tostring|.+"      "|.[0:6]) \(.ceiling|tostring|.+"     "|.[0:5]) \([$c.layer1, $c.subq, $c.stack] | map(map(select(.target == 0.99))[0].coverage*100|round/100|tostring) | join("/")|.+"                      "|.[0:22]) \([.selective.layer1, .selective.subq, .selective.stack] | map(map(select(.target == 0.99))[0].coverage*100|round/100|tostring) | join("/")|.+"                      "|.[0:22]) \(.meets_requirement|tostring|.+"      "|.[0:6]) \(.train.lambda|tostring|.+"        "|.[0:8]) \(.train.eval)")' "$f"
+			"\(.question|.+"                 "|.[0:17]) \(.n|tostring|.+"   "|.[0:4]) \(.layer1.accuracy*1000|round/1000|tostring|.+"      "|.[0:6]) \(.ondelle.accuracy*1000|round/1000|tostring|.+"      "|.[0:6]) \(.ceiling|tostring|.+"     "|.[0:5]) \([$c.layer1, $c.ondelle, $c.stack] | map(map(select(.target == 0.99))[0].coverage*100|round/100|tostring) | join("/")|.+"                      "|.[0:22]) \([.selective.layer1, .selective.ondelle, .selective.stack] | map(map(select(.target == 0.99))[0].coverage*100|round/100|tostring) | join("/")|.+"                      "|.[0:22]) \(.meets_requirement|tostring|.+"      "|.[0:6]) \(.train.lambda|tostring|.+"        "|.[0:8]) \(.train.eval)")' "$f"
 	;;
 stop)
 	which="${2:-run}"

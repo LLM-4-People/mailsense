@@ -249,16 +249,16 @@ func TestCascadeCertificationChoosesNoThreshold(t *testing.T) {
 // the other layers. A higher layer offering on every item does not hide
 // the lower layer's offers: layer1 gets its own gate and answers where the
 // key is below its gate. A layer whose own offers never reach the target
-// (SubQ here, always wrong) gets no gate and is not a member.
+// (Ondelle here, always wrong) gets no gate and is not a member.
 func TestGatesMeasureEveryOfferOfTheirLayer(t *testing.T) {
 	q := question(engine.Choice)
 	const n = 20
 	var items []Item
 	add := func(id int64, certify bool) {
 		items = append(items, Item{ID: id, Class: 0, Certify: certify, Offers: []Offer{
-			offer(LayerKey, q, 0, 0.9),                 // every item, always right
-			offer(Layer1, q, 0, 0.4),                   // every item, right at 0.4
-			offer(LayerSubQ, q, wrongClass(q, 0), 0.7), // every item, always wrong
+			offer(LayerKey, q, 0, 0.9),                    // every item, always right
+			offer(Layer1, q, 0, 0.4),                      // every item, right at 0.4
+			offer(LayerOndelle, q, wrongClass(q, 0), 0.7), // every item, always wrong
 		}})
 	}
 	for i := range n {
@@ -468,7 +468,7 @@ func TestANonMemberNeverAnswers(t *testing.T) {
 	if a.Abstain != AbstainNotCertified || a.Layer != "" || a.Probabilities != nil {
 		t.Fatalf("an uncertified route answered: %+v", a)
 	}
-	for _, l := range []Layer{LayerKey, Layer1, LayerSubQ} {
+	for _, l := range []Layer{LayerKey, Layer1, LayerOndelle} {
 		if got := unc.Threshold(l); got != selective.NoThreshold {
 			t.Fatalf("uncertified threshold of %q is %v", l, got)
 		}
@@ -554,10 +554,10 @@ func TestRouteIsDeterministic(t *testing.T) {
 		add(false, offer(Layer1, q, 0, 0.8))
 	}
 	for range 5 {
-		add(false, offer(LayerKey, q, 0, 0.9), offer(Layer1, q, 0, 0.8), offer(LayerSubQ, q, 0, 0.7))
+		add(false, offer(LayerKey, q, 0, 0.9), offer(Layer1, q, 0, 0.8), offer(LayerOndelle, q, 0, 0.7))
 	}
 	for range 5 {
-		add(false, offer(LayerSubQ, q, 0, 0.7))
+		add(false, offer(LayerOndelle, q, 0, 0.7))
 	}
 	for range 5 {
 		add(false)
@@ -734,9 +734,9 @@ func TestCertifiedCountsEqualDecidedAnswers(t *testing.T) {
 	}
 }
 
-// TestAddingALowerMemberNeverLosesAnswers: adding SubQ below a certified
+// TestAddingALowerMemberNeverLosesAnswers: adding Ondelle below a certified
 // key route cannot lower the answers the higher members give; a correct
-// SubQ adds answers where no higher member answers, and a SubQ that never
+// Ondelle adds answers where no higher member answers, and an Ondelle that never
 // reaches the target is not a member at all.
 func TestAddingALowerMemberNeverLosesAnswers(t *testing.T) {
 	q := question(engine.Choice)
@@ -762,38 +762,38 @@ func TestAddingALowerMemberNeverLosesAnswers(t *testing.T) {
 		members int
 		answers int
 	}{
-		{"subq correct", 0, 2, 60},
-		{"subq below the target", wrongClass(q, 0), 1, 40},
+		{"ondelle correct", 0, 2, 60},
+		{"ondelle below the target", wrongClass(q, 0), 1, 40},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			items := baseItems()
 			for i := range 10 {
 				items = append(items, Item{ID: int64(201 + i), Class: 0,
-					Offers: []Offer{offer(LayerSubQ, q, tc.class, 0.9)}})
+					Offers: []Offer{offer(LayerOndelle, q, tc.class, 0.9)}})
 			}
 			for i := range 10 {
 				items = append(items, Item{ID: int64(1201 + i), Class: 0, Certify: true,
-					Offers: []Offer{offer(LayerSubQ, q, tc.class, 0.9)}})
+					Offers: []Offer{offer(LayerOndelle, q, tc.class, 0.9)}})
 			}
 			s := mustBuild(t, q, 0.5, 0.5, 1.96, items)
 			if !s.Certification.Certified || len(s.Members) != tc.members {
 				t.Fatalf("extended: %+v %+v", s.Certification, s.Members)
 			}
-			answers, subq := 0, 0
+			answers, ondelle := 0, 0
 			for _, it := range items {
 				a := mustDecide(t, s, q, it.Offers)
 				if a.Abstain == "" {
 					answers++
-					if a.Layer == LayerSubQ {
-						subq++
+					if a.Layer == LayerOndelle {
+						ondelle++
 					}
 				}
 			}
 			if answers != tc.answers {
 				t.Fatalf("%d answers, want %d", answers, tc.answers)
 			}
-			if (tc.members == 2) != (subq > 0) {
-				t.Fatalf("%d SubQ answers with %d members", subq, tc.members)
+			if (tc.members == 2) != (ondelle > 0) {
+				t.Fatalf("%d Ondelle answers with %d members", ondelle, tc.members)
 			}
 			for _, it := range baseItems() {
 				before := mustDecide(t, base, q, it.Offers)
@@ -845,7 +845,7 @@ func TestEmptyRouteIsNotCertified(t *testing.T) {
 	if s.Certification.Certified || len(s.Members) != 0 || s.Certification.Threshold != 0 {
 		t.Fatalf("an empty route chose something: %+v", s)
 	}
-	for _, l := range []Layer{LayerKey, Layer1, LayerSubQ} {
+	for _, l := range []Layer{LayerKey, Layer1, LayerOndelle} {
 		if got := s.Threshold(l); got != selective.NoThreshold {
 			t.Fatalf("an empty route's %q threshold is %v", l, got)
 		}

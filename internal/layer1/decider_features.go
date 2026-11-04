@@ -14,7 +14,7 @@ const deciderCellsPerQuestion = 15
 // It adds nothing when the run has no decider answers. The layout id gains
 // the block version so old warm-start weights are never reused.
 func extendDesignWithDecider(plan *Plan, g *gathered, layout *Layout, d *Design) (bool, error) {
-	if g == nil || len(g.subq) == 0 || len(plan.Profile.Questions) == 0 {
+	if g == nil || len(g.ondelle) == 0 || len(plan.Profile.Questions) == 0 {
 		return false, nil
 	}
 	extra := len(plan.Profile.Questions) * deciderCellsPerQuestion
@@ -23,7 +23,7 @@ func extendDesignWithDecider(plan *Plan, g *gathered, layout *Layout, d *Design)
 		for qi := range plan.Profile.Questions {
 			q := &plan.Profile.Questions[qi]
 			group := base + qi*deciderCellsPerQuestion
-			c := g.subq[q.Name]
+			c := g.ondelle[q.Name]
 			if c == nil {
 				dst = append(dst, int32(group+14))
 				continue

@@ -58,8 +58,9 @@ func diesWithApp(t *testing.T, dir string) string {
 }
 
 // TestEmbedLiveJobObject runs only the job-object check against the
-// installed managed runtime. The device-relay wrapper is not part of the
-// public tree; run this test binary directly with the live flags.
+// installed managed runtime. The harness that runs this test on a remote
+// Windows machine is not part of the public tree; run this test binary
+// directly with the live flags.
 func TestEmbedLiveJobObject(t *testing.T) {
 	cfg, _ := liveConfig(t, "embed-live-job", nil)
 	got := diesWithApp(t, cfg.Paths().DataDir)

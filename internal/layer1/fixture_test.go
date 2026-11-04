@@ -5,11 +5,11 @@ package layer1
 // The layer-1 dev harness (scripts/layer1-fixture.sh run <experiment>):
 // the legacy fixture imported into a fresh store; its real EmbeddingGemma
 // vectors from the private cache (never embedded here); the evidence
-// engine run over it; the legacy SubQ answers imported as the "legacy"
+// engine run over it; the legacy Ondelle answers imported as the "legacy"
 // teacher EXCEPT for every gold dev and test message; the gold TRAIN
 // labels stored as judge labels (the in-app judge's place); layer 1
 // trained through the production pass (Train); then measured on the gold
-// DEV split only, against the legacy SubQ answers of the same messages
+// DEV split only, against the legacy Ondelle answers of the same messages
 // and the agreement ceiling. The test split is sealed and never read.
 // Writes aggregates only (out/layer1-<experiment>.json, a line of
 // out/layer1-dev-ledger.jsonl); the per-item correctness of the run (for
@@ -52,11 +52,11 @@ import (
 // under for the comparison (never a teacher source).
 const harnessDecider = "legacy:harness-dev"
 
-// legacyTeacher is the harness's teachers override: the legacy SubQ
+// legacyTeacher is the harness's teachers override: the legacy Ondelle
 // answers of the fixture as a teacher (the shipped teachers know no such
 // source: it exists in the developer's fixture only). An experiment's own
 // override merges over it.
-const legacyTeacher = `{"sources": {"legacy": {"from": "decisions", "decider": "legacy:subq-snap-preview", "provider": "subq", "precedence": 4, "weight": 1, "temperature": 1}}}`
+const legacyTeacher = `{"sources": {"legacy": {"from": "decisions", "decider": "legacy:ondelle-snap-preview", "provider": "ondelle", "precedence": 4, "weight": 1, "temperature": 1}}}`
 
 func TestLayer1Fixture(t *testing.T) {
 	t.Parallel()
@@ -170,11 +170,11 @@ func TestLayer1Fixture(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	subqProv, _ := cat.Get("subq")
+	ondelleProv, _ := cat.Get("ondelle")
 	legacyPath := harnessEnv(t, "LAYER1_LEGACY")
 	imp, err := archive.ImportLegacyAnswers(t.Context(), st, archive.LegacyAnswers{Path: legacyPath, SourceID: fixtureconf.SourceID,
-		Fingerprint: profile.Fingerprint, Decider: "legacy:subq-snap-preview", Questions: profile.Questions,
-		Tolerance: subqProv.ProbabilityTolerance, Skip: func(id string) bool { return excludedIDs[id] }, MaxLine: 1 << 26})
+		Fingerprint: profile.Fingerprint, Decider: "legacy:ondelle-snap-preview", Questions: profile.Questions,
+		Tolerance: ondelleProv.ProbabilityTolerance, Skip: func(id string) bool { return excludedIDs[id] }, MaxLine: 1 << 26})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -188,7 +188,7 @@ func TestLayer1Fixture(t *testing.T) {
 		return nil
 	})
 	if _, err := archive.ImportLegacyAnswers(t.Context(), st, archive.LegacyAnswers{Path: legacyPath, SourceID: fixtureconf.SourceID,
-		Fingerprint: profile.Fingerprint, Decider: harnessDecider, Questions: profile.Questions, Tolerance: subqProv.ProbabilityTolerance,
+		Fingerprint: profile.Fingerprint, Decider: harnessDecider, Questions: profile.Questions, Tolerance: ondelleProv.ProbabilityTolerance,
 		Skip: func(id string) bool { return !devIDs[id] }, MaxLine: 1 << 26}); err != nil {
 		t.Fatal(err)
 	}
@@ -255,8 +255,8 @@ func TestLayer1Fixture(t *testing.T) {
 		t.Fatal(err)
 	}
 	dev := devItems(t, gold, rows, recs, tr.Members)
-	subq := legacyOf(t, st, store.TriageKey{Fingerprint: profile.Fingerprint, Decider: harnessDecider})
-	plan.Tolerance["legacy"] = subqProv.ProbabilityTolerance
+	ondelle := legacyOf(t, st, store.TriageKey{Fingerprint: profile.Fingerprint, Decider: harnessDecider})
+	plan.Tolerance["legacy"] = ondelleProv.ProbabilityTolerance
 	trainLabels := map[int64]map[string]json.RawMessage{}
 	for id, a := range gold.Of(goldset.Train) {
 		if !selective.InCertifyPart(tr.Members[rows[id]].Group, plan.Config.CertifyFraction) {
@@ -267,7 +267,7 @@ func TestLayer1Fixture(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	qs := evaluateDev(t, plan, tr, dev, subq, readCeilings(t, gold.Dir, profile), &gathered{rules: rinfo, fires: fires})
+	qs := evaluateDev(t, plan, tr, dev, ondelle, readCeilings(t, gold.Dir, profile), &gathered{rules: rinfo, fires: fires})
 	kinds := agreementKinds(t, gold)
 	report99 := plan.Requirements.Report
 	errorsAt := map[string][]ErrorItem{}
@@ -303,25 +303,25 @@ func TestLayer1Fixture(t *testing.T) {
 		s := q.Select
 		op := s.StackAt[k99]
 		g, cg := s.Given[k99], s.CertifiedGiven[k99]
-		t.Logf("LAYER1 select %-17s dev-certified@0.99 layer1 %.2f subq %.2f stack %.2f | dev curve layer1 %.2f subq %.2f stack %.2f | point op 0.99: %d answered, %d wrong; certified op: %d answered, %d wrong; given key %d layer1 %d subq %d (app %d/%d/%d); %d keys",
-			q.Question, s.Certified["layer1"][k99].Coverage, s.Certified["subq"][k99].Coverage, s.Certified["stack"][k99].Coverage,
-			at(s.Layer1, 0.99).Coverage, at(s.SubQ, 0.99).Coverage, at(s.Stack, 0.99).Coverage, op.Covered, op.Errors, op.CoveredCertified, op.ErrorsCertified,
-			g[route.LayerKey], g[route.Layer1], g[route.LayerSubQ], cg[route.LayerKey], cg[route.Layer1], cg[route.LayerSubQ], s.Keys)
+		t.Logf("LAYER1 select %-17s dev-certified@0.99 layer1 %.2f ondelle %.2f stack %.2f | dev curve layer1 %.2f ondelle %.2f stack %.2f | point op 0.99: %d answered, %d wrong; certified op: %d answered, %d wrong; given key %d layer1 %d ondelle %d (app %d/%d/%d); %d keys",
+			q.Question, s.Certified["layer1"][k99].Coverage, s.Certified["ondelle"][k99].Coverage, s.Certified["stack"][k99].Coverage,
+			at(s.Layer1, 0.99).Coverage, at(s.Ondelle, 0.99).Coverage, at(s.Stack, 0.99).Coverage, op.Covered, op.Errors, op.CoveredCertified, op.ErrorsCertified,
+			g[route.LayerKey], g[route.Layer1], g[route.LayerOndelle], cg[route.LayerKey], cg[route.Layer1], cg[route.LayerOndelle], s.Keys)
 	}
 	for _, m := range sel {
-		t.Logf("LAYER1 select mean@%.2f: dev-certified coverage layer1 %.3f subq %.3f stack %.3f (questions certified %v/%v/%v); dev curve %.3f / %.3f / %.3f; stack point op %.3f (%v answers, %v wrong), certified op %.3f (%v answers, %v wrong); given key %.2f layer1 %.2f subq %.2f (app %.2f/%.2f/%.2f)",
-			m["target"], m["layer1_certified_coverage"], m["subq_certified_coverage"], m["stack_certified_coverage"], m["layer1_certified_questions"],
-			m["subq_certified_questions"], m["stack_certified_questions"], m["layer1_coverage"], m["subq_coverage"], m["stack_coverage"],
+		t.Logf("LAYER1 select mean@%.2f: dev-certified coverage layer1 %.3f ondelle %.3f stack %.3f (questions certified %v/%v/%v); dev curve %.3f / %.3f / %.3f; stack point op %.3f (%v answers, %v wrong), certified op %.3f (%v answers, %v wrong); given key %.2f layer1 %.2f ondelle %.2f (app %.2f/%.2f/%.2f)",
+			m["target"], m["layer1_certified_coverage"], m["ondelle_certified_coverage"], m["stack_certified_coverage"], m["layer1_certified_questions"],
+			m["ondelle_certified_questions"], m["stack_certified_questions"], m["layer1_coverage"], m["ondelle_coverage"], m["stack_coverage"],
 			m["stack_point_coverage"], m["stack_point_answers"], m["stack_point_errors"], m["stack_certified_op_coverage"], m["stack_certified_op_answers"], m["stack_certified_op_errors"],
-			m["given_key"], m["given_layer1"], m["given_subq"], m["certified_given_key"], m["certified_given_layer1"], m["certified_given_subq"])
+			m["given_key"], m["given_layer1"], m["given_ondelle"], m["certified_given_key"], m["certified_given_layer1"], m["certified_given_ondelle"])
 	}
 	for _, q := range qs {
-		t.Logf("LAYER1 dev %-17s n=%3d layer1 %.3f subq %.3f major %.3f ceiling %.2f meets %-5v λ=%g eval=%d (select %d, certify %d, unscored %d) wall=%s %s",
-			q.Question, q.N, q.Layer1.Accuracy, q.SubQ.Accuracy, q.Majority, q.Ceiling, q.Meets, q.Train.Lambda, q.Train.Eval, q.Train.Select,
+		t.Logf("LAYER1 dev %-17s n=%3d layer1 %.3f ondelle %.3f major %.3f ceiling %.2f meets %-5v λ=%g eval=%d (select %d, certify %d, unscored %d) wall=%s %s",
+			q.Question, q.N, q.Layer1.Accuracy, q.Ondelle.Accuracy, q.Majority, q.Ceiling, q.Meets, q.Train.Lambda, q.Train.Eval, q.Train.Select,
 			q.Train.Certify, q.Train.Unscored, q.Train.Wall.Round(time.Millisecond), q.Train.Code)
 	}
 	l1, sq := meanAcc(qs, false), meanAcc(qs, true)
-	t.Logf("LAYER1 dev mean accuracy over %d questions: layer1 %.4f subq %.4f", len(qs), l1, sq)
+	t.Logf("LAYER1 dev mean accuracy over %d questions: layer1 %.4f ondelle %.4f", len(qs), l1, sq)
 
 	// private per-item results; the paired comparison with a baseline run
 	runs := filepath.Join(filepath.Dir(cacheDir), "runs")
@@ -358,11 +358,11 @@ func TestLayer1Fixture(t *testing.T) {
 		"space": space, "excluded": len(exclude), "legacy_import": imp, "judge_labels": judge,
 		"wall_ms":       map[string]int64{"import": importWall.Milliseconds(), "evidence": evWall.Milliseconds(), "train": tr.Wall.Milliseconds()},
 		"design":        map[string]int{"rows": tr.Design.Len(), "dims": tr.Design.Dims, "cells": tr.Design.Cells, "no_vector": tr.NoVector},
-		"mean_accuracy": map[string]float64{"layer1": l1, "subq": sq}, "compare": compare, "questions": qs, "selective": sel,
+		"mean_accuracy": map[string]float64{"layer1": l1, "ondelle": sq}, "compare": compare, "questions": qs, "selective": sel,
 		"model_bytes": modelBytes(tr), "memory": mem}
 	writeJSON(t, filepath.Join(reportDir, "layer1-"+run+".json"), report)
 	ledger := map[string]any{"at": report["at"], "experiment": name, "run": run, "population": report["population"], "settings_digest": settingsDigest(settings, exp.teachers),
-		"mean_layer1": l1, "mean_subq": sq, "dev_items": len(dev), "compare": compare}
+		"mean_layer1": l1, "mean_ondelle": sq, "dev_items": len(dev), "compare": compare}
 	per := map[string]float64{}
 	for _, q := range qs {
 		per[q.Question] = q.Layer1.Accuracy

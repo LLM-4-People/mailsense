@@ -44,11 +44,11 @@ func routeCertifications(last *Report) map[string]selective.Certification {
 // model). The re-score feeds the same three from the store only, so it
 // offers exactly what the run wrote.
 type routeParticipants struct {
-	rules  []RuleInfo
-	fires  map[int64][]int
-	subq   map[string]*compactAnswers
-	rows   rowIndex
-	layer1 func(*settled, int64) (engine.Answer, bool)
+	rules   []RuleInfo
+	fires   map[int64][]int
+	ondelle map[string]*compactAnswers
+	rows    rowIndex
+	layer1  func(*settled, int64) (engine.Answer, bool)
 }
 
 // oofProbs are a model's out-of-fold predictions of its selection labels,
@@ -123,10 +123,10 @@ func (p routeParticipants) offersWith(plan *Plan, s *settled, id int64, stored e
 		}
 	}
 	if p.rows != nil {
-		if c := p.subq[q.Name]; c != nil {
+		if c := p.ondelle[q.Name]; c != nil {
 			if row, ok := p.rows.Row(id); ok {
 				if probs, ok := c.distribution(row); ok {
-					offers = append(offers, route.Offer{Layer: route.LayerSubQ, Probs: probs})
+					offers = append(offers, route.Offer{Layer: route.LayerOndelle, Probs: probs})
 				}
 			}
 		}
@@ -135,7 +135,7 @@ func (p routeParticipants) offersWith(plan *Plan, s *settled, id int64, stored e
 }
 
 // trainedParticipants are a training pass's route offers: the rules and
-// stored SubQ answers it gathered, and the final model's layer-1 answer
+// stored Ondelle answers it gathered, and the final model's layer-1 answer
 // (selective.Answer with the answering model's threshold). A selection
 // item's layer-1 offer never comes from this final model: routeItems uses
 // the model's out-of-fold holdout, because the final model trained on the
@@ -158,7 +158,7 @@ func trainedParticipants(plan *Plan, tr *Trained) routeParticipants {
 		p.rows = tr.Design
 	}
 	if tr.g != nil {
-		p.rules, p.fires, p.subq = tr.g.rules, tr.g.fires, tr.g.subq
+		p.rules, p.fires, p.ondelle = tr.g.rules, tr.g.fires, tr.g.ondelle
 	}
 	return p
 }

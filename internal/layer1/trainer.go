@@ -136,7 +136,7 @@ func Train(ctx context.Context, plan *Plan, in Inputs, warm map[string]*Model) (
 
 // gather reads every source's data once: the labels, each decisions
 // source's answers as compact per-question distributions (streamed), the
-// configured decider's answers for the route (the SubQ participant, read
+// configured decider's answers for the route (the Ondelle participant, read
 // even when no teacher source names that decider; a teacher source with
 // the same key reuses the one read) and the rules measured on the
 // selection part's evaluation labels only (the certification part never
@@ -160,8 +160,8 @@ func gather(ctx context.Context, plan *Plan, in Inputs, d *Design, groupOf func(
 		read[key.Decider] = c
 		return c, nil
 	}
-	subqKey := store.TriageKey{Fingerprint: plan.Profile.Fingerprint, Decider: plan.DeciderKey}
-	if g.subq, err = readDecider(subqKey, plan.DeciderTolerance); err != nil {
+	ondelleKey := store.TriageKey{Fingerprint: plan.Profile.Fingerprint, Decider: plan.DeciderKey}
+	if g.ondelle, err = readDecider(ondelleKey, plan.DeciderTolerance); err != nil {
 		return nil, err
 	}
 	for _, s := range plan.Teachers.Sources {

@@ -31,30 +31,30 @@ type devItem struct {
 
 // DevQuestion is one question's dev measurement (aggregates only).
 type DevQuestion struct {
-	Question      string                 `json:"question"`
-	Type          engine.QuestionType    `json:"type"`
-	N             int                    `json:"n"`
-	Pending       int                    `json:"pending"` // dev items layer 1 could not answer (no vector)
-	Layer1        Metrics                `json:"layer1"`
-	SubQ          Metrics                `json:"subq"` // the legacy SubQ answers of the same items
-	Majority      float64                `json:"majority"`
-	Ceiling       float64                `json:"ceiling"`
-	OfCeiling     float64                `json:"of_ceiling"`
-	Meets         bool                   `json:"meets_requirement"` // on dev, by the honest dev certification at the requirement's target
-	Requirement   Requirement            `json:"requirement"`
-	ByLanguage    map[string]LanguageAcc `json:"by_language"`
-	Confusion     map[string]int         `json:"confusion"` // "label→predicted" class names: counts (error analysis)
-	SubQConfusion map[string]int         `json:"subq_confusion"`
+	Question         string                 `json:"question"`
+	Type             engine.QuestionType    `json:"type"`
+	N                int                    `json:"n"`
+	Pending          int                    `json:"pending"` // dev items layer 1 could not answer (no vector)
+	Layer1           Metrics                `json:"layer1"`
+	Ondelle          Metrics                `json:"ondelle"` // the legacy Ondelle answers of the same items
+	Majority         float64                `json:"majority"`
+	Ceiling          float64                `json:"ceiling"`
+	OfCeiling        float64                `json:"of_ceiling"`
+	Meets            bool                   `json:"meets_requirement"` // on dev, by the honest dev certification at the requirement's target
+	Requirement      Requirement            `json:"requirement"`
+	ByLanguage       map[string]LanguageAcc `json:"by_language"`
+	Confusion        map[string]int         `json:"confusion"` // "label→predicted" class names: counts (error analysis)
+	OndelleConfusion map[string]int         `json:"ondelle_confusion"`
 	// E0 "rules alone": dev items on which a teaching rule fires, and how
 	// many of them its answer gets right
-	RulesFired   int            `json:"rules_fired"`
-	RulesCorrect int            `json:"rules_correct"`
-	Rules        []RuleEval     `json:"rules,omitempty"` // each rule's dev measurement (aggregates only)
-	Train        QuestionReport `json:"train"`
-	Select       *Selective     `json:"selective"` // coverage at the precision targets (fixture_select_test.go)
-	answers      []devAnswer
-	correctL1    map[int64]bool
-	correctSubQ  map[int64]bool
+	RulesFired     int            `json:"rules_fired"`
+	RulesCorrect   int            `json:"rules_correct"`
+	Rules          []RuleEval     `json:"rules,omitempty"` // each rule's dev measurement (aggregates only)
+	Train          QuestionReport `json:"train"`
+	Select         *Selective     `json:"selective"` // coverage at the precision targets (fixture_select_test.go)
+	answers        []devAnswer
+	correctL1      map[int64]bool
+	correctOndelle map[int64]bool
 }
 
 // RuleEval is one rule's dev measurement: how often it fires, how often
@@ -75,15 +75,15 @@ type RuleEval struct {
 
 // LanguageAcc is one language's dev accuracy.
 type LanguageAcc struct {
-	N      int     `json:"n"`
-	Layer1 float64 `json:"layer1"`
-	SubQ   float64 `json:"subq"`
+	N       int     `json:"n"`
+	Layer1  float64 `json:"layer1"`
+	Ondelle float64 `json:"ondelle"`
 }
 
 // evaluateDev measures every question on the dev split: layer 1, the
-// legacy SubQ answers of the same messages, the majority class of the
+// legacy Ondelle answers of the same messages, the majority class of the
 // training targets, the agreement ceiling.
-func evaluateDev(t *testing.T, plan *Plan, tr *Trained, dev []devItem, subq map[int64]map[string]engine.Answer, ceilings map[string]float64, rules *gathered) []DevQuestion {
+func evaluateDev(t *testing.T, plan *Plan, tr *Trained, dev []devItem, ondelle map[int64]map[string]engine.Answer, ceilings map[string]float64, rules *gathered) []DevQuestion {
 	t.Helper()
 	var out []DevQuestion
 	reports := map[string]QuestionReport{}
@@ -95,8 +95,8 @@ func evaluateDev(t *testing.T, plan *Plan, tr *Trained, dev []devItem, subq map[
 		req := plan.Requirements.For(q.Name)
 		cutoff := plan.Profile.Cutoff(q.Name)
 		dq := DevQuestion{Question: q.Name, Type: q.Type, Ceiling: ceilings[q.Name], Requirement: req, ByLanguage: map[string]LanguageAcc{},
-			Confusion: map[string]int{}, SubQConfusion: map[string]int{},
-			Train: reports[q.Name], correctL1: map[int64]bool{}, correctSubQ: map[int64]bool{}}
+			Confusion: map[string]int{}, OndelleConfusion: map[string]int{},
+			Train: reports[q.Name], correctL1: map[int64]bool{}, correctOndelle: map[int64]bool{}}
 		type ruleDev struct {
 			eval   *RuleEval
 			answer evidence.RuleAnswer
@@ -142,7 +142,7 @@ func evaluateDev(t *testing.T, plan *Plan, tr *Trained, dev []devItem, subq map[
 			}
 			lang := it.lang
 			langN[lang]++
-			da := devAnswer{item: it, class: class, l1: -1, key: -1, subq: -1}
+			da := devAnswer{item: it, class: class, l1: -1, key: -1, ondelle: -1}
 			if p, ok := tr.Predict(q.Name, it.id); ok {
 				l1 = append(l1, Prediction{ID: it.id, Label: class, Probs: p})
 				c, conf := selective.Decide(q.Type, p, cutoff)
@@ -195,14 +195,14 @@ func evaluateDev(t *testing.T, plan *Plan, tr *Trained, dev []devItem, subq map[
 					}
 				}
 			}
-			if a, ok := subq[it.id][q.Name]; ok {
+			if a, ok := ondelle[it.id][q.Name]; ok {
 				if tg, err := answerTarget(q, a, plan.Tolerance["legacy"]); err == nil {
 					p := tg.Mass(classesOf(q))
 					sq = append(sq, Prediction{ID: it.id, Label: class, Probs: p})
 					c, conf := selective.Decide(q.Type, p, cutoff)
-					da.subq, da.subqConf, da.subqProbs = c, conf, p
-					dq.correctSubQ[it.id] = c == class
-					dq.SubQConfusion[className(q, class)+"→"+className(q, c)]++
+					da.ondelle, da.ondelleConf, da.ondelleProbs = c, conf, p
+					dq.correctOndelle[it.id] = c == class
+					dq.OndelleConfusion[className(q, class)+"→"+className(q, c)]++
 					if c == class {
 						langSQ[lang]++
 					}
@@ -220,7 +220,7 @@ func evaluateDev(t *testing.T, plan *Plan, tr *Trained, dev []devItem, subq map[
 			dq.Rules = append(dq.Rules, *ev)
 		}
 		dq.Layer1 = Measure(q.Type, l1, cutoff, req.Z, plan.Requirements.Report)
-		dq.SubQ = Measure(q.Type, sq, cutoff, req.Z, plan.Requirements.Report)
+		dq.Ondelle = Measure(q.Type, sq, cutoff, req.Z, plan.Requirements.Report)
 		// pending items count as wrong: accuracy over every dev label
 		if dq.N > 0 {
 			dq.Layer1.Accuracy = dq.Layer1.Accuracy * float64(dq.Layer1.N) / float64(dq.N)
@@ -230,7 +230,7 @@ func evaluateDev(t *testing.T, plan *Plan, tr *Trained, dev []devItem, subq map[
 			dq.OfCeiling = dq.Layer1.Accuracy / dq.Ceiling
 		}
 		for lang, n := range langN {
-			dq.ByLanguage[lang] = LanguageAcc{N: n, Layer1: float64(langL1[lang]) / float64(n), SubQ: float64(langSQ[lang]) / float64(n)}
+			dq.ByLanguage[lang] = LanguageAcc{N: n, Layer1: float64(langL1[lang]) / float64(n), Ondelle: float64(langSQ[lang]) / float64(n)}
 		}
 		out = append(out, dq)
 	}
@@ -320,12 +320,12 @@ func legacyOf(t *testing.T, st *store.Store, key store.TriageKey) map[int64]map[
 	return out
 }
 
-// meanAcc is the mean dev accuracy over questions of layer 1 (or SubQ).
-func meanAcc(qs []DevQuestion, subq bool) float64 {
+// meanAcc is the mean dev accuracy over questions of layer 1 (or Ondelle).
+func meanAcc(qs []DevQuestion, ondelle bool) float64 {
 	var s float64
 	for _, q := range qs {
-		if subq {
-			s += q.SubQ.Accuracy
+		if ondelle {
+			s += q.Ondelle.Accuracy
 		} else {
 			s += q.Layer1.Accuracy
 		}

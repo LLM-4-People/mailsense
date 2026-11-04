@@ -28,7 +28,7 @@ type Plan struct {
 	Dimensions   int
 	DeciderKey   string // the configured triage decider's cache key (id/model/fingerprint)
 	// DeciderTolerance is the configured decider's probability tolerance:
-	// the route's SubQ read validates its stored distributions with it.
+	// the route's Ondelle read validates its stored distributions with it.
 	DeciderTolerance float64
 	// Heads overrides the head of a question type (layer1.heads.score;
 	// absent: KindOf).

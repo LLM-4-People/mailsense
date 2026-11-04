@@ -253,7 +253,7 @@ func fullParityAnswers(p *taxonomy.Profile) map[string]route.Answer {
 				value = 0.8
 			}
 			out[q.Name] = route.Answer{Answer: engine.Answer{Type: engine.Noul, Value: value},
-				Layer: route.LayerSubQ, Rule: "ondelle"}
+				Layer: route.LayerOndelle, Rule: "ondelle"}
 		case engine.Choice:
 			chosen := q.Options[0].Name
 			switch q.Name {
@@ -310,7 +310,7 @@ func parityScoreAnswer(value float64, probs map[string]float64) route.Answer {
 		confidence = max(confidence, p)
 	}
 	return route.Answer{Answer: engine.Answer{Type: engine.Score, Value: value, Probabilities: probs,
-		Confidence: probabilityPtr(confidence)}, Layer: route.LayerSubQ, Rule: "ondelle"}
+		Confidence: probabilityPtr(confidence)}, Layer: route.LayerOndelle, Rule: "ondelle"}
 }
 
 // leanRouteAnswers is the shape the store's lean route decode returns: the
