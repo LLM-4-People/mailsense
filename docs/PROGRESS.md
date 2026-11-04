@@ -2,6 +2,88 @@
 
 Newest first. Each entry: date, what changed, evidence, open issues.
 
+## 2026-11-04 - One owner per API projection and provider role
+
+Round `b602c8a` removed the second copies of shapes the API had grown in
+several handlers.
+
+**What changed.** Settings list, get, set and reset read one snapshot and pass
+one key guard. Provider roles resolve once in `engine.RoleStatuses`, which the
+API and start-up logging both read, and `engine.RolesUsing` answers the in-use
+guard. `InvalidProviderID` builds the path and body errors, `requirePicked` and
+`startedJob` moved into the wiring, and `restartPendingView` owns the
+`restart_pending` shape. `mapError` now maps the unknown-company sentinel, so
+`/api/companies/{key}` and `/api/companies/profiles` answer `404
+unknown_company` through the shared mapper instead of a drifted `500 internal`.
+`compactStrings` is gone in favor of `slices.Compact`.
+
+**Why.** The same response shape was built in more than one handler, so a change
+had to be made twice, and one copy had already drifted to a 500 for an unknown
+company.
+
+**Evidence.** At the committed tree: `go test ./internal/api ./internal/engine
+-count=1` -> `ok ... internal/api 4.202s`, `ok ... internal/engine 1.271s`.
+
+**Residual risk.** The job detail and action responses stay deliberately
+different: the resource routes return a bare `jobs.Info` and the action routes
+return `{"job": ...}`. That is a contract, not a duplicate shape. `GET
+/api/settings` still projects the full schema on every request; the round
+removed the duplicate construction, not the read.
+
+
+## 2026-11-04 - Grouped navigation and a reachable Answers screen
+
+Round `544365b` rebuilt the console sidebar around five collapsible groups.
+
+**What changed.** The groups are Work, Ask, Teach, Configure and System. Each is
+a native `<details>` disclosure, so the summary keeps keyboard and screen-reader
+semantics. Answers became a first-class destination under Ask, with its own
+route and catalog entries. The small-screen layout uses the same destinations in
+a drawer instead of hiding them. `internal/ui/nav_contract_test.go` pins the
+group ids, the destination order and the one appearance of every screen, and
+`e2e/specs/nav.spec.ts` drives the disclosure and drawer in a browser.
+
+**Why.** A flat list buried Answers and gave no shape to eleven destinations.
+The grouped list makes the work queue, the ask surfaces and the teaching
+surfaces visible at a glance, and the drawer keeps them reachable on a small
+window.
+
+**Evidence.** At the committed tree: `go test ./internal/ui -run TestNavContract
+-count=1` -> `ok ... 0.114s`; `go test ./internal/ui -count=1` -> `ok ... 1.988s`.
+
+**Residual risk.** This verification ran the Go contract tests, not the
+Playwright nav spec, so the drawer's browser interaction is covered by the suite
+in CI and not by the commands above. The open group choice is stored in
+`localStorage`; when storage is unavailable the console opens every group.
+
+
+## 2026-11-04 - Generated bundle gate and named stage failures
+
+Round `837bd24` made the release gate prove what it had been trusting.
+
+**What changed.** `scripts/check-generated.sh` hashes `internal/ui/app.js` and
+`internal/ui/app.css`, reruns `go generate ./internal/ui`, and fails on drift
+with the stale file and the exact regenerate command. `scripts/test-lib.sh` now
+has `gate_failed` and `run_stage`, so gofmt, the script syntax check, vet and
+every shard name the failed stage and the one command that reruns it. The fast
+gate runs the generated check once. CI cancels superseded pull request runs but
+never a main or tag run, caches the Playwright browser, uploads failure
+artifacts, and runs the site check before the fast job finishes. Dependabot moved
+to weekly grouped updates with bounded open pull requests, and CONTRIBUTING
+lists the four commands to run before a pull request.
+
+**Why.** The generated console bundle is committed, so a source change that was
+not regenerated could ship. A failed gate also ended as a bare exit status,
+which named neither the stage nor the repair.
+
+**Evidence.** At the committed tree: `bash scripts/check-generated.sh` ->
+`generated UI bundles match their sources`; `bash -n scripts/*.sh` -> clean.
+
+**Residual risk.** The fast gate was not run end to end here; only its generated
+bundle stage and the script syntax check were exercised. The check leaves the
+regenerated files on disk when it fails, which is intended for inspection.
+
+
 ## 2026-11-04 — One Outlook failure, one line, one dismiss
 
 The job strip rendered every failed job as its own line and its own action.

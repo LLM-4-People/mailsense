@@ -27,7 +27,12 @@ func main() {
 			fmt.Fprintln(os.Stderr, "pages language must be en or fr")
 			os.Exit(2)
 		}
-		for _, name := range site.PublicPagePaths(*pages) {
+		value, err := site.Load(*root)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, err)
+			os.Exit(1)
+		}
+		for _, name := range value.PublicPagePaths(*pages) {
 			fmt.Println(name)
 		}
 		return

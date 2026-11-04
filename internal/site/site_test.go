@@ -43,7 +43,14 @@ func TestRenderIsDeterministic(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	first, second := value.Generated(), value.Generated()
+	first, err := value.Generated()
+	if err != nil {
+		t.Fatal(err)
+	}
+	second, err := value.Generated()
+	if err != nil {
+		t.Fatal(err)
+	}
 	for _, name := range GeneratedPaths() {
 		if !bytes.Equal(first[name], second[name]) {
 			t.Errorf("%s is not deterministic", name)
@@ -90,7 +97,10 @@ func TestAssetsAreValidSVG(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	generated := value.Generated()
+	generated, err := value.Generated()
+	if err != nil {
+		t.Fatal(err)
+	}
 	for _, name := range []string{"docs/assets/mark.svg", "docs/assets/logo.svg", "docs/assets/banner-en.svg", "docs/assets/banner-fr.svg"} {
 		body, ok := generated[name]
 		if !ok {
@@ -128,6 +138,31 @@ func TestAssetsAreValidSVG(t *testing.T) {
 
 // TestWriteAndCheckAgree proves the check mode sees exactly what the write
 // mode would produce, in a temporary root.
+// seedAuthored copies the table's authored pages into a temporary root so the
+// write and check modes can be exercised without a full checkout.
+func seedAuthored(t *testing.T, sourceRoot, dir string) {
+	t.Helper()
+	value, err := Load(sourceRoot)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, lang := range []string{"en", "fr"} {
+		for _, name := range value.PublicPagePaths(lang) {
+			body, err := os.ReadFile(filepath.Join(sourceRoot, filepath.FromSlash(name)))
+			if err != nil {
+				t.Fatal(err)
+			}
+			target := filepath.Join(dir, filepath.FromSlash(name))
+			if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(target, body, 0o644); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+}
+
 func TestWriteAndCheckAgree(t *testing.T) {
 	source, err := os.ReadFile(filepath.Join(root(t), SourcePath))
 	if err != nil {
@@ -140,6 +175,7 @@ func TestWriteAndCheckAgree(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(dir, SourcePath), source, 0o644); err != nil {
 		t.Fatal(err)
 	}
+	seedAuthored(t, root(t), dir)
 	if _, err := Write(dir); err != nil {
 		t.Fatal(err)
 	}

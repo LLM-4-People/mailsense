@@ -97,7 +97,7 @@ Host/Origin refused, `405` wrong method, `500` internal.
 
 An action has one spelling: a name the dispatcher does not know answers `404 not_found`. The former aliases (`evidence`, `layer1`, `judge`, `label`, `label_messages`, `backfill_bodies`) were removed. `label_messages` is still a learning blocker id, but the UI handles it by opening the Labels screen; the queue itself is `GET /api/labels/queue`.
 
-| `GET /api/settings` | optional `keys=a,b` | `200` `{"settings":[…],"total":250,"restart_pending":[…]}` | `?keys=` projects the list de-duplicated in schema order; absent or empty returns all; `total` is always the full schema count; unknown key → `400 invalid_keys` with `params.key`; secret values masked |
+| `GET /api/settings` | optional `keys=a,b` | `200` `{"settings":[…],"total":261,"restart_pending":[…]}` | `?keys=` projects the list de-duplicated in schema order; absent or empty returns all; `total` is always the full schema count; unknown key → `400 invalid_keys` with `params.key`; secret values masked |
 | `GET /api/settings/{key}` | — | `200` `SettingView` | `404 unknown_setting` |
 | `PUT /api/settings/{key}` | `{"value":…}` | `200` `SettingView` | mailbox selection keys → `409 use_mailbox_endpoint`; `ui.language` and `learning.test_mode` apply live, no restart |
 | `DELETE /api/settings/{key}` | — | `200` `SettingView` | reset to default |
@@ -156,6 +156,14 @@ cursor carries the switch and is rejected with `400 invalid_cursor` when the
 next request asks for the other state. A value that is neither `true`/`1`
 nor `false`/`0`, including a present-but-empty or blank value, is
 `400 invalid_unread` with `params.name = "unread"`.
+
+The job detail and cancel routes answer the job resource itself, so they
+return a bare `jobs.Info`. The action routes answer an action result and carry
+the started job under `"job"`. The shell consumes both shapes, so they are
+deliberately distinct rather than two spellings of one response.
+
+`GET /api/settings` always carries `restart_pending`, the keys whose new value
+waits for a restart. `POST /api/settings/reload` returns that same list alone.
 
 All successes are JSON with `Content-Type: application/json;
 charset=utf-8` except the static shell, SSE and `204`. Validation failures
@@ -548,6 +556,10 @@ Keys are repeated `key` parameters (a company key may itself contain a comma),
 deduplicated and validated like `{key}`; a key that does not resolve fails the
 batch instead of disappearing. The response is
 `{"generated_at": "...", "profiles": {"<key>": <CompanyProfileWire>}}`.
+A key that does not resolve on `/api/companies/profiles` or
+`/api/companies/{key}` is `404 unknown_company`, the same mapping the shared
+error mapper applies to the store sentinel everywhere; it is never a
+`500 internal`.
 
 `GET /api/companies/{key}` returns the organization's declared directory
 entry, its people (messages, sent, received, last exchange, the
@@ -1478,12 +1490,10 @@ returned. A missing base URL or non-absolute/non-http(s) URL is
 
 ## Gate
 
-`learning.Machine.Allow` is checked before `/api/triage*`, `/api/search`,
-`/api/priority`, `/api/agenda`, `/api/companies`, `/api/companies/profiles`,
-`/api/companies/{key}`, `/api/threads/{conversation_id}`, `/api/commitments`,
-`/api/ask`, `/api/ask/history` (read and delete),
-`/api/messages` and `/api/messages/{id}`. Refusal is `423 learning_locked` with the stage
-blockers. `GET /api/gate` is the one query in front of that set: it calls
+`learning.Machine.Allow` guards the reads declared with the `gated` wrapper in
+`internal/api/router.go`. That declaration is the list, so a new gated route
+cannot be missing from this page. Refusal is `423 learning_locked` with the
+stage blockers. `GET /api/gate` is the one query in front of that set: it calls
 `Learning.Allow` once and answers `200`, because the Mail screen needs the
 answer (and, while locked, the existing status) without first building
 `/api/learning` itself. It reads no messages and builds no Mail page; the

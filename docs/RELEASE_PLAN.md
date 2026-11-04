@@ -66,12 +66,15 @@ setup, and documentation that a new owner can follow without help.
 - `internal/prose` owns the public-copy rule; the docs test and the UI catalog
   test consume it.
 - `docs/site.json` and `internal/site` are the single source and renderer for
-  the landing pages, both READMEs and the four brand SVGs. `cmd/gensite` has
-  `-write`, `-check` and `-pages`; `make site-check` passes.
-- Ten bilingual guide pairs ship: install, first-run, mailboxes, providers,
-  learning, privacy, security, troubleshooting, FAQ, contributing. The public
-  page list is declared once in `internal/site` and the release tarball reads
-  that list.
+  the landing pages, both READMEs and the four brand SVGs. One ordered page
+  table derives the navigation, the release page list, the documentation links
+  and every generated output, so a missing English or French page fails the
+  check. `cmd/gensite` has `-write`, `-check` and `-pages`; `make
+  site-check` passes.
+- Every bilingual guide pair declared in `internal/site` ships, and the release
+  tarball reads that same page list. The pages cover install, first run,
+  mailboxes, providers, learning, privacy, security, troubleshooting, FAQ and
+  contributing.
 - The docs match the product: classic Outlook COM on Windows, no Microsoft
   sign-in, Linux preview with no live source, downloaded runtime with Windows
   and Linux sizes, no SQL console, no diagnostics export bundle, local training
@@ -103,8 +106,8 @@ setup, and documentation that a new owner can follow without help.
 - [x] Root artifacts removed and `.gitignore` covers them.
 - [x] Legacy Python prototype and environment-specific tooling removed.
 - [x] Module path renamed to the publication path.
-- [x] Ten bilingual guide pairs exist and are linked from the landing pages,
-      the READMEs and the site header.
+- [x] Every bilingual guide pair declared in `internal/site` exists and is
+      linked from the landing pages, the READMEs and the site header.
 - [x] Installer assets, CI, release, Pages, CodeQL, dependabot and templates
       exist.
 - [x] No real personal data or real client domains anywhere in the tree.
@@ -191,6 +194,34 @@ setup, and documentation that a new owner can follow without help.
 
 Record the change, the regression test, the mutation that proves the test bites,
 the gate output, and the residual risk. See `docs/PROGRESS.md`.
+
+## Recent rounds
+
+Newest first. The older evidence log below keeps its original chronological
+order.
+
+Round 130 (API projection owners): settings read one snapshot and one key
+guard; provider roles resolve once in `engine.RoleStatuses`; `InvalidProviderID`,
+`requirePicked` and `startedJob` own their shapes; `mapError` owns the
+unknown-company and commitment facet mappings, so keyed company routes answer
+`404 unknown_company` through the shared mapper instead of a drifted 500.
+Evidence at the committed tree: `go test ./internal/api ./internal/engine
+-count=1` passes.
+
+Round 129 (grouped navigation): the console sidebar is five collapsible native
+groups, Answers is a first-class destination under Ask, and the small-screen
+drawer uses the same destinations. `internal/ui/nav_contract_test.go` pins the
+groups and destination order, and `e2e/specs/nav.spec.ts` drives the browser
+behavior. Evidence at the committed tree: `go test ./internal/ui -run
+TestNavContract -count=1` and `go test ./internal/ui -count=1` pass.
+
+Round 128 (generated bundle gate): `scripts/check-generated.sh` regenerates the
+committed UI bundle and fails on drift with the stale file and repair command;
+`scripts/test-lib.sh` names every failed stage and its rerun command; CI runs the
+site check, caches Playwright browsers, uploads failure artifacts and cancels
+only superseded pull request runs. Evidence at the committed tree: `bash
+scripts/check-generated.sh` reports that the bundles match, and `bash -n
+scripts/*.sh` is clean.
 
 ## Evidence log
 
