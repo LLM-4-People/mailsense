@@ -1,0 +1,33 @@
+# UI source modules. internal/ui/bundle.go concatenates them, in this
+# order, into the served /app.js. Every js/*.js file must be listed once.
+00-core.js
+01-components.js
+05-setup.js
+10-language.js
+11-http.js
+12-router.js
+13-shell.js
+13-jobs.js
+14-boot.js
+20-hub.js
+21-brief.js
+21-ask-composer.js
+22-ask.js
+23-ask-history.js
+23-learning.js
+24-companies.js
+25-sources.js
+26-labels.js
+27-answers.js
+30-mail-body.js
+31-conversations.js
+32-mail.js
+32-recent.js
+32-important.js
+33-search.js
+34-conversation.js
+40-settings.js
+41-providers.js
+50-logs.js
+51-actions.js
+52-init.js

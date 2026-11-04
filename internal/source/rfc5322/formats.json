@@ -1,0 +1,24 @@
+{
+  "_doc": "Protocol data of plain mail files (never words of a language). status_headers: headers that mail clients rewrite inside an mbox to keep their own state (read and answered flags, IMAP UIDs, keywords, byte and line counts); a message's id is computed without them so a client marking it read keeps its identity, while its change stamp includes them. Sources: RFC 4155 §2 (Content-Length and the status headers mbox writers add), the mutt manual (Status, X-Status, Content-Length, Lines in mbox folders), Thunderbird's nsMsgLocalFolderHdrs.h (X-Mozilla-Status, X-Mozilla-Status2, X-Mozilla-Keys), UW IMAP / Pine mail.h (X-UID, X-Keywords, X-IMAP, X-IMAPbase, X-Status). gmail_label_roles: the roles of Gmail's SYSTEM labels as a Google Takeout mbox writes them in X-Gmail-Labels (the display names of the system labels INBOX, SENT, DRAFT, SPAM, TRASH of the Gmail API, developers.google.com/gmail/api/guides/labels); a user's own labels have no role. A Takeout written with other display names gets its roles from rfc5322.folder_roles, which always wins. gmail_unread_label: the display name Takeout writes for the Gmail API's system label UNREAD (same page): a message of a Gmail export (X-Gmail-Labels present) is unread when it carries it and read otherwise; the label is the message's read state, not a folder. Takeout also writes an \"Opened\" label, which is not a Gmail API system label (Google documents no label of that name), so it stays a plain label.",
+  "status_headers": [
+    "Status",
+    "X-Status",
+    "X-Mozilla-Status",
+    "X-Mozilla-Status2",
+    "X-Mozilla-Keys",
+    "X-Keywords",
+    "X-UID",
+    "X-IMAP",
+    "X-IMAPbase",
+    "Content-Length",
+    "Lines"
+  ],
+  "gmail_label_roles": {
+    "Inbox": "inbox",
+    "Sent": "sent",
+    "Drafts": "drafts",
+    "Spam": "junk",
+    "Trash": "deleted"
+  },
+  "gmail_unread_label": "Unread"
+}

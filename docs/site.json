@@ -1,0 +1,474 @@
+{
+  "product": "Mailsense",
+  "repository": "https://github.com/LLM-4-People/mailsense",
+  "docs_site": "https://llm-4-people.github.io/mailsense/",
+  "baseurl": "/mailsense",
+  "hero": {
+    "eyebrow": {
+      "en": "Local mail triage for Windows",
+      "fr": "Tri du courrier local sous Windows"
+    },
+    "title": {
+      "en": "Mailsense",
+      "fr": "Mailsense"
+    },
+    "promise": {
+      "en": "Mailsense turns your Outlook mailbox into a ranked list of what needs you, with the reason on every row.",
+      "fr": "Mailsense transforme votre boîte Outlook en une liste classée de ce qui vous attend, avec la raison sur chaque ligne."
+    },
+    "lede": {
+      "en": "It reads the classic Outlook profile already open on your PC. The message store, the classifier and the learned profile stay on your disk. A remote model runs only when you add one.",
+      "fr": "Il lit le profil Outlook classique déjà ouvert sur votre PC. Le stockage, le classifieur et le profil appris restent sur votre disque. Un modèle distant ne s'exécute que si vous en ajoutez un."
+    },
+    "banner": {
+      "en": "Your mailbox, ranked. Every row explains itself.",
+      "fr": "Votre boîte, classée. Chaque ligne s'explique."
+    },
+    "note": {
+      "en": "Windows installer, or the Linux preview. No account, no telemetry.",
+      "fr": "Installateur Windows, ou aperçu Linux. Sans compte, sans télémétrie."
+    },
+    "figure_alt": {
+      "en": "An invented ranked queue with three rows: verify an invoice, reply to a kickoff, read workshop notes.",
+      "fr": "Une file classée inventée de trois lignes : vérifier une facture, répondre à un lancement, lire des notes d'atelier."
+    },
+    "figure_caption": {
+      "en": "An invented queue. The action and the reason sit on every row.",
+      "fr": "Une file inventée. L'action et la raison figurent sur chaque ligne."
+    }
+  },
+  "media": {
+    "title": {
+      "en": "The screens you will use",
+      "fr": "Les écrans que vous utiliserez"
+    },
+    "lead": {
+      "en": "Captured from the Linux preview with an invented mailbox. No real mail appears here.",
+      "fr": "Capturés depuis l'aperçu Linux avec une boîte inventée. Aucun courrier réel n'apparaît ici."
+    },
+    "screenshot_dir": "docs/assets/screenshots",
+    "screenshot_width": 1440,
+    "screenshot_height": 900,
+    "social_preview": "docs/assets/social-preview.png",
+    "social_width": 1200,
+    "social_height": 630,
+    "screenshots": [
+      {
+        "key": "home",
+        "title": {
+          "en": "Home",
+          "fr": "Accueil"
+        },
+        "caption": {
+          "en": "The day in three columns: what needs a reply, what needs a decision, and what is coming up.",
+          "fr": "La journée en trois colonnes : ce qui attend une réponse, ce qui attend une décision et ce qui arrive."
+        }
+      },
+      {
+        "key": "mail",
+        "title": {
+          "en": "Mail with a message open",
+          "fr": "Courrier avec un message ouvert"
+        },
+        "caption": {
+          "en": "The selected message shows its sender, its body and the fields the local model read.",
+          "fr": "Le message choisi montre son expéditeur, son corps et les champs lus par le modèle local."
+        }
+      },
+      {
+        "key": "ask",
+        "title": {
+          "en": "Ask with an answer",
+          "fr": "Demander avec une réponse"
+        },
+        "caption": {
+          "en": "A question and its grounded answer, with the message it cites under the text.",
+          "fr": "Une question et sa réponse appuyée sur vos messages, avec le message cité sous le texte."
+        }
+      },
+      {
+        "key": "teach",
+        "title": {
+          "en": "Teach",
+          "fr": "Enseigner"
+        },
+        "caption": {
+          "en": "One question at a time. The suggestion is shown, and your answer is the label that trains the local model.",
+          "fr": "Une question à la fois. La suggestion est affichée, et votre réponse est l'étiquette qui entraîne le modèle local."
+        }
+      },
+      {
+        "key": "learning",
+        "title": {
+          "en": "Learning",
+          "fr": "Apprentissage"
+        },
+        "caption": {
+          "en": "Each stage reports its own progress, and the screen names the step that still blocks certification.",
+          "fr": "Chaque étape indique sa progression, et l'écran nomme l'étape qui bloque encore la certification."
+        }
+      },
+      {
+        "key": "sources",
+        "title": {
+          "en": "Sources",
+          "fr": "Sources"
+        },
+        "caption": {
+          "en": "The Outlook store, the picked mailbox and the folders Mailsense can read.",
+          "fr": "Le stockage Outlook, la boîte choisie et les dossiers que Mailsense peut lire."
+        }
+      },
+      {
+        "key": "settings",
+        "title": {
+          "en": "Settings",
+          "fr": "Réglages"
+        },
+        "caption": {
+          "en": "The everyday settings first. The full schema stays one click away.",
+          "fr": "Les réglages du quotidien d'abord. Le schéma complet reste à un clic."
+        }
+      },
+      {
+        "key": "first_run",
+        "title": {
+          "en": "First run",
+          "fr": "Premier démarrage"
+        },
+        "caption": {
+          "en": "The first launch writes the setup marker, names the data directory and asks for a time zone before it reads any mail.",
+          "fr": "Le premier lancement écrit le marqueur d'installation, nomme le répertoire de données et demande un fuseau horaire avant de lire le courrier."
+        }
+      }
+    ]
+  },
+  "nav": [
+    {
+      "key": "install",
+      "label": {
+        "en": "Install",
+        "fr": "Installation"
+      },
+      "primary": true
+    },
+    {
+      "key": "first_run",
+      "label": {
+        "en": "First run",
+        "fr": "Premier démarrage"
+      },
+      "primary": true
+    },
+    {
+      "key": "console",
+      "label": {
+        "en": "Console",
+        "fr": "Console"
+      }
+    },
+    {
+      "key": "mailboxes",
+      "label": {
+        "en": "Mailboxes",
+        "fr": "Boîtes"
+      }
+    },
+    {
+      "key": "providers",
+      "label": {
+        "en": "Providers",
+        "fr": "Fournisseurs"
+      }
+    },
+    {
+      "key": "learning",
+      "label": {
+        "en": "Learning",
+        "fr": "Apprentissage"
+      }
+    },
+    {
+      "key": "faq",
+      "label": {
+        "en": "FAQ",
+        "fr": "FAQ"
+      }
+    },
+    {
+      "key": "privacy",
+      "label": {
+        "en": "Privacy",
+        "fr": "Confidentialité"
+      },
+      "primary": true
+    },
+    {
+      "key": "security",
+      "label": {
+        "en": "Security",
+        "fr": "Sécurité"
+      }
+    },
+    {
+      "key": "troubleshooting",
+      "label": {
+        "en": "Troubleshooting",
+        "fr": "Dépannage"
+      }
+    },
+    {
+      "key": "contributing",
+      "label": {
+        "en": "Contributing",
+        "fr": "Contribuer"
+      }
+    }
+  ],
+  "differences": {
+    "title": {
+      "en": "Three things it does differently",
+      "fr": "Trois choses qu'il fait autrement"
+    },
+    "lead": {
+      "en": "Each one is a mechanism you can inspect.",
+      "fr": "Chacune est un mécanisme que vous pouvez inspecter."
+    },
+    "items": [
+      {
+        "tag": {
+          "en": "Evidence",
+          "fr": "Preuve"
+        },
+        "title": {
+          "en": "Every label names its source.",
+          "fr": "Chaque étiquette nomme sa source."
+        },
+        "body": {
+          "en": "A decision is stored as answers to named questions, with the confidence each answer carries where the question type has one and the evidence behind it. The message detail shows the fields the model read. When an index is partial, the screen names the missing part.",
+          "fr": "Une décision est stockée comme des réponses à des questions nommées, avec la confiance de chaque réponse quand ce type de question en porte une et les éléments de preuve qui la soutiennent. Le détail du message montre les champs lus par le modèle. Quand un index est partiel, l'écran nomme la partie manquante."
+        }
+      },
+      {
+        "tag": {
+          "en": "Queue",
+          "fr": "File"
+        },
+        "title": {
+          "en": "The queue is scored by a fixed local policy.",
+          "fr": "La file est ordonnée par une règle locale fixe."
+        },
+        "body": {
+          "en": "A local Go scorer ranks each message from stored signals: a suspicious message adds 100, a decision 45, a reply 30, urgency and deadline levels add fixed weights, and recency adds at most 12. A score of 20 is the floor, and a suspicious, decision, reply, urgent or deadline signal always enters. Bulk automated mail never enters, however urgent its text.",
+          "fr": "Un moteur Go local ordonne chaque message à partir des signaux stockés : un message suspect ajoute 100, une décision 45, une réponse 30, les niveaux d'urgence et d'échéance ajoutent des poids fixes, et la date de réception ajoute au plus 12. Un score de 20 suffit pour entrer, et un signal de suspicion, de décision, de réponse, d'urgence ou d'échéance entre toujours. Le courrier automatisé de masse n'entre jamais, quelle que soit l'urgence de son texte."
+        }
+      },
+      {
+        "tag": {
+          "en": "Learning",
+          "fr": "Apprentissage"
+        },
+        "title": {
+          "en": "It abstains until your own labels certify it.",
+          "fr": "Il s'abstient tant que vos propres étiquettes ne l'ont pas certifié."
+        },
+        "body": {
+          "en": "The local classifier trains one head per question on your corrections. A question is certified only when the Wilson lower bound of its answered precision reaches 0.99 on a held-out split, with at least 200 training labels, 50 evaluation labels and 0.5 coverage. Below that threshold it abstains, and the Learning screen names the stage that blocks it.",
+          "fr": "Le classifieur local entraîne une tête par question sur vos corrections. Une question n'est certifiée que lorsque la borne inférieure de Wilson de sa précision répondue atteint 0,99 sur une partition mise de côté, avec au moins 200 étiquettes d'entraînement, 50 étiquettes d'évaluation et une couverture de 0,5. En dessous, il s'abstient, et l'écran Apprentissage nomme l'étape qui bloque."
+        }
+      }
+    ]
+  },
+  "boundary": {
+    "title": {
+      "en": "What leaves the machine",
+      "fr": "Ce qui quitte la machine"
+    },
+    "lead": {
+      "en": "Mailsense makes four kinds of network request. Each one has a reason you can see.",
+      "fr": "Mailsense fait quatre types de requêtes réseau. Chacune a une raison visible."
+    },
+    "leaves_title": {
+      "en": "Leaves, only when it runs",
+      "fr": "Sortent, uniquement à l'exécution"
+    },
+    "leaves": [
+      {
+        "en": "The pinned local runtime and embedding model, downloaded once and checked against SHA-256 before use.",
+        "fr": "Le moteur local et le modèle de plongements épinglés, téléchargés une fois et vérifiés par SHA-256 avant usage."
+      },
+      {
+        "en": "A request to a remote provider you configured, including automatic triage after a sync. It carries the message fields that call needs.",
+        "fr": "Une requête vers un fournisseur distant que vous avez configuré, y compris le triage automatique après une synchronisation. Elle porte les champs du message dont cet appel a besoin."
+      },
+      {
+        "en": "A provider model list when you press Fetch models.",
+        "fr": "Une liste de modèles d'un fournisseur quand vous cliquez sur Récupérer les modèles."
+      },
+      {
+        "en": "One small test request when you press Test. A test is billable and is not covered by a budget.",
+        "fr": "Une petite requête de test quand vous cliquez sur Tester. Un test est facturable et n'est pas couvert par un budget."
+      }
+    ],
+    "stays_title": {
+      "en": "Never leaves",
+      "fr": "Ne sortent jamais"
+    },
+    "stays": [
+      {
+        "en": "The mail store, attachments, indexes and learned profile. They are SQLite files in the data directory you chose.",
+        "fr": "Le stockage du courrier, les pièces jointes, les index et le profil appris. Ce sont des fichiers SQLite dans le répertoire de données que vous avez choisi."
+      },
+      {
+        "en": "The classification, evidence and ranking code. They run as local Go code, not as a cloud call.",
+        "fr": "Le code de classification, de preuve et de classement. Il s'exécute en Go local, pas comme un appel à un service."
+      },
+      {
+        "en": "No telemetry, no analytics, no update ping and no vendor account.",
+        "fr": "Aucune télémétrie, aucune analyse, aucun appel de mise à jour et aucun compte chez un fournisseur."
+      }
+    ],
+    "note": {
+      "en": "Mailsense reads the classic Outlook profile already open on Windows. It does not ask for Microsoft credentials. A remote provider's terms govern what it does with a request you send. See [privacy]({privacy}).",
+      "fr": "Mailsense lit le profil Outlook classique déjà ouvert sous Windows. Il ne demande pas d'identifiants Microsoft. Les conditions d'un fournisseur distant régissent ce qu'il fait d'une requête que vous lui envoyez. Voir [confidentialité]({privacy})."
+    }
+  },
+  "limits": {
+    "title": {
+      "en": "What it cannot do yet",
+      "fr": "Ce qu'il ne fait pas encore"
+    },
+    "lead": {
+      "en": "These limits are part of the current build.",
+      "fr": "Ces limites font partie de la version actuelle."
+    },
+    "items": [
+      {
+        "title": {
+          "en": "Only classic Outlook on Windows is a live source.",
+          "fr": "Seul Outlook classique sous Windows est une source en direct."
+        },
+        "body": {
+          "en": "It reads the profile through COM. New Outlook, Outlook on the web, IMAP, POP, the Gmail API, Microsoft Graph and file import are not connected in this build.",
+          "fr": "Il lit le profil par COM. Le nouvel Outlook, Outlook sur le web, IMAP, POP, l'API Gmail, Microsoft Graph et l'import de fichiers ne sont pas connectés dans cette version."
+        }
+      },
+      {
+        "title": {
+          "en": "The Linux build is a preview.",
+          "fr": "La version Linux est un aperçu."
+        },
+        "body": {
+          "en": "It opens, renders every screen and explains the missing source. The inbox stays empty because there is no live connector yet.",
+          "fr": "Elle s'ouvre, affiche tous les écrans et explique la source manquante. La boîte reste vide parce qu'il n'y a pas encore de connecteur en direct."
+        }
+      },
+      {
+        "title": {
+          "en": "It reads and ranks. It does not act on the mailbox.",
+          "fr": "Il lit et classe. Il n'agit pas sur la boîte."
+        },
+        "body": {
+          "en": "No sending, deleting, moving or read-state changes. The connector is read-only.",
+          "fr": "Aucun envoi, aucune suppression, aucun déplacement et aucun changement d'état de lecture. Le connecteur est en lecture seule."
+        }
+      },
+      {
+        "title": {
+          "en": "Triage needs a decider.",
+          "fr": "Le triage a besoin d'un décideur."
+        },
+        "body": {
+          "en": "Without one, triage answers 422 provider_not_configured. Search and the local classifier still work.",
+          "fr": "Sans lui, le triage répond 422 provider_not_configured. La recherche et le classifieur local fonctionnent toujours."
+        }
+      },
+      {
+        "title": {
+          "en": "The database is not encrypted by the app.",
+          "fr": "La base n'est pas chiffrée par l'application."
+        },
+        "body": {
+          "en": "Your operating-system account and disk encryption are the protection. Provider keys on Windows use DPAPI.",
+          "fr": "Le compte du système d'exploitation et le chiffrement du disque sont la protection. Les clés de fournisseur sous Windows utilisent DPAPI."
+        }
+      },
+      {
+        "title": {
+          "en": "There is no SQL console and no diagnostics bundle.",
+          "fr": "Il n'y a pas de console SQL ni de paquet de diagnostic."
+        },
+        "body": {
+          "en": "Logs are local and readable in the Logs screen. They redact secrets.",
+          "fr": "Les journaux sont locaux et lisibles dans l'écran Journaux. Ils masquent les secrets."
+        }
+      }
+    ]
+  },
+  "install": {
+    "title": {
+      "en": "Install",
+      "fr": "Installer"
+    },
+    "lead": {
+      "en": "Windows is the supported live build. Linux is a preview.",
+      "fr": "Windows est la version en direct prise en charge. Linux est un aperçu."
+    },
+    "windows": {
+      "en": "Download the per-user installer from [Releases]({repository}/releases). It needs the Microsoft Edge WebView2 runtime, which Windows 11 and current Windows 10 already have. The build is not code-signed, so Windows may ask you to confirm the publisher.",
+      "fr": "Téléchargez l'installateur par utilisateur depuis la [page des versions]({repository}/releases). Il a besoin du runtime Microsoft Edge WebView2, déjà présent sous Windows 11 et Windows 10 à jour. La version n'est pas signée, Windows peut donc demander une confirmation."
+    },
+    "linux": {
+      "en": "Download the amd64 tarball, extract it and run install.sh for a menu entry, or run the binary directly.",
+      "fr": "Téléchargez l'archive amd64, décompressez-la et lancez install.sh pour une entrée de menu, ou lancez directement le binaire."
+    },
+    "command": "tar -xzf mailsense-*-linux-amd64.tar.gz && cd mailsense-*-linux-amd64 && ./install.sh",
+    "command_note": {
+      "en": "One command for the Linux preview, from the directory that holds the downloaded tarball.",
+      "fr": "Une commande pour l'aperçu Linux, depuis le répertoire qui contient l'archive téléchargée."
+    },
+    "first_run": {
+      "en": "Read the first-run guide",
+      "fr": "Lire le guide du premier démarrage"
+    },
+    "note": {
+      "en": "The first run writes the setup marker, lists the Outlook stores and shows the resource ceilings. Nothing is read from mail before you pick a store.",
+      "fr": "Le premier démarrage écrit le marqueur d'installation, liste les boîtes Outlook et affiche les plafonds de ressources. Rien n'est lu dans le courrier avant que vous choisissiez une boîte."
+    }
+  },
+  "status": {
+    "title": {
+      "en": "Status",
+      "fr": "État"
+    },
+    "body": {
+      "en": "Mailsense is in active development. Interfaces and stored schemas may change between releases; the changelog and the release notes call out anything that requires a migration.",
+      "fr": "Mailsense est en développement actif. Les interfaces et les schémas stockés peuvent changer entre les versions ; le journal des modifications et les notes de version signalent tout ce qui demande une migration."
+    }
+  },
+  "build": {
+    "title": {
+      "en": "Build from source",
+      "fr": "Construire depuis les sources"
+    },
+    "requirements": {
+      "en": "Go (the version in `go.mod`), Node 22 for the UI test harnesses, and optionally Playwright for the browser suite.",
+      "fr": "Go (la version de `go.mod`), Node 22 pour les harnais d'interface, et Playwright pour la suite navigateur."
+    },
+    "commands": "scripts/build.sh all        # dist/mailsense and dist/mailsense.exe\nscripts/test-fast.sh        # gofmt, vet, script checks, unit and contract suites\nscripts/test.sh             # exhaustive release gate",
+    "note": {
+      "en": "The UI is plain modules under `internal/ui/js`, concatenated into one bundle by `go generate ./internal/ui`. Architecture and ownership rules are in `docs/ARCHITECTURE.md`.",
+      "fr": "L'interface est en modules simples sous `internal/ui/js`, concaténés en un seul bundle par `go generate ./internal/ui`. L'architecture et les règles de propriété sont dans `docs/ARCHITECTURE.md`."
+    }
+  },
+  "license": {
+    "title": {
+      "en": "License",
+      "fr": "Licence"
+    },
+    "body": {
+      "en": "Mailsense is licensed under the GNU Affero General Public License, version 3 or later ({license}). You can use it, study it, change it and share it. If you run a modified version as a network service, the AGPL requires you to offer the corresponding source to the people who use it. See `LICENSE` for the full text and `NOTICE` for the copyright and third-party notices.",
+      "fr": "Mailsense est publié sous la licence GNU Affero General Public License, version 3 ou ultérieure ({license}). Vous pouvez l'utiliser, l'étudier, le modifier et le partager. Si vous exploitez une version modifiée comme service réseau, l'AGPL exige d'offrir le code source correspondant aux personnes qui l'utilisent. Le texte complet est dans `LICENSE`, les mentions de copyright et de tiers dans `NOTICE`."
+    }
+  }
+}

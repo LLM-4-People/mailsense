@@ -1,0 +1,28 @@
+name: race
+
+on:
+  schedule:
+    - cron: "17 4 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # The weekly run is long; a superseded run on main is kept so a scheduled
+  # result is never dropped.
+  group: race-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  race:
+    name: race matrix
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - run: scripts/test-race.sh

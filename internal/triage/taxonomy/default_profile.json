@@ -1,0 +1,231 @@
+{
+  "version": 1,
+  "name": "default",
+  "body_chars": 2000,
+  "state_template": "From: {sender}\nTo: {to_addresses}\nCc: {cc_addresses}\nDate: {received_at}\nSubject: {subject}\n\n{observed_facts}\n{history_context}\nEmail text:\n{body_preview}\n\n{examples}",
+  "questions": {
+    "category": {
+      "type": "choice",
+      "instructions": "Classify this email into exactly ONE category by its NATURE — what kind of communication it is, not how important it feels. When several apply, take the earliest in this order: security, spam, finance, notifications, marketing, action, work. Internal colleague mail is categorized exactly like external mail. Any language; judge meaning, never words.",
+      "criteria": {
+        "security": "ACCOUNT-SECURITY events and threats: sign-in alerts, verification codes, password resets, MFA challenges, alerts about suspicious activity, and impersonation/phishing attempts. Evidence: the message concerns access to an account, or shows deception indicators. Note: 'security' describes what the mail is ABOUT; how likely it is to be a real threat is the separate suspicious judgment. A legitimate code from the real service is security with low suspicion.",
+        "spam": "Unsolicited junk or bulk mail with no legitimate connection to the mailbox owner: generic promotions to a list, scams, chain letters. Evidence: no real relationship, no work context, mass-mailing nature.",
+        "finance": "MONEY matters: invoices, payments, receipts, banking, billing, quotes, budgets, subscriptions, expenses, taxes, payroll. Evidence: amounts, payment instructions, or billing language.",
+        "notifications": "AUTOMATED machine mail: alerts, digests, monitoring, CI/CD, build results, shipping updates, social-network activity, forum replies, webhooks. Evidence: system sender, generated content, no human sign-off — even when it asks for a click, it is still a notification, never action.",
+        "marketing": "COMMERCIAL promotion: product announcements, newsletters, deals, webinar invitations, ads, press releases. Evidence: selling or promoting to an audience, not corresponding about work.",
+        "action": "A HUMAN BEING explicitly asks the mailbox owner for something concrete: a reply to a question, a file, a decision, an approval, a task, a meeting, a payment. Evidence: an explicit ask directed at the owner in the text — without such an ask this category does not apply. Automated mail is never action regardless of what it requests.",
+        "work": "HUMAN work correspondence that informs, updates, or coordinates without asking anything of the owner: status updates, threads, logistics, schedules, reports, receipts of process, thank-yous."
+      }
+    },
+    "topic": {
+      "type": "choice",
+      "instructions": "What is this email about? Pick the single topic that best matches its request or content, regardless of language.",
+      "criteria": {
+        "project_work": "Ongoing projects, deliverables, tasks, and status of work.",
+        "support_issue": "Problems, bug reports, incidents, troubleshooting, help requests.",
+        "sales_inquiry": "Buying, selling, quotes, pricing, and commercial negotiation.",
+        "billing_account": "Invoices, payments, account administration, contracts.",
+        "meeting_scheduling": "Meetings, calls, availability, calendar invitations.",
+        "technical_integration": "APIs, software setup, integrations, credentials, configuration.",
+        "hiring": "Recruiting, job applications, interviews, staffing.",
+        "partnership": "Partnerships, vendors, resellers, business development.",
+        "internal_ops": "Company-internal operations, HR, policies, tools, administration.",
+        "news_updates": "Newsletters, product updates, industry news, announcements.",
+        "other": "Anything that fits none of the topics above."
+      }
+    },
+    "reply_needed": {
+      "type": "noul",
+      "instructions": "Was a query directed at the mailbox owner present in this message when it arrived? Judge only what the message itself asks — whether it has since been handled is not knowable from the text and must not be guessed.",
+      "criteria": {
+        "true": "A query directed at the mailbox owner is present: a question aimed at them, or a direct request for information/confirmation that only they can give. Evidence: an interrogative sentence addressed to them, or an explicit ask to come back with an answer. Language is irrelevant; judge meaning.",
+        "false": "No query is directed at the owner: pure FYI, acknowledgments, automated mail, the sender answering their own question, questions aimed at someone else, or a request that needs an action (send/approve/pay) rather than an answer."
+      }
+    },
+    "urgency": {
+      "type": "score",
+      "instructions": "How time-sensitive did the SENDER frame this as, at the moment the mail was sent? Judge the pressure the text expresses relative to the mail's own date — never relative to today, and never from your own guess of importance.",
+      "criteria": [
+        "No time pressure stated or implied - whenever.",
+        "Soft preference for speed - soon, when you can, this week if possible.",
+        "A concrete near deadline - by Friday, tomorrow, end of week, before a named meeting that is days away.",
+        "Explicitly urgent - urgent, ASAP, today, needed before end of day, a same-day meeting or deadline.",
+        "Immediate and blocking - emergency, system down, everything is stopped, deadline is right now or already past when the mail was sent."
+      ]
+    },
+    "suspicious": {
+      "type": "noul",
+      "instructions": "Does this message show signs of being a phishing attempt, scam, or spoofed sender? Base the verdict only on deception indicators visible in the message — not on unfamiliarity.",
+      "criteria": {
+        "true": "Deception indicators are present: a spoofed or look-alike sender, credential or payment redirection, urgency combined with secrecy, an implausible request for money or data, a mismatch between who the mail claims to be and who it actually is, or an attempt to move the conversation to an unusual channel.",
+        "false": "The mail reads as genuinely from who it claims to be: ordinary work context, consistent identity, no deception pattern. Unfamiliar sender or commercial tone alone is NOT suspicion — that is marketing or spam's job."
+      }
+    },
+    "is_question": {
+      "type": "noul",
+      "instructions": "Does the TEXT contain questions that expect an answer — regardless of who must answer them? (Whether the answer must come from the mailbox owner specifically is a separate judgment.)",
+      "criteria": {
+        "true": "The text contains at least one question that expects an answer from someone. Evidence: an interrogative sentence, or an implicit answer-request ('let me know', 'confirm whether…'). Rhetorical questions the text itself answers do not count.",
+        "false": "Statements only, or rhetorical questions answered in the same message."
+      }
+    },
+    "call_to_action": {
+      "type": "noul",
+      "instructions": "Does the message explicitly ask the mailbox owner to DO something concrete — as opposed to answering something? Judge only asks that are directed at them in the text.",
+      "criteria": {
+        "true": "An explicit, concrete action is requested of the mailbox owner: send, fix, review, approve, pay, register, attend, click. Evidence: an imperative or a directed request naming the act. Implied or background tasks that the mail only discusses do not count; automated mail never counts.",
+        "false": "Nothing concrete is asked of the owner; the mail informs or closes."
+      }
+    },
+    "decision_needed": {
+      "type": "noul",
+      "instructions": "Does the message ask the mailbox owner for a VERDICT — approve/reject, yes/no, choose between options? A decision is a judgment, not a task and not a mere question.",
+      "criteria": {
+        "true": "The owner must choose or rule on something to unblock progress: yes/no, approve or reject, pick between options, accept terms. Evidence: the mail explicitly presents a choice or asks for a verdict. A question that merely gathers information is not a decision.",
+        "false": "No verdict is being asked for; information or work alone is requested."
+      }
+    },
+    "asks_for": {
+      "type": "choice",
+      "instructions": "What is the sender primarily asking of the mailbox owner? Pick exactly one — the DOMINANT ask, by this precedence when several are present: a decision outranks a task, which outranks a document, which outranks a plain answer; money and time requests rank by what blocks the sender most. If nothing is asked, pick the FYI option.",
+      "criteria": {
+        "answer_question": "An answer to a question or a discussion.",
+        "approval_decision": "An approval, decision, or sign-off.",
+        "information_document": "Information, a document, a file, data, or access.",
+        "payment_money": "Payment, quote, pricing, or budget.",
+        "meeting_availability": "Time, availability, or a meeting.",
+        "task_work": "Work to perform: fix, build, review, deliver, follow up.",
+        "nothing_fyi": "Nothing at all; informational only.",
+        "other": "None of the above."
+      }
+    },
+    "deadline": {
+      "type": "score",
+      "instructions": "What time frame does the text set for something to happen? Count explicit dates and deadlines AND meetings/events it proposes. Measure the distance from the mail's own date to the named date — a deadline two years ago was once two days away; judge it as the mail framed it.",
+      "criteria": [
+        "No date, deadline, or event is mentioned.",
+        "A date far from the mail's own date (months away).",
+        "A date within roughly a month of the mail's own date.",
+        "A date within roughly a week of the mail's own date.",
+        "A date within 24 hours of the mail's own date.",
+        "Already overdue at the moment the mail was sent, or due that same day."
+      ]
+    },
+    "relationship": {
+      "type": "choice",
+      "instructions": "What is the sender's relationship to the mailbox owner? Judge from the content and the parties involved — internal colleagues, external clients, vendors and automated systems are distinct kinds of relationship. When unclear, pick unknown rather than guessing.",
+      "criteria": {
+        "existing_client": "An existing customer or client of the business.",
+        "prospect_lead": "A potential customer, lead, or sales contact.",
+        "colleague": "A coworker or someone inside the same organization.",
+        "vendor_partner": "A supplier, partner, contractor, or service provider.",
+        "automated_service": "An automated system, bot, notification, or no-reply service.",
+        "recruiter": "Recruiting, HR, or job-related outreach.",
+        "personal": "Personal, family, or friend.",
+        "unknown": "Cannot be determined."
+      }
+    },
+    "effort": {
+      "type": "score",
+      "instructions": "How much work is it for the mailbox owner to handle this message properly? Estimate from what the text actually demands of them — reply length, research, building, coordinating. Judge the work, not the sender's rank or the message's importance.",
+      "criteria": [
+        "None or seconds - nothing to do, or a one-line reply.",
+        "Minutes - a short reply, a quick check, a click or a small lookup.",
+        "Hours - real work: research, write, review, build, or fix something.",
+        "Days - project-level work, coordination of several people, or a deliverable."
+      ]
+    },
+    "sentiment": {
+      "type": "score",
+      "instructions": "What emotional tone does the SENDER express in this message toward the recipient or the situation? Judge the expressed tone only — politeness formulas are neutral.",
+      "criteria": [
+        "Very negative - angry, accusatory, or in conflict",
+        "Negative",
+        "Neutral",
+        "Positive",
+        "Very positive"
+      ]
+    },
+    "stance": {
+      "type": "choice",
+      "instructions": "What does this message primarily do in its conversation? Judge the message itself, whatever side of the exchange it is on.",
+      "criteria": {
+        "asks_questions": "Primarily asks questions or requests information.",
+        "provides_answers": "Primarily provides answers, information, or an affirmative response.",
+        "both": "Both asks and answers/provides in comparable measure.",
+        "acknowledgment": "Pure acknowledgment: thanks, receipt confirmation, closing remarks."
+      }
+    },
+    "info_sufficiency": {
+      "type": "noul",
+      "instructions": "Does the message contain everything needed to answer or act on it — context, specifics, links, files, dates — or is something missing that would force a follow-up question back? Evidence: can the needed response be written without inventing or hunting for facts?",
+      "criteria": {
+        "true": "Self-contained: everything needed to act is present.",
+        "false": "Incomplete: context, specifics, or attachments are missing."
+      }
+    },
+    "request_count": {
+      "type": "score",
+      "instructions": "How many DISTINCT asks does this message contain? Count by meaning — each separate question, demand, or task counts once; rephrasing the same ask in one message does not make it two.",
+      "criteria": [
+        "None - purely informational",
+        "One request",
+        "Two requests",
+        "Three or more requests"
+      ]
+    },
+    "has_signature": {
+      "type": "noul",
+      "instructions": "Does the message end with a personal signature block — a name with role, company, phone, address, or other contact details?",
+      "criteria": {
+        "true": "Ends with a signature block.",
+        "false": "No signature block."
+      }
+    }
+  },
+  "roles": {
+    "category": "category",
+    "topic": "topic",
+    "reply": "reply_needed",
+    "urgency": "urgency",
+    "suspicious": "suspicious",
+    "question": "is_question",
+    "cta": "call_to_action",
+    "decision": "decision_needed",
+    "asks_for": "asks_for",
+    "deadline": "deadline",
+    "relationship": "relationship",
+    "effort": "effort",
+    "sentiment": "sentiment",
+    "stance": "stance",
+    "info": "info_sufficiency",
+    "requests": "request_count",
+    "signature": "has_signature"
+  },
+  "thresholds": {
+    "reply": 0.5,
+    "suspicious": 0.5,
+    "low_confidence": 0.5,
+    "urgent_from_level": 3,
+    "question": 0.5,
+    "cta": 0.5,
+    "decision": 0.5,
+    "deadline_soon_level": 3,
+    "effort_heavy_level": 2,
+    "sentiment_negative_max": 1.5,
+    "info_gap": 0.5,
+    "multi_request": 2
+  },
+  "prior_blend": {
+    "reply": 0.3,
+    "suspicious": 0.0,
+    "urgency": 0.0
+  },
+  "prior_min_samples": 3,
+  "context": {
+    "include_history": true,
+    "include_examples": true,
+    "include_facts": true,
+    "max_examples": 6
+  }
+}

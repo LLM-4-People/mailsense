@@ -1,0 +1,30 @@
+name: release drafter
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # The newest merge to main owns the draft. A superseded update is harmless.
+  group: release-drafter
+  cancel-in-progress: true
+
+jobs:
+  draft:
+    name: update the draft
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      # The action never publishes a release on its own. A maintainer reviews
+      # the draft and publishes it, which is what creates the tag.
+      - uses: release-drafter/release-drafter@978bb0b30c5ee8cdd332ced253758157150d43f0 # v7.10.0
+        with:
+          config-name: release-drafter.yml
+          publish: false

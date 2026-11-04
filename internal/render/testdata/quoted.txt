@@ -1,0 +1,14 @@
+Bonjour à tous,
+
+  This line is indented by two spaces.
+This line is long enough to need wrapping on a narrow card, and it contains a URL https://example.test/docs that was not clickable before.
+
+> On Monday, someone wrote:
+> quoted line one
+>
+>   quoted indented line
+>
+> second quoted paragraph
+
+Cordialement,
+Signature

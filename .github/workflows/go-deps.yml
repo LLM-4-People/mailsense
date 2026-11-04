@@ -1,0 +1,38 @@
+name: go dependencies
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "go.mod"
+      - "go.sum"
+      - ".github/workflows/go-deps.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: go-deps
+  cancel-in-progress: true
+
+jobs:
+  submit:
+    name: submit the module graph
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # The dependency submission API needs write access to the repository.
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      # The action walks every build target when go-build-target is omitted,
+      # so the graph includes indirect and tool dependencies Dependabot cannot
+      # see from go.mod alone.
+      - uses: actions/go-dependency-submission@f35d5c9af13ce9cc32f7930b171e315e878f6921 # v2.0.3
+        with:
+          go-mod-path: go.mod

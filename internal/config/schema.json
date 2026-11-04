@@ -1,0 +1,2448 @@
+{
+  "vocabularies": {
+    "folder_role": [
+      "inbox",
+      "sent",
+      "drafts",
+      "deleted",
+      "junk",
+      "archive",
+      "other"
+    ]
+  },
+  "settings": [
+    {
+      "key": "agenda.default_hours",
+      "type": "int",
+      "default": 3,
+      "min": 1,
+      "max": 168,
+      "group": "Agenda",
+      "restart_required": true,
+      "description": "Default horizon of the \"next X\" agenda when no horizon is given (applies on the next start)."
+    },
+    {
+      "key": "archive.legacy_body_chars",
+      "type": "int",
+      "default": 8000,
+      "min": 1,
+      "max": 1000000,
+      "group": "Sources",
+      "description": "Body cap used by the legacy exporter; a body this long (UTF-16 units) is flagged truncated."
+    },
+    {
+      "key": "archive.legacy_header_chars",
+      "type": "int",
+      "default": 4000,
+      "min": 1,
+      "max": 1000000,
+      "group": "Sources",
+      "description": "Header cap used by the legacy exporter; a transport-header block this long (UTF-16 units) is declared cut (alteration headers_truncated): a header absent from it may lie past the cut."
+    },
+    {
+      "key": "archive.max_line_bytes",
+      "type": "int",
+      "default": 16777216,
+      "min": 1024,
+      "max": 1073741824,
+      "group": "Sources",
+      "description": "Longest JSONL record accepted by the legacy archive importer."
+    },
+    {
+      "key": "calendar.hemisphere",
+      "type": "enum",
+      "enum": [
+        "",
+        "north",
+        "south"
+      ],
+      "default": "",
+      "group": "General",
+      "description": "The owner's hemisphere, for the seasons of the volume insights (meteorological seasons; the south's are six months apart). Empty: no season statistics — seasons are never assumed (the tropics have none)."
+    },
+    {
+      "key": "calendar.sync.enabled",
+      "type": "bool",
+      "default": true,
+      "group": "Calendar",
+      "description": "Read calendar occurrences of picked mailboxes into the local world model. Nothing leaves the machine."
+    },
+    {
+      "key": "calendar.sync.future_days",
+      "type": "int",
+      "default": 180,
+      "min": 1,
+      "max": 730,
+      "group": "Calendar",
+      "description": "Days of future calendar occurrences kept locally; recurrences are expanded inside this window."
+    },
+    {
+      "key": "calendar.sync.past_days",
+      "type": "int",
+      "default": 30,
+      "min": 0,
+      "max": 365,
+      "group": "Calendar",
+      "description": "Days of past calendar occurrences kept locally (overdue commitments and recent context)."
+    },
+    {
+      "key": "config.watch_interval",
+      "type": "duration",
+      "default": "5s",
+      "min": "0s",
+      "max": "1h",
+      "group": "Events",
+      "restart_required": true,
+      "description": "How often the data files named by settings (teachers, requirements, profile, rules, providers, runtimes, evidence data) are checked for an edit; an edit is published as a change of the setting naming the file, so whatever depends on it re-runs. 0 turns the check off."
+    },
+    {
+      "key": "contacts.sync.enabled",
+      "type": "bool",
+      "default": true,
+      "group": "Contacts",
+      "description": "Read the address books of picked mailboxes so people, not just raw addresses, can be matched to mail and meetings."
+    },
+    {
+      "key": "embed.batch_size",
+      "type": "int",
+      "default": 8,
+      "min": 1,
+      "max": 1024,
+      "group": "Embeddings",
+      "description": "Texts per embeddings request (capped by the provider's max_batch)."
+    },
+    {
+      "key": "embed.dimensions",
+      "type": "int",
+      "default": 0,
+      "min": 0,
+      "max": 8192,
+      "group": "Embeddings",
+      "description": "Vector length kept: 0 = the model's native length, else one of its Matryoshka lengths (vectors are cut and re-normalised). A change starts a new vector space that the next index run fills; search uses only vectors of the current space."
+    },
+    {
+      "key": "embed.max_input_tokens",
+      "type": "int",
+      "default": 512,
+      "min": 16,
+      "max": 131072,
+      "group": "Embeddings",
+      "description": "Token budget of one text: the cleaned subject and body are cut to this many tokens (estimated with the provider's chars_per_token); must not exceed the provider's context_tokens."
+    },
+    {
+      "key": "embed.provider",
+      "type": "string",
+      "default": "",
+      "pattern": "^$|^[a-z0-9][a-z0-9_-]*$",
+      "group": "Embeddings",
+      "description": "Record id of the embedder used by the semantic index and search (engine.providers.file, protocol kind embedder). Empty = not configured: the embeddings stage reports an explicit blocker."
+    },
+    {
+      "key": "engine.providers.file",
+      "type": "string",
+      "data_file": true,
+      "default": "providers.json",
+      "pattern": "^[^\\x00]+$",
+      "group": "Engines",
+      "description": "The complete provider record file: one JSON object keyed by immutable record id, each record naming its protocol, endpoint, model, key secret and limits. Relative paths are inside the data directory. A missing or empty file means no providers are configured (there are no built-in providers)."
+    },
+    {
+      "key": "events.buffer_size",
+      "type": "int",
+      "default": 256,
+      "min": 1,
+      "max": 65536,
+      "group": "Events",
+      "description": "Events buffered per subscriber before new events are dropped and counted."
+    },
+    {
+      "key": "evidence.after_runs",
+      "type": "bool",
+      "default": true,
+      "group": "Evidence",
+      "description": "Start an evidence run after every successful sync run and every index run that committed work (stored or confirmed at least one vector; one at a time). An index run that wrote nothing (failed before its first write, or found nothing to do) starts none: it changed no evidence input. A run recomputes only the signals that depend on other messages and writes nothing new when nothing changed."
+    },
+    {
+      "key": "evidence.batch_size",
+      "type": "int",
+      "default": 500,
+      "min": 1,
+      "max": 100000,
+      "group": "Evidence",
+      "description": "Messages read, computed and written per evidence batch (one transaction)."
+    },
+    {
+      "key": "evidence.dates.max",
+      "type": "int",
+      "default": 20,
+      "min": 1,
+      "max": 10000,
+      "group": "Evidence",
+      "description": "Dates kept per message in date_days (the nearest to the message's day)."
+    },
+    {
+      "key": "evidence.features.file",
+      "type": "string",
+      "data_file": true,
+      "default": "evidence-features.json",
+      "pattern": "^[^\\x00]+$",
+      "group": "Evidence",
+      "description": "Feature-bin overrides merged over the built-in bins (internal/evidence/features.json shape: per numeric signal its ascending bucket bounds, null removes); relative paths are inside the data directory. A missing file means the built-in bins. The bins shape the feature view, the facts and the coverage buckets."
+    },
+    {
+      "key": "evidence.features.hash_buckets",
+      "type": "int",
+      "default": 16,
+      "min": 1,
+      "max": 4096,
+      "group": "Evidence",
+      "description": "Hashed cells per categorical or set signal in the feature view (layer 1)."
+    },
+    {
+      "key": "evidence.language.max_chars",
+      "type": "int",
+      "default": 1000,
+      "min": 100,
+      "max": 10000000,
+      "group": "Evidence",
+      "description": "Characters of a message's own text (subject and cleaned body) its language is identified from."
+    },
+    {
+      "key": "evidence.language.min_letters",
+      "type": "int",
+      "default": 20,
+      "min": 1,
+      "max": 100000,
+      "group": "Evidence",
+      "description": "Letters a message's own text needs for its language to be identified; with fewer it is undetermined (und) and only language-neutral date patterns apply."
+    },
+    {
+      "key": "evidence.lookalike.max_edits",
+      "type": "int",
+      "default": 1,
+      "min": 1,
+      "max": 3,
+      "group": "Evidence",
+      "description": "Edits (insertions, deletions, substitutions, adjacent swaps) within which a sender's registrable domain imitates a correspondent's (lookalike_domain edit)."
+    },
+    {
+      "key": "evidence.lookalike.min_chars",
+      "type": "int",
+      "default": 5,
+      "min": 1,
+      "max": 63,
+      "group": "Evidence",
+      "description": "Shortest first label of a registrable domain that is checked for look-alikes (short names differ by one letter by chance)."
+    },
+    {
+      "key": "evidence.rules.file",
+      "type": "string",
+      "data_file": true,
+      "default": "evidence-rules.json",
+      "pattern": "^[^\\x00]+$",
+      "group": "Evidence",
+      "description": "Evidence rule overrides merged over the built-in rules (internal/evidence/rules.json shape, per rule id, null removes); relative paths are inside the data directory. A missing file means the built-in rules."
+    },
+    {
+      "key": "evidence.rules.min_precision",
+      "type": "float",
+      "default": 0.9,
+      "min": 0,
+      "max": 1,
+      "group": "Evidence",
+      "description": "Lower bound of a rule's measured precision (Wilson, evidence.rules.z) at or above which it may act as an answer key on this install; below it the rule is evidence only."
+    },
+    {
+      "key": "evidence.rules.z",
+      "type": "float",
+      "default": 1.96,
+      "min": 0.1,
+      "max": 5,
+      "group": "Evidence",
+      "description": "Normal quantile of the Wilson interval a rule's precision is measured with (1.96: 95 %)."
+    },
+    {
+      "key": "evidence.runs.keep",
+      "type": "int",
+      "default": 100,
+      "min": 1,
+      "max": 1000000,
+      "group": "Evidence",
+      "description": "Evidence runs kept in the database (the newest; their reports and fingerprints); older ones, and schemas no message's evidence uses any more, are removed after every run."
+    },
+    {
+      "key": "evidence.template.min_cosine",
+      "type": "float",
+      "default": 0.95,
+      "min": 0,
+      "max": 1,
+      "group": "Evidence",
+      "description": "Cosine at or above which two messages of the same sender are near-duplicates (template_matches)."
+    },
+    {
+      "key": "evidence.template.window",
+      "type": "int",
+      "default": 50,
+      "min": 1,
+      "max": 100000,
+      "group": "Evidence",
+      "description": "Earlier messages of the same sender (with a vector) a message is compared with for template_matches."
+    },
+    {
+      "key": "evidence.workers",
+      "type": "int",
+      "default": 0,
+      "min": 0,
+      "max": 256,
+      "group": "Evidence",
+      "description": "Goroutines computing the evidence of a batch in parallel; 0 means one per CPU."
+    },
+    {
+      "key": "feedback.calibration.escalation_accuracy",
+      "type": "float",
+      "default": 0.8,
+      "min": 0.5,
+      "max": 1,
+      "group": "Insights",
+      "description": "Escalation calibration suggests, per escalation role, the lowest certainty threshold whose answers kept (not sent to the Generator) are at least this accurate against the owner's labels."
+    },
+    {
+      "key": "feedback.calibration.min_labels",
+      "type": "int",
+      "default": 3,
+      "min": 1,
+      "max": 100000,
+      "group": "Insights",
+      "description": "Labels a yes/no question needs before a threshold is suggested for it."
+    },
+    {
+      "key": "feedback.calibration.step",
+      "type": "float",
+      "default": 0.05,
+      "min": 0.001,
+      "max": 0.5,
+      "group": "Insights",
+      "description": "Step of the threshold sweep that suggests yes/no thresholds from labels."
+    },
+    {
+      "key": "feedback.correlations.max_cells",
+      "type": "int",
+      "default": 20,
+      "min": 1,
+      "max": 10000,
+      "group": "Insights",
+      "description": "Cells kept in the reply-stance versus their-ask cross-tab (largest first)."
+    },
+    {
+      "key": "feedback.correlations.meaningful_r",
+      "type": "float",
+      "default": 0.15,
+      "min": 0,
+      "max": 1,
+      "group": "Insights",
+      "description": "Smallest |Pearson r| reported as a meaningful length/response-time relationship."
+    },
+    {
+      "key": "feedback.insights.faster_factor",
+      "type": "float",
+      "default": 1.15,
+      "min": 1,
+      "max": 100,
+      "group": "Insights",
+      "description": "You answer a domain faster than it answers you when its median divided by yours is at least this."
+    },
+    {
+      "key": "feedback.insights.known_domain_min",
+      "type": "int",
+      "default": 3,
+      "min": 1,
+      "max": 100000,
+      "group": "Insights",
+      "description": "Received messages that make a domain known for the impersonation check (client, colleague and prospect domains are always known)."
+    },
+    {
+      "key": "feedback.insights.slower_factor",
+      "type": "float",
+      "default": 0.87,
+      "min": 0,
+      "max": 1,
+      "group": "Insights",
+      "description": "You answer a domain slower than it answers you when its median divided by yours is at most this."
+    },
+    {
+      "key": "feedback.insights.top_domains",
+      "type": "int",
+      "default": 15,
+      "min": 1,
+      "max": 10000,
+      "group": "Insights",
+      "description": "Domains listed in the top-domains insight."
+    },
+    {
+      "key": "feedback.insights.top_senders",
+      "type": "int",
+      "default": 25,
+      "min": 1,
+      "max": 10000,
+      "group": "Insights",
+      "description": "Senders listed in the top-senders insight."
+    },
+    {
+      "key": "feedback.min_sample",
+      "type": "int",
+      "default": 5,
+      "min": 1,
+      "max": 100000,
+      "group": "Insights",
+      "description": "Smallest group reported by correlations and per-group insights."
+    },
+    {
+      "key": "feedback.suspicious.address_min_labels",
+      "type": "int",
+      "default": 1,
+      "min": 1,
+      "max": 1000,
+      "group": "Insights",
+      "description": "Labels an address needs before its label-derived suspicious prior is used."
+    },
+    {
+      "key": "feedback.suspicious.domain_min_labels",
+      "type": "int",
+      "default": 2,
+      "min": 1,
+      "max": 1000,
+      "group": "Insights",
+      "description": "Labels a domain needs before its label-derived suspicious prior is used."
+    },
+    {
+      "key": "feedback.weak_reply.within",
+      "type": "duration",
+      "default": "0s",
+      "min": "0s",
+      "max": "8760h",
+      "group": "Insights",
+      "description": "Weak reply labels (did the owner reply?) count only replies sent within this long after the message; 0 counts any later reply."
+    },
+    {
+      "key": "fs.replace_attempts",
+      "type": "int",
+      "default": 10,
+      "min": 1,
+      "max": 100,
+      "group": "Storage",
+      "description": "Attempts to replace a settings or secrets file while another process (anti-virus, indexer, editor) holds it open on Windows."
+    },
+    {
+      "key": "fs.replace_retry_delay",
+      "type": "duration",
+      "default": "100ms",
+      "min": "1ms",
+      "max": "10s",
+      "group": "Storage",
+      "description": "Wait between two attempts to replace a locked file."
+    },
+    {
+      "key": "http.error_text_chars",
+      "type": "int",
+      "default": 300,
+      "min": 20,
+      "max": 100000,
+      "group": "Network",
+      "description": "Characters of a server's error body quoted in an error message and the log."
+    },
+    {
+      "key": "http.idle_conn_timeout",
+      "type": "duration",
+      "default": "90s",
+      "min": "1s",
+      "max": "1h",
+      "group": "Network",
+      "restart_required": true,
+      "description": "Close idle keep-alive connections after this long."
+    },
+    {
+      "key": "http.log.body_max_bytes",
+      "type": "int",
+      "default": 0,
+      "min": 0,
+      "max": 1048576,
+      "group": "Network",
+      "description": "Request/response body bytes logged at debug level. 0 (the default) disables body logging. A positive value stores prompts, mail content and provider answers in the log, so enable it only for a short, bounded diagnosis; secrets are redacted, owner content is not."
+    },
+    {
+      "key": "http.log.request_id_headers",
+      "type": "list",
+      "item_type": "string",
+      "default": [
+        "request-id",
+        "x-request-id",
+        "x-ms-request-id",
+        "cf-ray"
+      ],
+      "pattern": "^[A-Za-z0-9-]+$",
+      "group": "Network",
+      "description": "Response headers logged with every request for support tickets."
+    },
+    {
+      "key": "http.max_idle_conns",
+      "type": "int",
+      "default": 16,
+      "min": 1,
+      "max": 1024,
+      "group": "Network",
+      "restart_required": true,
+      "description": "Idle keep-alive connections kept per client in total (Go treats 0 as unlimited, so the minimum is 1)."
+    },
+    {
+      "key": "http.max_idle_conns_per_host",
+      "type": "int",
+      "default": 4,
+      "min": 1,
+      "max": 1024,
+      "group": "Network",
+      "restart_required": true,
+      "description": "Idle keep-alive connections kept per host."
+    },
+    {
+      "key": "http.max_response_mb",
+      "type": "int",
+      "default": 16,
+      "min": 1,
+      "max": 4096,
+      "group": "Network",
+      "description": "Largest response body an adapter reads (a memory safety limit: decision answers are a few KB, a batch of 32 embeddings ≈ 0.3 MB); a larger one is an error."
+    },
+    {
+      "key": "http.proxy_url",
+      "type": "string",
+      "default": "",
+      "format": "http_url",
+      "secret": true,
+      "group": "Network",
+      "restart_required": true,
+      "description": "Explicit HTTP(S) proxy; empty uses the system environment (HTTPS_PROXY/NO_PROXY)."
+    },
+    {
+      "key": "http.retry.base_delay",
+      "type": "duration",
+      "default": "1s",
+      "min": "1ms",
+      "max": "1m",
+      "group": "Network",
+      "description": "Backoff for attempt n is base_delay·2^n, capped, then jittered."
+    },
+    {
+      "key": "http.retry.honor_retry_after",
+      "type": "bool",
+      "default": true,
+      "group": "Network",
+      "description": "Use the server's retry-after-ms / Retry-After delay instead of the computed backoff."
+    },
+    {
+      "key": "http.retry.jitter",
+      "type": "float",
+      "default": 0.2,
+      "min": 0,
+      "max": 1,
+      "group": "Network",
+      "description": "Fraction of each backoff that is randomised (0 = none)."
+    },
+    {
+      "key": "http.retry.max_attempts",
+      "type": "int",
+      "default": 5,
+      "min": 1,
+      "max": 20,
+      "group": "Network",
+      "description": "Attempts per request, including the first."
+    },
+    {
+      "key": "http.retry.max_delay",
+      "type": "duration",
+      "default": "60s",
+      "min": "1ms",
+      "max": "10m",
+      "group": "Network",
+      "description": "Backoff cap for retryable statuses."
+    },
+    {
+      "key": "http.retry.max_retry_after",
+      "type": "duration",
+      "default": "120s",
+      "min": "1ms",
+      "max": "1h",
+      "group": "Network",
+      "description": "A server-requested delay longer than this ends the retries (the response is returned)."
+    },
+    {
+      "key": "http.retry.statuses",
+      "type": "list",
+      "item_type": "int",
+      "default": [
+        429,
+        502,
+        503,
+        504
+      ],
+      "min": 400,
+      "max": 599,
+      "not_in": [
+        400,
+        401,
+        402,
+        403,
+        404,
+        422,
+        500
+      ],
+      "group": "Network",
+      "description": "HTTP statuses that are retried even though the request was written (the server declined it). The not_in list can never be retried (a 500 may have consumed tokens; 400/401/402/403/404/422 can never succeed by retrying); it also binds every provider override."
+    },
+    {
+      "key": "http.retry.unsent_max_delay",
+      "type": "duration",
+      "default": "8s",
+      "min": "1ms",
+      "max": "10m",
+      "group": "Network",
+      "description": "Backoff cap for connection failures that happened before the request was written."
+    },
+    {
+      "key": "http.timeout.dial",
+      "type": "duration",
+      "default": "10s",
+      "min": "100ms",
+      "max": "5m",
+      "group": "Network",
+      "restart_required": true,
+      "description": "TCP connect timeout."
+    },
+    {
+      "key": "http.timeout.response_header",
+      "type": "duration",
+      "default": "120s",
+      "min": "1s",
+      "max": "30m",
+      "group": "Network",
+      "restart_required": true,
+      "description": "Wait for response headers after the request was written. Expiry is terminal (never retried: the request may have been billed)."
+    },
+    {
+      "key": "http.timeout.tls_handshake",
+      "type": "duration",
+      "default": "10s",
+      "min": "100ms",
+      "max": "5m",
+      "group": "Network",
+      "restart_required": true,
+      "description": "TLS handshake timeout."
+    },
+    {
+      "key": "http.timeout.total",
+      "type": "duration",
+      "default": "10m",
+      "min": "1s",
+      "max": "2h",
+      "group": "Network",
+      "restart_required": true,
+      "description": "Upper bound for one logical request including all retries."
+    },
+    {
+      "key": "http.user_agent",
+      "type": "string",
+      "default": "Mailsense",
+      "pattern": "^[\\x20-\\x7e]+$",
+      "group": "Network",
+      "description": "User-Agent header for outgoing requests that do not set one."
+    },
+    {
+      "key": "index.runs.keep",
+      "type": "int",
+      "default": 100,
+      "min": 1,
+      "max": 1000000,
+      "group": "Semantic index",
+      "description": "Index runs kept in the database (the newest, with their reports); older run reports are removed after every finished run. The latest run is always kept. The database file may not shrink because freed pages are reused."
+    },
+    {
+      "key": "index.retry_unavailable",
+      "type": "duration",
+      "default": "15m",
+      "min": "2m",
+      "max": "1h",
+      "group": "Semantic index",
+      "description": "Wait after an index run stops because the embedder is unavailable before the automatic reconcile plans or starts another run; 15m by default (2m to 1h). A settings change, a provider that reports healthy, a runtime that becomes ready or new mail clears the wait. The latest unavailable run and its blocker stay visible; the coverage of the stopped run is reused and no work is hidden."
+    },
+    {
+      "key": "index.after_sync",
+      "type": "bool",
+      "default": true,
+      "group": "Semantic index",
+      "description": "Start an index run after every successful sync run (one at a time; a run that is busy or finds nothing new costs nothing)."
+    },
+    {
+      "key": "index.folder_roles",
+      "type": "list",
+      "item_type": "string",
+      "default": [
+        "inbox",
+        "sent",
+        "archive",
+        "other"
+      ],
+      "format": "one_of:folder_role",
+      "group": "Semantic index",
+      "description": "Folder roles whose mail is embedded (drafts, deleted items and junk are left out by default)."
+    },
+    {
+      "key": "index.max_logged_failures",
+      "type": "int",
+      "default": 20,
+      "min": 0,
+      "max": 100000,
+      "group": "Semantic index",
+      "description": "Failed batches listed in an index run's report and log (all are counted)."
+    },
+    {
+      "key": "index.quarantine_after",
+      "type": "int",
+      "default": 2,
+      "min": 1,
+      "max": 1000,
+      "group": "Semantic index",
+      "description": "Failed attempts after which a message is left out of indexing until it changes (an input that crashes the runtime must not block the newest-first index); quarantined messages are counted in the coverage."
+    },
+    {
+      "key": "index.store_busy_attempts",
+      "type": "int",
+      "default": 4,
+      "min": 1,
+      "max": 10,
+      "group": "Storage",
+      "description": "Attempts for any store write that SQLite answers with BUSY/LOCKED. This one pair governs every bounded store retry: index batches, sync message flushes, triage decisions and failures, label writes (including the layer-1 judge), and usage records. store.busy_timeout already waits inside SQLite; these attempts cover a writer that holds the lock longer. A write that still stays busy stops its owner: an index run stops without counting or quarantining messages (its stored vectors are kept), and a triage decision is recorded as a failure so the message stays pending."
+    },
+    {
+      "key": "index.store_busy_delay",
+      "type": "duration",
+      "default": "250ms",
+      "min": "10ms",
+      "max": "10s",
+      "group": "Storage",
+      "description": "Fixed wait before the next attempt of any store write that answered BUSY/LOCKED (each attempt also waits store.busy_timeout inside SQLite)."
+    },
+    {
+      "key": "jobs.history_size",
+      "type": "int",
+      "default": 100,
+      "min": 1,
+      "max": 100000,
+      "group": "Jobs",
+      "description": "Finished jobs kept for the UI."
+    },
+    {
+      "key": "resource.guard",
+      "type": "bool",
+      "default": true,
+      "group": "Resources",
+      "description": "Keep the host below the CPU, memory and disk ceilings. When a ceiling is reached, new background work is refused with a clear message and running work pauses between units until the host falls back under it. Off: no ceiling is enforced."
+    },
+    {
+      "key": "resource.cpu.max_percent",
+      "type": "int",
+      "default": 80,
+      "min": 10,
+      "max": 100,
+      "group": "Resources",
+      "description": "Highest host CPU use, in percent, at which background work may run. At or above it new work is refused and running work pauses. 100 disables the CPU ceiling."
+    },
+    {
+      "key": "resource.ram.max_percent",
+      "type": "int",
+      "default": 85,
+      "min": 10,
+      "max": 100,
+      "group": "Resources",
+      "description": "Highest host memory use, in percent, at which background work may run. At or above it new work is refused and running work pauses. 100 disables the memory ceiling."
+    },
+    {
+      "key": "resource.disk.max_percent",
+      "type": "int",
+      "default": 90,
+      "min": 50,
+      "max": 100,
+      "group": "Resources",
+      "description": "Highest used space, in percent, of the volume that holds the data directory. At or above it work that writes mail, index or model data is refused, so the app can never fill the disk. 100 disables the disk ceiling."
+    },
+    {
+      "key": "resource.sample_interval",
+      "type": "duration",
+      "default": "2s",
+      "min": "250ms",
+      "max": "30s",
+      "group": "Resources",
+      "description": "How often the guard re-reads host CPU, memory and disk use. A paused job re-checks on this cadence, and the status endpoint never reports a reading older than this."
+    },
+    {
+      "key": "judge.call_timeout",
+      "type": "duration",
+      "default": "90s",
+      "min": "100ms",
+      "max": "10m",
+      "group": "Judge",
+      "description": "Longest time one judge call may take. A provider that stops answering must not hold a labelling run (or the job behind it): past this the call fails, the message stays unlabelled and the run stops after the consecutive-failure limit."
+    },
+    {
+      "key": "judge.provider",
+      "type": "string",
+      "default": "",
+      "pattern": "^$|^[a-z0-9][a-z0-9_-]*$",
+      "group": "Labels",
+      "description": "Record id of the chat generator (protocol kind generator) that labels messages for the judge layer: the run_judge action's provider and the one Deps.JudgeCost prices. A separate setting from triage.decider because a decider is a different engine kind. Empty = not configured: the judge action reports an explicit blocker."
+    },
+    {
+      "key": "judge.workers",
+      "type": "int",
+      "default": 4,
+      "min": 1,
+      "max": 32,
+      "group": "Labels",
+      "description": "Judge calls one run keeps in flight. The calls are I/O-bound (2–30 s each), so a few workers turn a 200-message batch into minutes instead of an hour; the store writes and the job progress stay serialized."
+    },
+    {
+      "key": "labels.auto",
+      "type": "bool",
+      "default": true,
+      "group": "Labels",
+      "description": "Label automatically after a sync or a training run when a question still lacks the evaluation labels its certification needs. The judge is the paid teacher; the loop selects uncertain messages first, stops at labels.auto.max messages or the per-run budget, and never answers with the judge (answers still come from layer 1)."
+    },
+    {
+      "key": "labels.auto.batch",
+      "type": "int",
+      "default": 200,
+      "min": 1,
+      "max": 5000,
+      "group": "Labels",
+      "description": "Messages one automatic judge batch may buy. One judge call labels every question of a message."
+    },
+    {
+      "key": "labels.auto.max",
+      "type": "int",
+      "default": 2000,
+      "min": 0,
+      "max": 100000,
+      "group": "Labels",
+      "description": "Most messages the automatic label loop buys for the current database (0 = no automatic labels). The counter is stored with the mailbox, so a restart does not restart the spend."
+    },
+    {
+      "key": "labels.auto.budget_usd",
+      "type": "float",
+      "default": 4,
+      "min": 0,
+      "max": 1000,
+      "group": "Labels",
+      "description": "Per-batch spending ceiling in USD. The judge run is refused before its first call when its estimate exceeds it; an unpriced judge is refused, never run unpriced."
+    },
+    {
+      "key": "labels.auto.interval",
+      "type": "duration",
+      "default": "5m",
+      "min": "1m",
+      "max": "1h",
+      "group": "Labels",
+      "description": "How often the automatic label loop checks for a short question when no sync or training event arrives."
+    },
+    {
+      "key": "layer1.after_runs",
+      "type": "bool",
+      "default": true,
+      "group": "Layer 1",
+      "description": "Train layer 1 (a job) after every evidence run, every index run that committed work (stored or confirmed at least one vector), every change of labels or of a layer-1 setting, when its inputs changed (one run at a time; a request during a run starts one more after it)."
+    },
+    {
+      "key": "layer1.calibration.method",
+      "type": "enum",
+      "default": "temperature",
+      "enum": [
+        "temperature",
+        "none"
+      ],
+      "group": "Layer 1",
+      "description": "How a question's probabilities are calibrated on its out-of-fold predictions of the selection labels: temperature (one parameter; with kNN on, the pooling weights too) or none."
+    },
+    {
+      "key": "layer1.calibration.prior_labels",
+      "type": "float",
+      "default": 1,
+      "min": 0,
+      "max": 1000,
+      "group": "Layer 1",
+      "description": "Strength, in labels, of the log-normal prior centred on 1 that each fitted calibration scale carries (keeps a one-sided question's temperature moderate); 0 removes it."
+    },
+    {
+      "key": "layer1.certify.fraction",
+      "type": "float",
+      "default": 0.5,
+      "min": 0.05,
+      "max": 0.95,
+      "group": "Layer 1",
+      "description": "Share of conversations whose evaluation labels form the certification part: held out of every fit, they test once the operating threshold chosen on the other (selection) part, against the model that answers. A conversation stays in its part whatever labels are added."
+    },
+    {
+      "key": "layer1.cv.folds",
+      "type": "int",
+      "default": 5,
+      "min": 2,
+      "max": 50,
+      "group": "Layer 1",
+      "description": "Folds of the cross-fitting over the selection part of the evaluation labels (grouped by conversation: a conversation never spans two folds)."
+    },
+    {
+      "key": "layer1.embedding.dimensions",
+      "type": "int",
+      "default": 0,
+      "min": 0,
+      "max": 100000,
+      "group": "Layer 1",
+      "description": "Embedding length the heads read: the first values of the stored vectors, re-normalised (a Matryoshka model is trained to be cut to its listed lengths, e.g. 512, 256, 128 for EmbeddingGemma); 0 means the stored length; more than the stored length is refused at the run."
+    },
+    {
+      "key": "layer1.features.embedding",
+      "type": "bool",
+      "default": true,
+      "group": "Layer 1",
+      "description": "Feed the message's embedding (the current vector space) to the layer-1 heads."
+    },
+    {
+      "key": "layer1.features.evidence",
+      "type": "bool",
+      "default": true,
+      "group": "Layer 1",
+      "description": "Feed the message's causal layer-0 feature cells (evidence feature view) to the layer-1 heads."
+    },
+    {
+      "key": "layer1.heads.score",
+      "type": "enum",
+      "default": "multinomial",
+      "enum": [
+        "multinomial",
+        "ordinal"
+      ],
+      "group": "Layer 1",
+      "description": "The head of score questions: multinomial (a softmax over the levels) or ordinal (cumulative logit, proportional odds: one direction for every level). The default was chosen by a dev-time measurement; ordinal is kept for mailboxes where it measures better."
+    },
+    {
+      "key": "layer1.knn.enabled",
+      "type": "bool",
+      "default": false,
+      "group": "Layer 1",
+      "description": "Pool each head with the class distribution of the message's nearest labelled neighbours (earlier messages only, never its own conversation; layer1.knn.*). Only for small mailboxes: the pool scans the labelled population per answer, so it is disabled above a fixed safety bound."
+    },
+    {
+      "key": "layer1.knn.k",
+      "type": "int",
+      "default": 20,
+      "min": 1,
+      "max": 1000,
+      "group": "Layer 1",
+      "description": "Neighbours of the kNN distribution."
+    },
+    {
+      "key": "layer1.knn.prior_strength",
+      "type": "float",
+      "default": 1,
+      "min": 0,
+      "max": 1000,
+      "group": "Layer 1",
+      "description": "Pseudo-weight α of the class prior in the kNN distribution (keeps it finite with few or no neighbours)."
+    },
+    {
+      "key": "layer1.knn.temperature",
+      "type": "float",
+      "default": 0.05,
+      "min": 0.001,
+      "max": 10,
+      "group": "Layer 1",
+      "description": "Similarity temperature τ of the kNN weights e^((s−1)/τ)."
+    },
+    {
+      "key": "layer1.l2.default_log10",
+      "type": "int",
+      "default": -3,
+      "min": -12,
+      "max": 4,
+      "group": "Layer 1",
+      "description": "The L2 penalty (λ = 10^g) used for a question with too few evaluation labels to be measured (the requirement's min_eval_labels; no choice on labels)."
+    },
+    {
+      "key": "layer1.l2.grid_log10",
+      "type": "list",
+      "item_type": "int",
+      "default": [
+        -4,
+        -3,
+        -2,
+        -1
+      ],
+      "min": -12,
+      "max": 4,
+      "group": "Layer 1",
+      "description": "The L2 penalties tried per question, as powers of ten (λ = 10^g); the one with the lowest log loss on the selection part of the evaluation labels (out of sample) is kept. Tried from the largest down; no fit that scores a label starts from parameters fitted on it."
+    },
+    {
+      "key": "layer1.lbfgs.max_iterations",
+      "type": "int",
+      "default": 300,
+      "min": 1,
+      "max": 100000,
+      "group": "Layer 1",
+      "description": "Iteration cap of one L-BFGS fit."
+    },
+    {
+      "key": "layer1.lbfgs.memory",
+      "type": "int",
+      "default": 10,
+      "min": 1,
+      "max": 100,
+      "group": "Layer 1",
+      "description": "Correction pairs L-BFGS keeps."
+    },
+    {
+      "key": "layer1.lbfgs.tolerance",
+      "type": "float",
+      "default": 0.0001,
+      "min": 1e-12,
+      "max": 1,
+      "group": "Layer 1",
+      "description": "A fit stops when the largest gradient component is at most tolerance × max(1, |loss|)."
+    },
+    {
+      "key": "layer1.promote.max_nll_regression",
+      "type": "float",
+      "default": 0.01,
+      "min": 0,
+      "max": 10,
+      "group": "Layer 1",
+      "description": "A new model replaces a question's active one unless its out-of-fold log loss on the selection labels is worse by more than this; otherwise the active model stays and the report says why."
+    },
+    {
+      "key": "layer1.requirements.file",
+      "type": "string",
+      "data_file": true,
+      "default": "layer1-requirements.json",
+      "pattern": "^[^\\x00]+$",
+      "group": "Layer 1",
+      "description": "Requirement overrides merged over the built-in ones (internal/layer1/requirements.json shape: defaults and per question, null removes); relative paths are inside the data directory. A missing file means the built-in requirements."
+    },
+    {
+      "key": "layer1.retain.retired_models",
+      "type": "int",
+      "default": 3,
+      "min": 0,
+      "max": 1000,
+      "group": "Layer 1",
+      "description": "Non-active models kept per question after a run (a look back); the active one is always kept."
+    },
+    {
+      "key": "layer1.retrain.min_new_labels",
+      "type": "int",
+      "default": 20,
+      "min": 1,
+      "max": 1000000,
+      "group": "Layer 1",
+      "description": "Changed labels (added, changed or removed, any source) since the last run that start a new training run; any change of an evaluation label (the teacher sources with eval) re-scores the verdicts at once without training; any change of the evidence schema, the vector space, a data file or a layer-1 setting retrains."
+    },
+    {
+      "key": "layer1.retrain.min_interval",
+      "type": "duration",
+      "default": "15m",
+      "min": "0s",
+      "max": "24h",
+      "group": "Layer 1",
+      "description": "Shortest time between two automatic training runs. A teacher batch every few minutes would otherwise restart a five-minute pass forever; a run requested during the interval starts once, when it ends. 0 trains as soon as the inputs change."
+    },
+    {
+      "key": "layer1.shard_rows",
+      "type": "int",
+      "default": 512,
+      "min": 1,
+      "max": 1000000,
+      "group": "Layer 1",
+      "description": "Training rows per gradient shard: shards are summed in a fixed order, so a fit is bitwise the same whatever layer1.workers."
+    },
+    {
+      "key": "layer1.teachers.file",
+      "type": "string",
+      "data_file": true,
+      "default": "layer1-teachers.json",
+      "pattern": "^[^\\x00]+$",
+      "group": "Layer 1",
+      "description": "Teacher-source overrides merged over the built-in sources (internal/layer1/teachers.json shape: per source, and per question and source, null removes); relative paths are inside the data directory. A missing file means the built-in sources."
+    },
+    {
+      "key": "layer1.workers",
+      "type": "int",
+      "default": 0,
+      "min": 0,
+      "max": 256,
+      "group": "Layer 1",
+      "description": "Goroutines computing a fit's gradient shards; 0 means one per CPU. The result never depends on it (layer1.shard_rows fixes the summation order)."
+    },
+    {
+      "key": "learning.test_mode",
+      "type": "bool",
+      "default": false,
+      "group": "Learning",
+      "description": "Unlock the automatic answer screens (Mail, Triage, Search) in an uncertified test preview, including the local model's threshold-free best guess shown before certification. The learning gate stays closed, labels and certification are unchanged, and every preview screen says so. Reversible at any time from the Hub or Settings."
+    },
+    {
+      "key": "log.components",
+      "type": "list",
+      "item_type": "string",
+      "default": [],
+      "format": "pair:log.level",
+      "group": "Logging",
+      "description": "Per-component levels as component=level (e.g. store=debug). A dotted component inherits from its parent (source.archive from source)."
+    },
+    {
+      "key": "log.console.enabled",
+      "type": "bool",
+      "default": false,
+      "group": "Logging",
+      "description": "Also write log lines to stderr (development)."
+    },
+    {
+      "key": "log.events.enabled",
+      "type": "bool",
+      "default": true,
+      "group": "Logging",
+      "description": "Publish every log entry on the event bus (live Logs view)."
+    },
+    {
+      "key": "log.file.dir",
+      "type": "string",
+      "default": "logs",
+      "pattern": "^[^\\x00]+$",
+      "group": "Logging",
+      "restart_required": true,
+      "description": "Log directory; relative paths are inside the data directory."
+    },
+    {
+      "key": "log.file.enabled",
+      "type": "bool",
+      "default": true,
+      "group": "Logging",
+      "restart_required": true,
+      "description": "Write JSON log lines to a rotating file in the data directory."
+    },
+    {
+      "key": "log.file.max_files",
+      "type": "int",
+      "default": 5,
+      "min": 1,
+      "max": 100,
+      "group": "Logging",
+      "description": "Log files kept, including the active one."
+    },
+    {
+      "key": "log.file.max_size_mb",
+      "type": "int",
+      "default": 10,
+      "min": 1,
+      "max": 1024,
+      "group": "Logging",
+      "description": "Rotate the log file when it would exceed this size (MiB)."
+    },
+    {
+      "key": "log.file.name",
+      "type": "string",
+      "default": "mailsense.log",
+      "pattern": "^[A-Za-z0-9._-]+$",
+      "group": "Logging",
+      "restart_required": true,
+      "description": "Name of the active log file; rotated files get .1, .2, ... suffixes."
+    },
+    {
+      "key": "log.level",
+      "type": "enum",
+      "default": "info",
+      "enum": [
+        "debug",
+        "info",
+        "warn",
+        "error"
+      ],
+      "group": "Logging",
+      "description": "Minimum level recorded for components without their own level."
+    },
+    {
+      "key": "log.redact.min_secret_length",
+      "type": "int",
+      "default": 4,
+      "min": 1,
+      "max": 64,
+      "group": "Logging",
+      "description": "Registered secret values shorter than this are not redacted (too short to be safe to replace)."
+    },
+    {
+      "key": "log.redact.patterns",
+      "type": "list",
+      "item_type": "string",
+      "format": "regexp",
+      "group": "Logging",
+      "default": [],
+      "description": "Extra regular expressions whose matches are replaced in every log message and attribute. The built-in patterns are always applied and cannot be replaced: bearer/basic credentials, sk- keys, key=value or \"key\": \"value\" pairs whose key mentions token, secret, password, api key or authorization (purely numeric unquoted values such as input_tokens=12 are kept), and email addresses (local@domain, including internationalized letters and dotless internal hosts; a lone \"@\" or a bare word such as noreply is not an address). Entries here add to those built-ins."
+    },
+    {
+      "key": "log.ring.size",
+      "type": "int",
+      "default": 2000,
+      "min": 10,
+      "max": 100000,
+      "group": "Logging",
+      "description": "Log entries kept in memory for the Logs view."
+    },
+    {
+      "key": "mail.body.html_max_chars",
+      "type": "int",
+      "default": 500000,
+      "min": 1,
+      "max": 10000000,
+      "group": "Mail",
+      "description": "Longest raw HTML body kept per message for display (UTF-16 code units). It is cut at a token boundary, flagged truncated (Message.BodyHTMLTruncated, API body_html_truncated) and sanitized on every read; it is never used for learning or search."
+    },
+    {
+      "key": "mail.body.max_chars",
+      "type": "int",
+      "default": 100000,
+      "min": 1,
+      "max": 10000000,
+      "group": "Mail",
+      "description": "Longest plain-text body kept per message, for every source (UTF-16 code units, as Outlook counts); a longer body is cut and flagged truncated (Message.BodyTruncated)."
+    },
+    {
+      "key": "mail.inline_assets.max_part_bytes",
+      "type": "int",
+      "default": 4194304,
+      "min": 0,
+      "max": 33554432,
+      "group": "Mail",
+      "description": "Largest decoded inline image kept per message. A larger part keeps its metadata but no bytes, so the body shows the inline placeholder instead of loading it."
+    },
+    {
+      "key": "mail.inline_assets.max_total_bytes",
+      "type": "int",
+      "default": 16777216,
+      "min": 0,
+      "max": 134217728,
+      "group": "Mail",
+      "description": "Total decoded inline image bytes kept for one message. The oldest parts past this budget keep metadata only; a message can never make one sync hold an unbounded image payload."
+    },
+    {
+      "key": "mail.inline_assets.max_parts",
+      "type": "int",
+      "default": 64,
+      "min": 0,
+      "max": 256,
+      "group": "Mail",
+      "description": "Largest number of inline image parts whose bytes are kept for one message. A signature logo repeated in a thread is stored once by SHA-256; this bounds the per-message work."
+    },
+    {
+      "key": "mail.domains.learn.max_cothread_share",
+      "type": "float",
+      "default": 0.05,
+      "min": 0,
+      "max": 1,
+      "group": "Mail",
+      "description": "A registrable domain is learned as shared (free mail, ISP) when at most this share of the threads involving it hold two of its addresses (colleagues copy each other; strangers on one free-mail domain never meet in a thread)."
+    },
+    {
+      "key": "mail.domains.learn.min_senders",
+      "type": "int",
+      "default": 10,
+      "min": 2,
+      "max": 100000,
+      "group": "Mail",
+      "description": "Distinct correspondents of a registrable domain (the owner excluded) needed before it can be learned as shared."
+    },
+    {
+      "key": "mail.domains.shared",
+      "type": "list",
+      "item_type": "string",
+      "default": [],
+      "pattern": "^[^\\s@]+\\.[^\\s@]+$",
+      "group": "Mail",
+      "learnable": true,
+      "description": "Registrable domains shared by unrelated people on this install (free-mail and ISP domains), learned structurally (many senders who never share a thread); senders of these domains are never grouped by domain (priors, few-shot examples, insights, suspicious labels). Set it to override what was learned."
+    },
+    {
+      "key": "mail.headers.max_chars",
+      "type": "int",
+      "default": 65536,
+      "min": 1,
+      "max": 10000000,
+      "group": "Mail",
+      "description": "Longest transport-header block kept per message, for every source (UTF-16 code units); a longer block is cut, and the cut is recorded (Outlook: detail statistics; mail files: the alteration headers_truncated)."
+    },
+    {
+      "key": "mail.no_date.year_at_least",
+      "type": "int",
+      "default": 4500,
+      "min": 1,
+      "max": 9999,
+      "group": "Mail",
+      "description": "Timestamps in this year or later mean \"no date\" (Outlook uses 4501-01-01) and are stored empty."
+    },
+    {
+      "key": "mail.no_date.year_at_most",
+      "type": "int",
+      "default": 1900,
+      "min": 1,
+      "max": 9999,
+      "group": "Mail",
+      "description": "Timestamps in this year or earlier mean \"no date\" and are stored empty."
+    },
+    {
+      "key": "mail.subject.learn.max_runes",
+      "type": "int",
+      "default": 12,
+      "min": 1,
+      "max": 40,
+      "group": "Mail",
+      "description": "Longest leading word (before the first colon of a subject) considered as a reply prefix when learning."
+    },
+    {
+      "key": "mail.subject.learn.min_count",
+      "type": "int",
+      "default": 20,
+      "min": 1,
+      "max": 100000,
+      "group": "Mail",
+      "description": "Replies that must start with a word before it is learned as a reply prefix."
+    },
+    {
+      "key": "mail.subject.learn.min_reply_share",
+      "type": "float",
+      "default": 0.9,
+      "min": 0.5,
+      "max": 1,
+      "group": "Mail",
+      "description": "Share of the subjects starting with a word that must be replies (In-Reply-To or References) for it to be learned as a reply prefix (\"Ticket:\" or \"Invoice:\" tags start new mail too and are never learned)."
+    },
+    {
+      "key": "mail.subject.max_prefixes",
+      "type": "int",
+      "default": 10,
+      "min": 1,
+      "max": 20,
+      "group": "Mail",
+      "description": "How many stacked reply/forward prefixes are removed (RE: TR: AW: …)."
+    },
+    {
+      "key": "mail.subject.prefixes",
+      "type": "list",
+      "item_type": "string",
+      "default": [],
+      "pattern": "^[^\\s:：](.*[^\\s:：])?$",
+      "group": "Mail",
+      "description": "Reply/forward subject prefixes ADDED to the shipped list (internal/mail/subject_prefixes.json: the reply and forward abbreviations of a pinned revision of Wikipedia's \"List of email subject abbreviations\" plus documented extras, scripts/update-prefixes.sh), any script; prefixes are removed before subjects are compared and recognised as \"part of an ongoing thread\" in triage facts, matched case-insensitively after NFKC folding (full-width forms and colons), with an optional counter (RE[2]:). Learned prefixes are added from mail.subject.prefixes_learned."
+    },
+    {
+      "key": "mail.subject.prefixes_learned",
+      "type": "list",
+      "item_type": "string",
+      "default": [],
+      "pattern": "^[^\\s:：]+$",
+      "group": "Mail",
+      "learnable": true,
+      "description": "Reply/forward subject prefixes learned on this install (the install profile: the word before the colon of replies, In-Reply-To set, that the shipped list lacks), used together with the shipped list. Set it to override what was learned."
+    },
+    {
+      "key": "mailboxes.declared_addresses",
+      "type": "list",
+      "item_type": "string",
+      "default": [],
+      "pattern": "^store-[0-9a-f]{12}=\\S.*$",
+      "group": "Mailboxes",
+      "description": "Owner addresses the user declares for a picked store, as <store key>=<address> (one entry per address): for sources that report no owner (a PST, a file import) or to add an alias. Joined with the addresses the source reports; a picked store with neither has no owner identity and blocks learning until one is declared."
+    },
+    {
+      "key": "mailboxes.selected",
+      "type": "list",
+      "item_type": "string",
+      "default": [],
+      "pattern": "^store-[0-9a-f]{12}$",
+      "group": "Mailboxes",
+      "description": "Picked mailbox stores, by stable key (every discovered store is listed with its key, kind, counts and cached/online state). Empty by default: nothing syncs until the user picks, and no store (shared, delegate, archive or public least of all) is ever preselected. A picked store that cannot be read is reported and waited on, never replaced by another."
+    },
+    {
+      "key": "outlook.breaker.cooldown",
+      "type": "duration",
+      "default": "5m",
+      "min": "1s",
+      "max": "24h",
+      "group": "Outlook",
+      "description": "After the connection to Outlook is lost (Outlook crashed, closed or restarted), no reconnect for this long; each further loss within outlook.breaker.window multiplies it by outlook.breaker.cooldown_growth."
+    },
+    {
+      "key": "outlook.breaker.cooldown_growth",
+      "type": "float",
+      "default": 2,
+      "min": 1,
+      "max": 100,
+      "group": "Outlook",
+      "description": "Factor the reconnect cooldown grows by with each further lost connection within outlook.breaker.window."
+    },
+    {
+      "key": "outlook.breaker.cooldown_max",
+      "type": "duration",
+      "default": "2h",
+      "min": "1s",
+      "max": "168h",
+      "group": "Outlook",
+      "description": "Longest reconnect cooldown."
+    },
+    {
+      "key": "outlook.breaker.max_losses",
+      "type": "int",
+      "default": 3,
+      "min": 1,
+      "max": 100,
+      "group": "Outlook",
+      "description": "After this many lost connections within outlook.breaker.window, syncing Outlook stops until the user resumes it."
+    },
+    {
+      "key": "outlook.breaker.min_factor",
+      "type": "float",
+      "default": 0.1,
+      "min": 0.001,
+      "max": 1,
+      "group": "Outlook",
+      "description": "The pace is never reduced below this factor of itself, however many lost connections (or a recently started Outlook) reduced it."
+    },
+    {
+      "key": "outlook.breaker.min_uptime",
+      "type": "duration",
+      "default": "15m",
+      "min": "1m",
+      "max": "24h",
+      "group": "Outlook",
+      "description": "A restarted Outlook is still checking its data file and reopening mailboxes: after a lost connection, reading resumes only once the running Outlook process has been up this long; on any other connect (the first one, after a resume) to an Outlook up less than this, reading runs at the pace × outlook.breaker.resume_factor until it has."
+    },
+    {
+      "key": "outlook.breaker.resume_factor",
+      "type": "float",
+      "default": 0.5,
+      "min": 0.01,
+      "max": 1,
+      "group": "Outlook",
+      "description": "Each lost connection within outlook.breaker.window multiplies the pace (busy share and calls per second, idle and active) by this factor, and so does an Outlook up less than outlook.breaker.min_uptime; never below outlook.breaker.min_factor."
+    },
+    {
+      "key": "outlook.breaker.window",
+      "type": "duration",
+      "default": "24h",
+      "min": "1m",
+      "max": "2160h",
+      "group": "Outlook",
+      "description": "Lost connections are counted over this sliding window (cooldown growth, reduced pace, the stop after outlook.breaker.max_losses)."
+    },
+    {
+      "key": "outlook.com.retry.attempts",
+      "type": "int",
+      "default": 10,
+      "min": 1,
+      "max": 100,
+      "group": "Outlook",
+      "description": "Attempts per COM call while Outlook answers \"busy\" (RPC_E_CALL_REJECTED / RPC_E_SERVERCALL_RETRYLATER, e.g. a dialog is open)."
+    },
+    {
+      "key": "outlook.com.retry.base_delay",
+      "type": "duration",
+      "default": "50ms",
+      "min": "1ms",
+      "max": "10s",
+      "group": "Outlook",
+      "description": "Wait before the second attempt of a busy COM call; doubled per attempt up to outlook.com.retry.max_delay."
+    },
+    {
+      "key": "outlook.com.retry.max_delay",
+      "type": "duration",
+      "default": "2s",
+      "min": "1ms",
+      "max": "1m",
+      "group": "Outlook",
+      "description": "Longest wait between two attempts of a busy COM call."
+    },
+    {
+      "key": "outlook.discover.count_unpicked",
+      "type": "bool",
+      "default": false,
+      "group": "Outlook",
+      "description": "Walk every mailbox that is not picked once per connection to show its folder and item counts. Off by default: a whole-profile walk is thousands of Outlook calls (tens of seconds per online mailbox) and can block on an offline delegate; off, unpicked mailboxes are listed without counts (folders and items -1) and are counted after they are picked."
+    },
+    {
+      "key": "outlook.folders.exclude_patterns",
+      "type": "list",
+      "item_type": "string",
+      "format": "regexp",
+      "default": [],
+      "group": "Outlook",
+      "description": "Regular expressions; a mail folder whose full Outlook path matches one is not synced (its subfolders are matched on their own paths)."
+    },
+    {
+      "key": "outlook.pace.active.busy_share",
+      "type": "float",
+      "default": 0.05,
+      "min": 0.01,
+      "max": 1,
+      "group": "Outlook",
+      "description": "outlook.pace.busy_share while the user is using the computer (outlook.pace.idle_after), so Outlook stays responsive for them."
+    },
+    {
+      "key": "outlook.pace.active.calls_per_second",
+      "type": "float",
+      "default": 20,
+      "min": 0.1,
+      "max": 100000,
+      "group": "Outlook",
+      "description": "outlook.pace.calls_per_second while the user is using the computer."
+    },
+    {
+      "key": "outlook.pace.busy_share",
+      "type": "float",
+      "default": 0.25,
+      "min": 0.01,
+      "max": 1,
+      "group": "Outlook",
+      "description": "Largest share of wall time the connector keeps Outlook busy while the user is away: every call runs on Outlook's own user-interface thread, so after a call that took d the next one waits d × (1 − share) / share. 1 disables this limit."
+    },
+    {
+      "key": "outlook.pace.calls_per_second",
+      "type": "float",
+      "default": 200,
+      "min": 0.1,
+      "max": 100000,
+      "group": "Outlook",
+      "description": "Most Outlook calls per second while the user is away (a detail read is about ten calls)."
+    },
+    {
+      "key": "outlook.pace.idle_after",
+      "type": "duration",
+      "default": "2m",
+      "min": "1s",
+      "max": "24h",
+      "group": "Outlook",
+      "description": "The user counts as away once their last keyboard or mouse input (in this Windows session) is older than this; until then the active pace applies."
+    },
+    {
+      "key": "outlook.pace.max_wait",
+      "type": "duration",
+      "default": "1m",
+      "min": "1s",
+      "max": "1h",
+      "group": "Outlook",
+      "description": "Longest wait between two Outlook calls whatever the pace: a pace reduced many times over (outlook.breaker.*) waits at most this long between calls."
+    },
+    {
+      "key": "outlook.sync.recheck_after",
+      "type": "duration",
+      "default": "15m",
+      "min": "0s",
+      "max": "168h",
+      "group": "Outlook",
+      "description": "Backstop: re-snapshot every synced folder at least this often even when its counts and times look unchanged (two read flips, or a change replicated with an older time, move nothing at folder level). 0 snapshots every folder on every sync."
+    },
+    {
+      "key": "outlook.table.body_preview",
+      "type": "bool",
+      "default": true,
+      "group": "Outlook",
+      "description": "Read Outlook's short body preview in the table pass, so new mail is searchable before its full body is read."
+    },
+    {
+      "key": "outlook.table.page_rows",
+      "type": "int",
+      "default": 500,
+      "min": 1,
+      "max": 10000,
+      "group": "Outlook",
+      "description": "Rows fetched per Table.GetArray call (one cross-process round trip each)."
+    },
+    {
+      "key": "qa.answer_language.min_letters",
+      "type": "int",
+      "default": 30,
+      "min": 1,
+      "max": 100000,
+      "group": "Q&A",
+      "description": "Fewest letters a written answer must contain before its language is checked against the requested language. Quoted reply text is stripped before detection, so a short English quote does not mark a French answer. A wrong-language answer is still shown, with its citations and provider, beside a notice: the check never retries, rewrites or falls back to retrieval."
+    },
+    {
+      "key": "qa.budget.max_calls",
+      "type": "int",
+      "default": 1,
+      "min": 1,
+      "max": 2,
+      "group": "Q&A",
+      "description": "Most paid generator calls one question may make. One written answer is one call; the limit is the per-question guard against retries or a changed provider. It does not change the free-form retrieval, which is local."
+    },
+    {
+      "key": "qa.budget.max_usd",
+      "type": "float",
+      "default": 0.05,
+      "min": 0,
+      "max": 1,
+      "group": "Q&A",
+      "description": "Most estimated cost (US dollars, from the provider's price) one question may spend on the generator. A call whose worst-case reservation exceeds it is refused and the retrieved sources are shown instead. A provider without a known price is refused because this ceiling could not hold."
+    },
+    {
+      "key": "qa.call_timeout",
+      "type": "int",
+      "default": 30,
+      "min": 5,
+      "max": 120,
+      "group": "Q&A",
+      "description": "Longest time one written answer may take, in seconds. Past it the generator call is abandoned and the response is the retrieved sources with the qa_generation_failed notice; the question is still saved to the local history."
+    },
+    {
+      "key": "qa.enabled",
+      "type": "bool",
+      "default": true,
+      "group": "Q&A",
+      "description": "Offer Q&A: deterministic answers for common questions (reply, urgent, deadline, security, decision, workload, priority, today's summary, sender) and written, source-cited answers for free-form questions. Off refuses new questions through /api/ask; saved history stays readable and removable."
+    },
+    {
+      "key": "qa.max_answer_tokens",
+      "type": "int",
+      "default": 350,
+      "min": 100,
+      "max": 1000,
+      "group": "Q&A",
+      "description": "Most answer tokens the generator may write for one free-form answer. For a reasoning model the effort's reasoning allowance is added within the provider record's declared output reserve, so the call cannot spend its whole cap thinking and return no answer; the prompt also asks for at most 120 words. Structured answers do not call the generator."
+    },
+    {
+      "key": "qa.max_messages",
+      "type": "int",
+      "default": 8,
+      "min": 1,
+      "max": 12,
+      "group": "Q&A",
+      "description": "Owner messages retrieved for one free-form question and sent as the numbered context. One or two search results are merged with the three most important messages. Zero search results do not skip the free-form planner: only a deterministic intent answers without a provider call. More messages cost more input tokens; they never change the priority ranking."
+    },
+    {
+      "key": "qa.retrieval_timeout",
+      "type": "duration",
+      "default": "30s",
+      "min": "200ms",
+      "max": "10m",
+      "group": "Q&A",
+      "description": "How long one free-form question may wait for complete local retrieval: the semantic ranking finishes (never the search box's interactive budget), and an index that is still catching up is indexed first. This is the one bound that turns a cold or growing mailbox into a complete answer instead of a 'warming index' notice."
+    },
+    {
+      "key": "qa.provider",
+      "type": "string",
+      "default": "",
+      "pattern": "^$|^[a-z0-9][a-z0-9_-]*$",
+      "group": "Q&A",
+      "description": "Record id of the chat generator (protocol kind generator) that writes free-form answers from the numbered owner messages. A separate setting from judge.provider: Q&A answers questions instead of labelling mail. Empty = not configured: an empty selector, a missing record, a missing key, an unavailable provider or a refused budget shows the retrieved sources with an explicit notice, never an invented answer."
+    },
+    {
+      "key": "query.max_open_conns",
+      "type": "int",
+      "default": 2,
+      "min": 1,
+      "max": 64,
+      "group": "Query",
+      "restart_required": true,
+      "description": "Connections in the read-only pool."
+    },
+    {
+      "key": "query.max_rows",
+      "type": "int",
+      "default": 1000,
+      "min": 1,
+      "max": 100000,
+      "group": "Query",
+      "description": "Row cap of the read-only SQL runner (agent tool)."
+    },
+    {
+      "key": "query.timeout",
+      "type": "duration",
+      "default": "10s",
+      "min": "10ms",
+      "max": "10m",
+      "group": "Query",
+      "description": "Time limit of one read-only SQL query."
+    },
+    {
+      "key": "rfc5322.folder_roles",
+      "type": "list",
+      "item_type": "string",
+      "default": [],
+      "format": "keyed:folder_role",
+      "group": "Mail files",
+      "description": "Roles of the folders of mail files (mbox, maildir, .eml) and of Gmail labels, as <folder path>=<role>; a folder without one has the role other (Gmail's system labels Inbox, Sent, Drafts, Spam and Trash have their documented roles, internal/source/rfc5322/formats.json; this setting wins). Files carry no roles and a folder's name never gives one."
+    },
+    {
+      "key": "rfc5322.headers.raw_charset",
+      "type": "string",
+      "default": "windows-1252",
+      "pattern": "^[A-Za-z0-9._:-]+$",
+      "group": "Mail files",
+      "description": "Charset (a WHATWG label) that decodes raw 8-bit header lines of mail files when the message declares no known charset (RFC 6532 headers are UTF-8 and are never re-decoded); every such decoding is recorded on the message (alteration header_bytes_decoded) and counted in the sync run."
+    },
+    {
+      "key": "rfc5322.max_message_mb",
+      "type": "int",
+      "default": 64,
+      "min": 1,
+      "max": 2048,
+      "group": "Mail files",
+      "description": "Largest message of a mail file read; a larger one is skipped and counted."
+    },
+    {
+      "key": "rfc5322.mime.max_depth",
+      "type": "int",
+      "default": 20,
+      "min": 1,
+      "max": 100,
+      "group": "Mail files",
+      "description": "Deepest MIME nesting read; deeper parts are not read and the message records the alteration mime_too_deep (a crafted message cannot recurse forever)."
+    },
+    {
+      "key": "scope.subaddress_separators",
+      "type": "list",
+      "item_type": "string",
+      "default": [
+        "+"
+      ],
+      "pattern": "^[^\\s@a-zA-Z0-9]$",
+      "group": "Scope",
+      "description": "Subaddress separators (RFC 5233): local<sep>tag@domain counts as the owner's when local@domain is one of the owner's addresses. Empty: exact addresses only."
+    },
+    {
+      "key": "search.count_cap",
+      "type": "int",
+      "default": 10000,
+      "min": 1,
+      "max": 10000000,
+      "group": "Search",
+      "description": "Full-text matches are counted up to this many (the result then says \"more than\"): counting every match of a common word over a million messages costs more than the search itself."
+    },
+    {
+      "key": "search.embed_timeout",
+      "type": "duration",
+      "default": "150ms",
+      "min": "100ms",
+      "max": "5m",
+      "group": "Search",
+      "description": "The semantic budget: how long a search waits for the query embedding while full text is already ranked. Past it (or when the embedder is down) the search answers from full text only and says why."
+    },
+    {
+      "key": "search.limit",
+      "type": "int",
+      "default": 20,
+      "min": 1,
+      "max": 1000,
+      "group": "Search",
+      "description": "Results returned by one search (after fusion and filters)."
+    },
+    {
+      "key": "search.max_hits",
+      "type": "int",
+      "default": 200,
+      "min": 1,
+      "max": 100000,
+      "group": "Search",
+      "description": "Maximum hits one search takes from each ranking (full-text BM25 and, when available, vector similarity) before fusion; the full-text total still counts every match."
+    },
+    {
+      "key": "search.query_max_chars",
+      "type": "int",
+      "default": 512,
+      "min": 32,
+      "max": 8192,
+      "group": "Search",
+      "description": "Longest search or question text accepted, in characters. A longer text is rejected before it becomes thousands of full-text terms or one oversized embedding, so one request cannot turn into unbounded ranking work."
+    },
+    {
+      "key": "search.rrf_k",
+      "type": "int",
+      "default": 60,
+      "min": 1,
+      "max": 100000,
+      "group": "Search",
+      "description": "Reciprocal rank fusion constant k: a result scores the sum of 1/(k + rank) over the rankings that found it (larger k flattens the advantage of the top ranks; 60 is the usual value)."
+    },
+    {
+      "key": "search.snippet_chars",
+      "type": "int",
+      "default": 240,
+      "min": 20,
+      "max": 10000,
+      "group": "Search",
+      "description": "Length of the plain-text excerpt cut from the message body around the first word-mode whole-token sequence, or the first substring/scan substring (code points); a full-text hit whose body has no match shows no excerpt, and a semantic-only hit shows a cleaned preview."
+    },
+    {
+      "key": "secrets.file",
+      "type": "string",
+      "default": "secrets.dpapi",
+      "pattern": "^[A-Za-z0-9._-]+$",
+      "group": "Secrets",
+      "restart_required": true,
+      "description": "DPAPI-encrypted secret file in the data directory (Windows)."
+    },
+    {
+      "key": "sidecar.auto.min_speedup",
+      "type": "float",
+      "default": 1.1,
+      "min": 1,
+      "max": 100,
+      "group": "Local runtime",
+      "description": "auto keeps a GPU build only when its measured rate is at least this many times the next candidate's (an integrated GPU can pass the canary but be slower: it never wins). Measured on the T400: vulkan 1.3–1.8×."
+    },
+    {
+      "key": "sidecar.auto_install",
+      "type": "bool",
+      "default": true,
+      "group": "Local runtime",
+      "description": "Download the pinned runtime and model (SHA-256 checked) the first time semantic indexing or search needs them; off = only through the install action."
+    },
+    {
+      "key": "sidecar.canary.min_cosine",
+      "type": "float",
+      "default": 0.99,
+      "min": 0,
+      "max": 1,
+      "group": "Local runtime",
+      "description": "A GPU build is used only when its embedding of the canary sentence is finite, of the native length and at least this similar to the reference build's; otherwise it is reported broken and is not selected."
+    },
+    {
+      "key": "sidecar.dir",
+      "type": "string",
+      "default": "runtime",
+      "group": "Local runtime",
+      "description": "Directory (relative to the data directory) holding the downloaded local runtime (llama-server) and model files.",
+      "restart_required": true
+    },
+    {
+      "key": "sidecar.download.attempts",
+      "type": "int",
+      "default": 5,
+      "min": 1,
+      "max": 100,
+      "group": "Local runtime",
+      "description": "Attempts per artifact download; each resumes from the bytes already received (HTTP Range)."
+    },
+    {
+      "key": "sidecar.download.timeout",
+      "type": "duration",
+      "default": "2h",
+      "min": "1m",
+      "max": "48h",
+      "group": "Local runtime",
+      "description": "Longest time one artifact download may take."
+    },
+    {
+      "key": "sidecar.health.failures",
+      "type": "int",
+      "default": 3,
+      "min": 1,
+      "max": 1000,
+      "group": "Local runtime",
+      "description": "Consecutive failed health checks after which the runtime is restarted."
+    },
+    {
+      "key": "sidecar.health.interval",
+      "type": "duration",
+      "default": "5s",
+      "min": "100ms",
+      "max": "1h",
+      "group": "Local runtime",
+      "description": "Interval of the /health checks of a running runtime."
+    },
+    {
+      "key": "sidecar.idle_timeout",
+      "type": "duration",
+      "default": "15m",
+      "min": "0s",
+      "max": "24h",
+      "group": "Local runtime",
+      "description": "The runtime is stopped after this long without a request; 0 keeps it running."
+    },
+    {
+      "key": "sidecar.restart.base_delay",
+      "type": "duration",
+      "default": "1s",
+      "min": "10ms",
+      "max": "1h",
+      "group": "Local runtime",
+      "description": "First wait before restarting a runtime that died or stopped answering; doubled per consecutive restart."
+    },
+    {
+      "key": "sidecar.restart.max_delay",
+      "type": "duration",
+      "default": "60s",
+      "min": "10ms",
+      "max": "24h",
+      "group": "Local runtime",
+      "description": "Longest wait between restarts."
+    },
+    {
+      "key": "sidecar.runtimes.file",
+      "type": "string",
+      "data_file": true,
+      "default": "runtimes.json",
+      "group": "Local runtime",
+      "description": "Optional file in the data directory that overrides the pinned runtime and model artifacts (same shape as the built-in internal/sidecar/runtimes.json; merged per runtime, variant and model, null removes)."
+    },
+    {
+      "key": "sidecar.start_poll",
+      "type": "duration",
+      "default": "250ms",
+      "min": "10ms",
+      "max": "1m",
+      "group": "Local runtime",
+      "description": "Interval of the /health checks while the runtime starts."
+    },
+    {
+      "key": "sidecar.start_timeout",
+      "type": "duration",
+      "default": "120s",
+      "min": "1s",
+      "max": "1h",
+      "group": "Local runtime",
+      "description": "How long a start may take until the runtime answers /health (model load included)."
+    },
+    {
+      "key": "sidecar.stop_timeout",
+      "type": "duration",
+      "default": "10s",
+      "min": "100ms",
+      "max": "10m",
+      "group": "Local runtime",
+      "description": "Grace period of a stop request before the process is ended (Linux/macOS; on Windows the job object ends it at once)."
+    },
+    {
+      "key": "sidecar.threads",
+      "type": "int",
+      "default": 0,
+      "min": 0,
+      "max": 1024,
+      "group": "Local runtime",
+      "description": "CPU threads of the local runtime; 0 = measured once at the first start (sidecar.tune.cpu_percent) and the fastest kept."
+    },
+    {
+      "key": "sidecar.tune.cpu_percent",
+      "type": "list",
+      "item_type": "int",
+      "default": [
+        25,
+        50,
+        75,
+        100
+      ],
+      "min": 1,
+      "max": 100,
+      "group": "Local runtime",
+      "description": "Thread counts measured by the first start when sidecar.threads is 0, as percentages of this machine's logical CPUs (rounded, at least 1): the candidates follow the hardware, from a 4-core laptop to a 64-core workstation."
+    },
+    {
+      "key": "sidecar.tune.inputs",
+      "type": "int",
+      "default": 32,
+      "min": 2,
+      "max": 4096,
+      "group": "Local runtime",
+      "description": "Texts embedded per thread count while tuning (distinct texts, so no prompt cache hides the cost)."
+    },
+    {
+      "key": "sidecar.variant",
+      "type": "string",
+      "default": "auto",
+      "pattern": "^[a-z0-9][a-z0-9-]*$",
+      "group": "Local runtime",
+      "description": "Build of the local runtime: auto (default) picks the fastest catalog build for this platform, verifies a GPU build with the canary and falls back to CPU when it fails; or name a catalog build (cpu, vulkan, cuda)."
+    },
+    {
+      "key": "store.busy_timeout",
+      "type": "duration",
+      "default": "5s",
+      "min": "0s",
+      "max": "5m",
+      "group": "Storage",
+      "restart_required": true,
+      "description": "How long a write waits for a lock held by another connection before failing."
+    },
+    {
+      "key": "store.cache_size_mb",
+      "type": "int",
+      "default": 2,
+      "min": 2,
+      "max": 64,
+      "group": "Storage",
+      "restart_required": true,
+      "description": "SQLite page cache per pooled connection in MiB (cache_size in KiB). A larger cache keeps more mailbox pages in memory and avoids re-reading them from disk, at store.max_open_conns × this much RAM; 2 MiB is SQLite's default."
+    },
+    {
+      "key": "store.file",
+      "type": "string",
+      "default": "mailsense.db",
+      "pattern": "^[^\\x00]+$",
+      "group": "Storage",
+      "restart_required": true,
+      "description": "SQLite database; relative paths are inside the data directory."
+    },
+    {
+      "key": "store.max_open_conns",
+      "type": "int",
+      "default": 4,
+      "min": 1,
+      "max": 64,
+      "group": "Storage",
+      "restart_required": true,
+      "description": "Connections in the read-write pool."
+    },
+    {
+      "key": "store.mmap_size_mb",
+      "type": "int",
+      "default": 0,
+      "min": 0,
+      "max": 1024,
+      "group": "Storage",
+      "restart_required": true,
+      "description": "Largest database region SQLite maps with mmap, in MiB (0 disables the mapping; SQLite's own default). The mapping is per pooled connection and counted in the process working set as pages are touched, so a large value trades RAM for fewer read syscalls; measure before raising it."
+    },
+    {
+      "key": "store.synchronous",
+      "type": "enum",
+      "default": "normal",
+      "enum": [
+        "off",
+        "normal",
+        "full",
+        "extra"
+      ],
+      "group": "Storage",
+      "restart_required": true,
+      "description": "SQLite synchronous mode (normal is durable across application crashes in WAL mode)."
+    },
+    {
+      "key": "store.wal_autocheckpoint",
+      "type": "int",
+      "default": 1000,
+      "min": 0,
+      "max": 100000,
+      "group": "Storage",
+      "description": "Pages after which a commit folds the WAL back into the database (0 disables the automatic checkpoint). 1000 pages is about 4 MB."
+    },
+    {
+      "key": "store.wal_checkpoint_mb",
+      "type": "int",
+      "default": 64,
+      "min": 8,
+      "max": 4096,
+      "group": "Storage",
+      "description": "When the WAL sidecar exceeds this size, a maintenance pass truncates it. A large layer-1 commit writes a large WAL; the ceiling keeps the sidecar from growing without bound."
+    },
+    {
+      "key": "store.retain.runs",
+      "type": "int",
+      "default": 50,
+      "min": 5,
+      "max": 1000,
+      "group": "Storage",
+      "description": "Newest layer-1, triage and sync runs kept for the views; older history is pruned by the maintenance pass. Evidence runs keep their own evidence.runs.keep setting."
+    },
+    {
+      "key": "store.retain.triage_keys",
+      "type": "int",
+      "default": 3,
+      "min": 1,
+      "max": 20,
+      "group": "Storage",
+      "description": "Newest question-spec and decider answer caches kept. A profile or decider change writes a new full copy of the paid triage answers; older copies are pruned by the maintenance pass. Returning to an evicted cache re-bills its answers."
+    },
+    {
+      "key": "store.maintenance_interval",
+      "type": "duration",
+      "default": "5m",
+      "min": "1m",
+      "max": "1h",
+      "group": "Storage",
+      "description": "How often the store prunes run history, bounds the WAL and refreshes the query planner statistics."
+    },
+    {
+      "key": "sync.auto",
+      "type": "bool",
+      "default": true,
+      "group": "Sync",
+      "description": "Fetch new mail automatically: start the picked sources' sync as soon as the startup warm ends, then again every sync.auto.interval. Off: mail is fetched only when the owner asks (Sources or a manual sync)."
+    },
+    {
+      "key": "sync.auto.interval",
+      "type": "duration",
+      "default": "1m",
+      "min": "15s",
+      "max": "1h",
+      "group": "Sync",
+      "description": "How often the automatic sync checks for new mail. A run already in progress is never duplicated; the next check starts one when the source is free. The source's own breaker owns retry pacing when the mail application is closed."
+    },
+    {
+      "key": "sync.discovery.interval",
+      "type": "duration",
+      "default": "10m",
+      "min": "1m",
+      "max": "6h",
+      "group": "Sync",
+      "description": "How often a steady-state automatic sync re-reads the source's folder list. Between discoveries, the stored active folders are synced directly, so new mail is still fetched at sync.auto.interval without paying a full folder discovery on every pass. A failed folder read forces a discovery on the next pass."
+    },
+    {
+      "key": "sync.batch_size",
+      "type": "int",
+      "default": 500,
+      "min": 1,
+      "max": 100000,
+      "group": "Sync",
+      "description": "Messages written per store transaction."
+    },
+    {
+      "key": "sync.details.batch_size",
+      "type": "int",
+      "default": 50,
+      "min": 1,
+      "max": 10000,
+      "group": "Sync",
+      "description": "Partial messages completed (details read from the source) per store transaction in the detail pass."
+    },
+    {
+      "key": "sync.details.enabled",
+      "type": "bool",
+      "default": true,
+      "group": "Sync",
+      "description": "Read the details of partial messages (full body, headers, recipients) after the folder pass. Off: metadata only (searchable on the source's preview), no detail read at all; the mail stays partial and learning waits."
+    },
+    {
+      "key": "sync.details.max_per_run",
+      "type": "int",
+      "default": 0,
+      "min": 0,
+      "max": 100000000,
+      "group": "Sync",
+      "description": "Most partial messages one run's detail pass completes (the newest first); the rest stay partial for the next run. 0: no cap. A small cap makes a short verification run (e.g. 1000)."
+    },
+    {
+      "key": "sync.details.settle_after",
+      "type": "duration",
+      "default": "5m",
+      "min": "0s",
+      "max": "24h",
+      "group": "Sync",
+      "description": "A message received less than this long ago is completed by a later run, not this one: the source may still be downloading or processing it. 0 completes every partial message at once."
+    },
+    {
+      "key": "sync.max_logged_skips",
+      "type": "int",
+      "default": 20,
+      "min": 0,
+      "max": 100000,
+      "group": "Sync",
+      "description": "Item-level failures logged individually per folder; the rest are only counted."
+    },
+    {
+      "key": "sync.progress_interval",
+      "type": "duration",
+      "default": "500ms",
+      "min": "10ms",
+      "max": "1m",
+      "group": "Sync",
+      "description": "Minimum time between two progress events of one sync."
+    },
+    {
+      "key": "sync.removal.auto_apply_after",
+      "type": "duration",
+      "default": "72h",
+      "min": "0s",
+      "max": "2160h",
+      "group": "Sync",
+      "description": "A held removal is applied once the messages stayed absent this long; 0 applies held removals only when the user confirms them."
+    },
+    {
+      "key": "sync.removal.hold_count",
+      "type": "int",
+      "default": 100,
+      "min": 1,
+      "max": 1000000,
+      "group": "Sync",
+      "description": "Safety valve: when this many messages or more vanish from one folder in one run, the removal is held instead of applied (a shrunken offline cache or a rebuilt OST looks exactly like a mass delete)."
+    },
+    {
+      "key": "sync.removal.hold_ratio",
+      "type": "float",
+      "default": 0.5,
+      "min": 0,
+      "max": 1,
+      "group": "Sync",
+      "description": "Safety valve: a removal of more than this fraction of a folder that holds at least sync.removal.hold_count messages is held too."
+    },
+    {
+      "key": "sync.skip_ratio_fatal",
+      "type": "float",
+      "default": 0.01,
+      "min": 0,
+      "max": 1,
+      "group": "Sync",
+      "description": "A folder whose skipped/seen ratio reaches this value fails the run (legacy rule: 1%)."
+    },
+    {
+      "key": "threads.examples_per_sender",
+      "type": "int",
+      "default": 3,
+      "min": 0,
+      "max": 100,
+      "group": "Behaviour",
+      "description": "Most recent reply examples kept per sender in the behaviour profile."
+    },
+    {
+      "key": "threads.folder_roles",
+      "type": "list",
+      "item_type": "string",
+      "default": [
+        "inbox",
+        "sent",
+        "archive",
+        "other"
+      ],
+      "format": "one_of:folder_role",
+      "group": "Threads",
+      "description": "Folder roles whose owner-scope mail the install-profile learners read (shared mail domains, reply prefixes): every folder the owner files mail into (archives, rule-filed folders, labels) except drafts, deleted items and junk by default. Evidence and triage never read it: they use the causal view (the owner-scope mail of every folder but drafts, wherever it is filed now)."
+    },
+    {
+      "key": "threads.reply_excerpt_chars",
+      "type": "int",
+      "default": 240,
+      "min": 1,
+      "max": 10000,
+      "group": "Behaviour",
+      "description": "Characters of a reply kept as its excerpt (reply examples in triage states, the Insights view)."
+    },
+    {
+      "key": "threads.response_buckets",
+      "type": "list",
+      "item_type": "int",
+      "default": [
+        60,
+        240,
+        1440,
+        4320
+      ],
+      "min": 1,
+      "max": 525600,
+      "group": "Behaviour",
+      "description": "Upper bounds in minutes (ascending) of the response-time buckets of behaviour profiles: the defaults give <1h, 1h-4h, 4h-1d, 1d-3d and >3d."
+    },
+    {
+      "key": "time.zone",
+      "type": "string",
+      "default": "",
+      "format": "time_zone",
+      "group": "General",
+      "description": "IANA time zone of the mailbox owner for behaviour statistics and insights (hour of day, weekday, month, first/last seen). Empty = not confirmed yet: the machine's zone is never assumed (a container or WSL reports UTC); the learning screen proposes the detected one and the user confirms it at first run, and learning waits until then. Triage states render times in the sender's own Date-header offset, so changing it never re-decides mail."
+    },
+    {
+      "key": "triage.budget.allow_unpriced",
+      "type": "bool",
+      "default": false,
+      "group": "Triage",
+      "description": "Allow runs with a provider whose price is unknown (null in its definition). Off: such a run is refused, because triage.budget.max_usd cannot be enforced without a price."
+    },
+    {
+      "key": "triage.budget.max_calls",
+      "type": "int",
+      "default": 1000,
+      "min": 1,
+      "max": 100000000,
+      "group": "Triage",
+      "description": "Most decision API calls one triage run may make; a run whose plan needs more refuses to start, and a run stops before a call would exceed it."
+    },
+    {
+      "key": "triage.budget.max_usd",
+      "type": "float",
+      "default": 1.0,
+      "min": 0,
+      "max": 100000,
+      "group": "Triage",
+      "description": "Most estimated cost (US dollars, from the provider's price) one triage run may spend; enforced like triage.budget.max_calls. A provider without a known price is limited by calls only."
+    },
+    {
+      "key": "triage.auto",
+      "type": "bool",
+      "default": true,
+      "group": "Triage",
+      "description": "Decide new and changed eligible mail automatically after every successful sync and on a low-frequency catch-up, without waiting for a message to be opened. Batch size is triage.auto.batch; the existing triage budget still bounds every run."
+    },
+    {
+      "key": "triage.auto.batch",
+      "type": "int",
+      "default": 500,
+      "min": 1,
+      "max": 10000,
+      "group": "Triage",
+      "description": "Most messages one automatic triage run decides. A sync or catch-up that finds more pending mail leaves the rest for the next run, so a large backlog never refuses for its plan size."
+    },
+    {
+      "key": "triage.auto.interval",
+      "type": "duration",
+      "default": "5m",
+      "min": "30s",
+      "max": "24h",
+      "group": "Triage",
+      "description": "How often the automatic triage catch-up checks for pending mail when no sync event arrives. Low frequency on purpose: sync events start a run immediately; this only heals a missed event or a restart."
+    },
+    {
+      "key": "triage.decider",
+      "type": "string",
+      "default": "",
+      "pattern": "^$|^[a-z0-9][a-z0-9_-]*$",
+      "group": "Triage",
+      "description": "Record id of the decision provider used for triage (engine.providers.file, protocol kind decider). Empty = not configured: triage reports an explicit blocker instead of calling a default."
+    },
+    {
+      "key": "triage.facts.evidence",
+      "type": "bool",
+      "default": false,
+      "group": "Triage",
+      "description": "Add the message's structural evidence (causal signals, bucketed: internal/evidence) to the observed facts of its triage state. Off by default: turning it on changes every state (the plan shows the re-decision cost); the accuracy loop turns it on only when it measurably helps."
+    },
+    {
+      "key": "triage.folder_roles",
+      "type": "list",
+      "item_type": "string",
+      "default": [
+        "inbox",
+        "sent",
+        "archive",
+        "other"
+      ],
+      "format": "one_of:folder_role",
+      "group": "Triage",
+      "description": "Folder roles whose owner-scope mail is triaged (drafts, deleted items and junk are left out by default)."
+    },
+    {
+      "key": "triage.lease_ttl",
+      "type": "duration",
+      "default": "10m",
+      "min": "1m",
+      "max": "24h",
+      "group": "Triage",
+      "description": "Lifetime of the single-run lease (renewed while a run works): one triage run at a time, across processes; a crashed run's lease expires after this."
+    },
+    {
+      "key": "triage.max_logged_failures",
+      "type": "int",
+      "default": 20,
+      "min": 0,
+      "max": 100000,
+      "group": "Triage",
+      "description": "Message failures logged individually per triage run; the rest are only counted (all are stored)."
+    },
+    {
+      "key": "triage.profile.file",
+      "type": "string",
+      "data_file": true,
+      "default": "triage-profile.json",
+      "pattern": "^[^\\x00]+$",
+      "group": "Triage",
+      "description": "Triage profile overrides merged over the built-in taxonomy (questions, roles, thresholds, prior_blend and context per key; null removes); relative paths are inside the data directory. A missing file means the built-in profile."
+    },
+    {
+      "key": "triage.rules.file",
+      "type": "string",
+      "data_file": true,
+      "default": "triage-rules.json",
+      "pattern": "^[^\\x00]+$",
+      "group": "Triage",
+      "description": "Overrides of the state-context wording and bands (internal/triage/rules.json shape, per key, null removes); relative paths are inside the data directory. A missing file means the built-in rules. A change changes every state."
+    },
+    {
+      "key": "triage.workers",
+      "type": "int",
+      "default": 4,
+      "min": 1,
+      "max": 64,
+      "group": "Triage",
+      "description": "Messages decided in parallel during a triage run."
+    },
+    {
+      "key": "ui.language",
+      "type": "enum",
+      "default": "auto",
+      "enum": [
+        "auto",
+        "en",
+        "fr"
+      ],
+      "group": "Interface",
+      "description": "Interface language. Automatic follows the operating system; English and French are available."
+    },
+    {
+      "key": "ui.setup.done",
+      "type": "bool",
+      "default": false,
+      "group": "Interface",
+      "description": "Marks the first-run setup as finished. The setup screen sets it when you finish; reset it to see the setup again. It is not a security control."
+    }
+  ],
+  "constraints": [
+    {
+      "key": "mail.no_date.year_at_most",
+      "op": "<",
+      "other": "mail.no_date.year_at_least"
+    },
+    {
+      "key": "http.retry.base_delay",
+      "op": "<=",
+      "other": "http.retry.max_delay"
+    },
+    {
+      "key": "http.retry.base_delay",
+      "op": "<=",
+      "other": "http.retry.unsent_max_delay"
+    },
+    {
+      "key": "outlook.com.retry.base_delay",
+      "op": "<=",
+      "other": "outlook.com.retry.max_delay"
+    },
+    {
+      "key": "outlook.pace.active.busy_share",
+      "op": "<=",
+      "other": "outlook.pace.busy_share"
+    },
+    {
+      "key": "outlook.pace.active.calls_per_second",
+      "op": "<=",
+      "other": "outlook.pace.calls_per_second"
+    },
+    {
+      "key": "outlook.breaker.cooldown",
+      "op": "<=",
+      "other": "outlook.breaker.cooldown_max"
+    },
+    {
+      "key": "feedback.insights.slower_factor",
+      "op": "<",
+      "other": "feedback.insights.faster_factor"
+    },
+    {
+      "key": "sidecar.restart.base_delay",
+      "op": "<=",
+      "other": "sidecar.restart.max_delay"
+    },
+    {
+      "key": "calendar.sync.past_days",
+      "op": "<",
+      "other": "calendar.sync.future_days"
+    }
+  ]
+}

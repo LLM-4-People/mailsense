@@ -1,0 +1,40 @@
+name: actionlint
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/**"
+      - ".github/actionlint.yaml"
+      - ".github/actionlint.yml"
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/**"
+      - ".github/actionlint.yaml"
+      - ".github/actionlint.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # A newer workflow edit supersedes an older pull request run. A run on main
+  # is kept because it is the workflow state the repository depends on.
+  group: actionlint-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
+
+jobs:
+  actionlint:
+    name: workflow syntax
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      # The image is pinned by digest, not by tag: rhysd/actionlint 1.7.12.
+      - name: run actionlint
+        run: |
+          set -euo pipefail
+          docker run --rm \
+            --volume "$PWD:/repo" \
+            --workdir /repo \
+            rhysd/actionlint@sha256:b1934ee5f1c509618f2508e6eb47ee0d3520686341fec936f3b79331f9315667

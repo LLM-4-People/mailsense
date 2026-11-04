@@ -1,0 +1,45 @@
+name: pull request title
+
+on:
+  pull_request:
+    # synchronize keeps the check attached to the latest commit, even though a
+    # push does not change the title.
+    types: [opened, edited, reopened, synchronize]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-title-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  title:
+    name: title prefix
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          ALLOWED_TYPES: feat,fix,docs,test,refactor,release,build,ci
+        with:
+          script: |
+            // Dependabot titles use the build and chore types, which this
+            // repository does not use for hand-written changes.
+            if (context.payload.pull_request.user.login === "dependabot[bot]") return;
+
+            const allowed = process.env.ALLOWED_TYPES.split(",");
+            const title = context.payload.pull_request.title.trim();
+            const match = /^(?<type>[a-z]+)(?:\((?<scope>[a-z0-9][a-z0-9._/-]*)\))?!?: (?<subject>\S.*)$/.exec(title);
+            if (match === null) {
+              core.setFailed(
+                `Pull request titles must start with one of ${allowed.join(", ")} and a colon, ` +
+                `for example "feat(ui): show the reason on every row". See CONTRIBUTING.md.`,
+              );
+              return;
+            }
+            if (!allowed.includes(match.groups.type)) {
+              core.setFailed(
+                `"${match.groups.type}" is not an allowed type. Use one of ${allowed.join(", ")}.`,
+              );
+            }

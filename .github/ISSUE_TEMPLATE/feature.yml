@@ -1,0 +1,16 @@
+name: Feature request
+description: A capability or a UX gap
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes: { label: The problem in your words }
+    validations: { required: true }
+  - type: textarea
+    id: proposal
+    attributes: { label: What would help }
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options: [Console, Settings, Triage, Ask, Mail, Companies, Learning, Providers, Storage, Docs, Other]

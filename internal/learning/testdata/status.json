@@ -1,0 +1,2107 @@
+{
+  "state": "blocked",
+  "stages": [
+    {
+      "id": "mailboxes",
+      "state": "done",
+      "progress": {
+        "done": 1,
+        "total": 1,
+        "unit": "mailboxes"
+      }
+    },
+    {
+      "id": "machine",
+      "state": "done",
+      "progress": {
+        "done": 1,
+        "total": 1,
+        "unit": "facts"
+      }
+    },
+    {
+      "id": "sync",
+      "state": "done",
+      "progress": {
+        "done": 30,
+        "total": 30,
+        "unit": "messages"
+      }
+    },
+    {
+      "id": "evidence",
+      "state": "done",
+      "progress": {
+        "done": 30,
+        "total": 30,
+        "unit": "messages"
+      }
+    },
+    {
+      "id": "embeddings",
+      "state": "done",
+      "progress": {
+        "done": 30,
+        "total": 30,
+        "unit": "messages"
+      }
+    },
+    {
+      "id": "labels",
+      "state": "blocked",
+      "progress": {
+        "done": 10,
+        "total": 25908,
+        "unit": "evaluation labels"
+      },
+      "blockers": [
+        {
+          "code": "layer1_too_few_eval_labels",
+          "subject": "category",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1514",
+                "question": "category"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1514",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "category"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "category"
+              }
+            }
+          ],
+          "detail": "This question has 10 of the 1524 evaluation labels it needs; 1514 more are needed.",
+          "measure": {
+            "have": 10,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        },
+        {
+          "code": "layer1_too_few_eval_labels",
+          "subject": "topic",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "topic"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "topic"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "topic"
+              }
+            }
+          ],
+          "detail": "This question has 0 of the 1524 evaluation labels it needs; 1524 more are needed.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        },
+        {
+          "code": "layer1_too_few_eval_labels",
+          "subject": "reply_needed",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "reply_needed"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "reply_needed"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "reply_needed"
+              }
+            }
+          ],
+          "detail": "This question has 0 of the 1524 evaluation labels it needs; 1524 more are needed.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        },
+        {
+          "code": "layer1_too_few_eval_labels",
+          "subject": "urgency",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "urgency"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "urgency"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "urgency"
+              }
+            }
+          ],
+          "detail": "This question has 0 of the 1524 evaluation labels it needs; 1524 more are needed.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        },
+        {
+          "code": "layer1_too_few_eval_labels",
+          "subject": "suspicious",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "suspicious"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "suspicious"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "suspicious"
+              }
+            }
+          ],
+          "detail": "This question has 0 of the 1524 evaluation labels it needs; 1524 more are needed.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        },
+        {
+          "code": "layer1_too_few_eval_labels",
+          "subject": "is_question",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "is_question"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "is_question"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "is_question"
+              }
+            }
+          ],
+          "detail": "This question has 0 of the 1524 evaluation labels it needs; 1524 more are needed.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        },
+        {
+          "code": "layer1_too_few_eval_labels",
+          "subject": "call_to_action",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "call_to_action"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "call_to_action"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "call_to_action"
+              }
+            }
+          ],
+          "detail": "This question has 0 of the 1524 evaluation labels it needs; 1524 more are needed.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        },
+        {
+          "code": "layer1_too_few_eval_labels",
+          "subject": "decision_needed",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "decision_needed"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "decision_needed"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "decision_needed"
+              }
+            }
+          ],
+          "detail": "This question has 0 of the 1524 evaluation labels it needs; 1524 more are needed.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        },
+        {
+          "code": "layer1_too_few_eval_labels",
+          "subject": "asks_for",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "asks_for"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "asks_for"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "asks_for"
+              }
+            }
+          ],
+          "detail": "This question has 0 of the 1524 evaluation labels it needs; 1524 more are needed.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        },
+        {
+          "code": "layer1_too_few_eval_labels",
+          "subject": "deadline",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "deadline"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "deadline"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "deadline"
+              }
+            }
+          ],
+          "detail": "This question has 0 of the 1524 evaluation labels it needs; 1524 more are needed.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        },
+        {
+          "code": "layer1_too_few_eval_labels",
+          "subject": "relationship",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "relationship"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "relationship"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "relationship"
+              }
+            }
+          ],
+          "detail": "This question has 0 of the 1524 evaluation labels it needs; 1524 more are needed.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        },
+        {
+          "code": "layer1_too_few_eval_labels",
+          "subject": "effort",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "effort"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "effort"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "effort"
+              }
+            }
+          ],
+          "detail": "This question has 0 of the 1524 evaluation labels it needs; 1524 more are needed.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        },
+        {
+          "code": "layer1_too_few_eval_labels",
+          "subject": "sentiment",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "sentiment"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "sentiment"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "sentiment"
+              }
+            }
+          ],
+          "detail": "This question has 0 of the 1524 evaluation labels it needs; 1524 more are needed.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        },
+        {
+          "code": "layer1_too_few_eval_labels",
+          "subject": "stance",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "stance"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "stance"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "stance"
+              }
+            }
+          ],
+          "detail": "This question has 0 of the 1524 evaluation labels it needs; 1524 more are needed.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        },
+        {
+          "code": "layer1_too_few_eval_labels",
+          "subject": "info_sufficiency",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "info_sufficiency"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "info_sufficiency"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "info_sufficiency"
+              }
+            }
+          ],
+          "detail": "This question has 0 of the 1524 evaluation labels it needs; 1524 more are needed.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        },
+        {
+          "code": "layer1_too_few_eval_labels",
+          "subject": "request_count",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "request_count"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "request_count"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "request_count"
+              }
+            }
+          ],
+          "detail": "This question has 0 of the 1524 evaluation labels it needs; 1524 more are needed.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        },
+        {
+          "code": "layer1_too_few_eval_labels",
+          "subject": "has_signature",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "has_signature"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "has_signature"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "has_signature"
+              }
+            }
+          ],
+          "detail": "This question has 0 of the 1524 evaluation labels it needs; 1524 more are needed.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        }
+      ],
+      "note": "0 of 17 questions have their evaluation labels"
+    },
+    {
+      "id": "layer1",
+      "state": "blocked",
+      "progress": {
+        "done": 0,
+        "total": 17,
+        "unit": "questions"
+      },
+      "blockers": [
+        {
+          "code": "layer1_too_few_labels",
+          "subject": "category",
+          "actions": [
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1514",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "category"
+              }
+            },
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1514",
+                "question": "category"
+              }
+            }
+          ],
+          "detail": "Too few training examples for this question.",
+          "measure": {
+            "have": 26.666666666666668,
+            "need": 200,
+            "unit": "effective training examples"
+          }
+        },
+        {
+          "code": "layer1_no_teacher",
+          "subject": "topic",
+          "actions": [
+            {
+              "id": "choose_teacher",
+              "params": {
+                "question": "topic"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "topic"
+              }
+            },
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "topic"
+              }
+            }
+          ],
+          "detail": "No teacher gives this question a training target yet."
+        },
+        {
+          "code": "layer1_no_teacher",
+          "subject": "reply_needed",
+          "actions": [
+            {
+              "id": "choose_teacher",
+              "params": {
+                "question": "reply_needed"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "reply_needed"
+              }
+            },
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "reply_needed"
+              }
+            }
+          ],
+          "detail": "No teacher gives this question a training target yet."
+        },
+        {
+          "code": "layer1_no_teacher",
+          "subject": "urgency",
+          "actions": [
+            {
+              "id": "choose_teacher",
+              "params": {
+                "question": "urgency"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "urgency"
+              }
+            },
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "urgency"
+              }
+            }
+          ],
+          "detail": "No teacher gives this question a training target yet."
+        },
+        {
+          "code": "layer1_no_teacher",
+          "subject": "suspicious",
+          "actions": [
+            {
+              "id": "choose_teacher",
+              "params": {
+                "question": "suspicious"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "suspicious"
+              }
+            },
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "suspicious"
+              }
+            }
+          ],
+          "detail": "No teacher gives this question a training target yet."
+        },
+        {
+          "code": "layer1_no_teacher",
+          "subject": "is_question",
+          "actions": [
+            {
+              "id": "choose_teacher",
+              "params": {
+                "question": "is_question"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "is_question"
+              }
+            },
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "is_question"
+              }
+            }
+          ],
+          "detail": "No teacher gives this question a training target yet."
+        },
+        {
+          "code": "layer1_no_teacher",
+          "subject": "call_to_action",
+          "actions": [
+            {
+              "id": "choose_teacher",
+              "params": {
+                "question": "call_to_action"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "call_to_action"
+              }
+            },
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "call_to_action"
+              }
+            }
+          ],
+          "detail": "No teacher gives this question a training target yet."
+        },
+        {
+          "code": "layer1_no_teacher",
+          "subject": "decision_needed",
+          "actions": [
+            {
+              "id": "choose_teacher",
+              "params": {
+                "question": "decision_needed"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "decision_needed"
+              }
+            },
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "decision_needed"
+              }
+            }
+          ],
+          "detail": "No teacher gives this question a training target yet."
+        },
+        {
+          "code": "layer1_no_teacher",
+          "subject": "asks_for",
+          "actions": [
+            {
+              "id": "choose_teacher",
+              "params": {
+                "question": "asks_for"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "asks_for"
+              }
+            },
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "asks_for"
+              }
+            }
+          ],
+          "detail": "No teacher gives this question a training target yet."
+        },
+        {
+          "code": "layer1_no_teacher",
+          "subject": "deadline",
+          "actions": [
+            {
+              "id": "choose_teacher",
+              "params": {
+                "question": "deadline"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "deadline"
+              }
+            },
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "deadline"
+              }
+            }
+          ],
+          "detail": "No teacher gives this question a training target yet."
+        },
+        {
+          "code": "layer1_no_teacher",
+          "subject": "relationship",
+          "actions": [
+            {
+              "id": "choose_teacher",
+              "params": {
+                "question": "relationship"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "relationship"
+              }
+            },
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "relationship"
+              }
+            }
+          ],
+          "detail": "No teacher gives this question a training target yet."
+        },
+        {
+          "code": "layer1_no_teacher",
+          "subject": "effort",
+          "actions": [
+            {
+              "id": "choose_teacher",
+              "params": {
+                "question": "effort"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "effort"
+              }
+            },
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "effort"
+              }
+            }
+          ],
+          "detail": "No teacher gives this question a training target yet."
+        },
+        {
+          "code": "layer1_no_teacher",
+          "subject": "sentiment",
+          "actions": [
+            {
+              "id": "choose_teacher",
+              "params": {
+                "question": "sentiment"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "sentiment"
+              }
+            },
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "sentiment"
+              }
+            }
+          ],
+          "detail": "No teacher gives this question a training target yet."
+        },
+        {
+          "code": "layer1_no_teacher",
+          "subject": "stance",
+          "actions": [
+            {
+              "id": "choose_teacher",
+              "params": {
+                "question": "stance"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "stance"
+              }
+            },
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "stance"
+              }
+            }
+          ],
+          "detail": "No teacher gives this question a training target yet."
+        },
+        {
+          "code": "layer1_no_teacher",
+          "subject": "info_sufficiency",
+          "actions": [
+            {
+              "id": "choose_teacher",
+              "params": {
+                "question": "info_sufficiency"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "info_sufficiency"
+              }
+            },
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "info_sufficiency"
+              }
+            }
+          ],
+          "detail": "No teacher gives this question a training target yet."
+        },
+        {
+          "code": "layer1_no_teacher",
+          "subject": "request_count",
+          "actions": [
+            {
+              "id": "choose_teacher",
+              "params": {
+                "question": "request_count"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "request_count"
+              }
+            },
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "request_count"
+              }
+            }
+          ],
+          "detail": "No teacher gives this question a training target yet."
+        },
+        {
+          "code": "layer1_no_teacher",
+          "subject": "has_signature",
+          "actions": [
+            {
+              "id": "choose_teacher",
+              "params": {
+                "question": "has_signature"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "has_signature"
+              }
+            },
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "has_signature"
+              }
+            }
+          ],
+          "detail": "No teacher gives this question a training target yet."
+        }
+      ],
+      "note": "0 of 17 questions trained"
+    },
+    {
+      "id": "calibration",
+      "state": "pending",
+      "progress": {
+        "done": 0,
+        "total": 0
+      },
+      "note": "waits for the layer1 stage"
+    },
+    {
+      "id": "questions",
+      "state": "blocked",
+      "progress": {
+        "done": 0,
+        "total": 17,
+        "unit": "questions"
+      },
+      "blockers": [
+        {
+          "code": "requirement_unmet",
+          "subject": "category",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1514",
+                "question": "category"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "category"
+              }
+            }
+          ],
+          "detail": "The certification labels number 6; a target of 0.99 at z 1.96 needs 381 answered labels, so this question cannot certify yet.",
+          "measure": {
+            "have": 6,
+            "need": 381,
+            "unit": "certification labels"
+          }
+        },
+        {
+          "code": "requirement_unmet",
+          "subject": "topic",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "topic"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "topic"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "topic"
+              }
+            }
+          ],
+          "detail": "No evaluation label of this question exists yet, so none of its answers can be certified. Label messages first.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        },
+        {
+          "code": "requirement_unmet",
+          "subject": "reply_needed",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "reply_needed"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "reply_needed"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "reply_needed"
+              }
+            }
+          ],
+          "detail": "No evaluation label of this question exists yet, so none of its answers can be certified. Label messages first.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        },
+        {
+          "code": "requirement_unmet",
+          "subject": "urgency",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "urgency"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "urgency"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "urgency"
+              }
+            }
+          ],
+          "detail": "No evaluation label of this question exists yet, so none of its answers can be certified. Label messages first.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        },
+        {
+          "code": "requirement_unmet",
+          "subject": "suspicious",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "suspicious"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "suspicious"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "suspicious"
+              }
+            }
+          ],
+          "detail": "No evaluation label of this question exists yet, so none of its answers can be certified. Label messages first.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        },
+        {
+          "code": "requirement_unmet",
+          "subject": "is_question",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "is_question"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "is_question"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "is_question"
+              }
+            }
+          ],
+          "detail": "No evaluation label of this question exists yet, so none of its answers can be certified. Label messages first.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        },
+        {
+          "code": "requirement_unmet",
+          "subject": "call_to_action",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "call_to_action"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "call_to_action"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "call_to_action"
+              }
+            }
+          ],
+          "detail": "No evaluation label of this question exists yet, so none of its answers can be certified. Label messages first.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        },
+        {
+          "code": "requirement_unmet",
+          "subject": "decision_needed",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "decision_needed"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "decision_needed"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "decision_needed"
+              }
+            }
+          ],
+          "detail": "No evaluation label of this question exists yet, so none of its answers can be certified. Label messages first.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        },
+        {
+          "code": "requirement_unmet",
+          "subject": "asks_for",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "asks_for"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "asks_for"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "asks_for"
+              }
+            }
+          ],
+          "detail": "No evaluation label of this question exists yet, so none of its answers can be certified. Label messages first.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        },
+        {
+          "code": "requirement_unmet",
+          "subject": "deadline",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "deadline"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "deadline"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "deadline"
+              }
+            }
+          ],
+          "detail": "No evaluation label of this question exists yet, so none of its answers can be certified. Label messages first.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        },
+        {
+          "code": "requirement_unmet",
+          "subject": "relationship",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "relationship"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "relationship"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "relationship"
+              }
+            }
+          ],
+          "detail": "No evaluation label of this question exists yet, so none of its answers can be certified. Label messages first.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        },
+        {
+          "code": "requirement_unmet",
+          "subject": "effort",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "effort"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "effort"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "effort"
+              }
+            }
+          ],
+          "detail": "No evaluation label of this question exists yet, so none of its answers can be certified. Label messages first.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        },
+        {
+          "code": "requirement_unmet",
+          "subject": "sentiment",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "sentiment"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "sentiment"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "sentiment"
+              }
+            }
+          ],
+          "detail": "No evaluation label of this question exists yet, so none of its answers can be certified. Label messages first.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        },
+        {
+          "code": "requirement_unmet",
+          "subject": "stance",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "stance"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "stance"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "stance"
+              }
+            }
+          ],
+          "detail": "No evaluation label of this question exists yet, so none of its answers can be certified. Label messages first.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        },
+        {
+          "code": "requirement_unmet",
+          "subject": "info_sufficiency",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "info_sufficiency"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "info_sufficiency"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "info_sufficiency"
+              }
+            }
+          ],
+          "detail": "No evaluation label of this question exists yet, so none of its answers can be certified. Label messages first.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        },
+        {
+          "code": "requirement_unmet",
+          "subject": "request_count",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "request_count"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "request_count"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "request_count"
+              }
+            }
+          ],
+          "detail": "No evaluation label of this question exists yet, so none of its answers can be certified. Label messages first.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        },
+        {
+          "code": "requirement_unmet",
+          "subject": "has_signature",
+          "actions": [
+            {
+              "id": "label_messages",
+              "params": {
+                "count": "1524",
+                "question": "has_signature"
+              }
+            },
+            {
+              "id": "review_requirements",
+              "params": {
+                "question": "has_signature"
+              }
+            },
+            {
+              "id": "run_judge",
+              "params": {
+                "cost_note": "the configured judge provider could not be priced (see judge.provider)",
+                "count": "1524",
+                "estimated_cost_usd": "unknown",
+                "provider": "example-provider-gemma",
+                "question": "has_signature"
+              }
+            }
+          ],
+          "detail": "No evaluation label of this question exists yet, so none of its answers can be certified. Label messages first.",
+          "measure": {
+            "have": 0,
+            "need": 1524,
+            "unit": "evaluation labels"
+          }
+        }
+      ],
+      "note": "0 of 17 questions certified at the target",
+      "certifications": [
+        {
+          "question": "category",
+          "target": 0.99,
+          "threshold": 0,
+          "selected": 0,
+          "n": 6,
+          "eligible": 6,
+          "answered": 6,
+          "errors": 0,
+          "lower_bound": 0.6096569663469354,
+          "precision": 1,
+          "tested": true,
+          "coverage_lower_bound": 0.6096569663469354,
+          "certified": false,
+          "coverage": 0,
+          "class_recall": [
+            {
+              "class": 2,
+              "eligible": 4,
+              "answered": 4,
+              "correct": 4
+            },
+            {
+              "class": 6,
+              "eligible": 2,
+              "answered": 2,
+              "correct": 2
+            }
+          ],
+          "class_collapsed": false
+        },
+        {
+          "question": "topic",
+          "target": 0.99,
+          "threshold": 0,
+          "selected": 0,
+          "n": 0,
+          "eligible": 0,
+          "answered": 0,
+          "errors": 0,
+          "lower_bound": 0,
+          "precision": 0,
+          "tested": false,
+          "coverage_lower_bound": 0,
+          "certified": false,
+          "coverage": 0,
+          "class_recall": null,
+          "class_collapsed": false
+        },
+        {
+          "question": "reply_needed",
+          "target": 0.99,
+          "threshold": 0,
+          "selected": 0,
+          "n": 0,
+          "eligible": 0,
+          "answered": 0,
+          "errors": 0,
+          "lower_bound": 0,
+          "precision": 0,
+          "tested": false,
+          "coverage_lower_bound": 0,
+          "certified": false,
+          "coverage": 0,
+          "class_recall": null,
+          "class_collapsed": false
+        },
+        {
+          "question": "urgency",
+          "target": 0.99,
+          "threshold": 0,
+          "selected": 0,
+          "n": 0,
+          "eligible": 0,
+          "answered": 0,
+          "errors": 0,
+          "lower_bound": 0,
+          "precision": 0,
+          "tested": false,
+          "coverage_lower_bound": 0,
+          "certified": false,
+          "coverage": 0,
+          "class_recall": null,
+          "class_collapsed": false
+        },
+        {
+          "question": "suspicious",
+          "target": 0.99,
+          "threshold": 0,
+          "selected": 0,
+          "n": 0,
+          "eligible": 0,
+          "answered": 0,
+          "errors": 0,
+          "lower_bound": 0,
+          "precision": 0,
+          "tested": false,
+          "coverage_lower_bound": 0,
+          "certified": false,
+          "coverage": 0,
+          "class_recall": null,
+          "class_collapsed": false
+        },
+        {
+          "question": "is_question",
+          "target": 0.99,
+          "threshold": 0,
+          "selected": 0,
+          "n": 0,
+          "eligible": 0,
+          "answered": 0,
+          "errors": 0,
+          "lower_bound": 0,
+          "precision": 0,
+          "tested": false,
+          "coverage_lower_bound": 0,
+          "certified": false,
+          "coverage": 0,
+          "class_recall": null,
+          "class_collapsed": false
+        },
+        {
+          "question": "call_to_action",
+          "target": 0.99,
+          "threshold": 0,
+          "selected": 0,
+          "n": 0,
+          "eligible": 0,
+          "answered": 0,
+          "errors": 0,
+          "lower_bound": 0,
+          "precision": 0,
+          "tested": false,
+          "coverage_lower_bound": 0,
+          "certified": false,
+          "coverage": 0,
+          "class_recall": null,
+          "class_collapsed": false
+        },
+        {
+          "question": "decision_needed",
+          "target": 0.99,
+          "threshold": 0,
+          "selected": 0,
+          "n": 0,
+          "eligible": 0,
+          "answered": 0,
+          "errors": 0,
+          "lower_bound": 0,
+          "precision": 0,
+          "tested": false,
+          "coverage_lower_bound": 0,
+          "certified": false,
+          "coverage": 0,
+          "class_recall": null,
+          "class_collapsed": false
+        },
+        {
+          "question": "asks_for",
+          "target": 0.99,
+          "threshold": 0,
+          "selected": 0,
+          "n": 0,
+          "eligible": 0,
+          "answered": 0,
+          "errors": 0,
+          "lower_bound": 0,
+          "precision": 0,
+          "tested": false,
+          "coverage_lower_bound": 0,
+          "certified": false,
+          "coverage": 0,
+          "class_recall": null,
+          "class_collapsed": false
+        },
+        {
+          "question": "deadline",
+          "target": 0.99,
+          "threshold": 0,
+          "selected": 0,
+          "n": 0,
+          "eligible": 0,
+          "answered": 0,
+          "errors": 0,
+          "lower_bound": 0,
+          "precision": 0,
+          "tested": false,
+          "coverage_lower_bound": 0,
+          "certified": false,
+          "coverage": 0,
+          "class_recall": null,
+          "class_collapsed": false
+        },
+        {
+          "question": "relationship",
+          "target": 0.99,
+          "threshold": 0,
+          "selected": 0,
+          "n": 0,
+          "eligible": 0,
+          "answered": 0,
+          "errors": 0,
+          "lower_bound": 0,
+          "precision": 0,
+          "tested": false,
+          "coverage_lower_bound": 0,
+          "certified": false,
+          "coverage": 0,
+          "class_recall": null,
+          "class_collapsed": false
+        },
+        {
+          "question": "effort",
+          "target": 0.99,
+          "threshold": 0,
+          "selected": 0,
+          "n": 0,
+          "eligible": 0,
+          "answered": 0,
+          "errors": 0,
+          "lower_bound": 0,
+          "precision": 0,
+          "tested": false,
+          "coverage_lower_bound": 0,
+          "certified": false,
+          "coverage": 0,
+          "class_recall": null,
+          "class_collapsed": false
+        },
+        {
+          "question": "sentiment",
+          "target": 0.99,
+          "threshold": 0,
+          "selected": 0,
+          "n": 0,
+          "eligible": 0,
+          "answered": 0,
+          "errors": 0,
+          "lower_bound": 0,
+          "precision": 0,
+          "tested": false,
+          "coverage_lower_bound": 0,
+          "certified": false,
+          "coverage": 0,
+          "class_recall": null,
+          "class_collapsed": false
+        },
+        {
+          "question": "stance",
+          "target": 0.99,
+          "threshold": 0,
+          "selected": 0,
+          "n": 0,
+          "eligible": 0,
+          "answered": 0,
+          "errors": 0,
+          "lower_bound": 0,
+          "precision": 0,
+          "tested": false,
+          "coverage_lower_bound": 0,
+          "certified": false,
+          "coverage": 0,
+          "class_recall": null,
+          "class_collapsed": false
+        },
+        {
+          "question": "info_sufficiency",
+          "target": 0.99,
+          "threshold": 0,
+          "selected": 0,
+          "n": 0,
+          "eligible": 0,
+          "answered": 0,
+          "errors": 0,
+          "lower_bound": 0,
+          "precision": 0,
+          "tested": false,
+          "coverage_lower_bound": 0,
+          "certified": false,
+          "coverage": 0,
+          "class_recall": null,
+          "class_collapsed": false
+        },
+        {
+          "question": "request_count",
+          "target": 0.99,
+          "threshold": 0,
+          "selected": 0,
+          "n": 0,
+          "eligible": 0,
+          "answered": 0,
+          "errors": 0,
+          "lower_bound": 0,
+          "precision": 0,
+          "tested": false,
+          "coverage_lower_bound": 0,
+          "certified": false,
+          "coverage": 0,
+          "class_recall": null,
+          "class_collapsed": false
+        },
+        {
+          "question": "has_signature",
+          "target": 0.99,
+          "threshold": 0,
+          "selected": 0,
+          "n": 0,
+          "eligible": 0,
+          "answered": 0,
+          "errors": 0,
+          "lower_bound": 0,
+          "precision": 0,
+          "tested": false,
+          "coverage_lower_bound": 0,
+          "certified": false,
+          "coverage": 0,
+          "class_recall": null,
+          "class_collapsed": false
+        }
+      ]
+    }
+  ],
+  "scope": "store-98300a1c4d56",
+  "at": "2026-11-03T12:00:00Z"
+}

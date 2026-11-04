@@ -1,0 +1,802 @@
+[
+  {
+    "name": "empty",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"\", State:\"unknown\", Reason:\"no_messages\", ActorName:\"\", ActorAddress:\"\", LastAt:\"\", LastMessageID:0, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"unknown\", Confidence:0, Messages:0, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "single_ask",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "inbound_ask_signal",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"awaiting_owner\", Reason:\"inbound_last\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:1, Visibility:\"complete\", Confidence:0.85, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "inbound_cc_only",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"cc_only\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.75, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "inbound_cc_with_reply_needed",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"awaiting_owner\", Reason:\"inbound_last\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:1, Visibility:\"complete\", Confidence:0.85, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "automated_inbound_ask",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"automated_mail\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.85, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "informational_question",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "visibility_gap_many_to",
+    "options": {
+      "Visibility": "partial",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"unknown\", Reason:\"visibility_gap\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"partial\", Confidence:0.4, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "visibility_gap_single_to",
+    "options": {
+      "Visibility": "partial",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"awaiting_owner\", Reason:\"inbound_last\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:1, Visibility:\"partial\", Confidence:0.85, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "owner_asks_other",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"awaiting_other\", Reason:\"owner_last\", ActorName:\"Owner\", ActorAddress:\"owner@example.test\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:2, OwnerActorName:\"Owner\", OwnerActorAddress:\"owner@example.test\", OwnerLastAt:\"2026-11-03T08:01:00Z\", OwnerLastMessageID:2, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.85, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "owner_asks_other_mixed_case",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"awaiting_other\", Reason:\"owner_last\", ActorName:\"Owner\", ActorAddress:\"owner@example.test\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:2, OwnerActorName:\"Owner\", OwnerActorAddress:\"owner@example.test\", OwnerLastAt:\"2026-11-03T08:01:00Z\", OwnerLastMessageID:2, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.85, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "owner_closing_note",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"owner_last_closed\", ActorName:\"Owner\", ActorAddress:\"owner@example.test\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:2, OwnerActorName:\"Owner\", OwnerActorAddress:\"owner@example.test\", OwnerLastAt:\"2026-11-03T08:01:00Z\", OwnerLastMessageID:2, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.8, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "owner_reply_headers",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"answered_by_owner\", Reason:\"owner_replied\", ActorName:\"Owner\", ActorAddress:\"owner@example.test\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:2, OwnerActorName:\"Owner\", OwnerActorAddress:\"owner@example.test\", OwnerLastAt:\"2026-11-03T08:01:00Z\", OwnerLastMessageID:2, ReplyToMessageID:1, Visibility:\"complete\", Confidence:0.9, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "owner_reply_structural",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"answered_by_owner\", Reason:\"owner_replied\", ActorName:\"Owner\", ActorAddress:\"owner@example.test\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:2, OwnerActorName:\"Owner\", OwnerActorAddress:\"owner@example.test\", OwnerLastAt:\"2026-11-03T08:01:00Z\", OwnerLastMessageID:2, ReplyToMessageID:1, Visibility:\"complete\", Confidence:0.9, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "owner_reply_last_verb",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"answered_by_owner\", Reason:\"owner_replied\", ActorName:\"Owner\", ActorAddress:\"owner@example.test\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:2, OwnerActorName:\"Owner\", OwnerActorAddress:\"owner@example.test\", OwnerLastAt:\"2026-11-03T08:01:00Z\", OwnerLastMessageID:2, ReplyToMessageID:1, Visibility:\"complete\", Confidence:0.9, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "other_reply",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"answered_by_other\", Reason:\"other_replied\", ActorName:\"Colleague\", ActorAddress:\"colleague@example.test\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:2, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:1, Visibility:\"complete\", Confidence:0.95, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "other_owner_shared_store",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"answered_by_other\", Reason:\"other_replied\", ActorName:\"Colleague\", ActorAddress:\"colleague@example.test\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:2, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:1, Visibility:\"complete\", Confidence:0.95, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "sent_role_without_verdict",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"answered_by_other\", Reason:\"other_replied\", ActorName:\"Colleague\", ActorAddress:\"colleague@example.test\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:2, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:1, Visibility:\"complete\", Confidence:0.95, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "auto_reply_only",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"auto_reply\", ActorName:\"\", ActorAddress:\"\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:0, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.6, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "auto_reply_then_ask",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "x_autoreply_header",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "x_autorespond_header",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "outlook_oof_template",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "read_receipt_class",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "delivery_report_header",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "external_answer_closes_wait",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"answered_by_other\", Reason:\"other_replied\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:2, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:1, Visibility:\"complete\", Confidence:0.9, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "external_notice_after_owner_close",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:2, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "owner_answer_then_new_inbound",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:02:00Z\", LastMessageID:3, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:3, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "topic_fallback",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"answered_by_other\", Reason:\"other_replied\", ActorName:\"Colleague\", ActorAddress:\"colleague@example.test\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:2, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:1, Visibility:\"complete\", Confidence:0.95, Messages:2, Topic:\"project\", Subtopic:\"plan\"}"
+  },
+  {
+    "name": "owner_facing_projection",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"answered_by_other\", Reason:\"other_replied\", ActorName:\"Colleague\", ActorAddress:\"colleague@example.test\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:2, OwnerActorName:\"Colleague\", OwnerActorAddress:\"colleague@example.test\", OwnerLastAt:\"2026-11-03T08:01:00Z\", OwnerLastMessageID:2, ReplyToMessageID:1, Visibility:\"complete\", Confidence:0.95, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "owner_actor_projection",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"answered_by_owner\", Reason:\"owner_replied\", ActorName:\"Owner\", ActorAddress:\"owner@example.test\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:2, OwnerActorName:\"Owner\", OwnerActorAddress:\"owner@example.test\", OwnerLastAt:\"2026-11-03T08:01:00Z\", OwnerLastMessageID:2, ReplyToMessageID:1, Visibility:\"complete\", Confidence:0.9, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "tie_orders_by_row_id",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"answered_by_other\", Reason:\"other_replied\", ActorName:\"Colleague\", ActorAddress:\"colleague@example.test\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:9, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.95, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "unsorted_input",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"answered_by_other\", Reason:\"other_replied\", ActorName:\"Colleague\", ActorAddress:\"colleague@example.test\", LastAt:\"2026-11-03T08:02:00Z\", LastMessageID:3, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:1, Visibility:\"complete\", Confidence:0.95, Messages:3, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "empty_body_no_attachment",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"\", ActorAddress:\"\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:0, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.6, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "all_trivial_with_auto_reply",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"\", ActorAddress:\"\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:0, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.6, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "all_trivial_no_auto_reply",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"\", ActorAddress:\"\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:0, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.6, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "attachment_trivial_cover",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"answered_by_owner\", Reason:\"owner_replied\", ActorName:\"Owner\", ActorAddress:\"owner@example.test\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:2, OwnerActorName:\"Owner\", OwnerActorAddress:\"owner@example.test\", OwnerLastAt:\"2026-11-03T08:01:00Z\", OwnerLastMessageID:2, ReplyToMessageID:1, Visibility:\"complete\", Confidence:0.9, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "body_00",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"\", ActorAddress:\"\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:0, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.6, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "body_01",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"\", ActorAddress:\"\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:0, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.6, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "body_02",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"\", ActorAddress:\"\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:0, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.6, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "body_03",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"\", ActorAddress:\"\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:0, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.6, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "body_04",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"\", ActorAddress:\"\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:0, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.6, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "body_05",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"\", ActorAddress:\"\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:0, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.6, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "body_06",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"\", ActorAddress:\"\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:0, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.6, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "body_07",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"\", ActorAddress:\"\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:0, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.6, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "body_08",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"\", ActorAddress:\"\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:0, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.6, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "body_09",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"\", ActorAddress:\"\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:0, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.6, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "body_10",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"\", ActorAddress:\"\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:0, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.6, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "body_11",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"\", ActorAddress:\"\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:0, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.6, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "body_12",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"\", ActorAddress:\"\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:0, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.6, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "body_13",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"\", ActorAddress:\"\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:0, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.6, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "body_14",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"\", ActorAddress:\"\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:0, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.6, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "body_15",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"\", ActorAddress:\"\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:0, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.6, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "body_16",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:17, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "body_17",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:18, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "body_18",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:19, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "body_19",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:20, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "body_20",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:21, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "body_21",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:22, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "body_22",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:23, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "body_23",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:24, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "body_24",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:25, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "min_body_runes_0",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "min_body_runes_1",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 1
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "min_body_runes_2",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 2
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "min_body_runes_5",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 5
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "min_body_runes_50",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 50
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "min_body_runes_64",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 64
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "min_body_runes_65",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 65
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "min_body_runes_100",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 100
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"\", ActorAddress:\"\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:0, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.6, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "class_00",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"owner_last_closed\", ActorName:\"Owner\", ActorAddress:\"owner@example.test\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:2, OwnerActorName:\"Owner\", OwnerActorAddress:\"owner@example.test\", OwnerLastAt:\"2026-11-03T08:01:00Z\", OwnerLastMessageID:2, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.8, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "class_01",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"owner_last_closed\", ActorName:\"Owner\", ActorAddress:\"owner@example.test\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:2, OwnerActorName:\"Owner\", OwnerActorAddress:\"owner@example.test\", OwnerLastAt:\"2026-11-03T08:01:00Z\", OwnerLastMessageID:2, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.8, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "class_02",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "class_03",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"owner_last_closed\", ActorName:\"Owner\", ActorAddress:\"owner@example.test\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:2, OwnerActorName:\"Owner\", OwnerActorAddress:\"owner@example.test\", OwnerLastAt:\"2026-11-03T08:01:00Z\", OwnerLastMessageID:2, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.8, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "class_04",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "class_05",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"owner_last_closed\", ActorName:\"Owner\", ActorAddress:\"owner@example.test\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:2, OwnerActorName:\"Owner\", OwnerActorAddress:\"owner@example.test\", OwnerLastAt:\"2026-11-03T08:01:00Z\", OwnerLastMessageID:2, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.8, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "class_06",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"owner_last_closed\", ActorName:\"Owner\", ActorAddress:\"owner@example.test\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:2, OwnerActorName:\"Owner\", OwnerActorAddress:\"owner@example.test\", OwnerLastAt:\"2026-11-03T08:01:00Z\", OwnerLastMessageID:2, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.8, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "class_07",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"owner_last_closed\", ActorName:\"Owner\", ActorAddress:\"owner@example.test\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:2, OwnerActorName:\"Owner\", OwnerActorAddress:\"owner@example.test\", OwnerLastAt:\"2026-11-03T08:01:00Z\", OwnerLastMessageID:2, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.8, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "class_08",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"owner_last_closed\", ActorName:\"Owner\", ActorAddress:\"owner@example.test\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:2, OwnerActorName:\"Owner\", OwnerActorAddress:\"owner@example.test\", OwnerLastAt:\"2026-11-03T08:01:00Z\", OwnerLastMessageID:2, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.8, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "header_00",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"owner_last_closed\", ActorName:\"Owner\", ActorAddress:\"owner@example.test\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:2, OwnerActorName:\"Owner\", OwnerActorAddress:\"owner@example.test\", OwnerLastAt:\"2026-11-03T08:01:00Z\", OwnerLastMessageID:2, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.8, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "header_01",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "header_02",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "header_03",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "header_04",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"owner_last_closed\", ActorName:\"Owner\", ActorAddress:\"owner@example.test\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:2, OwnerActorName:\"Owner\", OwnerActorAddress:\"owner@example.test\", OwnerLastAt:\"2026-11-03T08:01:00Z\", OwnerLastMessageID:2, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.8, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "header_05",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"owner_last_closed\", ActorName:\"Owner\", ActorAddress:\"owner@example.test\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:2, OwnerActorName:\"Owner\", OwnerActorAddress:\"owner@example.test\", OwnerLastAt:\"2026-11-03T08:01:00Z\", OwnerLastMessageID:2, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.8, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "header_06",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"owner_last_closed\", ActorName:\"Owner\", ActorAddress:\"owner@example.test\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:2, OwnerActorName:\"Owner\", OwnerActorAddress:\"owner@example.test\", OwnerLastAt:\"2026-11-03T08:01:00Z\", OwnerLastMessageID:2, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.8, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "header_07",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "header_08",
+    "options": {
+      "Visibility": "",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"no_action\", Reason:\"no_reply_expected\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.7, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "visibility_complete_no_messages",
+    "options": {
+      "Visibility": "complete",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"\", State:\"unknown\", Reason:\"no_messages\", ActorName:\"\", ActorAddress:\"\", LastAt:\"\", LastMessageID:0, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"unknown\", Confidence:0, Messages:0, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "visibility_complete_inbound",
+    "options": {
+      "Visibility": "complete",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"awaiting_owner\", Reason:\"inbound_last\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:1, Visibility:\"complete\", Confidence:0.85, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "visibility_complete_owner",
+    "options": {
+      "Visibility": "complete",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"awaiting_other\", Reason:\"owner_last\", ActorName:\"Owner\", ActorAddress:\"owner@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"Owner\", OwnerActorAddress:\"owner@example.test\", OwnerLastAt:\"2026-11-03T08:00:00Z\", OwnerLastMessageID:1, ReplyToMessageID:0, Visibility:\"complete\", Confidence:0.85, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "visibility_complete_other",
+    "options": {
+      "Visibility": "complete",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"answered_by_other\", Reason:\"other_replied\", ActorName:\"Colleague\", ActorAddress:\"colleague@example.test\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:2, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:1, Visibility:\"complete\", Confidence:0.95, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "visibility_partial_no_messages",
+    "options": {
+      "Visibility": "partial",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"\", State:\"unknown\", Reason:\"no_messages\", ActorName:\"\", ActorAddress:\"\", LastAt:\"\", LastMessageID:0, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"unknown\", Confidence:0, Messages:0, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "visibility_partial_inbound",
+    "options": {
+      "Visibility": "partial",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"awaiting_owner\", Reason:\"inbound_last\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:1, Visibility:\"partial\", Confidence:0.85, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "visibility_partial_owner",
+    "options": {
+      "Visibility": "partial",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"awaiting_other\", Reason:\"owner_last\", ActorName:\"Owner\", ActorAddress:\"owner@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"Owner\", OwnerActorAddress:\"owner@example.test\", OwnerLastAt:\"2026-11-03T08:00:00Z\", OwnerLastMessageID:1, ReplyToMessageID:0, Visibility:\"partial\", Confidence:0.85, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "visibility_partial_other",
+    "options": {
+      "Visibility": "partial",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"answered_by_other\", Reason:\"other_replied\", ActorName:\"Colleague\", ActorAddress:\"colleague@example.test\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:2, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:1, Visibility:\"partial\", Confidence:0.95, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "visibility_unknown_no_messages",
+    "options": {
+      "Visibility": "unknown",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"\", State:\"unknown\", Reason:\"no_messages\", ActorName:\"\", ActorAddress:\"\", LastAt:\"\", LastMessageID:0, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:0, Visibility:\"unknown\", Confidence:0, Messages:0, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "visibility_unknown_inbound",
+    "options": {
+      "Visibility": "unknown",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"awaiting_owner\", Reason:\"inbound_last\", ActorName:\"Client\", ActorAddress:\"client@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:1, Visibility:\"unknown\", Confidence:0.85, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "visibility_unknown_owner",
+    "options": {
+      "Visibility": "unknown",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"awaiting_other\", Reason:\"owner_last\", ActorName:\"Owner\", ActorAddress:\"owner@example.test\", LastAt:\"2026-11-03T08:00:00Z\", LastMessageID:1, OwnerActorName:\"Owner\", OwnerActorAddress:\"owner@example.test\", OwnerLastAt:\"2026-11-03T08:00:00Z\", OwnerLastMessageID:1, ReplyToMessageID:0, Visibility:\"unknown\", Confidence:0.85, Messages:1, Topic:\"\", Subtopic:\"\"}"
+  },
+  {
+    "name": "visibility_unknown_other",
+    "options": {
+      "Visibility": "unknown",
+      "MinBodyRunes": 0
+    },
+    "assessment": "threadintel.Assessment{ConversationID:\"C-golden\", State:\"answered_by_other\", Reason:\"other_replied\", ActorName:\"Colleague\", ActorAddress:\"colleague@example.test\", LastAt:\"2026-11-03T08:01:00Z\", LastMessageID:2, OwnerActorName:\"\", OwnerActorAddress:\"\", OwnerLastAt:\"\", OwnerLastMessageID:0, ReplyToMessageID:1, Visibility:\"unknown\", Confidence:0.95, Messages:2, Topic:\"\", Subtopic:\"\"}"
+  }
+]

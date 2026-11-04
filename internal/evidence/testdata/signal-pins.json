@@ -1,0 +1,302 @@
+{
+  "addressed_to_me": {
+    "key": "v1",
+    "values": "d474c4bd4724e825"
+  },
+  "amount_magnitude": {
+    "key": "v2+65e5063a",
+    "values": "058cd15c07c940f3"
+  },
+  "attachment_bytes": {
+    "key": "v1",
+    "values": "b7afc3ac95a3a07b"
+  },
+  "attachment_count": {
+    "key": "v1",
+    "values": "b7afc3ac95a3a07b"
+  },
+  "attachment_types": {
+    "key": "v1",
+    "values": "24dc6ec38bbd88b3"
+  },
+  "auth_dkim": {
+    "key": "v1",
+    "values": "950ca496cc6a2a4c"
+  },
+  "auth_dmarc": {
+    "key": "v1",
+    "values": "950ca496cc6a2a4c"
+  },
+  "auth_spf": {
+    "key": "v1",
+    "values": "950ca496cc6a2a4c"
+  },
+  "auto_response_suppress": {
+    "key": "v1",
+    "values": "14db3da245fdf099"
+  },
+  "auto_submitted": {
+    "key": "v1+48387906",
+    "values": "43b56dff5b8f03a3"
+  },
+  "back_and_forth": {
+    "key": "v2+198e4d53",
+    "values": "b7afc3ac95a3a07b"
+  },
+  "categories": {
+    "key": "v1",
+    "values": "24dc6ec38bbd88b3"
+  },
+  "currency_codes": {
+    "key": "v1+65e5063a",
+    "values": "0c4d22d932c8de06"
+  },
+  "currency_count": {
+    "key": "v1+65e5063a",
+    "values": "feaef455115e89fa"
+  },
+  "date_count": {
+    "key": "v3+41cdf7cc",
+    "values": "92173348a063b8c2"
+  },
+  "date_days": {
+    "key": "v3+41cdf7cc",
+    "values": "2d099c28dad59e25"
+  },
+  "date_next_days": {
+    "key": "v3+41cdf7cc",
+    "values": "3de45ac029926afd"
+  },
+  "date_past_days": {
+    "key": "v1+41cdf7cc",
+    "values": "5bfbf5b8487c7647"
+  },
+  "date_unresolved": {
+    "key": "v2+41cdf7cc",
+    "values": "feaef455115e89fa"
+  },
+  "direction": {
+    "key": "v1",
+    "values": "6ae55c987a4acbd4"
+  },
+  "exchange_years": {
+    "key": "v2+198e4d53",
+    "values": "363c082a5dc92e0e"
+  },
+  "external_recipients": {
+    "key": "v1+0714e114",
+    "values": "88fe8e50130e3337"
+  },
+  "first_time_sender": {
+    "key": "v2+198e4d53",
+    "values": "d2467ecc57739b37"
+  },
+  "flag_due_days": {
+    "key": "v1+adf879b1",
+    "values": "f3f28b17ee5d84f0"
+  },
+  "flag_status": {
+    "key": "v1",
+    "values": "99443a3c9ae32a54"
+  },
+  "folder_path": {
+    "key": "v1",
+    "values": "4085468a15359107"
+  },
+  "folder_role": {
+    "key": "v1",
+    "values": "f5f4ce3f9fde1d41"
+  },
+  "has_attachments": {
+    "key": "v1",
+    "values": "b7afc3ac95a3a07b"
+  },
+  "has_calendar": {
+    "key": "v1",
+    "values": "b7afc3ac95a3a07b"
+  },
+  "hop_count": {
+    "key": "v1",
+    "values": "0f78eff5b007857e"
+  },
+  "importance": {
+    "key": "v2",
+    "values": "9c7c9db88a5e6779"
+  },
+  "importance_mark": {
+    "key": "v1",
+    "values": "9ec0dcc2c54d3fc4"
+  },
+  "inline_count": {
+    "key": "v1",
+    "values": "b7afc3ac95a3a07b"
+  },
+  "is_reply": {
+    "key": "v1+60eba36f",
+    "values": "b7afc3ac95a3a07b"
+  },
+  "language": {
+    "key": "v2+65e5063a",
+    "values": "ea3dd5b9c4615d6d"
+  },
+  "last_verb": {
+    "key": "v1",
+    "values": "8f6ce4caa92f88f5"
+  },
+  "link_count": {
+    "key": "v1+48387906",
+    "values": "47f08e14c80ef0a1"
+  },
+  "list_id": {
+    "key": "v1",
+    "values": "14db3da245fdf099"
+  },
+  "list_unsubscribe": {
+    "key": "v1",
+    "values": "43b56dff5b8f03a3"
+  },
+  "lookalike_domain": {
+    "key": "v2+49093c7a",
+    "values": "e0f484032a61b2fe"
+  },
+  "mailer": {
+    "key": "v1",
+    "values": "43b56dff5b8f03a3"
+  },
+  "message_class": {
+    "key": "v1",
+    "values": "c6b4b1afbbdd5f94"
+  },
+  "message_kind": {
+    "key": "v1+48387906",
+    "values": "2bbce78ba083cd73"
+  },
+  "name_address": {
+    "key": "v1+1bf42557",
+    "values": "99443a3c9ae32a54"
+  },
+  "own_chars": {
+    "key": "v1+48387906",
+    "values": "cdfd85c9accd606a"
+  },
+  "owner_asked": {
+    "key": "v2+198e4d53",
+    "values": "99443a3c9ae32a54"
+  },
+  "owner_replied_after": {
+    "key": "v2+198e4d53",
+    "values": "363c082a5dc92e0e"
+  },
+  "owner_sent_before": {
+    "key": "v2+198e4d53",
+    "values": "363c082a5dc92e0e"
+  },
+  "owner_share": {
+    "key": "v2+198e4d53",
+    "values": "1c3d5896932e1e24"
+  },
+  "precedence": {
+    "key": "v1",
+    "values": "43b56dff5b8f03a3"
+  },
+  "question_marks": {
+    "key": "v1+48387906",
+    "values": "00de43e8285fdba8"
+  },
+  "quoted_ratio": {
+    "key": "v1+48387906",
+    "values": "46fd45c67f587f40"
+  },
+  "read_receipt": {
+    "key": "v1",
+    "values": "14db3da245fdf099"
+  },
+  "read_state": {
+    "key": "v1",
+    "values": "ba3c9adbae3f1380"
+  },
+  "recipient_count": {
+    "key": "v1",
+    "values": "bebf71e1f5aaaab8"
+  },
+  "reply_latency_band": {
+    "key": "v2+4eed222c",
+    "values": "d17d105c48ca541e"
+  },
+  "reply_rate": {
+    "key": "v2+198e4d53",
+    "values": "1c3d5896932e1e24"
+  },
+  "reply_to": {
+    "key": "v1+1bf42557",
+    "values": "43b56dff5b8f03a3"
+  },
+  "return_path": {
+    "key": "v1+1bf42557",
+    "values": "43b56dff5b8f03a3"
+  },
+  "script": {
+    "key": "v1+73b4f4bb",
+    "values": "a5d1ed143c2fbd3f"
+  },
+  "sender_first_seen_days": {
+    "key": "v2+198e4d53",
+    "values": "1c3d5896932e1e24"
+  },
+  "sender_last_seen_days": {
+    "key": "v2+198e4d53",
+    "values": "1c3d5896932e1e24"
+  },
+  "sender_received_before": {
+    "key": "v2+198e4d53",
+    "values": "363c082a5dc92e0e"
+  },
+  "sender_relation": {
+    "key": "v1+0714e114",
+    "values": "c475b24f8f8d7e16"
+  },
+  "sender_reminders": {
+    "key": "v2+198e4d53",
+    "values": "363c082a5dc92e0e"
+  },
+  "signature": {
+    "key": "v1+48387906",
+    "values": "4454d4ffafb63fb6"
+  },
+  "sole_to": {
+    "key": "v1",
+    "values": "6b4e93d8d519cc52"
+  },
+  "spam_flag": {
+    "key": "v1",
+    "values": "14db3da245fdf099"
+  },
+  "spam_scl": {
+    "key": "v1",
+    "values": "c618f0c47d8711b6"
+  },
+  "template_matches": {
+    "key": "v1+9f518b5d",
+    "values": "8bcf787ddc81ba90"
+  },
+  "thread_gap_minutes": {
+    "key": "v2+198e4d53",
+    "values": "b4c5f83d2141badf"
+  },
+  "thread_last_sender": {
+    "key": "v2+198e4d53",
+    "values": "99443a3c9ae32a54"
+  },
+  "thread_position": {
+    "key": "v2+198e4d53",
+    "values": "b7afc3ac95a3a07b"
+  },
+  "time_count": {
+    "key": "v1+65e5063a",
+    "values": "f4be96da56879dd4"
+  },
+  "weekday_days": {
+    "key": "v3+41cdf7cc",
+    "values": "483ee305b8695d24"
+  }
+}

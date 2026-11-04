@@ -1,0 +1,87 @@
+name: pull request size
+
+on:
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-size-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  size:
+    name: size label
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          SIZE_XS_MAX: "9"
+          SIZE_S_MAX: "49"
+          SIZE_M_MAX: "199"
+          SIZE_L_MAX: "499"
+        with:
+          script: |
+            const limits = [
+              ["xs", Number(process.env.SIZE_XS_MAX)],
+              ["s", Number(process.env.SIZE_S_MAX)],
+              ["m", Number(process.env.SIZE_M_MAX)],
+              ["l", Number(process.env.SIZE_L_MAX)],
+            ];
+            const { owner, repo } = context.repo;
+            const number = context.payload.pull_request.number;
+            const { data: pull } = await github.rest.pulls.get({
+              owner,
+              repo,
+              pull_number: number,
+            });
+
+            const changed = pull.additions + pull.deletions;
+            const size = limits.find(([, maximum]) => changed <= maximum)?.[0] ?? "xl";
+            const label = `size: ${size}`;
+
+            try {
+              await github.rest.issues.getLabel({ owner, repo, name: label });
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              await github.rest.issues.createLabel({
+                owner,
+                repo,
+                name: label,
+                color: "ededed",
+                description: "Pull request size by changed lines",
+              });
+            }
+
+            const current = pull.labels.map((entry) => entry.name);
+            for (const name of current) {
+              if (name.startsWith("size: ") && name !== label) {
+                try {
+                  await github.rest.issues.removeLabel({
+                    owner,
+                    repo,
+                    issue_number: number,
+                    name,
+                  });
+                } catch (error) {
+                  // A concurrent run may have removed it already.
+                  if (error.status !== 404) throw error;
+                }
+              }
+            }
+            if (!current.includes(label)) {
+              await github.rest.issues.addLabels({
+                owner,
+                repo,
+                issue_number: number,
+                labels: [label],
+              });
+            }
+            core.info(`${changed} changed line(s): ${label}`);

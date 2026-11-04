@@ -1,0 +1,14 @@
+{
+  "_doc": "Mailsense additions merged over default_profile.json (the generated legacy taxonomy) before the user's triage.profile.file. thresholds.noul_default is the yes/no cutoff of noul questions without a role threshold; thresholds.sentiment_positive_min the sentiment above which a message counts as positive. escalation: the roles whose uncertain answers flag a message for the Generator, each by min_confidence (absent = thresholds.low_confidence) on the one confidence definition of internal/selective: a choice's or score's confidence, a yes/no answer's probability of the side its cutoff chooses. The defaults flag the least certain answers of the roles that drive what the owner sees first; feedback calibration suggests per-installation values from labels. insights: the category options that count as a suspicious label, and the relationship options whose domains are known for the impersonation check.",
+  "thresholds": {"noul_default": 0.5, "sentiment_positive_min": 2.5},
+  "escalation": {
+    "category": {"min_confidence": 0.40},
+    "urgency": {"min_confidence": 0.25},
+    "reply": {"min_confidence": 0.60},
+    "suspicious": {"min_confidence": 0.60}
+  },
+  "insights": {
+    "suspicious_categories": ["spam", "security"],
+    "known_relationships": ["existing_client", "colleague", "prospect_lead"]
+  }
+}

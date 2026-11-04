@@ -1,0 +1,29 @@
+Mailsense
+Copyright (C) 2026 the Mailsense authors
+
+Mailsense is free software: you can redistribute it and/or modify it under the
+terms of the GNU Affero General Public License as published by the Free
+Software Foundation, version 3 of the License, or (at your option) any later
+version. The full license text is in LICENSE.
+
+Mailsense is distributed in the hope that it will be useful, but WITHOUT ANY
+WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A
+PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+Third-party notices
+
+Bundled or downloaded at runtime
+- llama.cpp (llama-server), MIT. Binary artifacts are fetched from the upstream
+  release named in internal/sidecar/runtimes.json.
+- EmbeddingGemma 2 GGUF, Apache-2.0 with the Gemma Prohibited Use Policy. The
+  model is fetched from the URL pinned in internal/sidecar/runtimes.json and
+  verified by its recorded SHA-256.
+- Go module dependencies: see go.sum and their respective licenses.
+
+Data
+- Public Suffix List data (internal/psl/pin.json), MPL-2.0.
+- Unicode data files (internal/locale/pin.json), Unicode License.
+- Locale and time-zone data generated from their upstream releases.
+
+No third-party trademark is claimed. Microsoft, Windows and Outlook are
+trademarks of Microsoft Corporation; all other names belong to their owners.

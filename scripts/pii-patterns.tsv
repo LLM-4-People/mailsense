@@ -1,0 +1,223 @@
+# PII and environment residue patterns. One owner for the deny and allow lists.
+#
+# Columns, separated by one tab:
+#   kind      deny or allow
+#   category  person, business, domain, machine, path, vendor, relay, account
+#   pattern   an extended regular expression for deny; a literal term for allow
+#   sample    a term the pattern must match (deny) or the same literal (allow)
+#   note      a short plain-English reason
+#
+# A deny pattern is a residue this public tree must not contain. An allow term
+# is an invented cast member, invented business or product name that the deny
+# patterns must leave alone. scripts/check-pii.sh reads only this file; no
+# pattern lives anywhere else.
+
+# Real person names from the cast before the invented replacement.
+deny	person	Nadia Bergeron	Nadia Bergeron	old cast
+deny	person	Mario Côté	Mario Côté	old cast
+deny	person	Roger Demers	Roger Demers	old cast
+deny	person	Yves Lessard	Yves Lessard	old cast
+deny	person	Sylvain Garand	Sylvain Garand	old cast
+deny	person	Dominic Morin	Dominic Morin	old cast
+deny	person	Jonathan Vincent	Jonathan Vincent	old cast
+deny	person	Simon Bernard	Simon Bernard	old cast
+deny	person	Simon Bernier	Simon Bernier	old cast
+deny	person	Benoît Vaillancourt	Benoît Vaillancourt	old cast
+deny	person	Adam Komorner	Adam Komorner	old cast
+deny	person	Richard Perras	Richard Perras	old cast
+deny	person	Richard Gaudette	Richard Gaudette	old cast
+deny	person	David Hamel	David Hamel	old cast
+deny	person	Jean-Guy Hamel	Jean-Guy Hamel	old cast
+deny	person	Olivier Richard	Olivier Richard	old cast
+deny	person	Nadia Latulippe	Nadia Latulippe	old cast
+deny	person	Nadia Normand\b	Nadia Normand	old cast
+deny	person	Gougeon-Hamel	Gougeon-Hamel	old cast
+deny	person	Nicolas Côté	Nicolas Côté	old cast
+deny	person	Alex Vézina	Alex Vézina	old cast
+deny	person	Nancy Bergeron	Nancy Bergeron	old cast
+deny	person	Stéphane Bernier	Stéphane Bernier	old cast
+deny	person	Stephane Viens	Stephane Viens	old cast
+deny	person	Jessika Dion	Jessika Dion	old cast
+deny	person	Gestion El Shaddai	Gestion El Shaddai	old business owner
+
+# Old business stems, client domains and test domains.
+deny	business	artisanex	artisanex	old client stem
+deny	business	gesinc\b	gesinc.ca	old client stem
+deny	business	innovberco	innovberco	old client stem
+deny	business	plomberiemariocote	plomberiemariocote	old client stem
+deny	business	plomberie-demo	plomberie-demo	old test stem
+deny	business	projexmedia	projexmedia	old client stem
+deny	business	projexhost	projexhost	old client stem
+deny	business	insulationfasteners	insulationfasteners	old client stem
+deny	business	\bfasteners\.(ca|test)\b	fasteners.test	old client domain
+deny	business	logement-han	logement-han	old client stem
+deny	business	lagestion	lagestion	old client stem
+deny	business	vgdfiscalistes	vgdfiscalistes	old client stem
+deny	business	vgd-fiscalistes	vgd-fiscalistes	old test stem
+deny	business	xpectautomation	xpectautomation	old client stem
+deny	business	northamericancabinets	northamericancabinets	old client stem
+deny	business	northcabinets	northcabinets	old test stem
+deny	business	magintegration	magintegration	old client stem
+deny	business	regulvar	regulvar	old client stem
+deny	business	rapide\.net	rapide.net	old client domain
+deny	business	clientcorp	clientcorp	old client stem
+deny	business	logementhabitat	logementhabitat	old client stem
+deny	business	constructionsyveslessard	constructionsyveslessard	old client stem
+deny	business	constructions-exemple	constructions-exemple	old test stem
+deny	business	construction-exemple	construction-exemple	old test stem
+deny	business	constructionsavco	constructionsavco	old client stem
+deny	business	sibelectrique	sibelectrique	old client stem
+deny	business	sib-electrique	sib-electrique	old test stem
+deny	business	nacsystems	nacsystems	old client stem
+deny	business	grp-inf	grp-inf	old client stem
+deny	business	philanthropieestrie	philanthropieestrie	old client stem
+deny	business	philanthropie-exemple	philanthropie-exemple	old test stem
+deny	business	geropromo	geropromo	old client stem
+deny	business	ciquebec	ciquebec	old client stem
+deny	business	chevronroyal	chevronroyal	old client stem
+deny	business	boostaffaires	boostaffaires	old client stem
+deny	business	propieux	propieux	old client stem
+deny	business	polypro	polypro	old client stem
+deny	business	pieuxvistech	pieuxvistech	old client stem
+deny	business	hockeyphoenix	hockeyphoenix	old client stem
+deny	business	emballagesdg	emballagesdg	old client stem
+deny	business	emballages-dg	emballages-dg	old test stem
+deny	business	electrotechno	electrotechno	old client stem
+deny	business	logipac	logipac	old test stem
+deny	business	isosante	isosante	old test stem
+deny	business	services-setl	services-setl	old test stem
+deny	business	servicessetl	servicessetl	old client stem
+deny	business	\bcrd\.test\b	crd.test	old test stem
+deny	business	brouillette	brouillette	old test stem
+deny	business	comitatus	comitatus	old test stem
+deny	business	logiplex	logiplex	old test stem
+deny	business	climatisation-riviere	climatisation-riviere	old test stem
+deny	business	mobilier-nord	mobilier-nord	old test stem
+
+# Internal vendor names and the provider identities they replaced.
+deny	vendor	\bsubq\b	SubQ	internal vendor name
+deny	vendor	\bjev\b	Jev	internal vendor name
+deny	vendor	clef-flash	Clef-flash	internal vendor model
+deny	vendor	provider-clef	provider-clef	internal vendor preset
+deny	vendor	coralbricks	coralbricks	internal vendor domain
+deny	vendor	neuralwatt	neuralwatt	internal vendor domain
+deny	vendor	typesafe\.ai	typesafe.ai	internal vendor domain
+deny	vendor	beta\.io	beta.io	old test provider domain
+deny	vendor	macrium	Macrium	internal backup vendor
+deny	vendor	\bParamount\b	Paramount	internal client vendor
+deny	vendor	PROVIDER_DEEPSEEK	PROVIDER_DEEPSEEK	old provider secret name
+
+# Machine names, home paths and environment-specific terms.
+deny	machine	\bsbk\b	sbk	internal relay tooling
+deny	machine	win-build	win-build-01	internal Windows machine
+deny	machine	jacobd	jacobd	internal Windows machine
+deny	path	jadorais	jadorais	owner account name
+deny	path	/tmp/opencode	/tmp/opencode	internal work directory
+deny	path	email-classifier	email-classifier	old repository name
+deny	path	C:\\Users\\owner	C:\Users\owner	internal Windows home path
+deny	account	amberflag48	amberflag48	personal GitHub account
+deny	relay	relay-remote	relay-remote	internal relay script
+deny	relay	outlook_relay	outlook_relay	internal relay module
+deny	relay	RELAY_URL	RELAY_URL	internal relay setting
+deny	relay	RELAY_TOKEN	RELAY_TOKEN	internal relay secret
+deny	relay	RELAY_CFG	RELAY_CFG	internal relay setting
+deny	relay	scripts/relay	scripts/relay	internal relay directory
+deny	relay	device relay	device relay	internal relay workflow
+deny	relay	\.relay\.cfg	.relay.cfg	internal relay config
+
+# Invented people. The deny list above must leave every one alone.
+allow	person	Nadia Tremblay	Nadia Tremblay	invented cast
+allow	person	Marc Dupont	Marc Dupont	invented cast
+allow	person	Robert Mercier	Robert Mercier	invented cast
+allow	person	Yves Lemaire	Yves Lemaire	invented cast
+allow	person	Samuel Girard	Samuel Girard	invented cast
+allow	person	Dominic Marchand	Dominic Marchand	invented cast
+allow	person	Jonathan Vachon	Jonathan Vachon	invented cast
+allow	person	Simon Berthier	Simon Berthier	invented cast
+allow	person	Benoît Vachon	Benoît Vachon	invented cast
+allow	person	Adam Laurent	Adam Laurent	invented cast
+allow	person	Richard Pelletier	Richard Pelletier	invented cast
+allow	person	Richard Gagnon	Richard Gagnon	invented cast
+allow	person	David Harvey	David Harvey	invented cast
+allow	person	Jean-Guy Harvey	Jean-Guy Harvey	invented cast
+allow	person	Olivier Robert	Olivier Robert	invented cast
+allow	person	Nadia Lapointe	Nadia Lapointe	invented cast
+allow	person	Nadia Normandin	Nadia Normandin	invented cast
+allow	person	Emmanuelle Gougeon	Emmanuelle Gougeon	invented cast
+allow	person	Nicolas Dupont	Nicolas Dupont	invented cast
+allow	person	Alex Vachon	Alex Vachon	invented cast
+allow	person	Julie Roy	Julie Roy	invented cast
+allow	person	Julie Dionne	Julie Dionne	invented cast
+allow	person	Nadine Bergeron	Nadine Bergeron	invented cast
+allow	person	Simon Viau	Simon Viau	invented cast
+allow	person	Alex Morgan	Alex Morgan	invented cast
+allow	person	Alice Martin	Alice Martin	synthetic test name
+allow	person	Bob Smith	Bob Smith	synthetic test name
+allow	person	Carol Jones	Carol Jones	synthetic test name
+allow	person	Ada Lovelace	Ada Lovelace	synthetic test name
+allow	person	Grace Hopper	Grace Hopper	synthetic test name
+allow	person	Dave Delta	Dave Delta	synthetic test name
+allow	person	Marc Bélanger	Marc Bélanger	synthetic test name
+
+# Invented businesses and their reserved domains.
+allow	business	Atelier Nord	Atelier Nord	invented business
+allow	business	aurore-groupe.test	aurore-groupe.test	invented domain
+allow	business	projet-alpha.test	projet-alpha.test	invented domain
+allow	business	entreprises-dupont.test	entreprises-dupont.test	invented domain
+allow	business	cirrus-media.test	cirrus-media.test	invented domain
+allow	business	delta-systemes.test	delta-systemes.test	invented domain
+allow	business	quartz-electronique.test	quartz-electronique.test	invented domain
+allow	business	rive-education.test	rive-education.test	invented domain
+allow	business	ulysse-assurance.test	ulysse-assurance.test	invented domain
+allow	business	ivoire-finance.test	ivoire-finance.test	invented domain
+allow	business	kappa-logiciel.test	kappa-logiciel.test	invented domain
+allow	business	ouest-immobilier.test	ouest-immobilier.test	invented domain
+allow	business	prisme-architecture.test	prisme-architecture.test	invented domain
+allow	business	controle-quartz.test	controle-quartz.test	invented domain
+allow	business	mistral-transport.test	mistral-transport.test	invented domain
+allow	business	client-exemple.test	client-exemple.test	invented domain
+allow	business	solstice-aliments.test	solstice-aliments.test	invented domain
+allow	business	wapiti-construction.test	wapiti-construction.test	invented domain
+allow	business	jade-industrie.test	jade-industrie.test	invented domain
+allow	business	systemes-meridien.test	systemes-meridien.test	invented domain
+allow	business	meridien-groupe.test	meridien-groupe.test	invented domain
+allow	business	fondation-aurore.test	fondation-aurore.test	invented domain
+allow	business	vantage-plein-air.test	vantage-plein-air.test	invented domain
+allow	business	boreal-conseil.test	boreal-conseil.test	invented domain
+allow	business	zenith-conseil.test	zenith-conseil.test	invented domain
+allow	business	nova-distribution.test	nova-distribution.test	invented domain
+allow	business	tundra-voyages.test	tundra-voyages.test	invented domain
+allow	business	fjord-energie.test	fjord-energie.test	invented domain
+allow	business	echo-logistique.test	echo-logistique.test	invented domain
+allow	business	club-elan.test	club-elan.test	invented domain
+allow	business	lumen-studio.test	lumen-studio.test	invented domain
+allow	business	horizon-recherche.test	horizon-recherche.test	invented domain
+allow	business	batiment-exemple.test	batiment-exemple.test	invented domain
+allow	business	messagerie-exemple.test	messagerie-exemple.test	invented domain
+allow	business	clinique-exemple.test	clinique-exemple.test	invented domain
+allow	business	services-exemple.test	services-exemple.test	invented domain
+allow	business	climatisation-exemple.test	climatisation-exemple.test	invented domain
+allow	business	famille-exemple.test	famille-exemple.test	invented domain
+allow	business	cabinet-exemple.test	cabinet-exemple.test	invented domain
+allow	business	provider.example.test	provider.example.test	invented domain
+allow	business	Mont Amount Conseil	Mont Amount Conseil	invented vendor contact
+allow	business	mont-amount.test	mont-amount.test	invented domain
+allow	business	acme.test	acme.test	invented domain
+allow	business	beta.test	beta.test	invented domain
+allow	business	example.test	example.test	reserved test domain
+
+# The product's own names and the names it may mention.
+allow	product	Mailsense	Mailsense	product name
+allow	product	mailsense	mailsense	product name
+allow	product	LLM-4-People	LLM-4-People	product organization
+allow	product	AGPL	AGPL	product license
+allow	product	Outlook	Outlook	product integration
+allow	product	Windows	Windows	product platform
+allow	product	Linux	Linux	product platform
+allow	product	Microsoft	Microsoft	product integration
+allow	product	WebView2	WebView2	product runtime
+allow	product	GitHub	GitHub	product host
+allow	product	Gmail	Gmail	product reference
+allow	product	IMAP	IMAP	product reference
+allow	product	POP	POP	product reference
+allow	product	Example provider	Example provider	product placeholder

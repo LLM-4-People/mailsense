@@ -1,0 +1,50 @@
+{
+  "_doc": "Hand-kept parameters of scripts/update-locale-data.sh (the generator's choices; the data itself comes only from the pinned sources in pin.json). cldr_coverage: the CLDR coverage levels (common/properties/coverageLevels.txt) whose locales are shipped. udhr_min_stage: the lowest UDHR-in-XML stage of a translation used to train a language profile (4 = complete, reviewed text). udhr_status: the UDHR-in-XML index statuses of the translations used (y: the project's reference translations; n marks dialect texts and second translations filed under a language's tag, such as French (Welche), which would blur its profile). ngram_max / profile_size: a language profile is its profile_size most frequent n-grams of 1..ngram_max characters (internal/locale/ngram). min_script_share: share of a translation's letters a script must have to count as one of the language's scripts (the detector compares only languages written in the text's dominant script). exemplar_auxiliary_weight / exemplar_outside_weight: in language identification, a letter of the text that is only in a language's auxiliary exemplar set (CLDR), or in neither its main nor its auxiliary set, weighs that many absent n-grams against the language. date_lengths / date_skeletons / time_lengths / time_skeletons: the CLDR Gregorian date and time formats (dateFormats/timeFormats lengths and availableFormats skeleton ids) shipped as patterns that dates are recognised by (zone fields are dropped from time patterns; a pattern with a field the matcher does not read — era, quarter, week… — is not shipped). symbol_letters_ascii_excluded: a currency symbol made only of ASCII letters is not shipped as a symbol (R, kr, Fr read as words or units next to a number; the ISO 4217 code is matched instead). regional_status: the CLDR territoryInfo official statuses (officialStatus) that make a territory's locale (<language>_<territory>) one of the language's regional locales: their date and time patterns, names and separators join the language's (a numeric date whose day/month order differs between them is ambiguous unless a field above 12 decides). calendar preferences: the calendars of the language's likely territory (calendarPreferenceData) are the ones its dates may be written in.",
+  "cldr_coverage": [
+    "modern",
+    "moderate"
+  ],
+  "udhr_min_stage": 4,
+  "min_script_share": 0.05,
+  "symbol_letters_ascii_excluded": true,
+  "date_lengths": [
+    "full",
+    "long",
+    "medium",
+    "short"
+  ],
+  "date_skeletons": [
+    "yMd",
+    "yMMMd",
+    "yMMMMd",
+    "yMMMEd",
+    "yMEd",
+    "MMMd",
+    "MMMMd",
+    "Md",
+    "MEd",
+    "MMMEd",
+    "MMMMEd"
+  ],
+  "time_lengths": [
+    "medium",
+    "short"
+  ],
+  "time_skeletons": [
+    "Hm",
+    "hm",
+    "Hms",
+    "hms"
+  ],
+  "ngram_max": 3,
+  "profile_size": 500,
+  "exemplar_auxiliary_weight": 1,
+  "exemplar_outside_weight": 3,
+  "udhr_status": [
+    "y"
+  ],
+  "regional_status": [
+    "official",
+    "de_facto_official"
+  ]
+}

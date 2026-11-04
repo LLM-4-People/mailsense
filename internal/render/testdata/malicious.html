@@ -1,0 +1,21 @@
+<html><head><style>p{background:url(https://tracker.example.test/x)}</style></head><body>
+<p onclick="alert(1)" style="color:red">Clickable text with script <script>alert('inline')</script> behind it.</p>
+<img src="x" onerror="alert(2)">
+<a href="javascript:alert(3)">javascript link</a>
+<a href="JaVaScRiPt&#58;alert(4)">obfuscated link</a>
+<a href="data:text/html;base64,PHNjcmlwdD5hbGVydCg1KTwvc2NyaXB0Pg==">data link</a>
+<a href="file:///etc/passwd">file link</a>
+<iframe src="https://example.test/frame"></iframe>
+<object data="https://example.test/object"></object>
+<embed src="https://example.test/embed">
+<form action="https://example.test/post"><input name="x"><button>Send</button></form>
+<meta http-equiv="refresh" content="0;url=https://example.test/">
+<base href="https://example.test/">
+<svg><script>alert(6)</script><text>vector</text></svg>
+<math><mi>math</mi></math>
+<!-- a comment -->
+<div id="fragment" class="mail-body" data-x="1">
+  <p dir="rtl" lang="ar">مرحبا</p>
+  <p dir="auto" lang="fr">Bonjour, voici un texte français : éàçù.</p>
+</div>
+</body></html>

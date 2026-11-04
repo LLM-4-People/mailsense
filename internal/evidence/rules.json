@@ -1,0 +1,654 @@
+{
+  "_doc": "Evidence rules (role a): each maps conditions on causal signals to one answer of a triage question. A rule fires when every condition holds on a value that is there (not applicable or unavailable values never satisfy one; a value read on a cut input satisfies only conditions it cannot overstate: is true, a non-none enum value, a minimum). Answers: a choice option, true/false for a noul question, {min,max} levels for a score. A rule is an answer key on an install only when its precision measured against that install's judge labels has a Wilson lower bound (z = evidence.rules.z) of at least evidence.rules.min_precision; otherwise it is evidence only. Users override per rule id in evidence.rules.file (null removes).",
+  "rules": {
+    "asks_meeting_request": {
+      "question": "asks_for",
+      "answer": "meeting_availability",
+      "when": [
+        {
+          "signal": "message_kind",
+          "in": [
+            "meeting_request"
+          ]
+        }
+      ],
+      "doc": "A meeting request asks for availability."
+    },
+    "asks_nothing_auto": {
+      "question": "asks_for",
+      "answer": "nothing_fyi",
+      "when": [
+        {
+          "signal": "auto_submitted",
+          "in": [
+            "auto-generated",
+            "auto-notified"
+          ]
+        }
+      ],
+      "doc": "Machine-written mail asks nothing."
+    },
+    "asks_nothing_response": {
+      "question": "asks_for",
+      "answer": "nothing_fyi",
+      "when": [
+        {
+          "signal": "message_kind",
+          "in": [
+            "meeting_response",
+            "meeting_cancel"
+          ]
+        }
+      ],
+      "doc": "A meeting response or cancellation asks nothing."
+    },
+    "cat_auto_notifications": {
+      "question": "category",
+      "answer": "notifications",
+      "when": [
+        {
+          "signal": "auto_submitted",
+          "in": [
+            "auto-generated",
+            "auto-notified"
+          ]
+        }
+      ],
+      "doc": "Machine-written mail as notifications."
+    },
+    "cat_currency_finance": {
+      "question": "category",
+      "answer": "finance",
+      "when": [
+        {
+          "signal": "currency_count",
+          "min": 1
+        }
+      ],
+      "doc": "An amount of money in the own text."
+    },
+    "cat_report_notifications": {
+      "question": "category",
+      "answer": "notifications",
+      "when": [
+        {
+          "signal": "message_kind",
+          "in": [
+            "delivery_report",
+            "read_receipt",
+            "auto_reply"
+          ]
+        }
+      ],
+      "doc": "Reports and automatic replies as notifications."
+    },
+    "cat_scl_spam": {
+      "question": "category",
+      "answer": "spam",
+      "when": [
+        {
+          "signal": "spam_scl",
+          "min": 5
+        }
+      ],
+      "doc": "Exchange rated it spam (SCL ≥ 5)."
+    },
+    "cat_unsubscribe_marketing": {
+      "question": "category",
+      "answer": "marketing",
+      "when": [
+        {
+          "signal": "list_unsubscribe",
+          "in": [
+            "present",
+            "one_click"
+          ]
+        }
+      ],
+      "doc": "Bulk mail as marketing."
+    },
+    "deadline_24h": {
+      "question": "deadline",
+      "answer": {
+        "min": 4,
+        "max": 4
+      },
+      "when": [
+        {
+          "signal": "date_next_days",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "doc": "A date the next day."
+    },
+    "deadline_any": {
+      "question": "deadline",
+      "answer": {
+        "min": 1,
+        "max": 5
+      },
+      "when": [
+        {
+          "signal": "date_count",
+          "min": 1
+        }
+      ],
+      "doc": "Some date in the own text."
+    },
+    "deadline_month": {
+      "question": "deadline",
+      "answer": {
+        "min": 2,
+        "max": 2
+      },
+      "when": [
+        {
+          "signal": "date_next_days",
+          "min": 8,
+          "max": 31
+        }
+      ],
+      "doc": "A date within a month."
+    },
+    "deadline_months": {
+      "question": "deadline",
+      "answer": {
+        "min": 1,
+        "max": 1
+      },
+      "when": [
+        {
+          "signal": "date_next_days",
+          "min": 32
+        }
+      ],
+      "doc": "A date months away."
+    },
+    "deadline_none": {
+      "question": "deadline",
+      "answer": {
+        "min": 0,
+        "max": 0
+      },
+      "when": [
+        {
+          "signal": "date_count",
+          "max": 0
+        }
+      ],
+      "doc": "No date in the own text."
+    },
+    "deadline_overdue": {
+      "question": "deadline",
+      "answer": {
+        "min": 5,
+        "max": 5
+      },
+      "when": [
+        {
+          "signal": "date_past_days",
+          "min": 1
+        }
+      ],
+      "doc": "A full date in the own text already past: overdue."
+    },
+    "deadline_week": {
+      "question": "deadline",
+      "answer": {
+        "min": 3,
+        "max": 3
+      },
+      "when": [
+        {
+          "signal": "date_next_days",
+          "min": 2,
+          "max": 7
+        }
+      ],
+      "doc": "A date within a week."
+    },
+    "deadline_weekday": {
+      "question": "deadline",
+      "answer": {
+        "min": 3,
+        "max": 5
+      },
+      "when": [
+        {
+          "signal": "weekday_days",
+          "min": 1
+        }
+      ],
+      "doc": "A weekday named alone: within a week."
+    },
+    "no_question_mark": {
+      "question": "is_question",
+      "answer": false,
+      "when": [
+        {
+          "signal": "question_marks",
+          "max": 0
+        }
+      ],
+      "doc": "No question mark in the whole own text."
+    },
+    "not_susp_internal": {
+      "question": "suspicious",
+      "answer": false,
+      "when": [
+        {
+          "signal": "sender_relation",
+          "in": [
+            "internal",
+            "directory"
+          ]
+        }
+      ],
+      "doc": "A sender of the owner's organisation."
+    },
+    "not_susp_known_pass": {
+      "question": "suspicious",
+      "answer": false,
+      "when": [
+        {
+          "signal": "auth_dmarc",
+          "in": [
+            "pass"
+          ]
+        },
+        {
+          "signal": "first_time_sender",
+          "in": [
+            "known"
+          ]
+        }
+      ],
+      "doc": "DMARC pass from a known correspondent."
+    },
+    "question_mark": {
+      "question": "is_question",
+      "answer": true,
+      "when": [
+        {
+          "signal": "question_marks",
+          "min": 1
+        }
+      ],
+      "doc": "A question mark of any script in the own text."
+    },
+    "rel_auto_replied": {
+      "question": "relationship",
+      "answer": "automated_service",
+      "when": [
+        {
+          "signal": "auto_submitted",
+          "in": [
+            "auto-replied"
+          ]
+        }
+      ],
+      "doc": "Auto-Submitted auto-replied: an automatic reply."
+    },
+    "rel_auto_submitted": {
+      "question": "relationship",
+      "answer": "automated_service",
+      "when": [
+        {
+          "signal": "auto_submitted",
+          "in": [
+            "auto-generated",
+            "auto-notified"
+          ]
+        }
+      ],
+      "doc": "Auto-Submitted auto-generated/auto-notified: a machine wrote it."
+    },
+    "rel_auto_suppress": {
+      "question": "relationship",
+      "answer": "automated_service",
+      "when": [
+        {
+          "signal": "auto_response_suppress",
+          "is": true
+        }
+      ],
+      "doc": "X-Auto-Response-Suppress: the sender wants no automatic reply."
+    },
+    "rel_directory": {
+      "question": "relationship",
+      "answer": "colleague",
+      "when": [
+        {
+          "signal": "sender_relation",
+          "in": [
+            "directory"
+          ]
+        }
+      ],
+      "doc": "An address of the owner's directory (Exchange DN)."
+    },
+    "rel_internal": {
+      "question": "relationship",
+      "answer": "colleague",
+      "when": [
+        {
+          "signal": "sender_relation",
+          "in": [
+            "internal"
+          ]
+        }
+      ],
+      "doc": "The sender's organisation is an owner's."
+    },
+    "rel_list_id": {
+      "question": "relationship",
+      "answer": "automated_service",
+      "when": [
+        {
+          "signal": "list_id",
+          "is": true
+        }
+      ],
+      "doc": "A List-Id: a mailing list."
+    },
+    "rel_list_unsubscribe": {
+      "question": "relationship",
+      "answer": "automated_service",
+      "when": [
+        {
+          "signal": "list_unsubscribe",
+          "in": [
+            "present",
+            "one_click"
+          ]
+        }
+      ],
+      "doc": "A List-Unsubscribe header: bulk mail."
+    },
+    "rel_one_click": {
+      "question": "relationship",
+      "answer": "automated_service",
+      "when": [
+        {
+          "signal": "list_unsubscribe",
+          "in": [
+            "one_click"
+          ]
+        }
+      ],
+      "doc": "RFC 8058 one-click unsubscription: a bulk sender."
+    },
+    "rel_precedence": {
+      "question": "relationship",
+      "answer": "automated_service",
+      "when": [
+        {
+          "signal": "precedence",
+          "in": [
+            "bulk",
+            "list",
+            "junk"
+          ]
+        }
+      ],
+      "doc": "Precedence bulk/list/junk."
+    },
+    "rel_report": {
+      "question": "relationship",
+      "answer": "automated_service",
+      "when": [
+        {
+          "signal": "message_kind",
+          "in": [
+            "delivery_report",
+            "read_receipt",
+            "auto_reply"
+          ]
+        }
+      ],
+      "doc": "A delivery report, read receipt or automatic reply."
+    },
+    "reply_not_addressed": {
+      "question": "reply_needed",
+      "answer": false,
+      "when": [
+        {
+          "signal": "addressed_to_me",
+          "in": [
+            "not_addressed"
+          ]
+        }
+      ],
+      "doc": "The owner is not a recipient (a list, an alias)."
+    },
+    "reply_not_auto": {
+      "question": "reply_needed",
+      "answer": false,
+      "when": [
+        {
+          "signal": "auto_submitted",
+          "in": [
+            "auto-generated",
+            "auto-replied",
+            "auto-notified"
+          ]
+        }
+      ],
+      "doc": "Machine-written mail needs no reply."
+    },
+    "reply_not_bulk": {
+      "question": "reply_needed",
+      "answer": false,
+      "when": [
+        {
+          "signal": "list_unsubscribe",
+          "in": [
+            "present",
+            "one_click"
+          ]
+        }
+      ],
+      "doc": "Bulk mail needs no reply."
+    },
+    "reply_not_cc": {
+      "question": "reply_needed",
+      "answer": false,
+      "when": [
+        {
+          "signal": "addressed_to_me",
+          "in": [
+            "cc"
+          ]
+        }
+      ],
+      "doc": "The owner is only in Cc."
+    },
+    "reply_not_kind": {
+      "question": "reply_needed",
+      "answer": false,
+      "when": [
+        {
+          "signal": "message_kind",
+          "in": [
+            "delivery_report",
+            "read_receipt",
+            "auto_reply",
+            "meeting_response",
+            "meeting_cancel"
+          ]
+        }
+      ],
+      "doc": "Reports, automatic replies and meeting responses need no reply."
+    },
+    "reply_reminder": {
+      "question": "reply_needed",
+      "answer": true,
+      "when": [
+        {
+          "signal": "sender_reminders",
+          "min": 1
+        },
+        {
+          "signal": "addressed_to_me",
+          "in": [
+            "to"
+          ]
+        }
+      ],
+      "doc": "The sender writes again without an answer, to the owner."
+    },
+    "reply_sole_question": {
+      "question": "reply_needed",
+      "answer": true,
+      "when": [
+        {
+          "signal": "sole_to",
+          "is": true
+        },
+        {
+          "signal": "question_marks",
+          "min": 1
+        }
+      ],
+      "doc": "Written to the owner alone with a question."
+    },
+    "signature_found": {
+      "question": "has_signature",
+      "answer": true,
+      "when": [
+        {
+          "signal": "signature",
+          "in": [
+            "delimiter",
+            "contact_block"
+          ]
+        }
+      ],
+      "doc": "A signature found by structure."
+    },
+    "signature_none": {
+      "question": "has_signature",
+      "answer": false,
+      "when": [
+        {
+          "signal": "signature",
+          "in": [
+            "none"
+          ]
+        }
+      ],
+      "doc": "No signature found by structure."
+    },
+    "susp_dmarc_fail": {
+      "question": "suspicious",
+      "answer": true,
+      "when": [
+        {
+          "signal": "auth_dmarc",
+          "in": [
+            "fail"
+          ]
+        }
+      ],
+      "doc": "DMARC failed at the receiving domain."
+    },
+    "susp_lookalike": {
+      "question": "suspicious",
+      "answer": true,
+      "when": [
+        {
+          "signal": "lookalike_domain",
+          "in": [
+            "skeleton",
+            "edit"
+          ]
+        }
+      ],
+      "doc": "A look-alike of a correspondent's domain."
+    },
+    "susp_name_address": {
+      "question": "suspicious",
+      "answer": true,
+      "when": [
+        {
+          "signal": "name_address",
+          "in": [
+            "other_domain"
+          ]
+        }
+      ],
+      "doc": "The display name shows another domain's address."
+    },
+    "susp_reply_to_new": {
+      "question": "suspicious",
+      "answer": true,
+      "when": [
+        {
+          "signal": "reply_to",
+          "in": [
+            "other_domain"
+          ]
+        },
+        {
+          "signal": "first_time_sender",
+          "in": [
+            "new_address_new_org"
+          ]
+        }
+      ],
+      "doc": "Replies go elsewhere, from a first contact."
+    },
+    "susp_scl": {
+      "question": "suspicious",
+      "answer": true,
+      "when": [
+        {
+          "signal": "spam_scl",
+          "min": 5
+        }
+      ],
+      "doc": "Exchange rated it spam (SCL ≥ 5)."
+    },
+    "susp_spf_fail": {
+      "question": "suspicious",
+      "answer": true,
+      "when": [
+        {
+          "signal": "auth_spf",
+          "in": [
+            "fail",
+            "softfail"
+          ]
+        }
+      ],
+      "doc": "SPF failed at the receiving domain."
+    },
+    "topic_calendar": {
+      "question": "topic",
+      "answer": "meeting_scheduling",
+      "when": [
+        {
+          "signal": "has_calendar",
+          "is": true
+        }
+      ],
+      "doc": "iCalendar data."
+    },
+    "topic_meeting_kind": {
+      "question": "topic",
+      "answer": "meeting_scheduling",
+      "when": [
+        {
+          "signal": "message_kind",
+          "in": [
+            "meeting_request",
+            "meeting_cancel",
+            "meeting_response"
+          ]
+        }
+      ],
+      "doc": "A meeting request, cancellation or response."
+    }
+  }
+}

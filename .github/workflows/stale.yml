@@ -1,0 +1,56 @@
+name: stale
+
+on:
+  schedule:
+    - cron: "23 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: stale
+  cancel-in-progress: false
+
+jobs:
+  issues:
+    name: mark inactive issues
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: read
+    steps:
+      - name: ensure the stale label exists
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const { owner, repo } = context.repo;
+            try {
+              await github.rest.issues.getLabel({ owner, repo, name: "stale" });
+            } catch (error) {
+              if (error.status !== 404) throw error;
+              await github.rest.issues.createLabel({
+                owner,
+                repo,
+                name: "stale",
+                color: "ededed",
+                description: "No activity for 60 days",
+              });
+            }
+      # Issues are marked stale after 60 days and stay open. Pull requests are
+      # disabled on both sides: no stale label and no automatic close.
+      - uses: actions/stale@4391f3da665fdf50b6810c1a66712fb9ba21aa93 # v11.0.0
+        with:
+          days-before-issue-stale: 60
+          days-before-issue-close: -1
+          days-before-pr-stale: -1
+          days-before-pr-close: -1
+          stale-issue-label: "stale"
+          exempt-issue-labels: "security,pinned,area: inference"
+          remove-stale-when-updated: true
+          operations-per-run: 30
+          stale-issue-message: >-
+            This issue has had no activity for 60 days. It is marked stale and
+            will stay open. Comment if it is still relevant.
