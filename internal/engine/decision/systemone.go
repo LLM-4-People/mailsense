@@ -7,7 +7,7 @@ import (
 	"github.com/LLM-4-People/mailsense/internal/jsonx"
 )
 
-// systemone is the SubQ / Example provider Jev / Cloudflare Clef wire format:
+// systemone is the Ondelle / Example provider Zelvane / Cloudflare Aubelle wire format:
 // questions and answers are objects keyed by question name.
 type systemone struct{}
 

@@ -4556,7 +4556,7 @@ func TestProviderEditorAndRoleSelects(t *testing.T) {
 			t.Errorf("app.js still contains the old provider/key UI %q", forbidden)
 		}
 	}
-	for _, vendor := range []string{"subq", "provider.example.test", "EXAMPLE_PROVIDER", "CLOUDFLARE_API_TOKEN", "OPENAI_API_KEY", "SUBQ_API_KEY"} {
+	for _, vendor := range []string{"ondelle", "provider.example.test", "EXAMPLE_PROVIDER", "CLOUDFLARE_API_TOKEN", "OPENAI_API_KEY", "ONDELLE_API_KEY"} {
 		if strings.Contains(js, vendor) {
 			t.Errorf("app.js ships a vendor preset name %q", vendor)
 		}
@@ -5070,7 +5070,7 @@ const cardText = texts(card).join(" | ");
 for (const want of ["Writer", "openai_chat", "model-a", "key present"]) {
   assert.ok(cardText.includes(want), "the provider row lacks " + want);
 }
-for (const forbidden of ["Used by", "calls", "CLOUDFLARE", "PROVIDER_EXAMPLE", "SUBQ"]) {
+for (const forbidden of ["Used by", "calls", "CLOUDFLARE", "PROVIDER_EXAMPLE", "ONDELLE"]) {
   assert.ok(!cardText.includes(forbidden), "the provider row still shows " + forbidden);
 }
 

@@ -38,7 +38,7 @@ func TestTriageCacheFailuresAndRuns(t *testing.T) {
 	s, _ := open(t, nil)
 	ctx := t.Context()
 	ids := seed(t, s, 2)
-	k := TriageKey{Fingerprint: "9c9956169b0c", Decider: "subq/subq-snap-1.1"}
+	k := TriageKey{Fingerprint: "9c9956169b0c", Decider: "ondelle/ondelle-snap-1.1"}
 	if err := s.SaveDecision(ctx, k, Decision{MessageID: ids[0], StateHash: "h1", Answers: `{"a":1}`, RunID: 1}); err != nil {
 		t.Fatal(err)
 	}
@@ -107,11 +107,11 @@ func TestLabelsAndUsage(t *testing.T) {
 		t.Fatal("deleted")
 	}
 	for range 2 {
-		if err := s.AddUsage(ctx, engine.UsageRecord{Provider: "subq", Model: "m", Usage: engine.Usage{Calls: 1, InputTokens: 100, EstimatedUSD: 0.5}}); err != nil {
+		if err := s.AddUsage(ctx, engine.UsageRecord{Provider: "ondelle", Model: "m", Usage: engine.Usage{Calls: 1, InputTokens: 100, EstimatedUSD: 0.5}}); err != nil {
 			t.Fatal(err)
 		}
 	}
-	_ = s.AddUsage(ctx, engine.UsageRecord{Provider: "subq", Model: "m", Usage: engine.Usage{Calls: 1}, Failed: true})
+	_ = s.AddUsage(ctx, engine.UsageRecord{Provider: "ondelle", Model: "m", Usage: engine.Usage{Calls: 1}, Failed: true})
 	usage, _ := s.ListUsage(ctx, 365)
 	if len(usage) != 1 || usage[0].Calls != 3 || usage[0].Failures != 1 || usage[0].InputTokens != 200 || usage[0].CostUSD != 1 {
 		t.Fatalf("usage %+v", usage)

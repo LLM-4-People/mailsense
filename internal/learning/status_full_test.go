@@ -49,7 +49,7 @@ func ptrFloat(v float64) *float64 { return &v }
 func writeProviders(t testing.TB, cfg *config.Config) {
 	t.Helper()
 	records := map[string]engine.Provider{
-		"subq": {Protocol: engine.ProtocolSystemOne, BaseURL: "http://127.0.0.1:9/v1", Path: "/systemone",
+		"ondelle": {Protocol: engine.ProtocolSystemOne, BaseURL: "http://127.0.0.1:9/v1", Path: "/systemone",
 			Model: "snap-1", APIKeySecret: "PROVIDER_DECIDER_API_KEY", MaxQuestions: 16, ContextTokens: 100000,
 			CharsPerToken: 3, ReserveTokensPerByte: 1, ProbabilityTolerance: 0.02,
 			PriceInput: ptrFloat(0.05), PriceOutput: ptrFloat(0)},
@@ -81,7 +81,7 @@ func newFullWorld(tb testing.TB, n int) *fullWorld {
 		layer1.SettingGrid:      []any{-2, -1},
 		layer1.SettingWorkers:   2,
 		layer1.SettingShardRows: 16,
-		"triage.decider":        "subq",
+		"triage.decider":        "ondelle",
 		"judge.provider":        "example-provider-gemma",
 		"embed.provider":        "embeddinggemma",
 	})

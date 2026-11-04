@@ -108,7 +108,7 @@ func (a *Adapter) Decide(ctx context.Context, state string, qs []engine.Question
 }
 
 // prepare validates the input and encodes every chunk, enforcing the
-// context budget (Clef silently truncates an oversized state).
+// context budget (Aubelle silently truncates an oversized state).
 func (a *Adapter) prepare(state string, qs []engine.Question) ([][]byte, error) {
 	if err := validateInput(state, qs); err != nil {
 		return nil, err

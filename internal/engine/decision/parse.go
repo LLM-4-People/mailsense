@@ -82,7 +82,7 @@ func putProbability(q *engine.Question, probs map[string]float64, allowed map[st
 
 // consistent checks an answer's probabilities against itself, as the
 // vendors define them (provider.example.test: "a probability for every option",
-// score "probability-weighted"; every one of 335,870 legacy SubQ answers
+// score "probability-weighted"; every one of 335,870 legacy Ondelle answers
 // complied): every option or level has a probability, they sum to 1, the
 // choice is the most probable option, a score is the expected level.
 func consistent(q *engine.Question, a *engine.Answer, tol float64) error {

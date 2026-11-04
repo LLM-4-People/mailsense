@@ -137,7 +137,7 @@ func TestExampleProviderResponseIsAccountedAtItsReportedCharge(t *testing.T) {
 	qs := []engine.Question{{Name: "is_test", Type: engine.Noul, Instructions: "Is it a test?"},
 		{Name: "kind", Type: engine.Choice, Instructions: "Kind?", Options: []engine.Option{{Name: "test"}, {Name: "work"}, {Name: "spam"}}},
 		{Name: "urgency", Type: engine.Score, Instructions: "Urgent?", Levels: []string{"low", "medium", "high"}}}
-	verbatim := `{"id":"systemone-021c","object":"systemone","created":1792033490,"model":"clef-flash","answers":{
+	verbatim := `{"id":"systemone-021c","object":"systemone","created":1792033490,"model":"aubelle-flash","answers":{
 	"is_test":{"type":"noul","noul":0.97},
 	"kind":{"type":"choice","choice":"test","confidence":0.9905,"probabilities":{"test":0.9905,"work":0.0054,"spam":0.0041}},
 	"urgency":{"type":"score","score":0.03,"confidence":0.9759,"legend":{"0":"low","1":"medium","2":"high"},"probabilities":{"0":0.9759,"1":0.0183,"2":0.0058}}},

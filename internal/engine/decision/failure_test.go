@@ -23,7 +23,7 @@ func TestHTTPFailuresAreClassifiedAndBillingAware(t *testing.T) {
 		{"402 no credits, never retried", []reply{{402, `{"detail":{"error_type":"insufficient_credits","message":"Add credits"}}`}}, nil, ErrInsufficientCredits, 1, "Add credits"},
 		{"401 rejected key", []reply{{401, `{"detail":"bad key"}`}}, nil, ErrAuth, 1, "bad key"},
 		{"403 model access", []reply{{403, `{}`}}, nil, ErrAuth, 1, "{}"},
-		{"422 Jev array detail", []reply{{422, `{"detail":[{"loc":["body"],"msg":"must NOT have more than 16 properties","type":"value_error"}]}`}}, nil, ErrRejected, 1, "16 properties"},
+		{"422 Zelvane array detail", []reply{{422, `{"detail":[{"loc":["body"],"msg":"must NOT have more than 16 properties","type":"value_error"}]}`}}, nil, ErrRejected, 1, "16 properties"},
 		{"400 rejected", []reply{{400, `not json`}}, nil, ErrRejected, 1, "not json"},
 		{"500 is provider-wide: never retried", []reply{{500, `oops`}}, nil, ErrTransient, 1, "oops"},
 		{"503 then success is retried", []reply{{503, ``}, ok}, nil, nil, 2, ""},
@@ -62,7 +62,7 @@ func TestProviderRetryOverrides(t *testing.T) {
 	p.Retry.Statuses = []int{429, 529}
 	h := newAdapter(t, p)
 	if _, err := h.ad.Decide(t.Context(), "state", qs); err != nil || srv.hits() != 2 || len(h.clk.Sleeps()) != 1 {
-		t.Fatalf("Jev's 529 is retried by its preset: %v hits %d", err, srv.hits())
+		t.Fatalf("Zelvane's 529 is retried by its preset: %v hits %d", err, srv.hits())
 	}
 	srv = newServer(t, reply{503, ``})
 	p = provider(srv, "systemone")
@@ -82,7 +82,7 @@ func TestContextBudgetIsEnforcedBeforeSending(t *testing.T) {
 	h := newAdapter(t, p)
 	_, err := h.ad.Decide(t.Context(), strings.Repeat("long state ", 600), qs)
 	if !errors.Is(err, ErrContextBudget) || srv.hits() != 0 {
-		t.Fatalf("an oversized request is refused before any call (Clef would truncate silently): %v hits %d", err, srv.hits())
+		t.Fatalf("an oversized request is refused before any call (Aubelle would truncate silently): %v hits %d", err, srv.hits())
 	}
 	// The budget covers every chunk: the small second chunk fits, the first does not, nothing is sent.
 	first, _ := systemone{}.encode(&p, "short", qs[:16])

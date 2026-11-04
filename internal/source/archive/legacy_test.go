@@ -88,7 +88,7 @@ func TestImportLegacyAnswersReadsTheModelsOwnAnswers(t *testing.T) {
 		t.Fatalf("the model's own answers (never the blend): %+v", e1)
 	}
 	// the live decider's key is untouched; a second import replaces the first as a whole
-	if live, _ := st.LoadDecisions(t.Context(), store.TriageKey{Fingerprint: "fp1", Decider: "subq/subq-snap-1.1"}); len(live) != 0 {
+	if live, _ := st.LoadDecisions(t.Context(), store.TriageKey{Fingerprint: "fp1", Decider: "ondelle/ondelle-snap-1.1"}); len(live) != 0 {
 		t.Fatal("legacy answers mixed into the live decider's key")
 	}
 	if rep, err := ImportLegacyAnswers(t.Context(), st, LegacyAnswers{Path: path, SourceID: "legacy", Fingerprint: "fp1", Decider: key.Decider,
@@ -108,10 +108,10 @@ func TestImportLegacyAnswersMisuse(t *testing.T) {
 		"no questions":   {Decider: "legacy:x", Fingerprint: "fp"},
 		"no file":        {Decider: "legacy:x", Fingerprint: "fp", Questions: legacyQuestions, Path: "/nonexistent/x.jsonl"},
 		// bugs review (plausible): "never a live decider's" was only documented
-		"a live decider's key": {Decider: "subq/subq-snap-1.1", Fingerprint: "fp", Questions: legacyQuestions},
+		"a live decider's key": {Decider: "ondelle/ondelle-snap-1.1", Fingerprint: "fp", Questions: legacyQuestions},
 		"layer 1's key":        {Decider: "layer1", Fingerprint: "fp", Questions: legacyQuestions},
 		"a bare prefix":        {Decider: "legacy:", Fingerprint: "fp", Questions: legacyQuestions},
-		"a prefixed live key":  {Decider: "legacy:subq/x", Fingerprint: "fp", Questions: legacyQuestions},
+		"a prefixed live key":  {Decider: "legacy:ondelle/x", Fingerprint: "fp", Questions: legacyQuestions},
 	} {
 		if _, err := ImportLegacyAnswers(t.Context(), st, o); err == nil {
 			t.Errorf("%s accepted", name)

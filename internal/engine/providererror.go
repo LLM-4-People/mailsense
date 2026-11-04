@@ -91,8 +91,8 @@ func IsQuota(codes, quota []string) bool {
 	return false
 }
 
-// DescribeError reads every known provider error shape: SubQ
-// {"detail":{error_type,message}}, Jev detail as object or FastAPI array,
+// DescribeError reads every known provider error shape: Ondelle
+// {"detail":{error_type,message}}, Zelvane detail as object or FastAPI array,
 // Cloudflare {"errors":[{code,message}]}, OpenAI
 // {"error":{type,code,message}}; anything else is the trimmed body.
 func DescribeError(body []byte, limit int) (codes []string, message string) {

@@ -463,7 +463,7 @@ func TestMailQueryExactContactAddressesOverrideSubstring(t *testing.T) {
 
 	contacts := contactPlan()
 	contacts.Contact = "Atelier Nord"
-	contacts.ContactAddresses = []string{"carol@beta.test", "CAROL@BETA.IO"}
+	contacts.ContactAddresses = []string{"carol@beta.test", "CAROL@ACME.TEST"}
 	contactRes, err := s.ExecuteMailQuery(t.Context(), contacts.Normalize(), time.UTC)
 	if err != nil {
 		t.Fatal(err)

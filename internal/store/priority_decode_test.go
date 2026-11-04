@@ -19,13 +19,13 @@ import (
 // the seventeen answers; the two signature answers stay unselected, exactly
 // as the priority read leaves them.
 const priorityBenchAnswers = `{"category":{"type":"choice","choice":"work","probabilities":{"work":0.62,"personal":0.05,"notifications":0.03,"marketing":0.04,"finance":0.06,"security":0.08,"support_issue":0.12},"confidence":0.62,"layer":"layer1","rule":"key"}` +
-	`,"topic":{"type":"choice","choice":"project_work","probabilities":{"project_work":0.41,"support_issue":0.14,"billing":0.09,"meeting":0.08,"personal":0.05,"newsletter":0.04,"security_alert":0.03,"travel":0.06,"hiring":0.04,"legal":0.03,"other":0.03},"confidence":0.41,"layer":"subq","rule":"subq"}` +
+	`,"topic":{"type":"choice","choice":"project_work","probabilities":{"project_work":0.41,"support_issue":0.14,"billing":0.09,"meeting":0.08,"personal":0.05,"newsletter":0.04,"security_alert":0.03,"travel":0.06,"hiring":0.04,"legal":0.03,"other":0.03},"confidence":0.41,"layer":"ondelle","rule":"ondelle"}` +
 	`,"asks_for":{"type":"choice","choice":"reply","probabilities":{"nothing_fyi":0.08,"reply":0.52,"decision":0.14,"action":0.09,"payment":0.04,"meeting":0.05,"information":0.05,"approval":0.03},"confidence":0.52,"layer":"layer1","rule":"key"}` +
 	`,"relationship":{"type":"choice","choice":"colleague","probabilities":{"colleague":0.47,"customer":0.14,"vendor":0.11,"manager":0.09,"friend":0.05,"unknown":0.06,"family":0.04,"partner":0.04},"confidence":0.47,"layer":"layer1","rule":"key"}` +
-	`,"stance":{"type":"choice","choice":"neutral","probabilities":{"neutral":0.66,"positive":0.17,"negative":0.12,"mixed":0.05},"confidence":0.66,"layer":"subq","rule":"subq"}` +
+	`,"stance":{"type":"choice","choice":"neutral","probabilities":{"neutral":0.66,"positive":0.17,"negative":0.12,"mixed":0.05},"confidence":0.66,"layer":"ondelle","rule":"ondelle"}` +
 	`,"urgency":{"type":"score","value":2.4,"probabilities":{"0":0.08,"1":0.19,"2":0.37,"3":0.26,"4":0.10},"confidence":0.37,"layer":"layer1","rule":"key"}` +
 	`,"deadline":{"type":"score","value":3.1,"probabilities":{"0":0.05,"1":0.09,"2":0.18,"3":0.34,"4":0.22,"5":0.12},"confidence":0.34,"layer":"layer1","rule":"key"}` +
-	`,"effort":{"type":"score","value":1.3,"probabilities":{"0":0.21,"1":0.43,"2":0.27,"3":0.09},"confidence":0.43,"layer":"subq","rule":"subq"}` +
+	`,"effort":{"type":"score","value":1.3,"probabilities":{"0":0.21,"1":0.43,"2":0.27,"3":0.09},"confidence":0.43,"layer":"ondelle","rule":"ondelle"}` +
 	`,"sentiment":{"type":"score","value":2.8,"probabilities":{"0":0.07,"1":0.11,"2":0.23,"3":0.38,"4":0.21},"confidence":0.38,"layer":"layer1","rule":"key"}` +
 	`,"reply_needed":{"type":"noul","value":0.82}` +
 	`,"suspicious":{"type":"noul","value":0.04}` +

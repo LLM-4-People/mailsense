@@ -47,7 +47,7 @@ func TestInconsistentProbabilitiesAreRejected(t *testing.T) {
 	if res, err := h.ad.Decide(t.Context(), "state", qs); !errors.Is(err, ErrContract) || len(res.Answers) != 0 {
 		t.Fatalf("contradictory answers accepted: %v %+v", err, res.Answers)
 	}
-	// SubQ rounds probabilities to two decimals: the documented example passes.
+	// Ondelle rounds probabilities to two decimals: the documented example passes.
 	body = `{"answers":{"c":{"type":"choice","choice":"a","probabilities":{"a":0.5,"b":0.5},"confidence":0.5},
 	"s":{"type":"score","score":1.86,"probabilities":{"0":0,"1":0.13,"2":0.87},"confidence":0.79}},"usage":{"input_tokens":5}}`
 	srv = newServer(t, reply{200, body})

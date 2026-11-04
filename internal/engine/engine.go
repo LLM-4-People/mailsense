@@ -42,8 +42,8 @@ var (
 	ErrTestFailed      = errors.New("engine: provider test failed")
 )
 
-// Decider answers typed questions about a state (decision models: SubQ,
-// Example provider Jev, Cloudflare Clef, OpenAI Decisions).
+// Decider answers typed questions about a state (decision models: Ondelle,
+// Example provider Zelvane, Cloudflare Aubelle, OpenAI Decisions).
 type Decider interface {
 	// Name is the provider record id.
 	Name() string
