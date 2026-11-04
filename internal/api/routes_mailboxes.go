@@ -10,7 +10,10 @@ type mailboxList struct {
 	Mailboxes []store.MailboxView `json:"mailboxes"`
 }
 
-type discoverRequest struct {
+// sourceRequest is the optional body of every route that names one mail
+// source: discovery, sync and the display-HTML backfill. Absent means the
+// single configured source, which the wiring resolves.
+type sourceRequest struct {
 	Source string `json:"source"`
 }
 
@@ -35,7 +38,7 @@ func (s *Server) handleMailboxes(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *Server) handleMailboxDiscover(w http.ResponseWriter, r *http.Request) {
-	var req discoverRequest
+	var req sourceRequest
 	if err := s.decodeOptional(r, &req); err != nil {
 		s.writeError(w, r, err)
 		return
@@ -45,7 +48,7 @@ func (s *Server) handleMailboxDiscover(w http.ResponseWriter, r *http.Request) {
 		s.writeError(w, r, err)
 		return
 	}
-	s.writeJSON(w, r, http.StatusOK, mailboxList{Mailboxes: nonNilSlice(boxes)})
+	s.writeMailboxList(w, r, boxes)
 }
 
 func (s *Server) handleMailboxPick(w http.ResponseWriter, r *http.Request) {

@@ -9,10 +9,16 @@ import (
 	"github.com/LLM-4-People/mailsense/internal/config"
 )
 
+// restartPendingView is the one restart_pending shape: the settings
+// collection embeds it, and the reload route returns it alone.
+type restartPendingView struct {
+	RestartPending []string `json:"restart_pending"`
+}
+
 type settingsView struct {
-	Settings       []SettingView `json:"settings"`
-	Total          int           `json:"total"`
-	RestartPending []string      `json:"restart_pending"`
+	Settings []SettingView `json:"settings"`
+	Total    int           `json:"total"`
+	restartPendingView
 }
 
 type valueRequest struct {
@@ -55,10 +61,6 @@ func invalidValueRequired() *APIError {
 		Message: "value is required", Params: map[string]string{"name": "value"}}
 }
 
-type restartPendingView struct {
-	RestartPending []string `json:"restart_pending"`
-}
-
 type learnedView struct {
 	Learned []config.Learned `json:"learned"`
 }
@@ -93,7 +95,8 @@ func (s *Server) handleSettings(w http.ResponseWriter, r *http.Request) {
 		settings = projected
 	}
 	pending = nonNilSlice(pending)
-	s.writeJSON(w, r, http.StatusOK, settingsView{Settings: settings, Total: total, RestartPending: pending})
+	s.writeJSON(w, r, http.StatusOK, settingsView{Settings: settings, Total: total,
+		restartPendingView: restartPendingView{RestartPending: pending}})
 }
 
 // settingsKeys parses the optional keys projection: comma-separated dotted

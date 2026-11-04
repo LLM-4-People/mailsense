@@ -23,9 +23,10 @@ func TestWireErrorIdentitiesComeFromTheAPI(t *testing.T) {
 		}
 	}
 	for call, want := range map[string]int{
-		"api.ErrNoMailboxPicked()": 2, // the sync and the backfill starters
-		"api.ErrInvalidProfile()":  2, // the question catalogue and the label batch
-		"api.ProviderTestFailed()": 1,
+		"api.ErrNoMailboxPicked()":              1, // the one requirePicked guard
+		"requirePicked(a.w.app.cfg.Snapshot())": 2, // the sync and the backfill starters
+		"api.ErrInvalidProfile()":               2, // the question catalogue and the label batch
+		"api.ProviderTestFailed()":              1,
 	} {
 		if got := bytes.Count(data, []byte(call)); got != want {
 			t.Errorf("apiwire.go calls %s %d time(s), want %d", call, got, want)

@@ -21,21 +21,21 @@ func (s *Server) handleCommitments(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 	if v := query.Get("kind"); v != "" {
 		if !slices.Contains(commitments.Kinds, commitments.Kind(v)) {
-			s.writeError(w, r, invalidCommitmentFilter("kind"))
+			s.writeError(w, r, commitments.ErrInvalidKind)
 			return
 		}
 		filter.Kind = commitments.Kind(v)
 	}
 	if v := query.Get("direction"); v != "" {
 		if !slices.Contains(commitments.Directions, commitments.Direction(v)) {
-			s.writeError(w, r, invalidCommitmentFilter("direction"))
+			s.writeError(w, r, commitments.ErrInvalidDirection)
 			return
 		}
 		filter.Direction = commitments.Direction(v)
 	}
 	if v := query.Get("status"); v != "" {
 		if !slices.Contains(commitments.Statuses, commitments.Status(v)) {
-			s.writeError(w, r, invalidCommitmentFilter("status"))
+			s.writeError(w, r, commitments.ErrInvalidStatus)
 			return
 		}
 		filter.Status = commitments.Status(v)
@@ -50,9 +50,4 @@ func (s *Server) handleCommitments(w http.ResponseWriter, r *http.Request) {
 	result.Items = nonNilSlice(result.Items)
 	result.Counts = nonNilMap(result.Counts)
 	s.writeJSON(w, r, http.StatusOK, result)
-}
-
-func invalidCommitmentFilter(name string) *APIError {
-	return &APIError{Status: http.StatusBadRequest, Code: "invalid_" + name,
-		Message: "unknown commitment " + name, Params: map[string]string{"name": name}}
 }

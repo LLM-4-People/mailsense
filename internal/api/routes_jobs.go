@@ -19,6 +19,11 @@ func (s *Server) handleJobs(w http.ResponseWriter, r *http.Request) {
 	s.writeJSON(w, r, http.StatusOK, jobsView{Jobs: list})
 }
 
+// The job detail and cancel routes answer the job resource itself, so they
+// return a bare jobs.Info. The action routes answer an action result, which
+// carries the started job under "job" (actionResponse). The shell consumes
+// both shapes (/api/jobs, /api/jobs/{id}/cancel and /api/actions), so they
+// are deliberately distinct, not two spellings of one response.
 func (s *Server) handleJob(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
 	info, ok := s.services.Jobs.Get(id)

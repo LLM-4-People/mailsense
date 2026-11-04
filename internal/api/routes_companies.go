@@ -1,7 +1,6 @@
 package api
 
 import (
-	"errors"
 	"net/http"
 	"strconv"
 	"strings"
@@ -67,10 +66,6 @@ func (s *Server) handleCompany(w http.ResponseWriter, r *http.Request) {
 	}
 	view, err := s.services.Companies.Profile(r.Context(), key, months, eventDays)
 	if err != nil {
-		if errors.Is(err, worldsvc.ErrUnknownCompany) {
-			s.writeError(w, r, ErrUnknownCompany())
-			return
-		}
 		s.writeError(w, r, err)
 		return
 	}
@@ -121,10 +116,6 @@ func (s *Server) handleCompanyProfiles(w http.ResponseWriter, r *http.Request) {
 	}
 	views, err := s.services.Companies.Profiles(r.Context(), keys, months, eventDays)
 	if err != nil {
-		if errors.Is(err, worldsvc.ErrUnknownCompany) {
-			s.writeError(w, r, ErrUnknownCompany())
-			return
-		}
 		s.writeError(w, r, err)
 		return
 	}

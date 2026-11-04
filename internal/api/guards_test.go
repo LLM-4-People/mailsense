@@ -114,6 +114,7 @@ func TestServiceErrorsMapAtTheOneOwner(t *testing.T) {
 		{store.ErrInvalidSender, "invalid_sender", 400},
 		{store.ErrInvalidCursor, "invalid_cursor", 400},
 		{store.ErrThreadNotFound, "unknown_thread", 404},
+		{store.ErrUnknownCompany, "unknown_company", 404},
 		{store.ErrInvalidConversationID, "invalid_thread", 400},
 		{store.ErrInvalidThreadCursor, "invalid_before", 400},
 		{conversations.ErrInvalidLimit, "invalid_limit", 400},
@@ -133,6 +134,16 @@ func TestServiceErrorsMapAtTheOneOwner(t *testing.T) {
 	for _, name := range []string{"writeMessageListError", "writeCommitmentsError"} {
 		if strings.Contains(readAPISource(t, "routes_messages.go")+readAPISource(t, "routes_commitments.go"), "func (s *Server) "+name+"(") {
 			t.Errorf("a per-handler error mapper %s is back; extend mapError", name)
+		}
+	}
+	// The facet name is part of the wire contract the filter controls read.
+	for name, err := range map[string]error{
+		"kind":      commitments.ErrInvalidKind,
+		"direction": commitments.ErrInvalidDirection,
+		"status":    commitments.ErrInvalidStatus,
+	} {
+		if got := srv.mapError(err).Params["name"]; got != name {
+			t.Errorf("mapError(%v) names %q, want %q", err, got, name)
 		}
 	}
 }

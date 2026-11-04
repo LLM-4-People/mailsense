@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -411,6 +412,25 @@ func (a mailboxesAPI) Undeclare(ctx context.Context, key, address string) ([]sto
 	return a.w.app.syncer.Undeclare(ctx, key, address)
 }
 
+// requirePicked is the one "pick a mailbox first" guard of the sync and
+// backfill starters. The selection snapshot is read here, beside the check,
+// so one starter cannot drift to a different selection rule.
+func requirePicked(snap *config.Snapshot) error {
+	if len(source.Selected(snap)) == 0 {
+		return api.ErrNoMailboxPicked()
+	}
+	return nil
+}
+
+// startedJob is the one projection of a started job to its wire snapshot:
+// the start error wins, otherwise the job answers its Info.
+func startedJob(j *jobs.Job, err error) (jobs.Info, error) {
+	if err != nil {
+		return jobs.Info{}, err
+	}
+	return j.Info(), nil
+}
+
 type runsAPI struct{ w *wire }
 
 func (a runsAPI) StartSync(ctx context.Context, sourceID string) (jobs.Info, error) {
@@ -418,25 +438,17 @@ func (a runsAPI) StartSync(ctx context.Context, sourceID string) (jobs.Info, err
 	if err != nil {
 		return jobs.Info{}, err
 	}
-	if len(source.Selected(a.w.app.cfg.Snapshot())) == 0 {
-		return jobs.Info{}, api.ErrNoMailboxPicked()
-	}
-	j, err := a.w.app.syncer.Start(a.w.app.jobs, c)
-	if err != nil {
+	if err := requirePicked(a.w.app.cfg.Snapshot()); err != nil {
 		return jobs.Info{}, err
 	}
-	return j.Info(), nil
+	return startedJob(a.w.app.syncer.Start(a.w.app.jobs, c))
 }
 
 func (a runsAPI) StartEvidence(ctx context.Context) (jobs.Info, error) {
 	if err := ctx.Err(); err != nil {
 		return jobs.Info{}, err
 	}
-	j, err := a.w.app.evidence.Start(a.w.app.jobs)
-	if err != nil {
-		return jobs.Info{}, err
-	}
-	return j.Info(), nil
+	return startedJob(a.w.app.evidence.Start(a.w.app.jobs))
 }
 
 func (a runsAPI) StartIndex(ctx context.Context, stores []string) (jobs.Info, error) {
@@ -449,11 +461,7 @@ func (a runsAPI) StartIndex(ctx context.Context, stores []string) (jobs.Info, er
 			return jobs.Info{}, &api.APIError{Status: 422, Code: "not_picked", Message: "a store is not picked"}
 		}
 	}
-	j, err := a.w.app.index.Start(a.w.app.jobs, index.Options{Stores: stores})
-	if err != nil {
-		return jobs.Info{}, err
-	}
-	return j.Info(), nil
+	return startedJob(a.w.app.index.Start(a.w.app.jobs, index.Options{Stores: stores}))
 }
 
 type triageAPI struct{ w *wire }
@@ -484,43 +492,56 @@ func (a triageAPI) Questions(ctx context.Context) (api.QuestionsView, error) {
 
 type settingsAPI struct{ w *wire }
 
-func (a settingsAPI) List() ([]api.SettingView, []string) {
-	cfg := a.w.app.cfg
-	snap := cfg.Snapshot()
-	pending := cfg.RestartPending()
-	pendingSet := make(map[string]bool, len(pending))
-	for _, key := range pending {
-		pendingSet[key] = true
-	}
+// settingsSnapshot is the one read of the settings projection inputs: the
+// current values, the restart-pending keys and the learned overrides. The
+// collection, the detail and the post-write projections build it the same
+// way, so one setting cannot show a different value or layer per route.
+type settingsSnapshot struct {
+	values  *config.Snapshot
+	pending []string
+	learned map[string]config.Learned
+}
+
+func settingsSnapshotOf(cfg *config.Config) settingsSnapshot {
 	learned := make(map[string]config.Learned)
 	for _, l := range cfg.Learned() {
 		learned[l.Key] = l
 	}
-	settings := cfg.Schema().Settings()
+	return settingsSnapshot{values: cfg.Snapshot(), pending: cfg.RestartPending(), learned: learned}
+}
+
+// view projects one schema setting with the snapshot's values.
+func (s settingsSnapshot) view(st *config.Setting) api.SettingView {
+	return settingView(st, s.values, slices.Contains(s.pending, st.Key), s.learned)
+}
+
+func (a settingsAPI) List() ([]api.SettingView, []string) {
+	snap := settingsSnapshotOf(a.w.app.cfg)
+	settings := a.w.app.cfg.Schema().Settings()
 	out := make([]api.SettingView, 0, len(settings))
 	for _, st := range settings {
-		out = append(out, settingView(st, snap, pendingSet, learned))
+		out = append(out, snap.view(st))
 	}
-	return out, pending
+	return out, snap.pending
 }
 
 func (a settingsAPI) Get(key string) (api.SettingView, bool) {
-	cfg := a.w.app.cfg
-	st, ok := cfg.Schema().Lookup(key)
+	st, ok := a.w.app.cfg.Schema().Lookup(key)
 	if !ok {
 		return api.SettingView{}, false
 	}
-	pendingSet := map[string]bool{}
-	for _, k := range cfg.RestartPending() {
-		pendingSet[k] = true
+	return settingsSnapshotOf(a.w.app.cfg).view(st), true
+}
+
+// requireSetting returns the projection of one setting after a write, or the
+// one unknown-setting problem. The read route builds the same view through
+// Get, so Set and Reset cannot answer a different shape.
+func (a settingsAPI) requireSetting(key string) (api.SettingView, error) {
+	view, ok := a.Get(key)
+	if !ok {
+		return api.SettingView{}, api.ErrUnknownSetting()
 	}
-	learned := map[string]config.Learned{}
-	for _, l := range cfg.Learned() {
-		if l.Key == key {
-			learned[key] = l
-		}
-	}
-	return settingView(st, cfg.Snapshot(), pendingSet, learned), true
+	return view, nil
 }
 
 func (a settingsAPI) Set(key string, raw json.RawMessage) (api.SettingView, error) {
@@ -539,11 +560,7 @@ func (a settingsAPI) Set(key string, raw json.RawMessage) (api.SettingView, erro
 	if err := a.w.app.cfg.Set(key, raw); err != nil {
 		return api.SettingView{}, err
 	}
-	view, ok := a.Get(key)
-	if !ok {
-		return api.SettingView{}, api.ErrUnknownSetting()
-	}
-	return view, nil
+	return a.requireSetting(key)
 }
 
 func (a settingsAPI) Reset(key string) (api.SettingView, error) {
@@ -553,11 +570,7 @@ func (a settingsAPI) Reset(key string) (api.SettingView, error) {
 	if err := a.w.app.cfg.Reset(key); err != nil {
 		return api.SettingView{}, err
 	}
-	view, ok := a.Get(key)
-	if !ok {
-		return api.SettingView{}, api.ErrUnknownSetting()
-	}
-	return view, nil
+	return a.requireSetting(key)
 }
 
 func (a settingsAPI) Reload() ([]string, error) {
@@ -592,12 +605,12 @@ func forbiddenSetting(key string) bool {
 	return key == source.SettingSelected || key == source.SettingDeclared
 }
 
-func settingView(st *config.Setting, snap *config.Snapshot, pending map[string]bool, learned map[string]config.Learned) api.SettingView {
+func settingView(st *config.Setting, snap *config.Snapshot, pending bool, learned map[string]config.Learned) api.SettingView {
 	cp := *st
 	if cp.Secret && !emptyRaw(cp.Default) {
 		cp.Default = json.RawMessage(`"` + config.SecretMask + `"`)
 	}
-	view := api.SettingView{Setting: &cp, Value: snap.Display(st.Key), Layer: snap.Layer(st.Key), RestartPending: pending[st.Key]}
+	view := api.SettingView{Setting: &cp, Value: snap.Display(st.Key), Layer: snap.Layer(st.Key), RestartPending: pending}
 	if l, ok := learned[st.Key]; ok {
 		lv := l
 		view.Learned = &lv
@@ -633,27 +646,16 @@ func expectedSecrets(cfg *config.Config) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	var out []string
+	// A non-nil slice keeps the empty answer [] instead of null; sorting
+	// first lets the standard compaction drop the adjacent duplicates.
+	out := make([]string, 0, len(cat.List()))
 	for _, p := range cat.List() {
 		if p.APIKeySecret != "" {
 			out = append(out, p.APIKeySecret)
 		}
 	}
 	sort.Strings(out)
-	return compactStrings(out), nil
-}
-
-func compactStrings(in []string) []string {
-	if len(in) == 0 {
-		return []string{}
-	}
-	out := in[:1]
-	for _, v := range in[1:] {
-		if v != out[len(out)-1] {
-			out = append(out, v)
-		}
-	}
-	return out
+	return slices.Compact(out), nil
 }
 
 type providersAPI struct {
@@ -694,30 +696,13 @@ func (a providersAPI) Roles(ctx context.Context) ([]api.ProviderRoleInfo, error)
 	for _, st := range states {
 		byID[st.Provider.ID] = st.Status
 	}
-	out := make([]api.ProviderRoleInfo, 0, len(engine.ProviderRoles()))
-	for _, role := range engine.ProviderRoles() {
-		id := a.w.app.cfg.String(role.Setting)
-		info := api.ProviderRoleInfo{Setting: role.Setting, Label: role.Label, Kind: role.Kind, Provider: id}
-		switch {
-		case id == "":
-			info.Detail = "not configured: no record is selected"
-		default:
-			if _, err := cat.Select(id, role.Kind); err != nil {
-				info.Detail = err.Error()
-				break
-			}
-			info.Configured = true
-			st, ok := byID[id]
-			switch {
-			case !ok:
-				info.Detail = "provider status is unavailable"
-			case !st.KeyPresent:
-				info.Detail = "the provider's API key is not set"
-			default:
-				info.Available = true
-			}
-		}
-		out = append(out, info)
+	statuses := engine.RoleStatuses(a.w.app.cfg, cat, byID)
+	out := make([]api.ProviderRoleInfo, 0, len(statuses))
+	for _, st := range statuses {
+		out = append(out, api.ProviderRoleInfo{
+			Setting: st.Role.Setting, Label: st.Role.Label, Kind: st.Role.Kind,
+			Provider: st.Provider, Configured: st.Configured, Available: st.Available, Detail: st.Detail,
+		})
 	}
 	return out, nil
 }
@@ -727,12 +712,6 @@ func (a providersAPI) Discover(ctx context.Context, req engine.DiscoverRequest) 
 		return nil, err
 	}
 	return engine.DiscoverModels(ctx, a.w.app.engines.Deps(), req)
-}
-
-// invalidProviderID is the one malformed-record-id error of the provider
-// write routes.
-func invalidProviderID() *api.APIError {
-	return api.InvalidProvider("invalid provider id")
 }
 
 // providerInUse is the one role-conflict error of the provider write routes.
@@ -798,7 +777,7 @@ func (a providersAPI) Create(ctx context.Context, rec engine.Provider) (api.Prov
 func (a providersAPI) Update(ctx context.Context, id string, rec engine.Provider) (api.ProviderInfo, error) {
 	next, err := a.writeProviders(ctx, func(cat *engine.Catalog) ([]engine.Provider, error) {
 		if !engine.ProviderIDValid(id) {
-			return nil, invalidProviderID()
+			return nil, api.InvalidProviderID(false)
 		}
 		if rec.ID != "" && rec.ID != id {
 			return nil, api.InvalidProvider("the body id does not match the path")
@@ -809,7 +788,7 @@ func (a providersAPI) Update(ctx context.Context, id string, rec engine.Provider
 			return nil, api.UnknownProvider()
 		}
 		if current.Kind() != rec.Kind() {
-			if roles := a.rolesUsing(id); len(roles) > 0 {
+			if roles := engine.RolesUsing(a.w.app.cfg, id); len(roles) > 0 {
 				return nil, providerInUse(roles)
 			}
 		}
@@ -831,12 +810,12 @@ func (a providersAPI) Update(ctx context.Context, id string, rec engine.Provider
 func (a providersAPI) Delete(ctx context.Context, id string) error {
 	_, err := a.writeProviders(ctx, func(cat *engine.Catalog) ([]engine.Provider, error) {
 		if !engine.ProviderIDValid(id) {
-			return nil, invalidProviderID()
+			return nil, api.InvalidProviderID(false)
 		}
 		if _, ok := cat.Get(id); !ok {
 			return nil, api.UnknownProvider()
 		}
-		if roles := a.rolesUsing(id); len(roles) > 0 {
+		if roles := engine.RolesUsing(a.w.app.cfg, id); len(roles) > 0 {
 			return nil, providerInUse(roles)
 		}
 		records := make([]engine.Provider, 0, cat.Len())
@@ -878,18 +857,6 @@ func (a providersAPI) info(cat *engine.Catalog, id string) (api.ProviderInfo, er
 	return providerInfo(p, st), nil
 }
 
-// rolesUsing names the settings that select id (delete and kind-change
-// guards).
-func (a providersAPI) rolesUsing(id string) []string {
-	var out []string
-	for _, role := range engine.ProviderRoles() {
-		if a.w.app.cfg.String(role.Setting) == id {
-			out = append(out, role.Setting)
-		}
-	}
-	return out
-}
-
 func providerInfo(p engine.Provider, st engine.ProviderStatus) api.ProviderInfo {
 	return api.ProviderInfo{ID: p.ID, Label: p.Label, Protocol: p.Protocol, Kind: p.Kind(), BaseURL: p.BaseURL,
 		Path: p.Path, Model: p.Model, APIKeySecret: p.APIKeySecret, Runtime: p.Runtime,
@@ -916,11 +883,7 @@ func (a sidecarAPI) Install(ctx context.Context, runtime, model, variant string)
 	if err := ctx.Err(); err != nil {
 		return jobs.Info{}, err
 	}
-	j, err := a.w.app.sidecar.Install(runtime, model, variant)
-	if err != nil {
-		return jobs.Info{}, err
-	}
-	return j.Info(), nil
+	return startedJob(a.w.app.sidecar.Install(runtime, model, variant))
 }
 
 func (a sidecarAPI) Verify(ctx context.Context, runtime, model, variant string) error {
@@ -968,19 +931,11 @@ func (a layer1API) Start(ctx context.Context) (jobs.Info, error) {
 	if err := ctx.Err(); err != nil {
 		return jobs.Info{}, err
 	}
-	j, err := a.w.app.layer1.Start(a.w.app.jobs)
-	if err != nil {
-		return jobs.Info{}, err
-	}
-	return j.Info(), nil
+	return startedJob(a.w.app.layer1.Start(a.w.app.jobs))
 }
 
 func (a layer1API) StartJudge(ctx context.Context, o layer1.JudgeOptions) (jobs.Info, error) {
-	j, err := a.w.app.layer1.StartJudge(ctx, a.w.app.jobs, o)
-	if err != nil {
-		return jobs.Info{}, err
-	}
-	return j.Info(), nil
+	return startedJob(a.w.app.layer1.StartJudge(ctx, a.w.app.jobs, o))
 }
 
 func (a layer1API) LabelQueue(ctx context.Context, q layer1.LabelQuery) (layer1.LabelQueue, error) {
@@ -1086,8 +1041,8 @@ func (a messagesAPI) StartBackfill(ctx context.Context, sourceID string) (jobs.I
 	if err != nil {
 		return jobs.Info{}, err
 	}
-	if len(source.Selected(a.w.app.cfg.Snapshot())) == 0 {
-		return jobs.Info{}, api.ErrNoMailboxPicked()
+	if err := requirePicked(a.w.app.cfg.Snapshot()); err != nil {
+		return jobs.Info{}, err
 	}
 	n, err := a.w.app.st.CountBackfill(ctx, c.ID())
 	if err != nil {
@@ -1097,11 +1052,7 @@ func (a messagesAPI) StartBackfill(ctx context.Context, sourceID string) (jobs.I
 		return jobs.Info{}, &api.APIError{Status: 422, Code: "nothing_to_backfill",
 			Message: "every stored message already has its display state and inline images"}
 	}
-	j, err := a.w.app.syncer.StartBackfill(a.w.app.jobs, c)
-	if err != nil {
-		return jobs.Info{}, err
-	}
-	return j.Info(), nil
+	return startedJob(a.w.app.syncer.StartBackfill(a.w.app.jobs, c))
 }
 
 type threadAPI struct{ w *wire }

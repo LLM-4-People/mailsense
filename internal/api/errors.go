@@ -208,6 +208,8 @@ func (s *Server) mapError(err error) *APIError {
 		return &APIError{Status: http.StatusNotFound, Code: "secret_not_found", Message: "the secret does not exist"}
 	case errors.Is(err, secrets.ErrReadOnly):
 		return &APIError{Status: http.StatusForbidden, Code: "read_only", Message: "the secret store is read-only"}
+	case errors.Is(err, store.ErrUnknownCompany):
+		return ErrUnknownCompany()
 	case errors.Is(err, store.ErrNotFound):
 		return notFound()
 	case errors.Is(err, store.ErrInvalidRole):
@@ -238,14 +240,11 @@ func (s *Server) mapError(err error) *APIError {
 			Message: "the query is too long or contains a control character",
 			Params:  map[string]string{"name": "q", "max": strconv.Itoa(conversations.MaxQueryRunes)}}
 	case errors.Is(err, commitments.ErrInvalidKind):
-		return &APIError{Status: http.StatusBadRequest, Code: "invalid_kind",
-			Message: "unknown commitment kind"}
+		return invalidCommitmentFacet("kind")
 	case errors.Is(err, commitments.ErrInvalidDirection):
-		return &APIError{Status: http.StatusBadRequest, Code: "invalid_direction",
-			Message: "unknown commitment direction"}
+		return invalidCommitmentFacet("direction")
 	case errors.Is(err, commitments.ErrInvalidStatus):
-		return &APIError{Status: http.StatusBadRequest, Code: "invalid_status",
-			Message: "unknown commitment status"}
+		return invalidCommitmentFacet("status")
 	case errors.Is(err, commitments.ErrInvalidLimit):
 		return invalidLimit(http.StatusBadRequest, "limit", 1, commitments.MaxLimit)
 	case errors.Is(err, sidecar.ErrUnsupported):
@@ -364,9 +363,30 @@ func (s *Server) validationError(err *config.ValidationError) *APIError {
 	return out
 }
 
+// invalidCommitmentFacet is the one unknown commitment filter error. The
+// handler rejects a closed-set value before the service read, and mapError
+// maps the service's sentinel; both answer through this constructor so the
+// code, message and name param cannot drift.
+func invalidCommitmentFacet(name string) *APIError {
+	return &APIError{Status: http.StatusBadRequest, Code: "invalid_" + name,
+		Message: "unknown commitment " + name, Params: map[string]string{"name": name}}
+}
+
 // InvalidProvider is the one constructor of an invalid provider request.
 func InvalidProvider(message string) *APIError {
 	return &APIError{Status: http.StatusUnprocessableEntity, Code: "invalid_provider", Message: message}
+}
+
+// InvalidProviderID is the one malformed provider record-id error of the
+// provider routes. atPath selects the request shape the API already exposes:
+// a path segment is the API-wide 400 invalid_id, while a record write names
+// the same failure as a 422 invalid_provider. Only the construction is
+// shared; both wire pairs stay as the tests and the editor consume them.
+func InvalidProviderID(atPath bool) *APIError {
+	if atPath {
+		return &APIError{Status: http.StatusBadRequest, Code: "invalid_id", Message: "invalid provider id"}
+	}
+	return InvalidProvider("invalid provider id")
 }
 
 // InvalidProviderProblems is the validation form: one problem per message.

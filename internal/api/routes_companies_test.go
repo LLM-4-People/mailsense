@@ -409,10 +409,13 @@ func TestCompaniesValidationAndUnknownKey(t *testing.T) {
 		t.Fatalf("key %q", w.companies.lastKey)
 	}
 
+	// mapError owns the unknown-company answer for every company route, so
+	// the list cannot answer an internal error for the sentinel the profile
+	// routes map to 404.
 	w.companies.listErr = worldsvc.ErrUnknownCompany
 	status, _, data = do(t, ts, srv, request{method: "GET", path: "/api/companies"})
-	mustStatus(t, status, 500, data)
-	if code := errorCode(t, data); code != "internal" {
+	mustStatus(t, status, 404, data)
+	if code := errorCode(t, data); code != "unknown_company" {
 		t.Fatalf("list error code %q", code)
 	}
 }

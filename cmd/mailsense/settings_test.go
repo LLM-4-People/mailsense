@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"reflect"
 	"testing"
 
 	"github.com/LLM-4-People/mailsense/internal/api"
@@ -11,6 +12,34 @@ import (
 	"github.com/LLM-4-People/mailsense/internal/jobs"
 	"github.com/LLM-4-People/mailsense/internal/sidecar"
 )
+
+// TestSettingsListAndDetailShareOneProjection: the collection and the detail
+// build their SettingView from the same snapshot, so a value, layer or
+// restart-pending flag cannot differ between the two routes.
+func TestSettingsListAndDetailShareOneProjection(t *testing.T) {
+	cfg := configtest.New(t, nil)
+	settings := settingsAPI{&wire{app: &app{cfg: cfg}}}
+	list, _ := settings.List()
+	if len(list) == 0 {
+		t.Fatal("the schema projects no settings")
+	}
+	for _, want := range list {
+		got, ok := settings.Get(want.Key)
+		if !ok {
+			t.Fatalf("Get(%q) did not resolve a listed setting", want.Key)
+		}
+		// The schema Setting carries unexported rule functions, so compare
+		// the projected fields rather than the pointers.
+		if got.Key != want.Key || !reflect.DeepEqual(got.Value, want.Value) ||
+			got.Layer != want.Layer || got.RestartPending != want.RestartPending ||
+			!reflect.DeepEqual(got.Learned, want.Learned) {
+			t.Fatalf("Get(%q) = %+v, list has %+v", want.Key, got, want)
+		}
+	}
+	if _, ok := settings.Get("nope.nope"); ok {
+		t.Fatal("Get resolved an unknown key")
+	}
+}
 
 // A variant the catalog does not have on this platform must be refused by the
 // settings write, before it can be persisted: otherwise the next launch fails

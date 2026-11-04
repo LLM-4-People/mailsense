@@ -27,7 +27,7 @@ type providerRequest = engine.Provider
 func providerPathID(r *http.Request) (string, error) {
 	id := r.PathValue("id")
 	if !engine.ProviderIDValid(id) {
-		return "", &APIError{Status: http.StatusBadRequest, Code: "invalid_id", Message: "invalid provider id"}
+		return "", InvalidProviderID(true)
 	}
 	return id, nil
 }

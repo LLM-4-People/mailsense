@@ -224,6 +224,112 @@ func TestSelectIsExplicitAboutUnconfiguredRoles(t *testing.T) {
 	}
 }
 
+// TestRoleStatusesResolveEachSelector: the API projection and the startup log
+// consume one evaluation, so every selector state is decided once here.
+func TestRoleStatusesResolveEachSelector(t *testing.T) {
+	cases := []struct {
+		name           string
+		overrides      map[string]any
+		statusByID     map[string]engine.ProviderStatus
+		setting        string
+		wantConfigured bool
+		wantAvailable  bool
+		detail         string
+		contains       bool
+	}{
+		{
+			name:    "not configured",
+			setting: "triage.decider",
+			detail:  "not configured: no record is selected",
+		},
+		{
+			name:           "available",
+			overrides:      map[string]any{"triage.decider": "dec"},
+			statusByID:     map[string]engine.ProviderStatus{"dec": {Provider: "dec", KeyPresent: true}},
+			setting:        "triage.decider",
+			wantConfigured: true,
+			wantAvailable:  true,
+		},
+		{
+			name:           "missing key",
+			overrides:      map[string]any{"judge.provider": "gen"},
+			statusByID:     map[string]engine.ProviderStatus{"gen": {Provider: "gen"}},
+			setting:        "judge.provider",
+			wantConfigured: true,
+			detail:         "the provider's API key is not set",
+		},
+		{
+			name:           "no status",
+			overrides:      map[string]any{"qa.provider": "gen"},
+			setting:        "qa.provider",
+			wantConfigured: true,
+			detail:         "provider status is unavailable",
+		},
+		{
+			name:      "unknown record",
+			overrides: map[string]any{"embed.provider": "nope"},
+			setting:   "embed.provider",
+			detail:    `"nope"`,
+			contains:  true,
+		},
+		{
+			name:      "wrong kind",
+			overrides: map[string]any{"embed.provider": "dec"},
+			setting:   "embed.provider",
+			detail:    `"dec" is a decider, not a embedder`,
+			contains:  true,
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := configtest.New(t, tc.overrides)
+			writeProviders(t, cfg.Paths().DataDir, recordsJSON(fullProviders()))
+			cat, err := engine.LoadCatalog(cfg)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var got engine.RoleStatus
+			for _, st := range engine.RoleStatuses(cfg, cat, tc.statusByID) {
+				if st.Role.Setting == tc.setting {
+					got = st
+				}
+			}
+			if got.Role.Setting != tc.setting {
+				t.Fatalf("role %q was not evaluated", tc.setting)
+			}
+			if got.Configured != tc.wantConfigured || got.Available != tc.wantAvailable {
+				t.Fatalf("configured=%v available=%v detail=%q", got.Configured, got.Available, got.Detail)
+			}
+			if tc.wantAvailable && got.Detail != "" {
+				t.Fatalf("an available role has detail %q", got.Detail)
+			}
+			if tc.contains {
+				if !strings.Contains(got.Detail, tc.detail) {
+					t.Fatalf("detail %q does not name %q", got.Detail, tc.detail)
+				}
+			} else if got.Detail != tc.detail {
+				t.Fatalf("detail %q, want %q", got.Detail, tc.detail)
+			}
+		})
+	}
+}
+
+// TestRolesUsingNamesEverySelector: the delete and kind-change guards read the
+// role selectors from their one owner.
+func TestRolesUsingNamesEverySelector(t *testing.T) {
+	cfg := configtest.New(t, map[string]any{
+		"triage.decider": "dec",
+		"qa.provider":    "gen",
+		"embed.provider": "dec",
+	})
+	if got, want := engine.RolesUsing(cfg, "dec"), []string{"triage.decider", "embed.provider"}; !slices.Equal(got, want) {
+		t.Fatalf("RolesUsing(dec) = %v, want %v", got, want)
+	}
+	if got := engine.RolesUsing(cfg, "nope"); len(got) != 0 {
+		t.Fatalf("RolesUsing(nope) = %v", got)
+	}
+}
+
 func TestFingerprintIgnoresIdentityAndTracksTheModel(t *testing.T) {
 	cfg := configtest.New(t, nil)
 	writeProviders(t, cfg.Paths().DataDir, recordsJSON(fullProviders()))

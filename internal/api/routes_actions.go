@@ -26,7 +26,7 @@ func (s *Server) handleAction(w http.ResponseWriter, r *http.Request) {
 	action := r.PathValue("action")
 	switch action {
 	case "sync":
-		var req discoverRequest
+		var req sourceRequest
 		if err := s.decodeOptional(r, &req); err != nil {
 			s.writeError(w, r, err)
 			return

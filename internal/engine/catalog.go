@@ -244,3 +244,63 @@ func ProviderRoles() []Role {
 		{Setting: "embed.provider", Label: "semantic embedder", Kind: KindEmbedder},
 	}
 }
+
+// RolesUsing names the role settings that select id. A record write uses it
+// to refuse a delete or kind change that would strand a configured role.
+func RolesUsing(cfg *config.Config, id string) []string {
+	var out []string
+	for _, role := range ProviderRoles() {
+		if cfg.String(role.Setting) == id {
+			out = append(out, role.Setting)
+		}
+	}
+	return out
+}
+
+// RoleStatus is the resolved state of one provider role selector. Configured
+// means the selected record exists with the role's kind; Available means a
+// configured record also has its key. Detail names the blocker in the words
+// every screen and the startup log use, and is empty only when Available.
+type RoleStatus struct {
+	Role       Role
+	Provider   string
+	Configured bool
+	Available  bool
+	Detail     string
+}
+
+// RoleStatuses evaluates every role selector against the catalog and the
+// provider statuses. It is the one owner of the role-state rules: the API
+// projection and the startup log both render its answer instead of reading
+// the selector, the catalog and the key presence themselves. statusByID may
+// be nil where no health monitor exists (the startup log); configured roles
+// then report the status as unavailable but stay Configured.
+func RoleStatuses(cfg *config.Config, cat *Catalog, statusByID map[string]ProviderStatus) []RoleStatus {
+	roles := ProviderRoles()
+	out := make([]RoleStatus, 0, len(roles))
+	for _, role := range roles {
+		id := cfg.String(role.Setting)
+		status := RoleStatus{Role: role, Provider: id}
+		switch {
+		case id == "":
+			status.Detail = "not configured: no record is selected"
+		default:
+			if _, err := cat.Select(id, role.Kind); err != nil {
+				status.Detail = err.Error()
+				break
+			}
+			status.Configured = true
+			st, ok := statusByID[id]
+			switch {
+			case !ok:
+				status.Detail = "provider status is unavailable"
+			case !st.KeyPresent:
+				status.Detail = "the provider's API key is not set"
+			default:
+				status.Available = true
+			}
+		}
+		out = append(out, status)
+	}
+	return out
+}

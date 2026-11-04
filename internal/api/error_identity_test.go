@@ -174,3 +174,18 @@ func TestSharedErrorConstructors(t *testing.T) {
 		}
 	}
 }
+
+// TestInvalidProviderIDKeepsBothRequestShapes: one constructor owns the
+// malformed record-id answer. The path segment keeps the API-wide 400
+// invalid_id; a record write keeps the 422 invalid_provider the editor's
+// validation panel lists.
+func TestInvalidProviderIDKeepsBothRequestShapes(t *testing.T) {
+	path := InvalidProviderID(true)
+	if path.Status != http.StatusBadRequest || path.Code != "invalid_id" || path.Message != "invalid provider id" {
+		t.Fatalf("path form = %+v", path)
+	}
+	record := InvalidProviderID(false)
+	if record.Status != http.StatusUnprocessableEntity || record.Code != "invalid_provider" || record.Message != "invalid provider id" {
+		t.Fatalf("record form = %+v", record)
+	}
+}

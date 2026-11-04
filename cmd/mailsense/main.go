@@ -556,17 +556,17 @@ func logProviderRoles(cfg *config.Config) {
 		log.Warn("provider file is invalid: no provider can be used until it is fixed", "err", err)
 		return
 	}
-	for _, role := range engine.ProviderRoles() {
-		id := cfg.String(role.Setting)
-		if id == "" {
-			log.Warn("provider role is not configured", "setting", role.Setting, "role", role.Label)
-			continue
+	// The startup has no provider health yet, so only the configuration and
+	// catalog answer here; the API adds the key presence from the monitor.
+	for _, st := range engine.RoleStatuses(cfg, cat, nil) {
+		switch {
+		case st.Provider == "":
+			log.Warn("provider role is not configured", "setting", st.Role.Setting, "role", st.Role.Label)
+		case !st.Configured:
+			log.Warn("provider role is not usable", "setting", st.Role.Setting, "role", st.Role.Label, "provider", st.Provider, "err", st.Detail)
+		default:
+			log.Info("provider role ready", "setting", st.Role.Setting, "role", st.Role.Label, "provider", st.Provider)
 		}
-		if _, err := cat.Select(id, role.Kind); err != nil {
-			log.Warn("provider role is not usable", "setting", role.Setting, "role", role.Label, "provider", id, "err", err)
-			continue
-		}
-		log.Info("provider role ready", "setting", role.Setting, "role", role.Label, "provider", id)
 	}
 }
 

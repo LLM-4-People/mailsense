@@ -11,10 +11,6 @@ import (
 	"github.com/LLM-4-People/mailsense/internal/store"
 )
 
-type messageBackfillRequest struct {
-	Source string `json:"source"`
-}
-
 // handleMessages is the gated owner all-mail page. The store owns the
 // visibility boundary, ordering, cursor and counts; the handler only reads
 // the HTTP query and maps the typed validation errors.
@@ -227,7 +223,7 @@ func (s *Server) handleMessageAttachment(w http.ResponseWriter, r *http.Request)
 // not behind the learning gate; the job is visible and cancelable through
 // the ordinary /api/jobs endpoints.
 func (s *Server) handleMessageBackfill(w http.ResponseWriter, r *http.Request) {
-	var req messageBackfillRequest
+	var req sourceRequest
 	if err := s.decodeOptional(r, &req); err != nil {
 		s.writeError(w, r, err)
 		return
