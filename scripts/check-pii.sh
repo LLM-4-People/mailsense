@@ -107,7 +107,13 @@ scan() {
 	local -a files=()
 	local file
 	while IFS= read -r file; do
-		[[ "$file" == "$PATTERNS_REL" ]] && continue
+		# Two files must name the forbidden strings to do their job: this
+		# pattern owner, and the engine guard that fails when production code
+		# ships a vendor preset. Excluding them keeps the guard honest; every
+		# other tracked file is scanned.
+		case "$file" in
+		"$PATTERNS_REL" | internal/engine/vendor_scan_test.go) continue ;;
+		esac
 		files+=("$file")
 	done < <(git -C "$ROOT" ls-files)
 	((${#files[@]})) || die "no tracked files found under $ROOT"
