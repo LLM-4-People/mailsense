@@ -6,7 +6,7 @@ title: Console
 # Console
 
 <!-- nav:start -->
-[Documentation](index.md) · [Install](install.md) · [First run](first-run.md) · **Console** · [Mailboxes](mailboxes.md) · [Providers](providers.md) · [Learning](learning.md) · [FAQ](faq.md) · [Privacy](privacy.md) · [Security](security.md) · [Troubleshooting](troubleshooting.md) · [Contributing](contributing.md) · <a href="fr/console.html" hreflang="fr" lang="fr" data-lang-switch="fr">Français</a>
+[Documentation](index.md) · [Ask](ask.md) · [Install](install.md) · [First run](first-run.md) · **Console** · [Mailboxes](mailboxes.md) · [Providers](providers.md) · [Learning](learning.md) · [FAQ](faq.md) · [Privacy](privacy.md) · [Security](security.md) · [Troubleshooting](troubleshooting.md) · [Contributing](contributing.md) · <a href="fr/console.html" hreflang="fr" lang="fr" data-lang-switch="fr">Français</a>
 <!-- nav:end -->
 
 The console is the local Mailsense window. Every destination reads the local API
@@ -205,14 +205,16 @@ A disabled Q&A setting shows the reason and a link to the Q&A setting. A closed
 gate shows Open learning and the Test preview button. A remote option that is
 unconfigured, unusable or unknown says so and links to provider settings, while
 Auto and Local stay available. A warming index or a search timeout keeps the
-matching messages and offers Try again. A failed written answer or an answer that
+question and offers Try again. A failed written answer or an answer that
 could not be grounded keeps the matching messages and reports the provider. No
 match suggests different words, a shorter question or a broader topic. A question
 that is too short is rejected at the field. An answer written in another language
 is shown as written, with its citations, and the notice says that asking again
 calls the provider again.
 
-Related screens: Answers, Mail, Settings (Providers) and Learning.
+Related screens: Answers, Mail, Settings (Providers) and Learning. The full
+guide covers the three modes, grounding, the provider request and the limits:
+[Ask](ask.md).
 
 ## Answers
 

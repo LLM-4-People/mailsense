@@ -51,6 +51,24 @@ type Difference struct {
 	Body  Localized `json:"body"`
 }
 
+// AskExample is one question the README offers and what its answer is.
+type AskExample struct {
+	Question Localized `json:"question"`
+	Body     Localized `json:"body"`
+}
+
+// AskSection owns the Ask-first surface. The landing renders one row per
+// mechanism and the README renders one bullet per example, from this one copy.
+type AskSection struct {
+	Title     Localized    `json:"title"`
+	Lead      Localized    `json:"lead"`
+	Items     []Difference `json:"items"`
+	Examples  []AskExample `json:"examples"`
+	Guarantee Localized    `json:"guarantee"`
+	Note      Localized    `json:"note"`
+	Guide     Localized    `json:"guide"`
+}
+
 // Limit is one honest current limitation.
 type Limit struct {
 	Title Localized `json:"title"`
@@ -110,8 +128,9 @@ type Site struct {
 		FigureAlt     Localized `json:"figure_alt"`
 		FigureCaption Localized `json:"figure_caption"`
 	} `json:"hero"`
-	Media       Media     `json:"media"`
-	Nav         []NavItem `json:"nav"`
+	Media       Media      `json:"media"`
+	Ask         AskSection `json:"ask"`
+	Nav         []NavItem  `json:"nav"`
 	Differences struct {
 		Title Localized    `json:"title"`
 		Lead  Localized    `json:"lead"`
@@ -297,6 +316,26 @@ func (s Site) Validate() error {
 	require("hero.note", s.Hero.Note)
 	require("hero.figure_alt", s.Hero.FigureAlt)
 	require("hero.figure_caption", s.Hero.FigureCaption)
+	require("ask.title", s.Ask.Title)
+	require("ask.lead", s.Ask.Lead)
+	if len(s.Ask.Items) != 3 {
+		problems = append(problems, fmt.Sprintf("ask.items has %d items, want three", len(s.Ask.Items)))
+	}
+	for index, item := range s.Ask.Items {
+		require(fmt.Sprintf("ask.items[%d].tag", index), item.Tag)
+		require(fmt.Sprintf("ask.items[%d].title", index), item.Title)
+		require(fmt.Sprintf("ask.items[%d].body", index), item.Body)
+	}
+	if len(s.Ask.Examples) == 0 {
+		problems = append(problems, "ask.examples is empty")
+	}
+	for index, example := range s.Ask.Examples {
+		require(fmt.Sprintf("ask.examples[%d].question", index), example.Question)
+		require(fmt.Sprintf("ask.examples[%d].body", index), example.Body)
+	}
+	require("ask.guarantee", s.Ask.Guarantee)
+	require("ask.note", s.Ask.Note)
+	require("ask.guide", s.Ask.Guide)
 	require("differences.title", s.Differences.Title)
 	require("differences.lead", s.Differences.Lead)
 	if len(s.Differences.Items) != 3 {
@@ -459,6 +498,20 @@ func (s Site) localizedText() map[string]string {
 	add("hero.note", s.Hero.Note)
 	add("hero.figure_alt", s.Hero.FigureAlt)
 	add("hero.figure_caption", s.Hero.FigureCaption)
+	add("ask.title", s.Ask.Title)
+	add("ask.lead", s.Ask.Lead)
+	for index, item := range s.Ask.Items {
+		add(fmt.Sprintf("ask.items[%d].tag", index), item.Tag)
+		add(fmt.Sprintf("ask.items[%d].title", index), item.Title)
+		add(fmt.Sprintf("ask.items[%d].body", index), item.Body)
+	}
+	for index, example := range s.Ask.Examples {
+		add(fmt.Sprintf("ask.examples[%d].question", index), example.Question)
+		add(fmt.Sprintf("ask.examples[%d].body", index), example.Body)
+	}
+	add("ask.guarantee", s.Ask.Guarantee)
+	add("ask.note", s.Ask.Note)
+	add("ask.guide", s.Ask.Guide)
 	add("differences.title", s.Differences.Title)
 	add("differences.lead", s.Differences.Lead)
 	for index, item := range s.Differences.Items {

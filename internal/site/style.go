@@ -238,6 +238,28 @@ section { margin: 4.8rem 0; }
 }
 .card p:last-child { margin-bottom: 0; font-size: 0.94rem; color: var(--muted); }
 
+/* Ask leads the page, so it opens with the same rule as the header. */
+.ask { border-top: 6px solid var(--ink); padding-top: 2.4rem; }
+.ask-list {
+  list-style: none;
+  padding: 0;
+  margin: 2.2rem 0 1.4rem;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+}
+.ask-list li { background: var(--card); padding: 1.7rem 1.5rem 1.9rem; min-width: 0; }
+.ask-list h3 {
+  font-family: var(--serif);
+  font-size: 1.35rem;
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+  margin-bottom: 0.7rem;
+}
+.ask-list p:last-child { margin-bottom: 0; font-size: 0.94rem; color: var(--muted); }
+
 .shot-grid { display: grid; gap: 2.4rem; margin-top: 2.2rem; }
 .shot { margin: 0; background: var(--card); border: 1px solid var(--rule); padding: 0.9rem 0.9rem 0; min-width: 0; }
 .shot img { width: 100%; height: auto; display: block; border: 1px solid var(--rule); }
@@ -422,6 +444,7 @@ pre code { background: none; color: inherit; padding: 0; font-size: 0.82rem; }
   .hero { grid-template-columns: 1fr; gap: 2rem; padding-top: 2.8rem; }
   .hero .promise { max-width: 30ch; }
   .cards { grid-template-columns: 1fr; }
+  .ask-list { grid-template-columns: 1fr; }
   .boundary-grid { grid-template-columns: 1fr; gap: 1.2rem; }
   .limit-list { grid-template-columns: 1fr; gap: 1.2rem; }
   .install { grid-template-columns: 1fr; padding: 1.8rem; }

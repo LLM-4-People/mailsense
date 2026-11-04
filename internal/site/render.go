@@ -204,6 +204,23 @@ func (s Site) Landing(lang string) []byte {
 	out.WriteString(s.navLine(lang, "index"))
 	out.WriteString("\n\n")
 
+	out.WriteString(`<section class="ask" aria-labelledby="ask-title">` + "\n")
+	fmt.Fprintf(&out, `  <h2 id="ask-title">%s</h2>`+"\n", html.EscapeString(s.Ask.Title.For(lang)))
+	fmt.Fprintf(&out, `  <p class="section-lead">%s</p>`+"\n", s.inlineHTML(s.Ask.Lead.For(lang), lang))
+	out.WriteString(`  <ol class="ask-list">` + "\n")
+	for _, mechanism := range s.Ask.Items {
+		out.WriteString("    <li>\n")
+		fmt.Fprintf(&out, `      <p class="card-tag">%s</p>`+"\n", html.EscapeString(mechanism.Tag.For(lang)))
+		fmt.Fprintf(&out, `      <h3>%s</h3>`+"\n", html.EscapeString(mechanism.Title.For(lang)))
+		fmt.Fprintf(&out, `      <p>%s</p>`+"\n", s.inlineHTML(mechanism.Body.For(lang), lang))
+		out.WriteString("    </li>\n")
+	}
+	out.WriteString("  </ol>\n")
+	fmt.Fprintf(&out, `  <p class="note">%s</p>`+"\n", s.inlineHTML(s.Ask.Note.For(lang), lang))
+	fmt.Fprintf(&out, `  <p><a class="text-link" href="%s">%s</a></p>`+"\n",
+		htmlHref(links["ask"]), html.EscapeString(s.Ask.Guide.For(lang)))
+	out.WriteString("</section>\n\n")
+
 	out.WriteString(`<section class="differences" aria-labelledby="differences-title">` + "\n")
 	fmt.Fprintf(&out, `  <h2 id="differences-title">%s</h2>`+"\n", html.EscapeString(s.Differences.Title.For(lang)))
 	fmt.Fprintf(&out, `  <p class="section-lead">%s</p>`+"\n", s.inlineHTML(s.Differences.Lead.For(lang), lang))
@@ -317,6 +334,18 @@ func (s Site) Readme(lang string) []byte {
 	fmt.Fprintf(&out, "![%s](%s)\n\n", s.bannerAlt(lang), s.readmeAsset("banner", lang))
 	out.WriteString(s.readmeNav(lang))
 	out.WriteString("\n\n")
+
+	heading(&out, s.Ask.Title.For(lang))
+	paragraph(&out, readmeText(s.Ask.Lead.For(lang)))
+	for _, example := range s.Ask.Examples {
+		text := fmt.Sprintf("**%s** %s", example.Question.For(lang), readmeText(example.Body.For(lang)))
+		out.WriteString(item("- ", text, 80))
+		out.WriteString("\n")
+	}
+	out.WriteString("\n")
+	paragraph(&out, readmeText(s.Ask.Guarantee.For(lang)))
+	paragraph(&out, readmeText(s.Ask.Note.For(lang)))
+	fmt.Fprintf(&out, "[%s](%s)\n\n", s.Ask.Guide.For(lang), links["ask"])
 
 	heading(&out, s.Differences.Title.For(lang))
 	for _, difference := range s.Differences.Items {

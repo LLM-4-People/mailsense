@@ -5,24 +5,24 @@
   "baseurl": "/mailsense",
   "hero": {
     "eyebrow": {
-      "en": "Local mail triage for Windows",
-      "fr": "Tri du courrier local sous Windows"
+      "en": "Ask and local triage for Windows",
+      "fr": "Ask et tri local sous Windows"
     },
     "title": {
       "en": "Mailsense",
       "fr": "Mailsense"
     },
     "promise": {
-      "en": "Mailsense turns your Outlook mailbox into a ranked list of what needs you, with the reason on every row.",
-      "fr": "Mailsense transforme votre boîte Outlook en une liste classée de ce qui vous attend, avec la raison sur chaque ligne."
+      "en": "Ask your mail a question. It answers with a count, a list, or a written answer that cites the messages it used.",
+      "fr": "Posez une question à votre courrier. Il répond par un décompte, une liste ou une réponse écrite qui cite les messages utilisés."
     },
     "lede": {
-      "en": "It reads the classic Outlook profile already open on your PC. The message store, the classifier and the learned profile stay on your disk. A remote model runs only when you add one.",
-      "fr": "Il lit le profil Outlook classique déjà ouvert sur votre PC. Le stockage, le classifieur et le profil appris restent sur votre disque. Un modèle distant ne s'exécute que si vous en ajoutez un."
+      "en": "It reads the classic Outlook profile already open on your PC. Ask answers from the local index; a written answer comes only from a model you configured and the messages it can cite. The store, the classifier and the learned profile stay on your disk.",
+      "fr": "Il lit le profil Outlook classique déjà ouvert sur votre PC. Ask répond depuis l'index local ; une réponse écrite ne vient que d'un modèle que vous avez configuré et des messages qu'il peut citer. Le stockage, le classifieur et le profil appris restent sur votre disque."
     },
     "banner": {
-      "en": "Your mailbox, ranked. Every row explains itself.",
-      "fr": "Votre boîte, classée. Chaque ligne s'explique."
+      "en": "Ask your mail. Every citation opens the message.",
+      "fr": "Demandez à votre courrier. Chaque citation ouvre le message."
     },
     "note": {
       "en": "Windows installer, or the Linux preview. No account, no telemetry.",
@@ -33,14 +33,102 @@
       "fr": "Une file classée inventée de trois lignes : vérifier une facture, répondre à un lancement, lire des notes d'atelier."
     },
     "figure_caption": {
-      "en": "An invented queue. The action and the reason sit on every row.",
-      "fr": "Une file inventée. L'action et la raison figurent sur chaque ligne."
+      "en": "The queue is the second proof. An invented queue, with the action and the reason on every row.",
+      "fr": "La file est la seconde preuve. Une file inventée, avec l'action et la raison sur chaque ligne."
+    }
+  },
+  "ask": {
+    "title": {
+      "en": "Ask first",
+      "fr": "Commencez par une question"
+    },
+    "lead": {
+      "en": "Ask answers a question about your mail in plain language. The screen names which mechanism answered it: a typed query, a search, or a model you configured.",
+      "fr": "Ask répond en clair à une question sur votre courrier. L'écran nomme le mécanisme qui a répondu : une requête typée, une recherche ou un modèle que vous avez configuré."
+    },
+    "items": [
+      {
+        "tag": {
+          "en": "Grounded",
+          "fr": "Ancrage"
+        },
+        "title": {
+          "en": "A written answer cites every message it uses.",
+          "fr": "Une réponse écrite cite chaque message utilisé."
+        },
+        "body": {
+          "en": "The model is asked to write at most 120 words and marks each claim with a message number. The server checks every marker against the retrieved set, refuses an answer whose marker points outside it, renumbers the markers to citation positions and keeps a citation only when it names a real message. When no citation survives, the matching messages stay on screen with a notice that names the cause.",
+          "fr": "Le modèle doit écrire au plus 120 mots et marque chaque affirmation par un numéro de message. Le serveur vérifie chaque marqueur contre l'ensemble récupéré, refuse une réponse dont un marqueur pointe hors de cet ensemble, renumérote les marqueurs en positions de citation et ne garde une citation que si elle nomme un message réel. Quand aucune citation ne survit, les messages correspondants restent à l'écran avec un avis qui nomme la cause."
+        }
+      },
+      {
+        "tag": {
+          "en": "Local",
+          "fr": "Local"
+        },
+        "title": {
+          "en": "A count or a ranking is computed, not written.",
+          "fr": "Un décompte ou un classement est calculé, pas rédigé."
+        },
+        "body": {
+          "en": "A count, a ranking and a company profile are read from the local index and the stored facts. The number and the rows come from a typed query, never from model text. Local mode never calls a model: the same count still answers, and a free-form question returns the matching messages with a notice that says Local never calls a model.",
+          "fr": "Un décompte, un classement et le profil d'une organisation sont lus dans l'index local et les faits stockés. Le nombre et les lignes viennent d'une requête typée, jamais d'un texte de modèle. Le mode Local n'appelle jamais de modèle : le même décompte répond quand même, et une question libre renvoie les messages correspondants avec un avis qui dit que Local n'appelle jamais de modèle."
+        }
+      },
+      {
+        "tag": {
+          "en": "Trace",
+          "fr": "Trace"
+        },
+        "title": {
+          "en": "A citation opens the message, and the answer is kept.",
+          "fr": "Une citation ouvre le message, et la réponse est conservée."
+        },
+        "body": {
+          "en": "Each citation row carries the subject, the sender and the date, and links to the message it names. Each answer is stored with its question, its route, its mode, its citations and, when a model was used, its provider and model. The history rail reopens it, and Clear history removes every stored answer.",
+          "fr": "Chaque ligne de citation porte l'objet, l'expéditeur et la date, et mène au message qu'elle nomme. Chaque réponse est conservée avec sa question, sa route, son mode, ses citations et, quand un modèle a servi, son fournisseur et son modèle. Le rail d'historique la rouvre, et Effacer l'historique retire toutes les réponses conservées."
+        }
+      }
+    ],
+    "examples": [
+      {
+        "question": {
+          "en": "How many messages are urgent?",
+          "fr": "Combien de messages sont urgents ?"
+        },
+        "body": {
+          "en": "returns a count from the local ranking. No model is called.",
+          "fr": "renvoie un décompte du classement local. Aucun modèle n'est appelé."
+        }
+      },
+      {
+        "question": {
+          "en": "Summarize the thread about the delivery window.",
+          "fr": "Résume le fil sur la fenêtre de livraison."
+        },
+        "body": {
+          "en": "returns a written answer with a citation on every claim when a provider is configured. In Local mode the same question returns the matching messages and says that Local never calls a model.",
+          "fr": "renvoie une réponse écrite avec une citation pour chaque affirmation quand un fournisseur est configuré. En mode Local, la même question renvoie les messages correspondants et indique que Local n'appelle jamais de modèle."
+        }
+      }
+    ],
+    "guarantee": {
+      "en": "Every citation opens the message it names, and every answer is stored with its question so you can reopen it.",
+      "fr": "Chaque citation ouvre le message qu'elle nomme, et chaque réponse est conservée avec sa question pour être rouverte."
+    },
+    "note": {
+      "en": "Ask is bounded by `qa.max_messages`, `qa.retrieval_timeout`, `qa.call_timeout` and the two budget settings. A warming index keeps the question and offers Try again.",
+      "fr": "Ask est borné par `qa.max_messages`, `qa.retrieval_timeout`, `qa.call_timeout` et les deux réglages de budget. Un index en préparation garde la question et propose Réessayer."
+    },
+    "guide": {
+      "en": "Read the Ask guide",
+      "fr": "Lire le guide Ask"
     }
   },
   "media": {
     "title": {
-      "en": "The screens you will use",
-      "fr": "Les écrans que vous utiliserez"
+      "en": "The screens, starting with Ask",
+      "fr": "Les écrans, à commencer par Ask"
     },
     "lead": {
       "en": "Captured from the Linux preview with an invented mailbox. No real mail appears here.",
@@ -53,6 +141,17 @@
     "social_width": 1200,
     "social_height": 630,
     "screenshots": [
+      {
+        "key": "ask",
+        "title": {
+          "en": "Ask with an answer",
+          "fr": "Demander avec une réponse"
+        },
+        "caption": {
+          "en": "Ask leads: a question and its written answer, with every citation under the text opening the message it names.",
+          "fr": "Ask mène : une question et sa réponse écrite, avec chaque citation sous le texte qui ouvre le message qu'elle nomme."
+        }
+      },
       {
         "key": "home",
         "title": {
@@ -73,17 +172,6 @@
         "caption": {
           "en": "The selected message shows its sender, its body and the fields the local model read.",
           "fr": "Le message choisi montre son expéditeur, son corps et les champs lus par le modèle local."
-        }
-      },
-      {
-        "key": "ask",
-        "title": {
-          "en": "Ask with an answer",
-          "fr": "Demander avec une réponse"
-        },
-        "caption": {
-          "en": "A question and its grounded answer, with the message it cites under the text.",
-          "fr": "Une question et sa réponse appuyée sur vos messages, avec le message cité sous le texte."
         }
       },
       {
@@ -144,6 +232,13 @@
     ]
   },
   "nav": [
+    {
+      "key": "ask",
+      "label": {
+        "en": "Ask",
+        "fr": "Demander"
+      }
+    },
     {
       "key": "install",
       "label": {
@@ -231,24 +326,10 @@
       "fr": "Trois choses qu'il fait autrement"
     },
     "lead": {
-      "en": "Each one is a mechanism you can inspect.",
-      "fr": "Chacune est un mécanisme que vous pouvez inspecter."
+      "en": "The queue, the evidence and the gate. Each one is a mechanism you can inspect.",
+      "fr": "La file, la preuve et le verrou. Chacune est un mécanisme que vous pouvez inspecter."
     },
     "items": [
-      {
-        "tag": {
-          "en": "Evidence",
-          "fr": "Preuve"
-        },
-        "title": {
-          "en": "Every label names its source.",
-          "fr": "Chaque étiquette nomme sa source."
-        },
-        "body": {
-          "en": "A decision is stored as answers to named questions, with the confidence each answer carries where the question type has one and the evidence behind it. The message detail shows the fields the model read. When an index is partial, the screen names the missing part.",
-          "fr": "Une décision est stockée comme des réponses à des questions nommées, avec la confiance de chaque réponse quand ce type de question en porte une et les éléments de preuve qui la soutiennent. Le détail du message montre les champs lus par le modèle. Quand un index est partiel, l'écran nomme la partie manquante."
-        }
-      },
       {
         "tag": {
           "en": "Queue",
@@ -261,6 +342,20 @@
         "body": {
           "en": "A local Go scorer ranks each message from stored signals: a suspicious message adds 100, a decision 45, a reply 30, urgency and deadline levels add fixed weights, and recency adds at most 12. A score of 20 is the floor, and a suspicious, decision, reply, urgent or deadline signal always enters. Bulk automated mail never enters, however urgent its text.",
           "fr": "Un moteur Go local ordonne chaque message à partir des signaux stockés : un message suspect ajoute 100, une décision 45, une réponse 30, les niveaux d'urgence et d'échéance ajoutent des poids fixes, et la date de réception ajoute au plus 12. Un score de 20 suffit pour entrer, et un signal de suspicion, de décision, de réponse, d'urgence ou d'échéance entre toujours. Le courrier automatisé de masse n'entre jamais, quelle que soit l'urgence de son texte."
+        }
+      },
+      {
+        "tag": {
+          "en": "Evidence",
+          "fr": "Preuve"
+        },
+        "title": {
+          "en": "Every label names its source.",
+          "fr": "Chaque étiquette nomme sa source."
+        },
+        "body": {
+          "en": "A decision is stored as answers to named questions, with the confidence each answer carries where the question type has one and the evidence behind it. The message detail shows the fields the model read. When an index is partial, the screen names the missing part.",
+          "fr": "Une décision est stockée comme des réponses à des questions nommées, avec la confiance de chaque réponse quand ce type de question en porte une et les éléments de preuve qui la soutiennent. Le détail du message montre les champs lus par le modèle. Quand un index est partiel, l'écran nomme la partie manquante."
         }
       },
       {
@@ -298,8 +393,8 @@
         "fr": "Le moteur local et le modèle de plongements épinglés, téléchargés une fois et vérifiés par SHA-256 avant usage."
       },
       {
-        "en": "A request to a remote provider you configured, including automatic triage after a sync. It carries the message fields that call needs.",
-        "fr": "Une requête vers un fournisseur distant que vous avez configuré, y compris le triage automatique après une synchronisation. Elle porte les champs du message dont cet appel a besoin."
+        "en": "A request to a remote provider you configured, for an Ask answer or automatic triage after a sync. It carries the question and the message fields that call needs.",
+        "fr": "Une requête vers un fournisseur distant que vous avez configuré, pour une réponse Ask ou le triage automatique après une synchronisation. Elle porte la question et les champs du message dont cet appel a besoin."
       },
       {
         "en": "A provider model list when you press Fetch models.",
