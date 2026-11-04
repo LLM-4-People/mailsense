@@ -17,6 +17,7 @@ import (
 	"github.com/LLM-4-People/mailsense/internal/config/configtest"
 	"github.com/LLM-4-People/mailsense/internal/engine"
 	"github.com/LLM-4-People/mailsense/internal/engine/embed/embedtest"
+	"github.com/LLM-4-People/mailsense/internal/logx"
 	"github.com/LLM-4-People/mailsense/internal/secrets"
 	"github.com/LLM-4-People/mailsense/internal/triage"
 )
@@ -457,4 +458,29 @@ func TestProviderWritesSerialize(t *testing.T) {
 		t.Fatalf("concurrent creates saved the catalog %d times, want 1", saves)
 	}
 	assertProviderCatalog(t, cfg, []engine.Provider{rec})
+}
+
+// A key pasted into the discovery form is not in the secret store yet, so
+// nothing has registered it. The boundary registers it before the request,
+// and the key still reaches the provider.
+func TestProviderDiscoverRegistersPastedKey(t *testing.T) {
+	const key = "Wz4St9Uq6Jp1Mx3Nc8Df5Gh0Js2Lw7Bo"
+	var auth string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		auth = r.Header.Get("Authorization")
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"object":"list","data":[{"id":"m-1"}]}`))
+	}))
+	defer srv.Close()
+	p, _ := providerAPI(t, nil)
+	models, err := p.Discover(context.Background(), engine.DiscoverRequest{BaseURL: srv.URL + "/v1", APIKey: key})
+	if err != nil || len(models) != 1 || models[0].ID != "m-1" {
+		t.Fatalf("discover %+v %v", models, err)
+	}
+	if auth != "Bearer "+key {
+		t.Fatalf("authorization = %q", auth)
+	}
+	if got := logx.RedactedError(errors.New("answer: " + key)); strings.Contains(got, key) {
+		t.Fatalf("pasted key was not registered for redaction: %q", got)
+	}
 }

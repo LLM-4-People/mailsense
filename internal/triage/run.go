@@ -13,6 +13,7 @@ import (
 	"github.com/LLM-4-People/mailsense/internal/events"
 	"github.com/LLM-4-People/mailsense/internal/jobs"
 	"github.com/LLM-4-People/mailsense/internal/learning"
+	"github.com/LLM-4-People/mailsense/internal/logx"
 	"github.com/LLM-4-People/mailsense/internal/runstate"
 	"github.com/LLM-4-People/mailsense/internal/store"
 )
@@ -265,7 +266,7 @@ func (t *Triager) recordFailure(rs *runState, rowID int64, err error, count bool
 	if rs.logged < t.cfg.Int(SettingMaxLoggedFailures) {
 		rs.logged++
 		rs.rep.Failures = append(rs.rep.Failures, Failure{MessageID: rowID, Error: err.Error()})
-		t.log.Warn("message not decided", "message", rowID, "err", err)
+		t.log.Warn("message not decided", "message", rowID, "err", logx.RedactedError(err))
 	}
 	if rs.stop == "" {
 		stop := ""

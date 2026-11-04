@@ -3,6 +3,7 @@ package index
 import (
 	"github.com/LLM-4-People/mailsense/internal/events"
 	"github.com/LLM-4-People/mailsense/internal/jobs"
+	"github.com/LLM-4-People/mailsense/internal/logx"
 	"github.com/LLM-4-People/mailsense/internal/syncer"
 )
 
@@ -19,7 +20,7 @@ func (ix *Indexer) AfterSync(bus *events.Bus, m *jobs.Manager) (stop func(), err
 		}
 		ix.single.Want(func() {
 			if _, err := ix.startClaimed(m, Options{}); err != nil {
-				ix.log.Warn("index run after sync not started", "source", rep.SourceID, "err", err)
+				ix.log.Warn("index run after sync not started", "source", rep.SourceID, "err", logx.RedactedError(err))
 			}
 		})
 	})

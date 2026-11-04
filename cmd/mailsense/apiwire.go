@@ -211,7 +211,7 @@ func (a priorityAdmission) Admit(ctx context.Context) error {
 		if ctx.Err() != nil {
 			return ctx.Err()
 		}
-		logx.For("priority").Debug("resource guard readings unavailable; building the ranking", "err", err)
+		logx.For("priority").Debug("resource guard readings unavailable; building the ranking", "err", logx.RedactedError(err))
 		return nil
 	}
 	if paused != nil {
@@ -403,7 +403,7 @@ func (a mailboxesAPI) Pick(ctx context.Context, keys []string) ([]store.MailboxV
 	// The pick is committed; its first sync runs as jobs and its failure
 	// must not turn a successful selection into an API error.
 	if _, err := a.w.app.syncer.StartPicked(ctx, a.w.app.jobs, a.w.app.registry.List(), views); err != nil {
-		logx.For("api").Warn("mailbox picked but its first sync did not start", "err", err)
+		logx.For("api").Warn("mailbox picked but its first sync did not start", "err", logx.RedactedError(err))
 	}
 	return views, nil
 }
@@ -563,7 +563,7 @@ func (a triageAPI) Questions(ctx context.Context) (api.QuestionsView, error) {
 	}
 	profile, err := taxonomy.Load(a.w.app.cfg)
 	if err != nil {
-		logx.For("api").Error("cannot load the triage profile for the question catalogue", "err", err)
+		logx.For("api").Error("cannot load the triage profile for the question catalogue", "err", logx.RedactedError(err))
 		return api.QuestionsView{}, api.ErrInvalidProfile()
 	}
 	return api.QuestionsView{Name: profile.Name, Fingerprint: profile.Fingerprint, Questions: profile.Questions}, nil
@@ -790,6 +790,10 @@ func (a providersAPI) Discover(ctx context.Context, req engine.DiscoverRequest) 
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
+	// A key pasted into the settings form is not in the secret store yet, so
+	// nothing has registered it for redaction. Register it at the boundary,
+	// before any request or log can echo it.
+	logx.RegisterSecret(req.APIKey)
 	return engine.DiscoverModels(ctx, a.w.app.engines.Deps(), req)
 }
 
@@ -915,11 +919,11 @@ func (a providersAPI) Test(ctx context.Context, id string) (engine.ProviderTestR
 	}
 	if !errors.Is(err, engine.ErrTestFailed) && !errors.Is(err, engine.ErrUnknownProvider) && !errors.Is(err, engine.ErrNoKey) &&
 		!errors.Is(err, engine.ErrNotConfigured) && !errors.Is(err, context.Canceled) && !errors.Is(err, context.DeadlineExceeded) {
-		logx.For("api").Error("provider test failed", "provider", id, "err", err)
+		logx.For("api").Error("provider test failed", "provider", id, "err", logx.RedactedError(err))
 		return engine.ProviderTestResult{}, api.ProviderTestFailed()
 	}
 	if errors.Is(err, engine.ErrTestFailed) {
-		logx.For("api").Warn("provider test failed", "provider", id, "err", err)
+		logx.For("api").Warn("provider test failed", "provider", id, "err", logx.RedactedError(err))
 	}
 	return engine.ProviderTestResult{}, err
 }
@@ -945,7 +949,7 @@ type sidecarAPI struct{ w *wire }
 func (a sidecarAPI) Status() (api.SidecarStatus, error) {
 	builds, err := a.w.app.sidecar.Builds()
 	if err != nil {
-		logx.For("api").Error("sidecar catalog is invalid", "err", err)
+		logx.For("api").Error("sidecar catalog is invalid", "err", logx.RedactedError(err))
 		return api.SidecarStatus{}, &api.APIError{Status: 422, Code: "invalid_catalog", Message: "the runtime catalog is invalid"}
 	}
 	return api.SidecarStatus{Builds: builds, Runtimes: a.w.app.sidecar.Status()}, nil

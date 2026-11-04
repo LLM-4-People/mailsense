@@ -43,7 +43,7 @@ func maintainTriage(ctx context.Context, interval time.Duration, t *triage.Triag
 				return
 			}
 			if err.Error() != warned {
-				log.Warn("automatic triage catch-up failed", "err", err)
+				log.Warn("automatic triage catch-up failed", "err", logx.RedactedError(err))
 				warned = err.Error()
 			}
 			if !wait() {

@@ -93,7 +93,7 @@ func (s *Service) followChange(change config.Change) {
 	for _, k := range change.Keys {
 		if st, _ := s.cfg.Schema().Lookup(k); strings.HasPrefix(k, "log.") || (st != nil && st.Secret) {
 			if err := s.apply(); err != nil {
-				For("logx").Error("log reconfiguration failed; previous settings kept", "err", err)
+				For("logx").Error("log reconfiguration failed; previous settings kept", "err", RedactedError(err))
 			}
 			return
 		}

@@ -10,6 +10,7 @@ import (
 	"github.com/LLM-4-People/mailsense/internal/events"
 	"github.com/LLM-4-People/mailsense/internal/evidence"
 	"github.com/LLM-4-People/mailsense/internal/jobs"
+	"github.com/LLM-4-People/mailsense/internal/logx"
 	"github.com/LLM-4-People/mailsense/internal/runstate"
 )
 
@@ -107,7 +108,7 @@ func (r *Runner) startAutoLabels(m *jobs.Manager, why string) {
 				return
 			}
 			if err := r.autoLabelOnce(m, why); err != nil {
-				r.log.Warn("automatic labels not started", "after", why, "err", err)
+				r.log.Warn("automatic labels not started", "after", why, "err", logx.RedactedError(err))
 			}
 		}()
 	})

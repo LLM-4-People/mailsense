@@ -46,7 +46,7 @@ func ensure(ctx context.Context, cfg *config.Config, platform string) error {
 
 	cat, err := engine.LoadCatalog(cfg)
 	if err != nil {
-		log.Warn("provider file is invalid; the local embedder was not seeded", "err", err)
+		log.Warn("provider file is invalid; the local embedder was not seeded", "err", logx.RedactedError(err))
 		return err
 	}
 	pin, ok := localPin(cfg, platform)
@@ -86,14 +86,14 @@ func ensure(ctx context.Context, cfg *config.Config, platform string) error {
 	}
 	next, err := engine.BuildCatalog(cfg, append(cat.Records(), rec))
 	if err != nil {
-		log.Error("cannot build the local embedder record", "err", err)
+		log.Error("cannot build the local embedder record", "err", logx.RedactedError(err))
 		return err
 	}
 	if err := ctx.Err(); err != nil {
 		return err
 	}
 	if err := engine.SaveCatalog(cfg, next); err != nil {
-		log.Error("cannot write the local embedder record; nothing was selected", "err", err)
+		log.Error("cannot write the local embedder record; nothing was selected", "err", logx.RedactedError(err))
 		return err
 	}
 	return selectLocal(cfg, rec)
@@ -106,7 +106,7 @@ func localPin(cfg *config.Config, platform string) (sidecar.LocalEmbedder, bool)
 	log := logx.For("onboarding")
 	cat, err := sidecar.LoadCatalog(cfg)
 	if err != nil {
-		log.Warn("runtime catalog is invalid; the local embedder was not seeded", "err", err)
+		log.Warn("runtime catalog is invalid; the local embedder was not seeded", "err", logx.RedactedError(err))
 		return sidecar.LocalEmbedder{}, false
 	}
 	pin, ok := cat.LocalEmbedder(platform)
@@ -129,7 +129,7 @@ func sameLocal(p engine.Provider, pin sidecar.LocalEmbedder) bool {
 func selectLocal(cfg *config.Config, p engine.Provider) error {
 	if err := cfg.Set(settingEmbedProvider, p.ID); err != nil {
 		logx.For("onboarding").Error("local embedder record exists but the role could not be selected; retrying next start",
-			"provider", p.ID, "err", err)
+			"provider", p.ID, "err", logx.RedactedError(err))
 		return fmt.Errorf("select %s: %w", p.ID, err)
 	}
 	logx.For("onboarding").Info("local embedder selected", "provider", p.ID, "runtime", p.Runtime, "model", p.Model)

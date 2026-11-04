@@ -10,6 +10,7 @@ import (
 
 	"github.com/LLM-4-People/mailsense/internal/engine"
 	"github.com/LLM-4-People/mailsense/internal/httpx"
+	"github.com/LLM-4-People/mailsense/internal/logx"
 )
 
 // Error classes; every adapter error wraps one (errors.Is).
@@ -33,7 +34,7 @@ func (a *Adapter) call(ctx context.Context, inputs []string) ([][]float32, engin
 	rec := engine.UsageRecord{Provider: a.p.ID, Model: a.p.Model, Usage: usage, Failed: err != nil, Status: status}
 	if err != nil {
 		rec.Error = err.Error()
-		a.log.Warn("embeddings call failed", "inputs", len(inputs), "status", status, "duration", usage.Duration, "err", err)
+		a.log.Warn("embeddings call failed", "inputs", len(inputs), "status", status, "duration", usage.Duration, "err", logx.RedactedError(err))
 	} else {
 		a.log.Debug("embeddings call", "inputs", len(inputs), "tokens", tokens, "duration", usage.Duration)
 	}
@@ -58,7 +59,7 @@ func (a *Adapter) request(ctx context.Context, inputs []string) (int, [][]float3
 	if a.p.Runtime == "" || ctx.Err() != nil || !unreachable(err) {
 		return status, vecs, tokens, err
 	}
-	a.log.Warn("runtime unreachable: waiting for its restart and sending once more", "runtime", a.p.Runtime, "err", err)
+	a.log.Warn("runtime unreachable: waiting for its restart and sending once more", "runtime", a.p.Runtime, "err", logx.RedactedError(err))
 	a.deps.Locator.Failed(a.p.Runtime, a.p.Model, engine.Endpoint{URL: strings.TrimSuffix(url, a.p.Path), Key: key})
 	if url, key, err = a.endpoint(ctx); err != nil {
 		return 0, nil, 0, err

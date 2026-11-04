@@ -47,7 +47,7 @@ func maintainEvidence(ctx context.Context, interval time.Duration,
 				return true
 			}
 			if err.Error() != warned {
-				log.Warn("evidence catch-up failed", "err", err)
+				log.Warn("evidence catch-up failed", "err", logx.RedactedError(err))
 				warned = err.Error()
 			}
 			return true

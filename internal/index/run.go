@@ -12,6 +12,7 @@ import (
 	"github.com/LLM-4-People/mailsense/internal/events"
 	"github.com/LLM-4-People/mailsense/internal/jobs"
 	"github.com/LLM-4-People/mailsense/internal/learning"
+	"github.com/LLM-4-People/mailsense/internal/logx"
 	"github.com/LLM-4-People/mailsense/internal/mail"
 	"github.com/LLM-4-People/mailsense/internal/runstate"
 	"github.com/LLM-4-People/mailsense/internal/store"
@@ -149,7 +150,7 @@ func (ix *Indexer) embed(ctx context.Context, e engine.Embedder, todo []store.Em
 	rep.Usage.Add(res.Usage)
 	if err != nil && len(todo) > 1 && ctx.Err() == nil && !errors.Is(err, engine.ErrUnavailable) &&
 		!errors.Is(err, engine.ErrTransient) {
-		ix.log.Info("index batch failed: embedding its messages one by one", "run", rep.RunID, "messages", len(todo), "err", err)
+		ix.log.Info("index batch failed: embedding its messages one by one", "run", rep.RunID, "messages", len(todo), "err", logx.RedactedError(err))
 		for i := range todo {
 			if err := ix.embed(ctx, e, todo[i:i+1], inputs[i:i+1], hashes[i:i+1], rep); err != nil || rep.StoppedBy != "" {
 				return err
@@ -222,7 +223,7 @@ func (ix *Indexer) fail(ctx context.Context, todo []store.EmbeddingState, err er
 			f.Messages = append(f.Messages, s.RowID)
 		}
 		rep.Failures = append(rep.Failures, f)
-		ix.log.Warn("index batch failed", "run", rep.RunID, "messages", len(todo), "err", err)
+		ix.log.Warn("index batch failed", "run", rep.RunID, "messages", len(todo), "err", logx.RedactedError(err))
 	}
 }
 
@@ -236,7 +237,7 @@ func (ix *Indexer) quarantineCount(ctx context.Context, s store.EmbeddingState, 
 	}
 	if s.Failures+1 >= ix.cfg.Int(SettingQuarantineAfter) {
 		rep.Quarantined++
-		ix.log.Warn("message quarantined: it failed again at the same revision", "run", rep.RunID, "message", s.RowID, "failures", s.Failures+1, "err", err)
+		ix.log.Warn("message quarantined: it failed again at the same revision", "run", rep.RunID, "message", s.RowID, "failures", s.Failures+1, "err", logx.RedactedError(err))
 	}
 }
 

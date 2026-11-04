@@ -54,9 +54,9 @@ func maintainSemanticIndex(ctx context.Context, interval time.Duration,
 			}
 			unavailable := errors.Is(err, engine.ErrUnavailable)
 			if !unavailable || !unavailableWarned {
-				log.Warn("semantic index catch-up failed", "err", err)
+				log.Warn("semantic index catch-up failed", "err", logx.RedactedError(err))
 			} else {
-				log.Debug("semantic index catch-up still failing", "err", err)
+				log.Debug("semantic index catch-up still failing", "err", logx.RedactedError(err))
 			}
 			unavailableWarned = unavailable
 			return true
@@ -80,9 +80,9 @@ func maintainSemanticIndex(ctx context.Context, interval time.Duration,
 			if errors.Is(err, engine.ErrUnavailable) {
 				// The learning status already reports the missing embedder;
 				// a startup warm must not repeat that warning.
-				log.Debug("semantic search warm-up skipped: the embedder is unavailable", "err", err)
+				log.Debug("semantic search warm-up skipped: the embedder is unavailable", "err", logx.RedactedError(err))
 			} else {
-				log.Warn("semantic search warm-up failed", "err", err)
+				log.Warn("semantic search warm-up failed", "err", logx.RedactedError(err))
 			}
 		}
 	}

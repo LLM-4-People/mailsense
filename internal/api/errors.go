@@ -20,6 +20,7 @@ import (
 	"github.com/LLM-4-People/mailsense/internal/jobs"
 	"github.com/LLM-4-People/mailsense/internal/layer1"
 	"github.com/LLM-4-People/mailsense/internal/learning"
+	"github.com/LLM-4-People/mailsense/internal/logx"
 	"github.com/LLM-4-People/mailsense/internal/qa"
 	"github.com/LLM-4-People/mailsense/internal/resource"
 	"github.com/LLM-4-People/mailsense/internal/search"
@@ -71,7 +72,7 @@ func (s *Server) writeJSON(w http.ResponseWriter, r *http.Request, status int, v
 	}
 	body, err := marshal(v)
 	if err != nil {
-		s.log.Error("api response encoding failed", "err", err)
+		s.log.Error("api response encoding failed", "err", logx.RedactedError(err))
 		body = []byte(`{"error":{"code":"internal","message":"internal error"}}`)
 		status = http.StatusInternalServerError
 	}
@@ -82,7 +83,7 @@ func (s *Server) writeJSON(w http.ResponseWriter, r *http.Request, status int, v
 	if httpgzip.Accepts(r) && len(body) >= httpgzip.MinBytes {
 		compressed, err := httpgzip.Compress(body)
 		if err != nil {
-			s.log.Warn("api response compression failed; sending plain JSON", "err", err)
+			s.log.Warn("api response compression failed; sending plain JSON", "err", logx.RedactedError(err))
 		} else {
 			w.Header().Set("Content-Encoding", "gzip")
 			w.Header().Set("Content-Length", strconv.Itoa(len(compressed)))
@@ -119,9 +120,9 @@ func (s *Server) writeError(w http.ResponseWriter, r *http.Request, err error) {
 	e := s.mapError(err)
 	switch {
 	case e.Status >= 500:
-		s.log.Error("api request failed", "method", r.Method, "route", r.Pattern, "status", e.Status, "err", err)
+		s.log.Error("api request failed", "method", r.Method, "route", r.Pattern, "status", e.Status, "err", logx.RedactedError(err))
 	case e.Status == http.StatusServiceUnavailable:
-		s.log.Warn("api request unavailable", "method", r.Method, "route", r.Pattern, "status", e.Status, "err", err)
+		s.log.Warn("api request unavailable", "method", r.Method, "route", r.Pattern, "status", e.Status, "err", logx.RedactedError(err))
 	}
 	s.writeAPIError(w, r, e.Status, e)
 }

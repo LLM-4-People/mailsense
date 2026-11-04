@@ -129,7 +129,7 @@ func runWithShutdownUI(environ []string, goos, home string, report func(dataDir 
 	log.Info("mailsense starting", "version", buildinfo.Version, "data_dir", paths.DataDir, "os", goos)
 	st, err := store.Open(context.Background(), cfg, bus, nil)
 	if err != nil {
-		log.Error("cannot open the store", "err", err)
+		log.Error("cannot open the store", "err", logx.RedactedError(err))
 		report(paths.DataDir, fmt.Errorf("cannot open the database: %w", err))
 		return 1
 	}
@@ -140,7 +140,7 @@ func runWithShutdownUI(environ []string, goos, home string, report func(dataDir 
 			return
 		}
 		if err := st.Close(); err != nil {
-			log.Error("cannot close the store", "err", err)
+			log.Error("cannot close the store", "err", logx.RedactedError(err))
 			code = 1
 		}
 	}()
@@ -149,11 +149,11 @@ func runWithShutdownUI(environ []string, goos, home string, report func(dataDir 
 	// side and the learning status see the same configuration. A malformed
 	// provider file is reported and startup continues.
 	if err := onboarding.EnsureLocalEmbedder(context.Background(), cfg); err != nil {
-		log.Warn("local embedder was not seeded; the owner can still configure one", "err", err)
+		log.Warn("local embedder was not seeded; the owner can still configure one", "err", logx.RedactedError(err))
 	}
 	a, err := wireEngines(cfg, environ, bus, st, paths.DataDir, shutdown)
 	if err != nil {
-		log.Error("cannot set up the engines", "err", err)
+		log.Error("cannot set up the engines", "err", logx.RedactedError(err))
 		report(paths.DataDir, fmt.Errorf("cannot set up the engines: %w", err))
 		return 1
 	}
@@ -168,7 +168,7 @@ func runWithShutdownUI(environ []string, goos, home string, report func(dataDir 
 		ctx, cancel := context.WithTimeout(context.Background(), api.OptionsFromConfig(cfg).ShutdownTimeout)
 		defer cancel()
 		if err := a.jobs.Shutdown(ctx); err != nil {
-			log.Error("jobs did not stop cleanly", "err", err)
+			log.Error("jobs did not stop cleanly", "err", logx.RedactedError(err))
 			unjoined = true
 			code = 1
 		}
@@ -179,7 +179,7 @@ func runWithShutdownUI(environ []string, goos, home string, report func(dataDir 
 	services := servicesFor(a, shutdown, boot)
 	srv, err := api.New(services, api.OptionsFromConfig(cfg))
 	if err != nil {
-		log.Error("cannot build the API", "err", err)
+		log.Error("cannot build the API", "err", logx.RedactedError(err))
 		report(paths.DataDir, fmt.Errorf("cannot build the API: %w", err))
 		return 1
 	}
@@ -187,7 +187,7 @@ func runWithShutdownUI(environ []string, goos, home string, report func(dataDir 
 		ctx, cancel := context.WithTimeout(context.Background(), api.OptionsFromConfig(cfg).ShutdownTimeout)
 		defer cancel()
 		if err := srv.Shutdown(ctx); err != nil {
-			log.Error("API shutdown did not finish cleanly", "err", err)
+			log.Error("API shutdown did not finish cleanly", "err", logx.RedactedError(err))
 			code = 1
 			if errors.Is(err, api.ErrHandlersUnjoined) {
 				unjoined = true
@@ -197,7 +197,7 @@ func runWithShutdownUI(environ []string, goos, home string, report func(dataDir 
 	// The listener and its descriptor come first: the desktop window and the
 	// API have a real, usable address while the derived views are still cold.
 	if _, err := srv.Start(); err != nil {
-		log.Error("cannot start the API", "err", err)
+		log.Error("cannot start the API", "err", logx.RedactedError(err))
 		report(paths.DataDir, fmt.Errorf("cannot start the API: %w", err))
 		return 1
 	}
@@ -260,7 +260,7 @@ func runWithShutdownUI(environ []string, goos, home string, report func(dataDir 
 			// cause natively, then open the same app in the default browser
 			// so the owner is never stranded. The bootstrap URL carries the
 			// token; the plain URL logged on a fallback failure does not.
-			log.Warn("cannot open the desktop interface", "url", srv.URL(), "err", err)
+			log.Warn("cannot open the desktop interface", "url", srv.URL(), "err", logx.RedactedError(err))
 			report(paths.DataDir, fmt.Errorf(
 				"cannot open the Mailsense window: %w\n\nInstall the Microsoft Edge WebView2 runtime, or open %s in your browser.",
 				err, srv.URL()))
@@ -534,7 +534,7 @@ func checkTriage(deps engine.Deps) (*triage.Engines, error) {
 	if _, _, err := engines.Decider(deps.Config); err != nil {
 		// Unconfigured is not fatal: the app must start so the owner can
 		// configure providers; the triage action reports the same error.
-		logx.For("main").Warn("triage decider is not ready", "err", err)
+		logx.For("main").Warn("triage decider is not ready", "err", logx.RedactedError(err))
 	}
 	if _, err := taxonomy.Load(deps.Config); err != nil {
 		return nil, err
@@ -553,7 +553,7 @@ func logProviderRoles(cfg *config.Config) {
 	log := logx.For("main")
 	cat, err := engine.LoadCatalog(cfg)
 	if err != nil {
-		log.Warn("provider file is invalid: no provider can be used until it is fixed", "err", err)
+		log.Warn("provider file is invalid: no provider can be used until it is fixed", "err", logx.RedactedError(err))
 		return
 	}
 	// The startup has no provider health yet, so only the configuration and
@@ -592,7 +592,7 @@ func wireSemantic(cfg *config.Config, bus *events.Bus, sec secrets.Store, st *st
 	log := logx.For("main")
 	src := embed.NewSource(engine.Deps{Config: cfg, Bus: bus, Secrets: sec, Sink: mon, Locator: sc, Monitor: mon})
 	if _, err := src.Embedder(); err != nil {
-		log.Warn("embedding is not ready: learning waits for it (embeddings stage blocked)", "err", err)
+		log.Warn("embedding is not ready: learning waits for it (embeddings stage blocked)", "err", logx.RedactedError(err))
 	}
 	ix := index.New(cfg, st, bus, src, nil)
 	unwatch, err := ix.AfterSync(bus, jm) // a sync run is followed by an index run (index.after_sync)
@@ -658,7 +658,7 @@ func wireLayer1(cfg *config.Config, bus *events.Bus, st *store.Store, sem *seman
 	if _, err := layer1.NewPlan(cfg); err != nil {
 		// never fatal (rules review #4: the app has no CLI to fix it from):
 		// the layer1 stage shows the problem as a blocker with its remedy
-		logx.For("main").Warn("layer 1 configuration has problems", "err", err)
+		logx.For("main").Warn("layer 1 configuration has problems", "err", logx.RedactedError(err))
 	}
 	stopRuns, err := r.AfterRuns(bus, sem.jobs)
 	if err != nil {

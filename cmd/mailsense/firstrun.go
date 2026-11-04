@@ -32,7 +32,7 @@ func firstOpenDiscovery(ctx context.Context, st *store.Store, cfg *config.Config
 				log.Info("first-open discovery skipped: the source is already being discovered", "source", c.ID())
 				continue
 			}
-			log.Warn("first-open mailbox discovery failed", "source", c.ID(), "err", err)
+			log.Warn("first-open mailbox discovery failed", "source", c.ID(), "err", logx.RedactedError(err))
 			errs = append(errs, fmt.Errorf("%s: %w", c.ID(), err))
 		}
 	}
@@ -50,7 +50,7 @@ var firstOpenRun = firstOpenDiscovery
 func startFirstOpenDiscovery(a *app, shutdown *shutdownRequest, ready <-chan struct{}) func() {
 	return startWhenReady(shutdown, ready, func(ctx context.Context) {
 		if err := firstOpenRun(ctx, a.st, a.cfg, a.syncer, a.registry.List()); err != nil && !errors.Is(err, context.Canceled) {
-			logx.For("startup").Warn("first-open mailbox discovery failed", "err", err)
+			logx.For("startup").Warn("first-open mailbox discovery failed", "err", logx.RedactedError(err))
 		}
 	})
 }

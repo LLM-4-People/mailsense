@@ -69,6 +69,19 @@ func Redact(s string) string {
 	return c.redactor.redact(s)
 }
 
+// RedactedError is the one diagnostic form of an error: its message with
+// the same policy Redact applies. Log an error through this helper, never as
+// the raw value, because an error can quote a provider record, a secret name
+// or a credential-shaped token, and several callers (a store, a job record,
+// an API body) publish that text outside the sink. It is nil-safe so a caller
+// can render an optional error without a branch.
+func RedactedError(err error) string {
+	if err == nil {
+		return ""
+	}
+	return Redact(err.Error())
+}
+
 // redactor replaces registered secrets and token-shaped strings.
 type redactor struct {
 	patterns    []*regexp.Regexp

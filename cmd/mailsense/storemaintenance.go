@@ -39,10 +39,10 @@ func storeMaintain(ctx context.Context, interval time.Duration, st *store.Store,
 				return false
 			}
 			if errors.Is(err, context.DeadlineExceeded) {
-				log.Warn("store maintenance timed out; the next interval retries", "timeout", storeMaintenanceTimeout, "err", err)
+				log.Warn("store maintenance timed out; the next interval retries", "timeout", storeMaintenanceTimeout, "err", logx.RedactedError(err))
 				return true
 			}
-			log.Warn("store maintenance failed", "err", err)
+			log.Warn("store maintenance failed", "err", logx.RedactedError(err))
 			return true
 		}
 		if rep.Checkpoint || rep.RunsDeleted > 0 {
