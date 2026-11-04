@@ -33,6 +33,7 @@ import (
 	"github.com/LLM-4-People/mailsense/internal/scope"
 	"github.com/LLM-4-People/mailsense/internal/search"
 	"github.com/LLM-4-People/mailsense/internal/sidecar"
+	"github.com/LLM-4-People/mailsense/internal/source"
 	"github.com/LLM-4-People/mailsense/internal/store"
 	"github.com/LLM-4-People/mailsense/internal/threadintel"
 	"github.com/LLM-4-People/mailsense/internal/triage"
@@ -342,10 +343,27 @@ type HubAPI interface {
 	LabelSummary(ctx context.Context) (hub.LabelSummary, error)
 }
 
-// SourceInfo names one registered connector.
+// SourceInfo names one registered connector: its identity, the capabilities
+// it advertises and the owner actions it implements. Capabilities and
+// Actions are always arrays (never null); a source that declares none serves
+// an empty list, so the console offers nothing it cannot run.
 type SourceInfo struct {
-	ID   string `json:"id"`
-	Kind string `json:"kind"`
+	ID           string                `json:"id"`
+	Kind         string                `json:"kind"`
+	Capabilities source.CapabilityList `json:"capabilities"`
+	Actions      []source.OwnerAction  `json:"actions"`
+}
+
+// SourceInfoOf is the one projection of a registered connector to the source
+// list. The status route and any future source list call it instead of
+// restating the capability or action vocabulary.
+func SourceInfoOf(c source.Connector) SourceInfo {
+	return SourceInfo{
+		ID:           c.ID(),
+		Kind:         c.Kind(),
+		Capabilities: c.Capabilities().List(),
+		Actions:      source.ConnectorActions(c),
+	}
 }
 
 // SourceActionView is the one answer of an owner action on a source. Action
@@ -686,38 +704,18 @@ type LogSnapshot struct {
 	Truncated bool           `json:"truncated"`
 }
 
-// ProviderInfo is one provider record as the UI sees it: the complete
-// non-secret identity and limits stay in the provider file; the API never
-// exposes a key value, only its secret name and whether it is present.
+// ProviderInfo is one provider record as the UI sees it: the record itself
+// (engine.Provider, embedded so the record has one definition), the derived
+// kind, and the API-only key and health facts. The API never exposes a key
+// value, only its secret name and whether it is present.
 type ProviderInfo struct {
-	ID           string      `json:"id"`
-	Label        string      `json:"label,omitempty"`
-	Protocol     string      `json:"protocol"`
-	Kind         engine.Kind `json:"kind"`
-	BaseURL      string      `json:"base_url"`
-	Path         string      `json:"path"`
-	Model        string      `json:"model"`
-	APIKeySecret string      `json:"api_key_secret,omitempty"`
-	Runtime      string      `json:"runtime,omitempty"`
-	// The complete non-secret record, so the editor can round-trip a
-	// record without resetting its limits, prices, retry or embedding
-	// spec on save.
-	ContextTokens        int                   `json:"context_tokens,omitempty"`
-	CharsPerToken        float64               `json:"chars_per_token,omitempty"`
-	ReserveTokensPerByte float64               `json:"reserve_tokens_per_byte,omitempty"`
-	ReserveOutputTokens  int                   `json:"reserve_output_tokens,omitempty"`
-	MaxQuestions         int                   `json:"max_questions,omitempty"`
-	ProbabilityTolerance float64               `json:"probability_tolerance,omitempty"`
-	ResponseFormat       string                `json:"response_format,omitempty"`
-	ReasoningEffort      string                `json:"reasoning_effort,omitempty"`
-	PriceInput           *float64              `json:"price_input_per_mtok"`
-	PriceOutput          *float64              `json:"price_output_per_mtok"`
-	Retry                engine.Retry          `json:"retry,omitzero"`
-	Envelope             string                `json:"envelope,omitempty"`
-	NoulFold             string                `json:"noul_fold,omitempty"`
-	Embedding            *engine.EmbeddingSpec `json:"embedding,omitempty"`
-	KeyPresent           bool                  `json:"key_present"`
-	Status               engine.ProviderStatus `json:"status"`
+	engine.Provider
+	// ID is always on the wire; the record's id is the object key of the
+	// provider file.
+	ID         string                `json:"id"`
+	Kind       engine.Kind           `json:"kind"`
+	KeyPresent bool                  `json:"key_present"`
+	Status     engine.ProviderStatus `json:"status"`
 }
 
 // ProviderRoleInfo is one settings-owned provider selector with its state:

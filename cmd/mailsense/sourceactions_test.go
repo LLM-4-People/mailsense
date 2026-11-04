@@ -72,3 +72,87 @@ func TestSourceActionsWithoutConnector(t *testing.T) {
 		})
 	}
 }
+
+// startConnector, resumeConnector and detailConnector implement one optional
+// interface each; allActionsConnector implements every one.
+type startConnector struct{ plainConnector }
+
+func (startConnector) StartOutlook(context.Context) error { return nil }
+
+type resumeConnector struct{ plainConnector }
+
+func (resumeConnector) Resume() error { return nil }
+
+type detailConnector struct{ plainConnector }
+
+func (detailConnector) ReadDetails(context.Context, source.ItemRef) (mail.Details, error) {
+	return mail.Details{}, nil
+}
+
+type allActionsConnector struct{ plainConnector }
+
+func (allActionsConnector) StartOutlook(context.Context) error { return nil }
+func (allActionsConnector) Resume() error                      { return nil }
+func (allActionsConnector) ReadDetails(context.Context, source.ItemRef) (mail.Details, error) {
+	return mail.Details{}, nil
+}
+
+// The advertised owner actions and the action dispatcher use the same table:
+// for every registered source, an action is offered exactly when the
+// dispatcher can run it instead of answering 409 action_unsupported.
+func TestAdvertisedActionsMatchTheDispatcher(t *testing.T) {
+	actions := []struct {
+		action source.OwnerAction
+		run    func(sourcesAPI, string) (api.SourceActionView, error)
+	}{
+		{source.ActionStart, func(a sourcesAPI, id string) (api.SourceActionView, error) { return a.Start(context.Background(), id) }},
+		{source.ActionResume, func(a sourcesAPI, id string) (api.SourceActionView, error) { return a.Resume(context.Background(), id) }},
+		{source.ActionRetryDetails, func(a sourcesAPI, id string) (api.SourceActionView, error) {
+			return a.RetryDetails(context.Background(), id)
+		}},
+	}
+	cases := []struct {
+		name string
+		c    source.Connector
+		want []source.OwnerAction
+	}{
+		{"no action", plainConnector{}, nil},
+		{"start", startConnector{}, []source.OwnerAction{source.ActionStart}},
+		{"resume", resumeConnector{}, []source.OwnerAction{source.ActionResume}},
+		{"retry-details", detailConnector{}, []source.OwnerAction{source.ActionRetryDetails}},
+		{"all", allActionsConnector{}, []source.OwnerAction{source.ActionStart, source.ActionResume, source.ActionRetryDetails}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			reg := sourceWire(tc.c)
+			a := sourcesAPI{reg}
+			registered := reg.app.registry.List()
+			if len(registered) != 1 {
+				t.Fatalf("registered sources %d", len(registered))
+			}
+			advertised := source.ConnectorActions(registered[0])
+			if len(advertised) != len(tc.want) {
+				t.Fatalf("advertised %v, want %v", advertised, tc.want)
+			}
+			for i, action := range tc.want {
+				if advertised[i] != action {
+					t.Fatalf("advertised %v, want %v", advertised, tc.want)
+				}
+			}
+			for _, entry := range actions {
+				_, err := entry.run(a, "archive")
+				var apiErr *api.APIError
+				unsupported := errors.As(err, &apiErr) && apiErr.Code == "action_unsupported"
+				offered := false
+				for _, action := range advertised {
+					if action == entry.action {
+						offered = true
+					}
+				}
+				if offered == unsupported {
+					t.Fatalf("%s: advertised %v, dispatcher unsupported %v (err %v)", entry.action, offered, unsupported, err)
+				}
+			}
+		})
+	}
+}

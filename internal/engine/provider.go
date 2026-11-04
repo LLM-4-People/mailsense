@@ -3,10 +3,10 @@ package engine
 import (
 	"errors"
 	"fmt"
-	"maps"
 	"math"
 	"net/http"
 	"net/url"
+	"reflect"
 	"regexp"
 	"slices"
 	"strings"
@@ -93,6 +93,11 @@ const (
 	// ResponseFormatJSON is the OpenAI-compatible strict JSON answer mode.
 	ResponseFormatJSON = "json_object"
 )
+
+// reasoningEfforts are the accepted values of reasoning_effort: "" keeps the
+// provider's default, the rest name the provider's reasoning budget. The
+// validator and the record schema read this one list.
+var reasoningEfforts = []string{"", "none", "minimal", "low", "medium", "high", "xhigh", "max"}
 
 // maxTokensPerByte bounds reserve_tokens_per_byte (a sanity limit on data).
 const maxTokensPerByte = 4
@@ -370,8 +375,8 @@ func (p *Provider) generatorProblems(bad func(string, string, ...any)) {
 	if p.ResponseFormat != "" && p.ResponseFormat != ResponseFormatJSON {
 		bad("response_format", "must be empty or %q", ResponseFormatJSON)
 	}
-	if p.ReasoningEffort != "" && !slices.Contains([]string{"none", "minimal", "low", "medium", "high", "xhigh", "max"}, p.ReasoningEffort) {
-		bad("reasoning_effort", "must be empty or none, minimal, low, medium, high, xhigh or max, got %q", p.ReasoningEffort)
+	if p.ReasoningEffort != "" && !slices.Contains(reasoningEfforts, p.ReasoningEffort) {
+		bad("reasoning_effort", "must be empty or %s, got %q", strings.Join(reasoningEfforts[1:], ", "), p.ReasoningEffort)
 	}
 	if p.MaxQuestions != 0 || p.ProbabilityTolerance != 0 || p.Envelope != "" || p.NoulFold != "" {
 		bad("decider fields", "max_questions, probability_tolerance, envelope and noul_fold are decider fields")
@@ -531,8 +536,180 @@ func SuggestSecretName(id string) string {
 	return "PROVIDER_" + upper + "_API_KEY"
 }
 
+// ProviderFieldType is the JSON type of one provider record field.
+type ProviderFieldType string
+
+// Provider field types.
+const (
+	ProviderFieldString ProviderFieldType = "string"
+	ProviderFieldInt    ProviderFieldType = "int"
+	ProviderFieldFloat  ProviderFieldType = "float"
+	ProviderFieldBool   ProviderFieldType = "bool"
+	ProviderFieldObject ProviderFieldType = "object"
+)
+
+// ProviderBounds is the numeric range the validator accepts for one field.
+// A nil side is unbounded; an exclusive side is an open interval.
+type ProviderBounds struct {
+	Min          *float64 `json:"min,omitempty"`
+	Max          *float64 `json:"max,omitempty"`
+	MinExclusive bool     `json:"min_exclusive,omitempty"`
+	MaxExclusive bool     `json:"max_exclusive,omitempty"`
+}
+
+// ProviderField is one field of the provider record as the wire describes
+// it: the Go field name, its JSON key, its type, the kinds that accept it,
+// its numeric bounds, its enum values, and whether it is required or
+// advanced. Required means the validator rejects the record whenever the
+// field is empty for every kind; a conditional requirement (a managed
+// runtime, a key-required protocol) stays in the validator.
+type ProviderField struct {
+	Name     string            `json:"name"`
+	JSON     string            `json:"json"`
+	Type     ProviderFieldType `json:"type"`
+	Kinds    []Kind            `json:"kinds"`
+	Bounds   *ProviderBounds   `json:"bounds,omitempty"`
+	Enum     []string          `json:"enum,omitempty"`
+	Required bool              `json:"required"`
+	Advanced bool              `json:"advanced"`
+}
+
+// providerFieldRule is the semantic half of one record field, keyed by Go
+// field name. The reflection walk over Provider supplies the name, JSON key
+// and type, so this table never restates them: it is the only copy of the
+// kinds, bounds, enums, required and advanced flags.
+type providerFieldRule struct {
+	kinds    []Kind
+	bounds   *ProviderBounds
+	enum     []string
+	required bool
+	advanced bool
+}
+
+var (
+	// providerAllKinds is every engine kind, in the kind declaration order.
+	providerAllKinds = []Kind{KindDecider, KindGenerator, KindEmbedder}
+	// providerPaidKinds are the kinds that carry a budget and a price.
+	providerPaidKinds = []Kind{KindDecider, KindGenerator}
+	// providerDeciderKinds, providerGeneratorKinds and providerEmbedderKinds
+	// are the single-kind field sets of each adapter.
+	providerDeciderKinds = []Kind{KindDecider}
+	// providerGeneratorKinds is the generator-only field set.
+	providerGeneratorKinds = []Kind{KindGenerator}
+	// providerEmbedderKinds is the embedder-only field set.
+	providerEmbedderKinds = []Kind{KindEmbedder}
+)
+
+// providerFieldRules is the one semantic description of the provider record.
+// It mirrors the rules of Provider.problems: a bound appears only where the
+// validator enforces an unconditional one (a conditional rule, such as
+// context_tokens on a managed runtime, stays in the validator and is not
+// stated as a bound here). Nested records (retry, embedding) keep their own
+// validators and are described as objects.
+var providerFieldRules = map[string]providerFieldRule{
+	"ID":           {kinds: providerAllKinds, required: true},
+	"Label":        {kinds: providerAllKinds},
+	"Protocol":     {kinds: providerAllKinds, enum: ProtocolNames(), required: true},
+	"BaseURL":      {kinds: providerAllKinds},
+	"Path":         {kinds: providerAllKinds, required: true},
+	"Model":        {kinds: providerAllKinds, required: true},
+	"APIKeySecret": {kinds: providerAllKinds},
+	"Runtime":      {kinds: providerEmbedderKinds, advanced: true},
+	"ContextTokens": {kinds: providerAllKinds, advanced: true,
+		bounds: &ProviderBounds{Min: providerNum(1)}},
+	"CharsPerToken": {kinds: providerAllKinds, advanced: true,
+		bounds: &ProviderBounds{Min: providerNum(0), MinExclusive: true}},
+	"ReserveTokensPerByte": {kinds: providerPaidKinds, advanced: true,
+		bounds: &ProviderBounds{Min: providerNum(0), MinExclusive: true, Max: providerNum(maxTokensPerByte)}},
+	"ReserveOutputTokens": {kinds: providerPaidKinds, advanced: true},
+	"MaxQuestions":        {kinds: providerDeciderKinds, advanced: true, bounds: &ProviderBounds{Min: providerNum(1)}},
+	"ProbabilityTolerance": {kinds: providerDeciderKinds, advanced: true,
+		bounds: &ProviderBounds{Min: providerNum(0), MinExclusive: true, Max: providerNum(1), MaxExclusive: true}},
+	"ResponseFormat":  {kinds: providerGeneratorKinds, enum: []string{"", ResponseFormatJSON}, advanced: true},
+	"ReasoningEffort": {kinds: providerGeneratorKinds, enum: reasoningEfforts, advanced: true},
+	"PriceInput":      {kinds: providerPaidKinds, advanced: true, bounds: &ProviderBounds{Min: providerNum(0)}},
+	"PriceOutput":     {kinds: providerPaidKinds, advanced: true, bounds: &ProviderBounds{Min: providerNum(0)}},
+	"Retry":           {kinds: providerAllKinds, advanced: true},
+	"Envelope":        {kinds: providerDeciderKinds, enum: []string{"", EnvelopeCloudflare}, advanced: true},
+	"NoulFold":        {kinds: providerDeciderKinds, advanced: true},
+	"Embedding":       {kinds: providerEmbedderKinds, advanced: true},
+}
+
+// ProviderFields describes the provider record next to the struct it
+// describes: one entry per field of Provider, in declaration order. Names,
+// JSON keys and types come from the struct's own tags; kinds, bounds, enums
+// and the required and advanced flags come from providerFieldRules. A field
+// with no rule is a defect (TestProviderSchemaCoversEveryRecordField fails),
+// never a silently undocumented field.
+func ProviderFields() []ProviderField {
+	t := reflect.TypeFor[Provider]()
+	out := make([]ProviderField, 0, t.NumField())
+	for i := range t.NumField() {
+		f := t.Field(i)
+		rule, ok := providerFieldRules[f.Name]
+		if !ok {
+			continue
+		}
+		out = append(out, ProviderField{
+			Name: f.Name, JSON: providerJSONName(f), Type: providerFieldType(f.Type),
+			Kinds: slices.Clone(rule.kinds), Bounds: providerBoundsCopy(rule.bounds),
+			Enum: slices.Clone(rule.enum), Required: rule.required, Advanced: rule.advanced,
+		})
+	}
+	return out
+}
+
+// providerBoundsCopy returns a deep copy of b so a caller cannot change the
+// rule table through the schema it reads.
+func providerBoundsCopy(b *ProviderBounds) *ProviderBounds {
+	if b == nil {
+		return nil
+	}
+	cp := *b
+	if b.Min != nil {
+		min := *b.Min
+		cp.Min = &min
+	}
+	if b.Max != nil {
+		max := *b.Max
+		cp.Max = &max
+	}
+	return &cp
+}
+
+// providerJSONName is the record key of a struct field (its JSON tag without
+// the options).
+func providerJSONName(f reflect.StructField) string {
+	name, _, _ := strings.Cut(f.Tag.Get("json"), ",")
+	return name
+}
+
+// providerFieldType maps a Go field type to the wire type of the record. A
+// pointer is its element's type (a nullable value); the nested record types
+// are objects, described by their own validators.
+func providerFieldType(t reflect.Type) ProviderFieldType {
+	switch t.Kind() {
+	case reflect.Pointer:
+		return providerFieldType(t.Elem())
+	case reflect.String:
+		return ProviderFieldString
+	case reflect.Bool:
+		return ProviderFieldBool
+	case reflect.Int, reflect.Int64:
+		return ProviderFieldInt
+	case reflect.Float64:
+		return ProviderFieldFloat
+	case reflect.Struct, reflect.Slice, reflect.Map:
+		return ProviderFieldObject
+	}
+	return ""
+}
+
+// providerNum is a bound literal.
+func providerNum(v float64) *float64 { return &v }
+
 func protocolNames() string {
-	return strings.Join(slices.Sorted(maps.Keys(protocols)), ", ")
+	return strings.Join(ProtocolNames(), ", ")
 }
 
 func finite(v float64) bool { return !math.IsNaN(v) && !math.IsInf(v, 0) }

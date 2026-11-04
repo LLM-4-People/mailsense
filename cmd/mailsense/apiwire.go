@@ -247,7 +247,7 @@ func (a statusAPI) Status(ctx context.Context) (api.StatusView, error) {
 	}
 	var sources []api.SourceInfo
 	for _, c := range a.w.app.registry.List() {
-		sources = append(sources, api.SourceInfo{ID: c.ID(), Kind: c.Kind()})
+		sources = append(sources, api.SourceInfoOf(c))
 	}
 	system := oslocale.Detect()
 	return api.StatusView{
@@ -493,14 +493,17 @@ func (a sourcesAPI) Start(ctx context.Context, id string) (api.SourceActionView,
 	if err != nil {
 		return api.SourceActionView{}, err
 	}
+	if !source.ImplementsAction(c, source.ActionStart) {
+		return api.SourceActionView{}, api.SourceActionUnsupported(string(source.ActionStart), id)
+	}
 	starter, ok := c.(source.Starter)
 	if !ok {
-		return api.SourceActionView{}, api.SourceActionUnsupported("start", id)
+		return api.SourceActionView{}, api.SourceActionUnsupported(string(source.ActionStart), id)
 	}
 	if err := starter.StartOutlook(ctx); err != nil {
 		return api.SourceActionView{}, err
 	}
-	return api.SourceActionView{Action: "start", Source: id}, nil
+	return api.SourceActionView{Action: string(source.ActionStart), Source: id}, nil
 }
 
 func (a sourcesAPI) Resume(ctx context.Context, id string) (api.SourceActionView, error) {
@@ -508,14 +511,17 @@ func (a sourcesAPI) Resume(ctx context.Context, id string) (api.SourceActionView
 	if err != nil {
 		return api.SourceActionView{}, err
 	}
+	if !source.ImplementsAction(c, source.ActionResume) {
+		return api.SourceActionView{}, api.SourceActionUnsupported(string(source.ActionResume), id)
+	}
 	resumer, ok := c.(source.Resumer)
 	if !ok {
-		return api.SourceActionView{}, api.SourceActionUnsupported("resume", id)
+		return api.SourceActionView{}, api.SourceActionUnsupported(string(source.ActionResume), id)
 	}
 	if err := resumer.Resume(); err != nil {
 		return api.SourceActionView{}, err
 	}
-	return api.SourceActionView{Action: "resume", Source: id}, nil
+	return api.SourceActionView{Action: string(source.ActionResume), Source: id}, nil
 }
 
 func (a sourcesAPI) RetryDetails(ctx context.Context, id string) (api.SourceActionView, error) {
@@ -523,8 +529,8 @@ func (a sourcesAPI) RetryDetails(ctx context.Context, id string) (api.SourceActi
 	if err != nil {
 		return api.SourceActionView{}, err
 	}
-	if _, ok := c.(source.DetailReader); !ok {
-		return api.SourceActionView{}, api.SourceActionUnsupported("retry-details", id)
+	if !source.ImplementsAction(c, source.ActionRetryDetails) {
+		return api.SourceActionView{}, api.SourceActionUnsupported(string(source.ActionRetryDetails), id)
 	}
 	if a.w.app.syncer == nil {
 		return api.SourceActionView{}, &api.APIError{Status: http.StatusServiceUnavailable,
@@ -534,7 +540,7 @@ func (a sourcesAPI) RetryDetails(ctx context.Context, id string) (api.SourceActi
 	if err != nil {
 		return api.SourceActionView{}, err
 	}
-	return api.SourceActionView{Action: "retry-details", Source: id, Retried: retried}, nil
+	return api.SourceActionView{Action: string(source.ActionRetryDetails), Source: id, Retried: retried}, nil
 }
 
 type triageAPI struct{ w *wire }
@@ -931,14 +937,7 @@ func (a providersAPI) info(cat *engine.Catalog, id string) (api.ProviderInfo, er
 }
 
 func providerInfo(p engine.Provider, st engine.ProviderStatus) api.ProviderInfo {
-	return api.ProviderInfo{ID: p.ID, Label: p.Label, Protocol: p.Protocol, Kind: p.Kind(), BaseURL: p.BaseURL,
-		Path: p.Path, Model: p.Model, APIKeySecret: p.APIKeySecret, Runtime: p.Runtime,
-		ContextTokens: p.ContextTokens, CharsPerToken: p.CharsPerToken, ReserveTokensPerByte: p.ReserveTokensPerByte,
-		ReserveOutputTokens: p.ReserveOutputTokens, MaxQuestions: p.MaxQuestions,
-		ProbabilityTolerance: p.ProbabilityTolerance, ResponseFormat: p.ResponseFormat,
-		ReasoningEffort: p.ReasoningEffort, PriceInput: p.PriceInput, PriceOutput: p.PriceOutput,
-		Retry: p.Retry, Envelope: p.Envelope, NoulFold: p.NoulFold, Embedding: p.Embedding,
-		KeyPresent: st.KeyPresent, Status: st}
+	return api.ProviderInfo{Provider: p, ID: p.ID, Kind: p.Kind(), KeyPresent: st.KeyPresent, Status: st}
 }
 
 type sidecarAPI struct{ w *wire }

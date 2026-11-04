@@ -11,6 +11,9 @@ type providersView struct {
 	Providers []ProviderInfo         `json:"providers"`
 	Roles     []ProviderRoleInfo     `json:"roles"`
 	Protocols []ProviderProtocolInfo `json:"protocols"`
+	// Fields describes the provider record: its fields, bounds, enums and
+	// kinds. The editor renders it instead of keeping its own copy.
+	Fields []engine.ProviderField `json:"fields"`
 }
 
 // ProviderProtocolInfo is one protocol the create form may choose. The
@@ -50,7 +53,7 @@ func (s *Server) handleProviders(w http.ResponseWriter, r *http.Request) {
 	for _, protocol := range protocols {
 		protocolInfos = append(protocolInfos, ProviderProtocolInfo{Name: protocol.Name, Kind: protocol.Kind})
 	}
-	s.writeJSON(w, r, http.StatusOK, providersView{Providers: list, Roles: roles, Protocols: protocolInfos})
+	s.writeJSON(w, r, http.StatusOK, providersView{Providers: list, Roles: roles, Protocols: protocolInfos, Fields: engine.ProviderFields()})
 }
 
 func (s *Server) handleProviderCreate(w http.ResponseWriter, r *http.Request) {

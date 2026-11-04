@@ -96,6 +96,10 @@ func Protocols() []Protocol {
 	return out
 }
 
+// ProtocolNames lists every protocol name, sorted. It is the one vocabulary
+// of the validator's protocol enum and of the record schema.
+func ProtocolNames() []string { return slices.Sorted(maps.Keys(protocols)) }
+
 // protocolProblems validates the static protocol table (a programming
 // error, reported like any other provider problem).
 func protocolProblems() []string {

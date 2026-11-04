@@ -5,6 +5,7 @@ package source
 
 import (
 	"context"
+	"reflect"
 
 	"github.com/LLM-4-People/mailsense/internal/mail"
 )
@@ -34,6 +35,26 @@ type Capabilities struct {
 	// The non-mail half of the world model.
 	Contacts bool `json:"contacts"` // address books (source.ContactSource)
 	Calendar bool `json:"calendar"` // calendar occurrences (source.CalendarSource)
+}
+
+// CapabilityList is the wire form of a source's capability set: the
+// capability names (the JSON keys of Capabilities) in declaration order. It
+// is the one vocabulary and the one order the layers above render, so no
+// consumer keeps a second list to drift from the struct.
+type CapabilityList []string
+
+// List returns the capabilities c advertises, in the one stable order. A
+// source with no capabilities answers an empty (never nil) list.
+func (c Capabilities) List() CapabilityList {
+	t := reflect.TypeFor[Capabilities]()
+	v := reflect.ValueOf(c)
+	out := make(CapabilityList, 0, t.NumField())
+	for i := range t.NumField() {
+		if v.Field(i).Bool() {
+			out = append(out, t.Field(i).Tag.Get("json"))
+		}
+	}
+	return out
 }
 
 // Cursor is an opaque, connector-defined sync position ("" = from scratch).
@@ -126,6 +147,65 @@ type Starter interface {
 // repeated losses and waits for the owner to resume it.
 type Resumer interface {
 	Resume() error
+}
+
+// OwnerAction names one action the owner can trigger on a source outside a
+// sync. These are the action path segments and the names /api/status
+// advertises, so a screen offers an action only when the source implements it.
+type OwnerAction string
+
+// Owner actions.
+const (
+	ActionStart        OwnerAction = "start"         // start the source's application (Starter)
+	ActionResume       OwnerAction = "resume"        // resume a connection that gave up (Resumer)
+	ActionRetryDetails OwnerAction = "retry-details" // retry messages whose detail read failed (DetailReader)
+)
+
+// ownerAction is one entry of the owner-action table: the wire name and the
+// optional interface a connector must implement. The table is the one owner
+// of both the order screens render and the support rule the dispatcher asks,
+// so what /api/status advertises cannot drift from what a route can run.
+type ownerAction struct {
+	name       OwnerAction
+	implements func(Connector) bool
+}
+
+var ownerActions = []ownerAction{
+	{ActionStart, func(c Connector) bool { _, ok := c.(Starter); return ok }},
+	{ActionResume, func(c Connector) bool { _, ok := c.(Resumer); return ok }},
+	{ActionRetryDetails, func(c Connector) bool { _, ok := c.(DetailReader); return ok }},
+}
+
+// OwnerActions lists every owner action, in the one order screens render.
+func OwnerActions() []OwnerAction {
+	out := make([]OwnerAction, 0, len(ownerActions))
+	for _, a := range ownerActions {
+		out = append(out, a.name)
+	}
+	return out
+}
+
+// ConnectorActions lists the owner actions c implements, in OwnerActions
+// order. A source with no optional interface answers an empty (never nil) list.
+func ConnectorActions(c Connector) []OwnerAction {
+	out := make([]OwnerAction, 0, len(ownerActions))
+	for _, a := range ownerActions {
+		if a.implements(c) {
+			out = append(out, a.name)
+		}
+	}
+	return out
+}
+
+// ImplementsAction reports whether c implements one owner action. An unknown
+// action is false, the same answer as an action no connector implements.
+func ImplementsAction(c Connector, action OwnerAction) bool {
+	for _, a := range ownerActions {
+		if a.name == action {
+			return a.implements(c)
+		}
+	}
+	return false
 }
 
 // FolderStatus is what a connector knows about a stored folder that its
