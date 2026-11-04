@@ -51,10 +51,64 @@ type Difference struct {
 	Body  Localized `json:"body"`
 }
 
+// QueueRow is one invented message in the second proof's ranked queue. The
+// action is the product's label; it is the only per-row value beyond the mail
+// facts, so the table never restates the action as its own reason.
+type QueueRow struct {
+	Subject Localized `json:"subject"`
+	Sender  string    `json:"sender"`
+	Action  Localized `json:"action"`
+}
+
+// Queue is the ranked table above the three mechanism columns. The label says
+// the queue is invented and that the order is local policy.
+type Queue struct {
+	Label   Localized   `json:"label"`
+	Columns []Localized `json:"columns"`
+	Items   []QueueRow  `json:"items"`
+}
+
+// AnswerCitation is one message the answer slip names. The subject, sender and
+// instant are the capture fixture's facts; the display date is formatted from
+// At, never typed twice. The subject is localized because the French page must
+// not show an English sample field.
+type AnswerCitation struct {
+	Subject Localized `json:"subject"`
+	Sender  string    `json:"sender"`
+	At      string    `json:"at"`
+	Date    Localized `json:"date"`
+}
+
+// HeroAnswer is the grounded answer slip in the first viewport. It carries the
+// question, the written answer and the citations a reader would see in Ask.
+type HeroAnswer struct {
+	Label     Localized        `json:"label"`
+	Sample    Localized        `json:"sample"`
+	Mode      Localized        `json:"mode"`
+	Question  Localized        `json:"question"`
+	Body      Localized        `json:"body"`
+	Citations []AnswerCitation `json:"citations"`
+	Caption   Localized        `json:"caption"`
+}
+
 // AskExample is one question the README offers and what its answer is.
 type AskExample struct {
 	Question Localized `json:"question"`
 	Body     Localized `json:"body"`
+}
+
+// AskMode is one honest row of the Auto, Local and Remote table.
+type AskMode struct {
+	Name    Localized `json:"name"`
+	Answers Localized `json:"answers"`
+	Model   Localized `json:"model"`
+}
+
+// AskModes owns the compact mode table under the three mechanisms.
+type AskModes struct {
+	Title   Localized   `json:"title"`
+	Columns []Localized `json:"columns"`
+	Items   []AskMode   `json:"items"`
 }
 
 // AskSection owns the Ask-first surface. The landing renders one row per
@@ -63,10 +117,35 @@ type AskSection struct {
 	Title     Localized    `json:"title"`
 	Lead      Localized    `json:"lead"`
 	Items     []Difference `json:"items"`
+	Modes     AskModes     `json:"modes"`
 	Examples  []AskExample `json:"examples"`
 	Guarantee Localized    `json:"guarantee"`
 	Note      Localized    `json:"note"`
 	Guide     Localized    `json:"guide"`
+}
+
+// SectionLabel is one numbered chapter signpost on the landing.
+type SectionLabel struct {
+	Key   string    `json:"key"`
+	Label Localized `json:"label"`
+}
+
+// Chrome owns the labels shared by the masthead, the documentation frame and
+// the footer sitemap. The generator writes both languages into one Liquid file.
+type Chrome struct {
+	Docs          Localized `json:"docs"`
+	GitHub        Localized `json:"github"`
+	Menu          Localized `json:"menu"`
+	Skip          Localized `json:"skip"`
+	Language      Localized `json:"language"`
+	Primary       Localized `json:"primary"`
+	Breadcrumb    Localized `json:"breadcrumb"`
+	FooterProduct Localized `json:"footer_product"`
+	FooterDocs    Localized `json:"footer_docs"`
+	FooterProject Localized `json:"footer_project"`
+	Releases      Localized `json:"releases"`
+	OnThisPage    Localized `json:"on_this_page"`
+	BackToTop     Localized `json:"back_to_top"`
 }
 
 // Limit is one honest current limitation.
@@ -90,6 +169,10 @@ type Screenshot struct {
 type Media struct {
 	Title            Localized    `json:"title"`
 	Lead             Localized    `json:"lead"`
+	IndexLabel       Localized    `json:"index_label"`
+	IndexHint        Localized    `json:"index_hint"`
+	IndexHintTouch   Localized    `json:"index_hint_touch"`
+	ViewFull         Localized    `json:"view_full"`
 	ScreenshotDir    string       `json:"screenshot_dir"`
 	ScreenshotWidth  int          `json:"screenshot_width"`
 	ScreenshotHeight int          `json:"screenshot_height"`
@@ -119,21 +202,23 @@ type Site struct {
 	DocsSite   string `json:"docs_site"`
 	BaseURL    string `json:"baseurl"`
 	Hero       struct {
-		Eyebrow       Localized `json:"eyebrow"`
-		Title         Localized `json:"title"`
-		Promise       Localized `json:"promise"`
-		Lede          Localized `json:"lede"`
-		Banner        Localized `json:"banner"`
-		Note          Localized `json:"note"`
-		FigureAlt     Localized `json:"figure_alt"`
-		FigureCaption Localized `json:"figure_caption"`
+		Eyebrow Localized  `json:"eyebrow"`
+		Title   Localized  `json:"title"`
+		Promise Localized  `json:"promise"`
+		Lede    Localized  `json:"lede"`
+		Banner  Localized  `json:"banner"`
+		Note    Localized  `json:"note"`
+		Answer  HeroAnswer `json:"answer"`
 	} `json:"hero"`
-	Media       Media      `json:"media"`
-	Ask         AskSection `json:"ask"`
-	Nav         []NavItem  `json:"nav"`
+	Media       Media          `json:"media"`
+	Ask         AskSection     `json:"ask"`
+	Nav         []NavItem      `json:"nav"`
+	Sections    []SectionLabel `json:"sections"`
+	Chrome      Chrome         `json:"chrome"`
 	Differences struct {
 		Title Localized    `json:"title"`
 		Lead  Localized    `json:"lead"`
+		Queue Queue        `json:"queue"`
 		Items []Difference `json:"items"`
 	} `json:"differences"`
 	Boundary struct {
@@ -151,14 +236,17 @@ type Site struct {
 		Items []Limit   `json:"items"`
 	} `json:"limits"`
 	Install struct {
-		Title    Localized `json:"title"`
-		Lead     Localized `json:"lead"`
-		Windows  Localized `json:"windows"`
-		Panel    Localized `json:"panel"`
-		File     string    `json:"file"`
-		FileNote Localized `json:"file_note"`
-		FirstRun Localized `json:"first_run"`
-		Note     Localized `json:"note"`
+		Title    Localized   `json:"title"`
+		Lead     Localized   `json:"lead"`
+		Windows  Localized   `json:"windows"`
+		Panel    Localized   `json:"panel"`
+		File     string      `json:"file"`
+		Facts    []Localized `json:"facts"`
+		Download Localized   `json:"download"`
+		Caveat   Localized   `json:"caveat"`
+		FileNote Localized   `json:"file_note"`
+		FirstRun Localized   `json:"first_run"`
+		Note     Localized   `json:"note"`
 	} `json:"install"`
 	Status struct {
 		Title Localized `json:"title"`
@@ -314,8 +402,29 @@ func (s Site) Validate() error {
 	require("hero.lede", s.Hero.Lede)
 	require("hero.banner", s.Hero.Banner)
 	require("hero.note", s.Hero.Note)
-	require("hero.figure_alt", s.Hero.FigureAlt)
-	require("hero.figure_caption", s.Hero.FigureCaption)
+	require("hero.answer.label", s.Hero.Answer.Label)
+	require("hero.answer.sample", s.Hero.Answer.Sample)
+	require("hero.answer.mode", s.Hero.Answer.Mode)
+	require("hero.answer.question", s.Hero.Answer.Question)
+	require("hero.answer.body", s.Hero.Answer.Body)
+	require("hero.answer.caption", s.Hero.Answer.Caption)
+	if len(s.Hero.Answer.Citations) != 3 {
+		problems = append(problems, fmt.Sprintf("hero.answer.citations has %d rows, want three", len(s.Hero.Answer.Citations)))
+	}
+	citationInstant := regexp.MustCompile(`^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$`)
+	for index, citation := range s.Hero.Answer.Citations {
+		name := fmt.Sprintf("hero.answer.citations[%d]", index)
+		if strings.TrimSpace(citation.Subject.EN) == "" || strings.TrimSpace(citation.Subject.FR) == "" {
+			problems = append(problems, name+".subject is missing a language")
+		}
+		if strings.TrimSpace(citation.Sender) == "" {
+			problems = append(problems, name+".sender is empty")
+		}
+		if !citationInstant.MatchString(citation.At) {
+			problems = append(problems, name+".at is not an RFC 3339 UTC instant")
+		}
+		require(name+".date", citation.Date)
+	}
 	require("ask.title", s.Ask.Title)
 	require("ask.lead", s.Ask.Lead)
 	if len(s.Ask.Items) != 3 {
@@ -325,6 +434,21 @@ func (s Site) Validate() error {
 		require(fmt.Sprintf("ask.items[%d].tag", index), item.Tag)
 		require(fmt.Sprintf("ask.items[%d].title", index), item.Title)
 		require(fmt.Sprintf("ask.items[%d].body", index), item.Body)
+	}
+	require("ask.modes.title", s.Ask.Modes.Title)
+	if len(s.Ask.Modes.Columns) != 3 {
+		problems = append(problems, fmt.Sprintf("ask.modes.columns has %d headings, want three", len(s.Ask.Modes.Columns)))
+	}
+	for index, column := range s.Ask.Modes.Columns {
+		require(fmt.Sprintf("ask.modes.columns[%d]", index), column)
+	}
+	if len(s.Ask.Modes.Items) != 3 {
+		problems = append(problems, fmt.Sprintf("ask.modes.items has %d rows, want three", len(s.Ask.Modes.Items)))
+	}
+	for index, item := range s.Ask.Modes.Items {
+		require(fmt.Sprintf("ask.modes.items[%d].name", index), item.Name)
+		require(fmt.Sprintf("ask.modes.items[%d].answers", index), item.Answers)
+		require(fmt.Sprintf("ask.modes.items[%d].model", index), item.Model)
 	}
 	if len(s.Ask.Examples) == 0 {
 		problems = append(problems, "ask.examples is empty")
@@ -345,6 +469,24 @@ func (s Site) Validate() error {
 		require(fmt.Sprintf("differences.items[%d].tag", index), item.Tag)
 		require(fmt.Sprintf("differences.items[%d].title", index), item.Title)
 		require(fmt.Sprintf("differences.items[%d].body", index), item.Body)
+	}
+	require("differences.queue.label", s.Differences.Queue.Label)
+	if len(s.Differences.Queue.Columns) != 4 {
+		problems = append(problems, fmt.Sprintf("differences.queue.columns has %d headings, want four", len(s.Differences.Queue.Columns)))
+	}
+	for index, column := range s.Differences.Queue.Columns {
+		require(fmt.Sprintf("differences.queue.columns[%d]", index), column)
+	}
+	if len(s.Differences.Queue.Items) != 4 {
+		problems = append(problems, fmt.Sprintf("differences.queue.items has %d rows, want four", len(s.Differences.Queue.Items)))
+	}
+	for index, item := range s.Differences.Queue.Items {
+		name := fmt.Sprintf("differences.queue.items[%d]", index)
+		require(name+".subject", item.Subject)
+		if strings.TrimSpace(item.Sender) == "" {
+			problems = append(problems, name+".sender is empty")
+		}
+		require(name+".action", item.Action)
 	}
 	require("boundary.title", s.Boundary.Title)
 	require("boundary.lead", s.Boundary.Lead)
@@ -376,6 +518,14 @@ func (s Site) Validate() error {
 	require("install.lead", s.Install.Lead)
 	require("install.windows", s.Install.Windows)
 	require("install.panel", s.Install.Panel)
+	if len(s.Install.Facts) != 3 {
+		problems = append(problems, fmt.Sprintf("install.facts has %d rows, want three", len(s.Install.Facts)))
+	}
+	for index, fact := range s.Install.Facts {
+		require(fmt.Sprintf("install.facts[%d]", index), fact)
+	}
+	require("install.download", s.Install.Download)
+	require("install.caveat", s.Install.Caveat)
 	require("install.file_note", s.Install.FileNote)
 	require("install.first_run", s.Install.FirstRun)
 	require("install.note", s.Install.Note)
@@ -405,6 +555,37 @@ func (s Site) Validate() error {
 			problems = append(problems, fmt.Sprintf("nav[%d].key %q is not a lower_snake name", index, item.Key))
 		}
 		require(fmt.Sprintf("nav[%d].label", index), item.Label)
+	}
+	if len(s.Sections) != 6 {
+		problems = append(problems, fmt.Sprintf("sections has %d rows, want six", len(s.Sections)))
+	}
+	sectionKeys := map[string]bool{}
+	for index, section := range s.Sections {
+		name := fmt.Sprintf("sections[%d]", index)
+		if strings.TrimSpace(section.Key) == "" || !pageKeyRE.MatchString(section.Key) {
+			problems = append(problems, name+".key is not a lower_snake name")
+		} else if sectionKeys[section.Key] {
+			problems = append(problems, name+".key "+section.Key+" is declared twice")
+		}
+		sectionKeys[section.Key] = true
+		require(name+".label", section.Label)
+	}
+	for name, value := range map[string]Localized{
+		"chrome.docs":           s.Chrome.Docs,
+		"chrome.github":         s.Chrome.GitHub,
+		"chrome.menu":           s.Chrome.Menu,
+		"chrome.skip":           s.Chrome.Skip,
+		"chrome.language":       s.Chrome.Language,
+		"chrome.primary":        s.Chrome.Primary,
+		"chrome.breadcrumb":     s.Chrome.Breadcrumb,
+		"chrome.footer_product": s.Chrome.FooterProduct,
+		"chrome.footer_docs":    s.Chrome.FooterDocs,
+		"chrome.footer_project": s.Chrome.FooterProject,
+		"chrome.releases":       s.Chrome.Releases,
+		"chrome.on_this_page":   s.Chrome.OnThisPage,
+		"chrome.back_to_top":    s.Chrome.BackToTop,
+	} {
+		require(name, value)
 	}
 	problems = append(problems, validatePages(s.Pages())...)
 	facts := s.factMap()
@@ -448,6 +629,10 @@ func (s Site) validateMedia() []string {
 			problems = append(problems, name+" must be a relative path without ..")
 		}
 	}
+	require("media.index_label", s.Media.IndexLabel)
+	require("media.index_hint", s.Media.IndexHint)
+	require("media.index_hint_touch", s.Media.IndexHintTouch)
+	require("media.view_full", s.Media.ViewFull)
 	if s.Media.ScreenshotWidth <= 0 || s.Media.ScreenshotHeight <= 0 {
 		problems = append(problems, "media screenshot size must be positive")
 	}
@@ -496,14 +681,31 @@ func (s Site) localizedText() map[string]string {
 	add("hero.lede", s.Hero.Lede)
 	add("hero.banner", s.Hero.Banner)
 	add("hero.note", s.Hero.Note)
-	add("hero.figure_alt", s.Hero.FigureAlt)
-	add("hero.figure_caption", s.Hero.FigureCaption)
+	add("hero.answer.label", s.Hero.Answer.Label)
+	add("hero.answer.sample", s.Hero.Answer.Sample)
+	add("hero.answer.mode", s.Hero.Answer.Mode)
+	add("hero.answer.question", s.Hero.Answer.Question)
+	add("hero.answer.body", s.Hero.Answer.Body)
+	add("hero.answer.caption", s.Hero.Answer.Caption)
+	for index, citation := range s.Hero.Answer.Citations {
+		add(fmt.Sprintf("hero.answer.citations[%d].subject", index), citation.Subject)
+		add(fmt.Sprintf("hero.answer.citations[%d].date", index), citation.Date)
+	}
 	add("ask.title", s.Ask.Title)
 	add("ask.lead", s.Ask.Lead)
 	for index, item := range s.Ask.Items {
 		add(fmt.Sprintf("ask.items[%d].tag", index), item.Tag)
 		add(fmt.Sprintf("ask.items[%d].title", index), item.Title)
 		add(fmt.Sprintf("ask.items[%d].body", index), item.Body)
+	}
+	add("ask.modes.title", s.Ask.Modes.Title)
+	for index, column := range s.Ask.Modes.Columns {
+		add(fmt.Sprintf("ask.modes.columns[%d]", index), column)
+	}
+	for index, item := range s.Ask.Modes.Items {
+		add(fmt.Sprintf("ask.modes.items[%d].name", index), item.Name)
+		add(fmt.Sprintf("ask.modes.items[%d].answers", index), item.Answers)
+		add(fmt.Sprintf("ask.modes.items[%d].model", index), item.Model)
 	}
 	for index, example := range s.Ask.Examples {
 		add(fmt.Sprintf("ask.examples[%d].question", index), example.Question)
@@ -518,6 +720,14 @@ func (s Site) localizedText() map[string]string {
 		add(fmt.Sprintf("differences.items[%d].tag", index), item.Tag)
 		add(fmt.Sprintf("differences.items[%d].title", index), item.Title)
 		add(fmt.Sprintf("differences.items[%d].body", index), item.Body)
+	}
+	add("differences.queue.label", s.Differences.Queue.Label)
+	for index, column := range s.Differences.Queue.Columns {
+		add(fmt.Sprintf("differences.queue.columns[%d]", index), column)
+	}
+	for index, item := range s.Differences.Queue.Items {
+		add(fmt.Sprintf("differences.queue.items[%d].subject", index), item.Subject)
+		add(fmt.Sprintf("differences.queue.items[%d].action", index), item.Action)
 	}
 	add("boundary.title", s.Boundary.Title)
 	add("boundary.lead", s.Boundary.Lead)
@@ -540,6 +750,11 @@ func (s Site) localizedText() map[string]string {
 	add("install.lead", s.Install.Lead)
 	add("install.windows", s.Install.Windows)
 	add("install.panel", s.Install.Panel)
+	for index, fact := range s.Install.Facts {
+		add(fmt.Sprintf("install.facts[%d]", index), fact)
+	}
+	add("install.download", s.Install.Download)
+	add("install.caveat", s.Install.Caveat)
 	add("install.file_note", s.Install.FileNote)
 	add("install.first_run", s.Install.FirstRun)
 	add("install.note", s.Install.Note)
@@ -552,6 +767,10 @@ func (s Site) localizedText() map[string]string {
 	add("license.body", s.License.Body)
 	add("media.title", s.Media.Title)
 	add("media.lead", s.Media.Lead)
+	add("media.index_label", s.Media.IndexLabel)
+	add("media.index_hint", s.Media.IndexHint)
+	add("media.index_hint_touch", s.Media.IndexHintTouch)
+	add("media.view_full", s.Media.ViewFull)
 	for index, shot := range s.Media.Screenshots {
 		add(fmt.Sprintf("media.screenshots[%d].title", index), shot.Title)
 		add(fmt.Sprintf("media.screenshots[%d].caption", index), shot.Caption)
@@ -559,6 +778,22 @@ func (s Site) localizedText() map[string]string {
 	for index, item := range s.Nav {
 		add(fmt.Sprintf("nav[%d].label", index), item.Label)
 	}
+	for index, section := range s.Sections {
+		add(fmt.Sprintf("sections[%d].label", index), section.Label)
+	}
+	add("chrome.docs", s.Chrome.Docs)
+	add("chrome.github", s.Chrome.GitHub)
+	add("chrome.menu", s.Chrome.Menu)
+	add("chrome.skip", s.Chrome.Skip)
+	add("chrome.language", s.Chrome.Language)
+	add("chrome.primary", s.Chrome.Primary)
+	add("chrome.breadcrumb", s.Chrome.Breadcrumb)
+	add("chrome.footer_product", s.Chrome.FooterProduct)
+	add("chrome.footer_docs", s.Chrome.FooterDocs)
+	add("chrome.footer_project", s.Chrome.FooterProject)
+	add("chrome.releases", s.Chrome.Releases)
+	add("chrome.on_this_page", s.Chrome.OnThisPage)
+	add("chrome.back_to_top", s.Chrome.BackToTop)
 	return out
 }
 
@@ -687,8 +922,6 @@ func (s Site) Pages() []Page {
 		})
 	}
 	pages = append(pages,
-		Page{Key: "queue", EN: "docs/assets/queue-en.svg", FR: "docs/assets/queue-fr.svg",
-			Render: func(site Site, lang string) []byte { return site.Queue(lang) }},
 		Page{Key: "mark", EN: "docs/assets/mark.svg", FR: "docs/assets/mark.svg",
 			Render: func(site Site, _ string) []byte { return site.Mark() }},
 		Page{Key: "logo", EN: "docs/assets/logo.svg", FR: "docs/assets/logo.svg",
@@ -701,6 +934,15 @@ func (s Site) Pages() []Page {
 		// Both trees include the same file; the page condition is Liquid.
 		Page{Key: "head", EN: "docs/_includes/head.html", FR: "docs/_includes/head.html",
 			Render: func(site Site, _ string) []byte { return site.Head() }},
+		// The layout and its two chrome includes are generated so the shell,
+		// the masthead and the sitemap stay in the same checked surface as the
+		// copy. Every page shares them.
+		Page{Key: "layout", EN: "docs/_layouts/default.html", FR: "docs/_layouts/default.html",
+			Render: func(site Site, _ string) []byte { return site.Layout() }},
+		Page{Key: "header", EN: "docs/_includes/header.html", FR: "docs/_includes/header.html",
+			Render: func(site Site, _ string) []byte { return site.Header() }},
+		Page{Key: "footer", EN: "docs/_includes/footer.html", FR: "docs/_includes/footer.html",
+			Render: func(site Site, _ string) []byte { return site.Footer() }},
 		Page{Key: "config", EN: "docs/_config.yml", FR: "docs/_config.yml",
 			Render: func(site Site, _ string) []byte { return site.Config() }},
 	)

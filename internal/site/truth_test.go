@@ -123,7 +123,9 @@ func TestPublicFactsMatchTheirOwners(t *testing.T) {
 		t.Fatal("LICENSE is not the GNU Affero General Public License, version 3")
 	}
 	for _, lang := range []string{"en", "fr"} {
-		landing := html.UnescapeString(string(value.Landing(lang)))
+		// The licence moved from the landing body to the generated sitemap
+		// footer, which the one layout puts outside the page-content landmark.
+		landing := html.UnescapeString(string(value.Landing(lang)) + string(value.Layout()) + string(value.Footer()))
 		readme := string(value.Readme(lang))
 		if !strings.Contains(landing, LicenseID) || !strings.Contains(readme, LicenseID) {
 			t.Errorf("%s surface does not state %s", lang, LicenseID)

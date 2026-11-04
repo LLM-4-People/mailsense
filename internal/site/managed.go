@@ -3,6 +3,7 @@ package site
 import (
 	"errors"
 	"fmt"
+	"html"
 	"strings"
 )
 
@@ -17,14 +18,19 @@ const (
 	footerEnd   = "<!-- footer:end -->"
 )
 
-// navLine is the one navigation line for one authored page. The current page is
-// bold, every other destination is a link, and the language switch keeps the
-// reader on the same page.
+// navLine is the one documentation index for one authored page. It becomes a
+// sticky index under the page title: it wraps to a second row when the width
+// allows and scrolls horizontally where space is tight. The current page is
+// marked with aria-current and is not a second link to itself. The language
+// switch lives in the masthead, so it is not repeated here.
 func (s Site) navLine(lang, current string) string {
 	links := s.docLinks()
-	parts := make([]string, 0, len(s.Nav)+2)
+	parts := make([]string, 0, len(s.Nav)+5)
+	parts = append(parts, `<div class="doc-index-wrap">`)
+	parts = append(parts, `<nav class="doc-index" aria-label="`+html.EscapeString(s.docsLabel(lang))+`">`)
 	if current != "index" {
-		parts = append(parts, fmt.Sprintf("[%s](%s)", s.docsLabel(lang), "index.md"))
+		parts = append(parts, fmt.Sprintf(`<a href="%s">%s</a>`,
+			htmlHref(pageFile("index")), html.EscapeString(s.docsLabel(lang))))
 	}
 	for _, item := range s.Nav {
 		href, ok := links[item.Key]
@@ -32,49 +38,34 @@ func (s Site) navLine(lang, current string) string {
 			continue
 		}
 		if item.Key == current {
-			parts = append(parts, "**"+item.Label.For(lang)+"**")
+			parts = append(parts, `<span class="doc-index-current" aria-current="page">`+html.EscapeString(item.Label.For(lang))+`</span>`)
 			continue
 		}
-		parts = append(parts, fmt.Sprintf("[%s](%s)", item.Label.For(lang), href))
+		parts = append(parts, fmt.Sprintf(`<a href="%s">%s</a>`,
+			htmlHref(href), html.EscapeString(item.Label.For(lang))))
 	}
-	parts = append(parts, s.docLanguageSwitch(lang, current))
-	return strings.Join(parts, " · ")
+	parts = append(parts, "</nav>")
+	parts = append(parts, `<span class="doc-index-hint" aria-hidden="true"></span>`)
+	parts = append(parts, "</div>")
+	return strings.Join(parts, "\n  ")
 }
 
 func (s Site) docsLabel(lang string) string {
 	return "Documentation"
 }
 
-// docLanguageSwitch points at the same page in the other language tree. The
-// generated navigation is the one language switch, so it marks its link for the
-// stored preference and the delegated click listener. The anchor is written as
-// HTML because Markdown has no portable attribute syntax; the href is built
-// with the same .md to .html rule as every generated HTML anchor.
-func (s Site) docLanguageSwitch(lang, current string) string {
-	if lang == "fr" {
-		if current == "index" {
-			return `<a href="../" hreflang="en" lang="en" data-lang-switch="en">English</a>`
-		}
-		return fmt.Sprintf(`<a href="%s" hreflang="en" lang="en" data-lang-switch="en">English</a>`,
-			htmlHref("../"+pageFile(current)))
-	}
-	href := "fr/" + pageFile(current)
-	if current == "index" {
-		href = "fr/"
-	}
-	return fmt.Sprintf(`<a href="%s" hreflang="fr" lang="fr" data-lang-switch="fr">Français</a>`, htmlHref(href))
-}
-
-// footerLine is the one page footer for one authored page.
+// footerLine is the one page footer for one authored page. It is raw HTML so
+// the generated block markers stay outside the paragraph, and so the page meta
+// line has one class the stylesheet can own.
 func (s Site) footerLine(lang string) string {
 	links := s.docLinks()
-	privacy := links["privacy"]
+	privacy := htmlHref(links["privacy"])
 	if lang == "fr" {
-		return fmt.Sprintf("[Code source](%s) · %s · [%s](%s) · [Confidentialité](%s)",
-			s.Repository, LicenseID, s.docsLabel(lang), s.docsHome(lang), privacy)
+		return fmt.Sprintf(`<p class="doc-meta"><a href="%s">Code source</a> · %s · <a href="%s">%s</a> · <a href="%s">Confidentialité</a></p>`,
+			html.EscapeString(s.Repository), LicenseID, html.EscapeString(s.docsHome(lang)), html.EscapeString(s.docsLabel(lang)), privacy)
 	}
-	return fmt.Sprintf("[Source](%s) · %s · [%s](%s) · [Privacy](%s)",
-		s.Repository, LicenseID, s.docsLabel(lang), s.docsHome(lang), privacy)
+	return fmt.Sprintf(`<p class="doc-meta"><a href="%s">Source</a> · %s · <a href="%s">%s</a> · <a href="%s">Privacy</a></p>`,
+		html.EscapeString(s.Repository), LicenseID, html.EscapeString(s.docsHome(lang)), html.EscapeString(s.docsLabel(lang)), privacy)
 }
 
 // pageKeyFor finds the page table key that owns a file.
