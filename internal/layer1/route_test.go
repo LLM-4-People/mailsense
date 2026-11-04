@@ -173,12 +173,12 @@ func TestRouteOffersUseTheStoredAnswersOnly(t *testing.T) {
 	if err := w.st.AddUsage(ctx, engine.UsageRecord{Provider: "subq", Model: "snap", Usage: engine.Usage{Calls: 1, EstimatedUSD: 0.5}}); err != nil {
 		t.Fatal(err)
 	}
-	before, err := w.st.ListUsage(ctx)
+	before, err := w.st.ListUsage(ctx, 365)
 	if err != nil {
 		t.Fatal(err)
 	}
 	w.run()
-	after, err := w.st.ListUsage(ctx)
+	after, err := w.st.ListUsage(ctx, 365)
 	if err != nil {
 		t.Fatal(err)
 	}
