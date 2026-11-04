@@ -27,9 +27,10 @@ marqueur à la fin, puis ne s'ouvre plus. Vous pouvez le rouvrir en réinitialis
    terminer sans courrier. Sous Linux, il n'y a pas encore de source en direct :
    cette étape l'explique et vous laisse terminer.
 3. **Modèle.** Le moteur local est téléchargé au premier usage : environ 342 Mo
-   sous Windows, 328 Mo sous Linux. Vous pouvez plutôt ajouter un fournisseur
-   distant, ou passer cette étape et le faire plus tard dans Réglages,
-   Fournisseurs. Le triage a besoin d'un décideur et répond
+   sous Windows. L'aperçu Linux compilé depuis les sources utilise le même
+   moteur et le même modèle, environ 328 Mo. Vous pouvez plutôt ajouter un
+   fournisseur distant, ou passer cette étape et le faire plus tard dans
+   Réglages, Fournisseurs. Le triage a besoin d'un décideur et répond
    `422 provider_not_configured` sans lui ; la recherche fonctionne sans décideur,
    et le classifieur local apprend quand même de vos réponses.
 4. **Terminer.** Mailsense affiche les plafonds par défaut : 80 % du CPU, 85 % de

@@ -87,7 +87,7 @@ func TestBothLanguagesCarryEverySection(t *testing.T) {
 			value.Build.Title.For(lang),
 			value.License.Title.For(lang),
 			LicenseID,
-			value.Install.Command,
+			value.Install.File,
 			value.DocsSite,
 		} {
 			if !strings.Contains(readme, want) {

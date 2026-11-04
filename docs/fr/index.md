@@ -18,7 +18,7 @@ image:
     <p class="promise">Posez une question à votre courrier. Il répond par un décompte, une liste ou une réponse écrite qui cite les messages utilisés.</p>
     <p class="lede">Il lit le profil Outlook classique déjà ouvert sur votre PC. Ask répond depuis l&#39;index local ; une réponse écrite ne vient que d&#39;un modèle que vous avez configuré et des messages qu&#39;il peut citer. Le stockage, le classifieur et le profil appris restent sur votre disque.</p>
     <p class="hero-actions"><a class="button" href="install.html">Installer</a><a class="text-link" href="first-run.html">Lire le guide du premier démarrage</a></p>
-    <p class="hero-note">Installateur Windows, ou aperçu Linux. Sans compte, sans télémétrie.</p>
+    <p class="hero-note">Installateur Windows. Sans compte, sans télémétrie.</p>
   </div>
   <figure class="hero-art">
     <img src="../assets/queue-fr.svg" width="640" height="480" alt="Une file classée inventée de trois lignes : vérifier une facture, répondre à un lancement, lire des notes d&#39;atelier.">
@@ -141,8 +141,8 @@ image:
       <p>Il lit le profil par COM. Le nouvel Outlook, Outlook sur le web, IMAP, POP, l&#39;API Gmail, Microsoft Graph et l&#39;import de fichiers ne sont pas connectés dans cette version.</p>
     </li>
     <li>
-      <h3>La version Linux est un aperçu.</h3>
-      <p>Elle s&#39;ouvre, affiche tous les écrans et explique la source manquante. La boîte reste vide parce qu&#39;il n&#39;y a pas encore de connecteur en direct.</p>
+      <h3>L&#39;aperçu Linux est compilé depuis les sources.</h3>
+      <p>Il s&#39;ouvre, affiche tous les écrans et explique la source manquante. La boîte reste vide parce qu&#39;il n&#39;y a pas encore de connecteur en direct.</p>
     </li>
     <li>
       <h3>Il lit et classe. Il n&#39;agit pas sur la boîte.</h3>
@@ -166,14 +166,13 @@ image:
 <section class="install" id="install" aria-labelledby="install-title">
   <div class="install-copy">
     <h2 id="install-title">Installer</h2>
-    <p class="section-lead">Windows est la version en direct prise en charge. Linux est un aperçu.</p>
-    <h3>Windows</h3><p>Téléchargez l&#39;installateur par utilisateur depuis la <a href="https://github.com/LLM-4-People/mailsense/releases">page des versions</a>. Il a besoin du runtime Microsoft Edge WebView2, déjà présent sous Windows 11 et Windows 10 à jour. La version n&#39;est pas signée, Windows peut donc demander une confirmation.</p>
-    <h3>Linux</h3><p>Téléchargez l&#39;archive amd64, décompressez-la et lancez install.sh pour une entrée de menu, ou lancez directement le binaire.</p>
+    <p class="section-lead">La version publiée est un installateur Windows ; les sources se compilent aussi sous Linux en aperçu, avec une boîte vide, et cette compilation n&#39;est pas proposée au téléchargement.</p>
+    <h3>Windows</h3><p>Téléchargez l&#39;installateur depuis la <a href="https://github.com/LLM-4-People/mailsense/releases">page des versions</a>. L&#39;installation est par utilisateur et ne demande pas de droits administrateur. La base et les réglages sont dans <code>%LOCALAPPDATA%\Mailsense</code>, et la désinstallation les conserve jusqu&#39;à ce que vous supprimiez ce répertoire. Mailsense a besoin du runtime Microsoft Edge WebView2, déjà présent sous Windows 11 et Windows 10 à jour. La version n&#39;est pas signée, SmartScreen peut donc demander une confirmation.</p>
   </div>
   <div class="install-panel">
-    <p class="panel-label">Linux preview</p>
-    <pre><code>tar -xzf mailsense-*-linux-amd64.tar.gz &amp;&amp; cd mailsense-*-linux-amd64 &amp;&amp; ./install.sh</code></pre>
-    <p class="note">Une commande pour l&#39;aperçu Linux, depuis le répertoire qui contient l&#39;archive téléchargée.</p>
+    <p class="panel-label">Installateur Windows</p>
+    <pre><code>mailsense-&lt;version&gt;-setup.exe</code></pre>
+    <p class="note">La version vient de l&#39;étiquette de version. Téléchargez le fichier depuis la <a href="https://github.com/LLM-4-People/mailsense/releases">page des versions</a>.</p>
     <a class="button button-light" href="first-run.html">Lire le guide du premier démarrage</a>
   </div>
 </section>
