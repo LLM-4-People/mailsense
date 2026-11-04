@@ -17,6 +17,8 @@ exists.
   Pages, dependabot, issue and pull-request templates.
 
 ### Changed
+- CI now verifies that the committed generated UI bundles match their sources,
+  and a failed gate stage names the command that reruns only that stage.
 - One diagnostic disclosure component for every screen.
 - One retrieval-degradation classifier, so a warming index is reported as
   warming on the topic lane too.

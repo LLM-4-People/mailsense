@@ -22,7 +22,9 @@
 #
 # Use scripts/test.sh for the exhaustive release gate.
 set -euo pipefail
+# shellcheck disable=SC1091 # lib.sh is resolved from this file's own directory
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+# shellcheck disable=SC1091 # test-lib.sh is resolved from this file's own directory
 source "$(dirname "${BASH_SOURCE[0]}")/test-lib.sh"
 cd "$ROOT"
 
@@ -43,6 +45,7 @@ done
 
 gate_gofmt
 gate_scripts
+"$ROOT/scripts/check-generated.sh"
 gate_vet
 gate_race_flags
 
@@ -112,19 +115,28 @@ say "test shards (${#all[@]} packages: A ${#pkgs_a[@]}, B ${#pkgs_b[@]}, C ${#sh
 if [[ "$SIDECAR" == on ]]; then
 	say "sidecar suite (isolated: it binds loopback ports)"
 	start=$SECONDS
-	"$GO" test -vet=off -count=1 -timeout "${TEST_TIMEOUT}s" "$@" "$sidecar_pkg"
+	run_stage "sidecar suite" "$GO" test -vet=off -count=1 -timeout "${TEST_TIMEOUT}s" "$@" "$sidecar_pkg"
 	printf 'ok   %-7s %3ss  1 package\n' sidecar "$((SECONDS - start))"
 else
 	say "sidecar suite skipped (SIDECAR=off)"
 fi
 
 tmp="$(mktemp -d "${TMPDIR:-/tmp}/mailsense-test-fast.XXXXXX")"
-trap 'rm -rf "$tmp"' EXIT
-declare -A pids=() logs=() starts=()
+failed=0
+cleanup() {
+	if ((failed)); then
+		say "shard logs kept in $tmp"
+	else
+		rm -rf "$tmp"
+	fi
+}
+trap cleanup EXIT
+declare -A pids=() logs=() starts=() cmds=()
 
 start_shard() { # name go-test-args…
 	local name="$1"
 	shift
+	cmds[$name]="$(printf '%q ' "$@")"
 	logs[$name]="$tmp/$name.log"
 	starts[$name]=$SECONDS
 	("$@") >"${logs[$name]}" 2>&1 &
@@ -139,26 +151,30 @@ wait_shard() { # name package-count
 	else
 		printf 'FAIL %-7s %3ss  %d packages\n' "$name" "$((SECONDS - starts[$name]))" "$count"
 		cat "${logs[$name]}"
+		printf '     rerun this shard with:\n       %s\n' "${cmds[$name]}"
 		return 1
 	fi
 }
 
 if ((${#RACE_FLAGS[@]})); then
+	say "race shard (qa, api)"
 	start_shard RACE env CGO_ENABLED=1 "$GO" test "${RACE_FLAGS[@]}" -vet=off -count=1 -timeout "${TEST_TIMEOUT}s" "$@" ./internal/qa ./internal/api
 else
 	say "race check skipped (RACE=off, or no cgo/C compiler)"
 fi
+say "shard A (${#pkgs_a[@]} packages)"
 start_shard A "$GO" test -vet=off -count=1 -timeout "${TEST_TIMEOUT}s" -p "$SHARD_P" "$@" "${pkgs_a[@]}"
+say "shard B (${#pkgs_b[@]} packages)"
 start_shard B "$GO" test -vet=off -count=1 -timeout "${TEST_TIMEOUT}s" -p "$SHARD_P" "$@" "${pkgs_b[@]}"
+say "shard C (${#shard_c[@]} packages)"
 start_shard C "$GO" test -vet=off -count=1 -timeout "${TEST_TIMEOUT}s" -p "$SHARD_P" "$@" "${shard_c[@]}"
 
-failed=0
 wait_shard A "${#pkgs_a[@]}" || failed=1
 wait_shard B "${#pkgs_b[@]}" || failed=1
 wait_shard C "${#shard_c[@]}" || failed=1
 if ((${#RACE_FLAGS[@]})); then
 	wait_shard RACE 2 || failed=1
 fi
-((failed == 0)) || die "test shards failed; the logs above are complete"
+((failed == 0)) || die "test shards failed; each FAIL above names the shard and the command that reruns it"
 
 say "all fast checks passed (exhaustive gate: scripts/test.sh)"

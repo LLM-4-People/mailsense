@@ -12,7 +12,9 @@
 #              scripts/test-race.sh is the same gate with RACE=on
 #   GO         Go toolchain to use
 set -euo pipefail
+# shellcheck disable=SC1091 # lib.sh is resolved from this file's own directory
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
+# shellcheck disable=SC1091 # test-lib.sh is resolved from this file's own directory
 source "$(dirname "${BASH_SOURCE[0]}")/test-lib.sh"
 cd "$ROOT"
 
@@ -33,15 +35,15 @@ mapfile -t pkgs < <("$GO" list ./... | grep -v '^github\.com/LLM-4-People/mailse
 
 say "sidecar suite (isolated: it binds loopback ports)"
 if ((${#RACE_FLAGS[@]})); then
-	CGO_ENABLED=1 "$GO" test "${RACE_FLAGS[@]}" -vet=off -count=1 "$@" ./internal/sidecar
+	run_stage "sidecar suite" env CGO_ENABLED=1 "$GO" test "${RACE_FLAGS[@]}" -vet=off -count=1 "$@" ./internal/sidecar
 else
-	"$GO" test -vet=off -count=1 "$@" ./internal/sidecar
+	run_stage "sidecar suite" "$GO" test -vet=off -count=1 "$@" ./internal/sidecar
 fi
 
 say "go test ${RACE_FLAGS[*]:-} -p $PARALLEL (${#pkgs[@]} packages, sidecar isolated)"
 if ((${#RACE_FLAGS[@]})); then
-	CGO_ENABLED=1 "$GO" test "${RACE_FLAGS[@]}" -vet=off -count=1 -p "$PARALLEL" "$@" "${pkgs[@]}"
+	run_stage "go test (race, -p $PARALLEL)" env CGO_ENABLED=1 "$GO" test "${RACE_FLAGS[@]}" -vet=off -count=1 -p "$PARALLEL" "$@" "${pkgs[@]}"
 else
-	"$GO" test -vet=off -count=1 -p "$PARALLEL" "$@" "${pkgs[@]}"
+	run_stage "go test (-p $PARALLEL)" "$GO" test -vet=off -count=1 -p "$PARALLEL" "$@" "${pkgs[@]}"
 fi
 say "all checks passed"

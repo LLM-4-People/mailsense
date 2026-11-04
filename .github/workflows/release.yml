@@ -7,6 +7,12 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  # A tag publishes once. A re-push of the same tag must not cancel a release
+  # that is already verifying or uploading.
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   verify:
     name: release gate

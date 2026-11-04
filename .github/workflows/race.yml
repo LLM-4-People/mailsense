@@ -8,6 +8,12 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  # The weekly run is long; a superseded run on main is kept so a scheduled
+  # result is never dropped.
+  group: race-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   race:
     name: race matrix

@@ -12,8 +12,11 @@ permissions:
   contents: read
 
 concurrency:
+  # Superseded runs on a pull request commit are cancelled. A run on main or a
+  # release ref is never cancelled: it is the check the branch protection or
+  # release depends on.
   group: ci-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   fast:
@@ -26,15 +29,21 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
-      # scripts/test-fast.sh owns gofmt, script checks, vet, and every fast
-      # suite. CI does not restate any of them.
+      # scripts/test-fast.sh owns gofmt, script checks, the generated UI
+      # bundles, vet, and every fast suite. CI does not restate any of them.
       - run: scripts/test-fast.sh
+      # The public pages and brand assets are generated from docs/site.json.
+      # scripts/test-fast.sh does not read them, so the site check runs here.
+      - name: site check
+        run: make site-check
       - name: upload logs
         if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: fast-gate-logs
-          path: /tmp/*.log
+          path: |
+            /tmp/mailsense-test-fast.*/*.log
+            /tmp/*.log
           if-no-files-found: ignore
 
   exhaustive:
