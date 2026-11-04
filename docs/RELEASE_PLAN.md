@@ -24,6 +24,34 @@ under `https://github.com/LLM-4-People/mailsense`, licensed AGPL-3.0-or-later,
 with a generated public surface, an installer for Windows and Linux, a first-run
 setup, and documentation that a new owner can follow without help.
 
+## Current status, 2026-11-04
+
+- Repository `LLM-4-People/mailsense` exists and is public. Pull request 1
+  carries the whole tree from the initial `main` commit.
+- Branch head is `7e733cc`. The working tree is clean and equal to the remote
+  branch. Exploratory work that was not requested was discarded.
+- Required checks pass: fast gate, windows build, vulnerability scan,
+  dependency review and CodeQL analysis. Playwright also passes.
+- Merge is blocked for one measured reason: the repository ruleset requires
+  every review thread to be resolved, and 19 CodeQL `go/clear-text-logging`
+  threads are open on `cmd/mailsense`, `internal/api/errors.go`,
+  `internal/index`, `internal/layer1`, `internal/onboarding`,
+  `internal/engine/embed` and `internal/triage`. The CodeQL check run fails on
+  the same 19 alerts.
+- Pages is enabled with `build_type=workflow`, but the workflow has never run
+  from `main`, so the site is not live yet.
+- There are no tags and no releases. The release workflow, installer, SBOM,
+  checksum verification and action pinning are prepared but have never run.
+- A Windows build from `7e733cc` was installed and launched on
+  a Windows test machine. The WebView2 window renders the shipped UI. This closes the
+  unverified first-paint item for that machine only.
+- The repository now enforces secret scanning, push protection, Dependabot
+  alerts, private vulnerability reporting, SHA-pinned actions, a `main`
+  ruleset with required checks, and a release-tag ruleset.
+- Uncommitted work on a security hardening pass, dependency updates and
+  migration tests was discarded on the owner's instruction. Only the commits
+  pushed to `release/publication` remain.
+
 ## Decisions already made
 
 1. **License:** GNU Affero General Public License, version 3 or later. The
@@ -93,12 +121,14 @@ setup, and documentation that a new owner can follow without help.
 
 ### Blocked or waiting on the owner
 
-- GitHub organization write access and the final go-ahead to create the public
-  repository and push.
-- Rotation of the two provider keys that were deleted from `.env`. Deletion
-  does not revoke them.
-- A real Windows or WebView2 first paint cannot be verified from this Linux
-  host.
+- Merge of pull request 1 is blocked by 19 unresolved CodeQL review threads.
+  The ruleset requires every thread to be resolved. The 19 threads are all
+  `go/clear-text-logging` and are listed in the current status above.
+- Pages is enabled but the first deployment still waits for the merge.
+- The Windows installer has not been compiled or installed. Only the portable
+  binary was verified on a Windows test machine.
+- The owner is revoking the two provider keys that were removed from `.env`.
+  No copy of them remains in the tree.
 
 ## Publication gate
 
@@ -117,20 +147,31 @@ setup, and documentation that a new owner can follow without help.
 - [x] Generated brand assets, landing data and public page lists have one source
       and a check step.
 - [x] `scripts/test-fast.sh` and `scripts/test.sh` are green on the final tree.
-- [ ] The repository exists under `LLM-4-People/mailsense`, the first commit is
-      pushed on a branch, and CI is green before the public announcement.
+- [x] The repository exists under `LLM-4-People/mailsense`, the first commit is
+      pushed on a branch, and every required check passes.
+- [ ] The 19 CodeQL review threads are resolved and pull request 1 is merged.
 - [ ] Pages is enabled and the bilingual site is verified.
+- [ ] A tagged release publishes the installer, the tarball, the SBOM and the
+      checksum manifest, and the installer is verified on Windows.
 
 ## Next actions, in order
 
-1. `git init`, create the first commit on a feature branch, and never push
-   directly to `main`.
-2. Create `LLM-4-People/mailsense`, push the branch, open a pull request, and
-   wait for every required check.
-3. Enable Pages, verify the English and French pages and every navigation link,
-   then announce.
-4. The owner revokes the two deleted provider keys.
-5. A Windows machine confirms the WebView2 first paint and the Inno installer.
+1. Fix the 19 `go/clear-text-logging` alerts at their owners, resolve every
+   review thread, confirm the CodeQL check run is green, and merge pull request
+   1 into `main`.
+2. Watch the Pages workflow on `main`, then verify the English and French
+   landing pages, every guide page, both READMEs and every navigation link.
+3. Create the first version tag and verify the release assets: Windows
+   installer, Linux tarball, SBOM, checksums and provenance attestation.
+4. Install the Windows package on a Windows test machine and run the first-run setup
+   from a clean data directory.
+5. Extend the first-run setup with the advanced path and with pre-fill,
+   pre-fetch and pre-compute where the product can do it safely.
+6. Run the PII and voice sweeps again over every public surface, and extend
+   `internal/prose` so the new prohibitions on generated prose and double
+   hyphen punctuation are mechanically enforced in both languages.
+7. Finish the selling speech and the screenshots, then announce.
+8. The owner revokes the two removed provider keys.
 
 ## Workstreams
 
@@ -161,16 +202,29 @@ setup, and documentation that a new owner can follow without help.
       and uses native keyboard controls.
 - [x] Discovered but unselected stores keep setup open.
 
-### C. Console completeness
+### C. Public release polish
 
-- [x] Every schema key is reachable from Settings, in its group, with its
-      default, current value, layer and reset action.
-- [x] Logs, jobs, triage, learning, providers, runtime and storage controls are
-      reachable.
-- [x] Groups filter and the search query persists.
-- [x] An empty state links to the exact setup step that fixes it.
-- [x] There is no SQL query console and no diagnostics export bundle; the docs
-      say so instead of advertising them.
+- [ ] Sweep every tracked file for personal data, real client names, machine
+      names, mailbox addresses, internal vendor names and environment paths.
+      Add the residue patterns to a mechanical check so a reappearance fails
+      the gate.
+- [ ] Remove all environment-specific references, relay scripts and
+      documentation.
+- [ ] Extend `internal/prose` to reject em dashes, spaced en dashes, double
+      hyphen punctuation, stock phrases and generated-prose markers in every
+      public English and French file, including the console catalogs.
+- [ ] Rewrite the landing pages, READMEs, install pages and selling speech in a
+      plain, familiar voice in both languages. No literal translation.
+- [ ] Add screenshots from a clean first run with invented mail only.
+- [ ] Confirm the repository description, topics, social preview and landing
+      links are set once and generated where possible.
+
+### C2. Console scope
+
+The console UX workstream is out of scope for this release. The owner confirmed
+that the console direction belonged to another project. Do not spend rounds on
+navigation, settings layout or new console screens. Only fix a console defect
+that blocks the first-run setup, the installer or a documented public flow.
 
 ### D. Documentation and site
 
@@ -185,10 +239,18 @@ setup, and documentation that a new owner can follow without help.
 - [x] CI runs gofmt, vet and the fast gate.
 - [x] The race matrix runs on a schedule and by hand.
 - [x] The Playwright suite runs on UI changes with artifacts on failure.
-- [x] The release workflow builds both targets, publishes checksums and copies
-      the public page list from `internal/site`.
-- [x] Pages deploys `docs/`.
-- [x] Issue templates, PR template, dependabot and CodeQL.
+- [x] The release workflow builds both targets, publishes checksums, attaches
+      an SBOM, attests provenance and copies the public page list from
+      `internal/site`.
+- [ ] The release workflow has actually run on a tag and its assets are
+      verified.
+- [x] Pages is configured to deploy `docs/` from `main`.
+- [ ] The first Pages deployment has run and the live site is verified.
+- [x] Issue templates, PR template, dependabot, CodeQL, secret scanning, push
+      protection, Dependabot alerts, private reporting, a `main` ruleset and
+      SHA-pinned actions.
+- [ ] The repository description, topics and social preview are set from one
+      generated source.
 
 ## Verification per round
 
@@ -199,6 +261,17 @@ the gate output, and the residual risk. See `docs/PROGRESS.md`.
 
 Newest first. The older evidence log below keeps its original chronological
 order.
+
+Round 131 (publication state): pull request 1 is open from
+`release/publication` at `7e733cc`. Fast gate, windows build, vulnerability
+scan, dependency review, CodeQL analysis and Playwright pass. Merge is blocked
+only by the ruleset requirement to resolve every review thread: 19 CodeQL
+`go/clear-text-logging` threads remain open. Pages is enabled but has not run
+from `main`. There are no tags or releases. A Windows build from `7e733cc` was
+installed and verified on a Windows test machine, which closes the first-paint item for
+that machine. Uncommitted exploratory work was discarded on the owner's
+instruction, so the branch is the only source of truth. Next: fix the 19 alerts,
+resolve the threads, merge, deploy Pages, tag a release and install the package.
 
 Round 130 (API projection owners): settings read one snapshot and one key
 guard; provider roles resolve once in `engine.RoleStatuses`; `InvalidProviderID`,
@@ -271,7 +344,14 @@ and the live/resilience Playwright specs pass.
 
 ## Residual risks
 
-- The deleted `.env` keys are still valid until the owner revokes them.
+- Merge is blocked until the 19 CodeQL clear-text-logging threads are resolved.
+  Resolving a thread without fixing the underlying flow would only hide it.
+- Pages has never deployed from `main`; the first run can still fail on a
+  repository setting or a missing environment.
+- The release workflow and the Windows installer have never run on a tag. The
+  portable binary works, the package does not yet.
+- The removed provider keys remain valid until the owner completes the
+  revocation.
 - Linux has no production mail connector and its secret store is read-only.
 - The first-run overlay has no focus trap; it uses native controls and a
   background that is hidden from the accessibility tree, but a full trap is not
@@ -279,6 +359,8 @@ and the live/resilience Playwright specs pass.
 - Provider setup is fully manual; there are no presets.
 - `internal/source/rfc5322` and `internal/source/archive` exist but are not
   registered in the shipped app.
+- The public-copy guard covers the documentation and the catalogs, but not
+  every generated report or commit message.
 - WebView2 first paint is unverified on this host.
 - The deployed build predates the release work.
 - CodeQL keeps two design-intended findings visible: the generic filesystem
