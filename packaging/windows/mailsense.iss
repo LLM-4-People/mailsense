@@ -10,6 +10,28 @@
   #define SourceExe "..\..\dist\mailsense.exe"
 #endif
 
+; The public page list has one owner, internal/site, read by
+; `go run ./cmd/gensite -pages=en|fr`. The Linux tarball consumes that output
+; directly. The installer consumes the same output here: the two Exec calls
+; write one generated [Files] include, so there is no second list to drift.
+; The include is build output under dist/ and is never committed.
+#define RepoRoot AddBackslash(SourcePath) + "..\.."
+#define PagesInclude RepoRoot + "dist\docs-pages.iss"
+
+#define GenerateEn Exec('cmd.exe', '/c del /q "' + PagesInclude + '" 2>nul & for /f "usebackq delims=" %p in (`go run ./cmd/gensite -pages=en`) do @echo Source: "..\..\%p"; DestDir: "{app}\docs"; Flags: ignoreversion >> "' + PagesInclude + '"', RepoRoot)
+#if GenerateEn != 0
+  #error cannot generate the public English docs list
+#endif
+
+#define GenerateFr Exec('cmd.exe', '/c for /f "usebackq delims=" %p in (`go run ./cmd/gensite -pages=fr`) do @echo Source: "..\..\%p"; DestDir: "{app}\docs\fr"; Flags: ignoreversion >> "' + PagesInclude + '"', RepoRoot)
+#if GenerateFr != 0
+  #error cannot generate the public French docs list
+#endif
+
+#if FileSize(PagesInclude) <= 0
+  #error the generated public docs list is empty
+#endif
+
 [Setup]
 AppId={{6E2E7E2B-7C1F-4C55-9E4B-2F7A6C1D9A31}
 AppName=Mailsense
@@ -38,14 +60,11 @@ RestartApplications=no
 Source: "{#SourceExe}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\LICENSE"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\..\NOTICE"; DestDir: "{app}"; Flags: ignoreversion
-; Only the public pages ship: the site config excludes the engineering log,
-; the release plan, and the benchmark records, and the installer must agree.
-Source: "..\..\docs\index.md"; DestDir: "{app}\docs"; Flags: ignoreversion
-Source: "..\..\docs\install.md"; DestDir: "{app}\docs"; Flags: ignoreversion
-Source: "..\..\docs\first-run.md"; DestDir: "{app}\docs"; Flags: ignoreversion
-Source: "..\..\docs\privacy.md"; DestDir: "{app}\docs"; Flags: ignoreversion
-Source: "..\..\docs\troubleshooting.md"; DestDir: "{app}\docs"; Flags: ignoreversion
-Source: "..\..\docs\fr\*.md"; DestDir: "{app}\docs\fr"; Flags: ignoreversion
+; Generated from internal/site by the Exec calls above. Every public page in
+; both languages ships, the same set the Linux tarball copies. The path is the
+; one PagesInclude names, written in the expression form the ISPP manual shows
+; for an include.
+#include AddBackslash(SourcePath) + "..\..\dist\docs-pages.iss"
 
 [Icons]
 Name: "{group}\Mailsense"; Filename: "{app}\mailsense.exe"

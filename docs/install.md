@@ -52,14 +52,31 @@ the app to use another directory; it is not a field in Settings.
 
 ## Verify a download
 
-Release assets are published with a `SHA256SUMS` file when the release workflow
-runs. On Linux:
+Each release publishes the assets, a `SHA256SUMS` file with the SHA-256 of every
+other asset, and one CycloneDX SBOM named
+`mailsense-<version>-sbom.cdx.json`. The manifest does not list itself.
+
+On Linux, from the directory that holds the downloaded files:
 
 ```bash
 sha256sum -c SHA256SUMS --ignore-missing
 ```
 
-On Windows, compare the file hash with `Get-FileHash` in PowerShell.
+`--ignore-missing` verifies only the files you downloaded. Omit it to require
+every file in the manifest.
+
+On Windows, compare a file with `Get-FileHash` in PowerShell.
+
+Every artifact listed in `SHA256SUMS` also has a build provenance attestation
+signed by GitHub Actions. With the GitHub CLI:
+
+```bash
+gh attestation verify mailsense-<version>-linux-amd64.tar.gz --repo LLM-4-People/mailsense
+```
+
+The attestation records the workflow, the commit and the tag that produced the
+file. It is not a code signature: the binaries are not Authenticode-signed, so
+Windows may still ask you to confirm the publisher.
 
 ## Uninstall
 

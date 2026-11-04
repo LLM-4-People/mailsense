@@ -19,14 +19,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version-file: go.mod
           cache: true
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
       # A tag must never publish a commit that is not on main.
@@ -35,6 +35,8 @@ jobs:
           git fetch --no-tags origin main
           git merge-base --is-ancestor "$GITHUB_SHA" origin/main
       # A tag must never publish a tree the exhaustive gate has not passed.
+      - name: the tag names a version
+        run: test -n "${GITHUB_REF_NAME#v}"
       - run: scripts/test.sh
 
   binaries:
@@ -43,8 +45,8 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version-file: go.mod
           cache: true
@@ -74,7 +76,7 @@ jobs:
           cp --parents "${pages_fr[@]}" "dist/$name/"
           tar -C dist -czf "dist/$name.tar.gz" "$name"
           rm -rf "dist/$name"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: binaries
           path: dist/*
@@ -86,8 +88,8 @@ jobs:
     runs-on: windows-latest
     timeout-minutes: 30
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version-file: go.mod
           cache: true
@@ -102,6 +104,8 @@ jobs:
         run: scripts/build.sh windows
       - name: install Inno Setup
         run: choco install innosetup --no-progress -y
+      # mailsense.iss asks cmd for the same generated page list the Linux
+      # tarball reads, so the installer has no hand-written docs list.
       - name: compile the installer
         shell: bash
         env:
@@ -110,6 +114,26 @@ jobs:
           iscc="/c/Program Files (x86)/Inno Setup 6/ISCC.exe"
           "$iscc" "/DAppVersion=$VERSION" "/DSourceExe=$(pwd -W)/dist/mailsense.exe" \
             packaging/windows/mailsense.iss
+      - name: verify the installer
+        shell: bash
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          set -euo pipefail
+          setup="dist/mailsense-${VERSION}-setup.exe"
+          if [[ ! -s "$setup" ]]; then
+            echo "error: $setup is missing or empty" >&2
+            exit 1
+          fi
+          product="$(powershell.exe -NoProfile -NonInteractive -Command \
+            "(Get-Item -LiteralPath '$(cygpath -w "$setup")').VersionInfo.ProductVersion" | tr -d '\r')"
+          case "$product" in
+            "$VERSION" | "$VERSION.0") ;;
+            *)
+              echo "error: installer ProductVersion '$product' does not match version '$VERSION'" >&2
+              exit 1
+              ;;
+          esac
       # The installer is only useful if the binary it wraps starts. The app
       # writes runtime/api.json once its loopback API is up; stop it through
       # its own API, never by killing the process.
@@ -117,10 +141,25 @@ jobs:
         shell: bash
         env:
           MAILSENSE_DATA_DIR: ${{ runner.temp }}/mailsense-smoke
+          VERSION: ${{ steps.version.outputs.value }}
         run: |
+          set -euo pipefail
           scripts/run-windows.sh
+          descriptor="$MAILSENSE_DATA_DIR/runtime/api.json"
+          if [[ ! -s "$descriptor" ]]; then
+            echo "error: $descriptor was not written" >&2
+            scripts/stop-windows.sh 30 || true
+            exit 1
+          fi
+          build="$(powershell.exe -NoProfile -NonInteractive -Command \
+            "(Get-Content -Raw -LiteralPath '$(cygpath -w "$descriptor")' | ConvertFrom-Json).build" | tr -d '\r')"
+          if [[ "$build" != "$VERSION" ]]; then
+            echo "error: the binary embeds version '$build', not '$VERSION'" >&2
+            scripts/stop-windows.sh 30 || true
+            exit 1
+          fi
           scripts/stop-windows.sh 30
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: installer
           path: dist/*setup.exe
@@ -130,23 +169,120 @@ jobs:
     name: publish
     needs: [binaries, installer]
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
     permissions:
+      actions: read
       contents: write
       id-token: write
       attestations: write
     steps:
-      - uses: actions/download-artifact@v4
+      # Checkout runs before the download: its default clean would delete the
+      # downloaded dist/ directory.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           path: dist
           merge-multiple: true
-      - name: checksums
-        run: cd dist && sha256sum * > SHA256SUMS
-      - name: provenance
-        uses: actions/attest-build-provenance@v2
+      - name: version
+        id: version
+        shell: bash
+        run: echo "value=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+      # A missing, renamed or stale asset fails here, before anything is
+      # published. The expected set is derived from the tag, and the tarball
+      # is checked against the generated public page list and the stamp.
+      - name: verify the downloaded artifact set
+        shell: bash
+        env:
+          VERSION: ${{ steps.version.outputs.value }}
+        run: |
+          set -euo pipefail
+          name="mailsense-${VERSION}-linux-amd64"
+          tarball="${name}.tar.gz"
+          installer="mailsense-${VERSION}-setup.exe"
+          expected="$(printf '%s\n' mailsense "$tarball" "$installer" | LC_ALL=C sort)"
+          actual="$(find dist -maxdepth 1 -type f -printf '%f\n' | LC_ALL=C sort)"
+          if [[ "$actual" != "$expected" ]]; then
+            echo "error: the release asset set does not match the tag ${VERSION}" >&2
+            diff <(printf '%s\n' "$expected") <(printf '%s\n' "$actual") >&2 || true
+            exit 1
+          fi
+          for asset in mailsense "$tarball" "$installer"; do
+            if [[ ! -s "dist/${asset}" ]]; then
+              echo "error: dist/${asset} is missing or empty" >&2
+              exit 1
+            fi
+          done
+          work="$(mktemp -d)"
+          trap 'rm -rf "$work"' EXIT
+          tar -xzf "dist/${tarball}" -C "$work"
+          for file in mailsense install.sh README.md LICENSE NOTICE; do
+            if [[ ! -s "$work/${name}/${file}" ]]; then
+              echo "error: ${tarball} is missing ${file}" >&2
+              exit 1
+            fi
+          done
+          tar -tzf "dist/${tarball}" \
+            | sed -n "s|^${name}/||p" \
+            | grep -E '^docs/.*\.md$' \
+            | LC_ALL=C sort > "$work/tarball-docs"
+          {
+            go run ./cmd/gensite -pages=en
+            go run ./cmd/gensite -pages=fr
+          } | LC_ALL=C sort > "$work/expected-docs"
+          if ! diff -u "$work/expected-docs" "$work/tarball-docs"; then
+            echo "error: the tarball docs do not match the generated public page list" >&2
+            exit 1
+          fi
+          if ! strings -a "dist/mailsense" | grep -Fx -- "$VERSION" > /dev/null; then
+            echo "error: dist/mailsense does not embed version ${VERSION}" >&2
+            exit 1
+          fi
+          if ! strings -a "$work/${name}/mailsense" | grep -Fx -- "$VERSION" > /dev/null; then
+            echo "error: the tarball binary does not embed version ${VERSION}" >&2
+            exit 1
+          fi
+      # One CycloneDX SBOM for the release artifact set. It is published with
+      # the assets and covered by the checksum manifest.
+      - name: SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0
         with:
-          subject-path: "dist/*"
-      - uses: softprops/action-gh-release@v2
+          path: dist
+          format: cyclonedx-json
+          output-file: dist/mailsense-${{ steps.version.outputs.value }}-sbom.cdx.json
+          upload-artifact: false
+          upload-release-assets: false
+          dependency-snapshot: false
+      # The manifest is written outside dist and moved in afterwards. A
+      # manifest named SHA256SUMS must never be an input to its own glob: a
+      # second run would hash the previous manifest and `sha256sum -c` would
+      # report it as FAILED.
+      - name: checksums
+        shell: bash
+        run: |
+          set -euo pipefail
+          tmp="$(mktemp -d)"
+          trap 'rm -rf "$tmp"' EXIT
+          (
+            cd dist
+            find . -maxdepth 1 -type f ! -name SHA256SUMS -printf '%f\n' \
+              | LC_ALL=C sort \
+              | xargs -r sha256sum -- > "$tmp/SHA256SUMS"
+            mv "$tmp/SHA256SUMS" SHA256SUMS
+            sha256sum -c SHA256SUMS
+          )
+      # The attestation is the release signature: GitHub signs a provenance
+      # statement for every file listed in the manifest. There is no private
+      # key in this repository.
+      - name: provenance
+        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2
+        with:
+          subject-checksums: dist/SHA256SUMS
+      - name: publish
+        uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
           files: dist/*
           generate_release_notes: true

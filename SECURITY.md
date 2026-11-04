@@ -16,7 +16,7 @@ mitigation within thirty days for confirmed issues.
 - The local API server: loopback binding, the bearer token, and the Host and
   Origin checks.
 - The mail connectors and the stored credentials.
-- The installer and the pinned runtime download.
+- The installer, the pinned runtime download, and the published release assets.
 - The embedded UI and its content security policy.
 
 ## Design rules

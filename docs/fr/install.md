@@ -59,14 +59,31 @@ ce n'est pas un champ des réglages.
 
 ## Vérifier un téléchargement
 
-Les fichiers publiés sont accompagnés d'un `SHA256SUMS` lorsque le workflow de
-version s'exécute. Sous Linux :
+Chaque version publie les fichiers, un fichier `SHA256SUMS` qui contient
+l'empreinte SHA-256 de chaque autre fichier, et un SBOM CycloneDX nommé
+`mailsense-<version>-sbom.cdx.json`. Le manifeste ne se liste pas lui-même.
+
+Sous Linux, depuis le répertoire des fichiers téléchargés :
 
 ```bash
 sha256sum -c SHA256SUMS --ignore-missing
 ```
 
-Sous Windows, comparez l'empreinte avec `Get-FileHash` dans PowerShell.
+`--ignore-missing` ne vérifie que les fichiers téléchargés. Omettez l'option pour
+exiger tous les fichiers du manifeste.
+
+Sous Windows, comparez un fichier avec `Get-FileHash` dans PowerShell.
+
+Chaque fichier listé dans `SHA256SUMS` a aussi une attestation de provenance
+signée par GitHub Actions. Avec le CLI GitHub :
+
+```bash
+gh attestation verify mailsense-<version>-linux-amd64.tar.gz --repo LLM-4-People/mailsense
+```
+
+L'attestation indique le workflow, le commit et l'étiquette qui ont produit le
+fichier. Ce n'est pas une signature de code : les binaires ne sont pas signés
+Authenticode, Windows peut donc encore demander une confirmation.
 
 ## Désinstaller
 

@@ -40,8 +40,17 @@ manifest with the hash of every file and promotes the directory atomically.
 Before every launch the app verifies the model, the manifest, the executable and
 every listed file, and it refuses an unlisted file or link.
 
-The release is not code-signed yet. Windows may ask you to confirm the
-publisher. Integrity comes from the pinned hashes, not from a signature.
+## Release integrity
+
+A release asset is built by the release workflow from the tagged commit on
+`main`. GitHub stores a signed build provenance attestation for every artifact
+listed in `SHA256SUMS`, and
+`gh attestation verify <file> --repo LLM-4-People/mailsense` checks it. The
+release also publishes one CycloneDX SBOM.
+
+The binaries are not code-signed. Windows may ask you to confirm the publisher.
+The attestation proves which workflow built the file; it is not a publisher
+certificate.
 
 ## Network requests
 

@@ -7,5 +7,5 @@ contact_links:
     url: https://llm-4-people.github.io/mailsense/
     about: Install, first run, privacy, and troubleshooting.
   - name: Questions and ideas
-    url: https://github.com/LLM-4-People/mailsense/discussions
-    about: Ask a question or compare an approach before opening a change.
+    url: https://github.com/LLM-4-People/mailsense/issues
+    about: Discussions are not enabled. Open an issue to ask a question or propose an approach.

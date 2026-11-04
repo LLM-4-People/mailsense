@@ -46,9 +46,17 @@ et promeut le répertoire de façon atomique. Avant chaque lancement, l'applicat
 vérifie le modèle, le manifeste, l'exécutable et chaque fichier listé, et elle
 refuse tout fichier ou lien non listé.
 
-La version publiée n'est pas encore signée. Windows peut vous demander de
-confirmer l'éditeur. L'intégrité vient des empreintes épinglées, pas d'une
-signature.
+## Intégrité des versions
+
+Un fichier publié est construit par le workflow de version à partir du commit
+étiqueté sur `main`. GitHub conserve une attestation de provenance signée pour
+chaque fichier listé dans `SHA256SUMS`, et
+`gh attestation verify <file> --repo LLM-4-People/mailsense` la vérifie. La
+version publie aussi un SBOM CycloneDX.
+
+Les binaires ne sont pas signés. Windows peut vous demander de confirmer
+l'éditeur. L'attestation prouve quel workflow a construit le fichier ; ce n'est
+pas un certificat d'éditeur.
 
 ## Requêtes réseau
 

@@ -9,69 +9,25 @@ Mailsense is Go for the application and plain JavaScript for the interface. It
 has no framework on either side. The repository is the source of truth for the
 build, the tests and the public pages.
 
-## Requirements
+## Start here
 
-- Go 1.27 or newer.
-- Node.js for the interface behavior tests. Those tests skip when Node is
-  missing; the rest still run.
-- A C toolchain for the race detector. `scripts/test.sh` turns race on when cgo
-  works.
+[CONTRIBUTING.md](https://github.com/LLM-4-People/mailsense/blob/main/CONTRIBUTING.md)
+is the contribution contract. It owns the supported toolchain, the exact command
+for each check, the public page rules, the interface rules, the commit format and
+the sign-off requirement. This page is the public summary.
 
-## Build and test
+Participation is covered by the
+[code of conduct](https://github.com/LLM-4-People/mailsense/blob/main/CODE_OF_CONDUCT.md).
 
-```bash
-go build ./...
-scripts/test-fast.sh    # inner loop: format, vet, scripts, unit and contract tests
-scripts/test.sh         # exhaustive release gate
-```
+## Workflow
 
-`scripts/test-fast.sh` is the normal gate before a commit. `scripts/test.sh` is
-the one to run before a release. Both take their gofmt, script and vet checks
-from one shared library.
+Open a pull request against `main`. A change needs a test, a note in the pull
+request that says how it was verified, and a `Signed-off-by` line on every
+commit. The GitHub web editor adds the sign-off for you; locally use
+`git commit -s`.
 
-After changing any file under `internal/ui/js` or `internal/ui/css`, regenerate
-the served bundles:
-
-```bash
-go generate ./internal/ui
-```
-
-The bundle tests fail when the generated `app.js` or `app.css` is stale.
-
-## Public pages
-
-`docs/site.json` is the one source for the landing pages, both READMEs and the
-brand SVGs. Do not edit a generated file by hand.
-
-```bash
-make site           # regenerate the public surface
-make site-check     # fail when it is stale
-```
-
-A documentation page comes in a pair: `docs/name.md` and `docs/fr/name.md`. Add
-the key to `internal/site/render.go`, `internal/site/site.go`, the `nav` array in
-`docs/site.json` and `docs/_config.yml`. The release packaging reads the public
-page list from `internal/site`, so a new page ships without a second copy of the
-list.
-
-## Public copy
-
-`internal/prose` owns the style rule for text that ships to readers. It rejects
-an em dash, a spaced en dash, a punctuation double hyphen and a list of stock
-phrases. Fenced code and inline code are skipped. The docs test and the
-interface catalog test both use that one owner.
-
-Write in plain English and plain French. Prefer a short sentence and a concrete
-fact over a claim. Do not describe a feature that the code does not implement.
-
-## Interface changes
-
-- A screen module goes in `internal/ui/js/manifest.txt` and a stylesheet in
-  `internal/ui/css/manifest.txt`. Both manifests are complete or the tests fail.
-- Every user-visible string comes from `i18n.en.js` and `i18n.fr.js`. The French
-  catalog must cover every setting and every API error code.
-- Keep domain logic out of the interface. Call the existing route; do not
-  duplicate a rule in JavaScript.
+The pull request checks run the same gates as a release, and the maintainer
+reviews the result before merging.
 
 ## Report a bug
 
