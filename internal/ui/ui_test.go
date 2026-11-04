@@ -190,7 +190,9 @@ func TestShellRoutes(t *testing.T) {
 		t.Fatal(err)
 	}
 	page := string(html)
-	order := []string{"hub", "brief", "mail", "companies", "ask", "labels", "sources", "settings", "logs", "learning"}
+	// The sidebar groups every screen exactly once; nav_contract_test.go owns
+	// the detailed group, label and disclosure contract.
+	order := []string{"hub", "brief", "mail", "companies", "ask", "answers", "labels", "learning", "sources", "settings", "logs"}
 	previous := -1
 	for _, name := range order {
 		marker := `data-nav="` + name + `"`
@@ -204,23 +206,17 @@ func TestShellRoutes(t *testing.T) {
 		previous = at
 	}
 	for _, required := range []string{
-		`href="#/hub"`, `href="#/brief"`, `href="#/mail"`, `href="#/companies"`, `href="#/ask"`, `href="#/labels"`,
-		`href="#/learning"`, `id="i-hub"`, `id="i-brief"`, `id="i-ask"`, `id="nav-labels-badge"`,
-		`data-i18n="nav.hub"`, `data-i18n="nav.brief"`, `data-i18n="nav.companies"`, `data-i18n="nav.ask"`,
-		`data-i18n="nav.system"`, `id="topbar-update"`,
+		`<a class="brand" href="#/hub">`, `href="#/answers"`, `id="i-menu"`, `id="nav-labels-badge"`,
+		`href="#/hub"`, `href="#/brief"`, `href="#/mail"`, `href="#/companies"`, `href="#/ask"`,
+		`href="#/labels"`, `href="#/learning"`, `href="#/sources"`, `href="#/settings"`, `href="#/logs"`,
+		`id="nav-toggle"`, `aria-controls="nav-menu"`, `id="nav-menu"`, `data-i18n="nav.answers"`, `data-i18n="nav.menu"`,
+		`id="i-hub"`, `id="i-brief"`, `id="i-ask"`, `id="topbar-update"`,
 		`id="global-search"`, `id="global-search-input"`, `id="global-search-results"`,
 		`data-i18n-placeholder="search.global_placeholder"`,
 	} {
 		if !strings.Contains(page, required) {
 			t.Fatalf("index.html lacks %q", required)
 		}
-	}
-	if strings.Contains(page, `data-nav="answers"`) {
-		t.Fatal("index.html still puts Answers in the primary navigation")
-	}
-	if strings.Index(page, `data-nav="logs"`) > strings.Index(page, `data-nav="learning"`) ||
-		strings.Index(page, `data-nav="learning"`) < 0 {
-		t.Fatal("Learning must sit under the System divider after Logs")
 	}
 
 	script, err := fs.ReadFile(Files, "app.js")
@@ -255,7 +251,8 @@ func TestShellRoutes(t *testing.T) {
 	fr := readCatalog(t, "i18n.fr.js")
 	for _, key := range []string{
 		"nav.hub", "nav.brief", "nav.mail", "nav.companies", "nav.ask", "nav.labels", "nav.system",
-		"nav.learning", "nav.sources", "nav.settings", "nav.logs",
+		"nav.learning", "nav.sources", "nav.settings", "nav.logs", "nav.answers", "nav.menu",
+		"nav.group.work", "nav.group.ask", "nav.group.teach", "nav.group.configure", "nav.group.system",
 		"screen.ask.title", "screen.ask.eyebrow",
 		"screen.companies.title", "screen.companies.eyebrow",
 		"screen.hub.title", "screen.hub.eyebrow",
@@ -6882,7 +6879,8 @@ func TestNavigationRecoveryAndCSPWiring(t *testing.T) {
 	block := mobile[strings.Index(mobile, "@media (max-width: 760px) {"):]
 	block = block[:strings.Index(block, "@media (max-width: 600px) {")]
 	for _, required := range []string{
-		`.sidebar {`, `display: flex;`, `flex-wrap: wrap;`, `grid-template-rows: auto minmax(0, 1fr);`,
+		`.sidebar {`, `display: flex;`, `grid-template-rows: auto minmax(0, 1fr);`,
+		`.nav-toggle`, `transform: translateX(-100%);`, `.sidebar.drawer-open .nav`,
 	} {
 		if !strings.Contains(block, required) {
 			t.Fatalf("the 760px shell rule lacks %q", required)

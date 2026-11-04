@@ -28,6 +28,7 @@
     <symbol id="i-ask" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4V5Z"/><path d="M8.5 10.5h7M8.5 13.5h4.5"/></symbol>
     <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="8" cy="6" r="2"/><circle cx="15" cy="12" r="2"/><circle cx="10" cy="18" r="2"/></symbol>
     <symbol id="i-logs" viewBox="0 0 24 24"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></symbol>
+    <symbol id="i-menu" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></symbol>
     <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5"/><path d="M19 12a7 7 0 1 0-2 5"/></symbol>
     <symbol id="i-chevron-left" viewBox="0 0 24 24"><path d="m14.5 6-6 6 6 6"/></symbol>
     <symbol id="i-chevron-right" viewBox="0 0 24 24"><path d="m9.5 6 6 6-6 6"/></symbol>
@@ -61,58 +62,110 @@
   <div id="app" class="app" hidden>
     <a class="skip-link" href="#main" data-i18n="skip.to_content">Skip to content</a>
     <aside class="sidebar">
-      <div class="brand">
+      <a class="brand" href="#/hub">
         <img class="brand-mark" src="{{asset:favicon.svg}}" alt="" width="30" height="30">
         <div class="brand-text">
           <span class="brand-name">Mailsense</span>
           <span class="brand-sub" data-i18n="app.tagline">local mail intelligence</span>
         </div>
-      </div>
+      </a>
 
-      <nav class="nav" aria-label="Main" data-i18n-aria="nav.main">
-        <a class="nav-item" data-nav="hub" href="#/hub">
-          <svg class="icon" aria-hidden="true"><use href="#i-hub"></use></svg>
-          <span data-i18n="nav.hub">Home</span>
-        </a>
-        <a class="nav-item" data-nav="brief" href="#/brief">
-          <svg class="icon" aria-hidden="true"><use href="#i-brief"></use></svg>
-          <span data-i18n="nav.brief">Brief</span>
-        </a>
-        <a class="nav-item" data-nav="mail" href="#/mail">
-          <svg class="icon" aria-hidden="true"><use href="#i-mail"></use></svg>
-          <span data-i18n="nav.mail">Mail</span>
-        </a>
-        <a class="nav-item" data-nav="companies" href="#/companies">
-          <svg class="icon" aria-hidden="true"><use href="#i-sources"></use></svg>
-          <span data-i18n="nav.companies">Companies</span>
-        </a>
-        <a class="nav-item" data-nav="ask" href="#/ask">
-          <svg class="icon" aria-hidden="true"><use href="#i-ask"></use></svg>
-          <span data-i18n="nav.ask">Ask</span>
-          <span class="nav-kbd" aria-hidden="true" data-i18n="nav.shortcut">Ctrl K</span>
-        </a>
-        <a class="nav-item" data-nav="labels" href="#/labels">
-          <svg class="icon" aria-hidden="true"><use href="#i-labels"></use></svg>
-          <span data-i18n="nav.labels">Teach</span>
-          <span class="nav-badge" id="nav-labels-badge" hidden></span>
-        </a>
-        <a class="nav-item" data-nav="sources" href="#/sources">
-          <svg class="icon" aria-hidden="true"><use href="#i-sources"></use></svg>
-          <span data-i18n="nav.sources">Sources</span>
-        </a>
-        <a class="nav-item" data-nav="settings" href="#/settings">
-          <svg class="icon" aria-hidden="true"><use href="#i-settings"></use></svg>
-          <span data-i18n="nav.settings">Settings</span>
-        </a>
-        <a class="nav-item" data-nav="logs" href="#/logs">
-          <svg class="icon" aria-hidden="true"><use href="#i-logs"></use></svg>
-          <span data-i18n="nav.logs">Logs</span>
-        </a>
-        <div class="nav-divider" role="separator"><span data-i18n="nav.system">System</span></div>
-        <a class="nav-item" data-nav="learning" href="#/learning">
-          <svg class="icon" aria-hidden="true"><use href="#i-learning"></use></svg>
-          <span data-i18n="nav.learning">Learning</span>
-        </a>
+      <button class="nav-toggle" id="nav-toggle" type="button" aria-expanded="false" aria-controls="nav-menu" aria-label="Menu" data-i18n-aria="nav.menu">
+        <svg class="icon" aria-hidden="true"><use href="#i-menu"></use></svg>
+        <span data-i18n="nav.menu">Menu</span>
+      </button>
+
+      <nav class="nav" id="nav-menu" aria-label="Main" data-i18n-aria="nav.main">
+        <details class="nav-group" data-nav-group="work" open>
+          <summary class="nav-group-summary" aria-expanded="true">
+            <span class="nav-group-label" data-i18n="nav.group.work">Work</span>
+            <svg class="icon nav-group-caret" aria-hidden="true"><use href="#i-chevron-right"></use></svg>
+          </summary>
+          <div class="nav-group-items">
+            <a class="nav-item" data-nav="hub" href="#/hub">
+              <svg class="icon" aria-hidden="true"><use href="#i-hub"></use></svg>
+              <span data-i18n="nav.hub">Home</span>
+            </a>
+            <a class="nav-item" data-nav="brief" href="#/brief">
+              <svg class="icon" aria-hidden="true"><use href="#i-brief"></use></svg>
+              <span data-i18n="nav.brief">Brief</span>
+            </a>
+            <a class="nav-item" data-nav="mail" href="#/mail">
+              <svg class="icon" aria-hidden="true"><use href="#i-mail"></use></svg>
+              <span data-i18n="nav.mail">Mail</span>
+            </a>
+            <a class="nav-item" data-nav="companies" href="#/companies">
+              <svg class="icon" aria-hidden="true"><use href="#i-sources"></use></svg>
+              <span data-i18n="nav.companies">Companies</span>
+            </a>
+          </div>
+        </details>
+
+        <details class="nav-group" data-nav-group="ask" open>
+          <summary class="nav-group-summary" aria-expanded="true">
+            <span class="nav-group-label" data-i18n="nav.group.ask">Ask</span>
+            <svg class="icon nav-group-caret" aria-hidden="true"><use href="#i-chevron-right"></use></svg>
+          </summary>
+          <div class="nav-group-items">
+            <a class="nav-item" data-nav="ask" href="#/ask">
+              <svg class="icon" aria-hidden="true"><use href="#i-ask"></use></svg>
+              <span data-i18n="nav.ask">Ask</span>
+              <span class="nav-kbd" aria-hidden="true" data-i18n="nav.shortcut">Ctrl K</span>
+            </a>
+            <a class="nav-item" data-nav="answers" href="#/answers">
+              <svg class="icon" aria-hidden="true"><use href="#i-answers"></use></svg>
+              <span data-i18n="nav.answers">Answers</span>
+            </a>
+          </div>
+        </details>
+
+        <details class="nav-group" data-nav-group="teach" open>
+          <summary class="nav-group-summary" aria-expanded="true">
+            <span class="nav-group-label" data-i18n="nav.group.teach">Teach</span>
+            <svg class="icon nav-group-caret" aria-hidden="true"><use href="#i-chevron-right"></use></svg>
+          </summary>
+          <div class="nav-group-items">
+            <a class="nav-item" data-nav="labels" href="#/labels">
+              <svg class="icon" aria-hidden="true"><use href="#i-labels"></use></svg>
+              <span data-i18n="nav.labels">Teach</span>
+              <span class="nav-badge" id="nav-labels-badge" hidden></span>
+            </a>
+            <a class="nav-item" data-nav="learning" href="#/learning">
+              <svg class="icon" aria-hidden="true"><use href="#i-learning"></use></svg>
+              <span data-i18n="nav.learning">Learning</span>
+            </a>
+          </div>
+        </details>
+
+        <details class="nav-group" data-nav-group="configure" open>
+          <summary class="nav-group-summary" aria-expanded="true">
+            <span class="nav-group-label" data-i18n="nav.group.configure">Configure</span>
+            <svg class="icon nav-group-caret" aria-hidden="true"><use href="#i-chevron-right"></use></svg>
+          </summary>
+          <div class="nav-group-items">
+            <a class="nav-item" data-nav="sources" href="#/sources">
+              <svg class="icon" aria-hidden="true"><use href="#i-sources"></use></svg>
+              <span data-i18n="nav.sources">Sources</span>
+            </a>
+            <a class="nav-item" data-nav="settings" href="#/settings">
+              <svg class="icon" aria-hidden="true"><use href="#i-settings"></use></svg>
+              <span data-i18n="nav.settings">Settings</span>
+            </a>
+          </div>
+        </details>
+
+        <details class="nav-group" data-nav-group="system" open>
+          <summary class="nav-group-summary" aria-expanded="true">
+            <span class="nav-group-label" data-i18n="nav.group.system">System</span>
+            <svg class="icon nav-group-caret" aria-hidden="true"><use href="#i-chevron-right"></use></svg>
+          </summary>
+          <div class="nav-group-items">
+            <a class="nav-item" data-nav="logs" href="#/logs">
+              <svg class="icon" aria-hidden="true"><use href="#i-logs"></use></svg>
+              <span data-i18n="nav.logs">Logs</span>
+            </a>
+          </div>
+        </details>
       </nav>
 
       <div class="sidebar-foot">

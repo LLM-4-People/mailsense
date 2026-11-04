@@ -481,8 +481,21 @@ test.describe("shell and transport", () => {
       const screen = document.querySelector("#main .screen") as HTMLElement;
       screen.scrollTop = 300;
     });
+    // At phone width the sidebar is a drawer that closes on every route
+    // selection, so each navigation opens it first.
+    const openDrawer = async () => {
+      const toggle = app.page.locator("#nav-toggle");
+      if (await toggle.isVisible()) {
+        if ((await toggle.getAttribute("aria-expanded")) !== "true") {
+          await toggle.click();
+        }
+        await expect(toggle).toHaveAttribute("aria-expanded", "true");
+      }
+    };
+    await openDrawer();
     await app.page.locator('[data-nav="mail"]').click();
     await app.expectRoute("mail");
+    await openDrawer();
     await app.page.locator('[data-nav="settings"]').click();
     await app.expectRoute("settings");
     const restored = await app.page.evaluate(() => {
@@ -605,11 +618,20 @@ test.describe("shell and transport", () => {
       await app.goto("/hub");
       await app.expectRoute("hub");
       await expect(app.page.locator(".sidebar")).toBeVisible();
-      await expect(app.page.locator(".sidebar .nav-item")).toHaveCount(10);
+      await expect(app.page.locator(".sidebar .nav-item")).toHaveCount(11);
 
       const shutdown = app.page.locator("#shutdown-button");
       await expect(shutdown).toBeVisible();
       await expect(shutdown).toHaveAccessibleName(/Shut down|Éteindre/);
+
+      // Below the drawer breakpoint the sidebar starts closed: the menu
+      // toggle is the one way in, so a route is still reachable.
+      const toggle = app.page.locator("#nav-toggle");
+      if (await toggle.isVisible()) {
+        await expect(toggle).toHaveAttribute("aria-expanded", "false");
+        await toggle.click();
+        await expect(toggle).toHaveAttribute("aria-expanded", "true");
+      }
 
       const settings = app.page.locator('.sidebar [data-nav="settings"]');
       await expect(settings).toBeVisible();

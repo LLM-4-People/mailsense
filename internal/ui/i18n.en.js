@@ -17,7 +17,7 @@ window.MailsenseI18nCatalogs.en = {
   "nav.sources": "Sources",
   "nav.settings": "Settings",
   "nav.logs": "Logs",
-  "nav.system": "System",
+  "nav.system": "System", "nav.menu": "Menu", "nav.group.work": "Work", "nav.group.ask": "Ask", "nav.group.teach": "Teach", "nav.group.configure": "Configure", "nav.group.system": "System",
   "nav.shortcut": "Ctrl K",
   "nav.review_badge": { "one": "{count} suggestion to review", "other": "{count} suggestions to review" },
 

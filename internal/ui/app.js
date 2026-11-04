@@ -52,6 +52,7 @@
   const BOOT_POLL_SLOW_INTERVAL_MS = 2000;
   const BOOT_POLL_DEADLINE_MS = 120000;
   const SCREEN_IDS = ["hub", "brief", "mail", "companies", "ask", "labels", "answers", "learning", "sources", "settings", "logs"];
+  const NAV_GROUPS_KEY = "mailsense.nav.groups";
   const SETTINGS_ADVANCED_KEY = "mailsense.settings.advanced";
   const BRIEF_SINCE_KEY = "mailsense.brief.since";
   const BRIEF_SINCE_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/;
@@ -2725,6 +2726,9 @@
       if (item.dataset.nav === name) item.setAttribute("aria-current", "page");
       else item.removeAttribute("aria-current");
     }
+    installNav();
+    syncNavGroups(name);
+    setNavDrawer(false);
   }
 
   function setTopbarMeta(...nodes) {
@@ -3609,6 +3613,110 @@
       item.addEventListener("focus", () => scheduleNavPrefetch(item));
     }
   }
+  // ---------------------------------------------------------------- navigation
+
+  let navInstalled = false;
+
+  // navGroupState is the one stored disclosure state: a group id mapped to
+  // whether the owner last left it open. Corrupt, foreign or unavailable
+  // storage falls back to the default, every group open.
+  function navGroupState() {
+    try {
+      const raw = window.localStorage.getItem(NAV_GROUPS_KEY);
+      if (!raw) return {};
+      const parsed = JSON.parse(raw);
+      return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
+    } catch { return {}; }
+  }
+
+  function writeNavGroupState(values) {
+    try { window.localStorage.setItem(NAV_GROUPS_KEY, JSON.stringify(values)); } catch { /* storage is optional */ }
+  }
+
+  function navGroups() {
+    return Array.from(document.querySelectorAll("[data-nav-group]"));
+  }
+
+  function navGroupOwnsRoute(group, name) {
+    return !!group.querySelector('[data-nav="' + name + '"]');
+  }
+
+  function navGroupSummary(group) {
+    return group.querySelector("summary");
+  }
+
+  // syncNavGroups applies the stored state and keeps the group that owns the
+  // active route open. The stored value is never rewritten here, so a group
+  // the owner closed reopens only for as long as its route is active.
+  function syncNavGroups(name) {
+    const stored = navGroupState();
+    for (const group of navGroups()) {
+      const id = group.dataset.navGroup || "";
+      if (!id) continue;
+      const open = navGroupOwnsRoute(group, name) || stored[id] !== false;
+      group.open = open;
+      const summary = navGroupSummary(group);
+      if (summary) summary.setAttribute("aria-expanded", String(open));
+    }
+  }
+
+  function navDrawerOpen() {
+    const sidebar = document.querySelector(".sidebar");
+    return !!sidebar && sidebar.classList.contains("drawer-open");
+  }
+
+  // setNavDrawer owns the narrow-window drawer state. On the desktop layout
+  // the class and aria-expanded are harmless no-ops.
+  function setNavDrawer(open, options = {}) {
+    const sidebar = document.querySelector(".sidebar");
+    const toggle = document.getElementById("nav-toggle");
+    if (!sidebar || !toggle) return;
+    sidebar.classList.toggle("drawer-open", open);
+    toggle.setAttribute("aria-expanded", String(open));
+    if (!open && options.focusToggle) toggle.focus();
+  }
+
+  // installNav wires the disclosure groups and the narrow-window drawer once.
+  function installNav() {
+    if (navInstalled) return;
+    navInstalled = true;
+    for (const group of navGroups()) {
+      const summary = navGroupSummary(group);
+      if (!summary || !group.dataset.navGroup) continue;
+      // The toggle event also fires for the programmatic open in syncNavGroups,
+      // so it only mirrors the state for assistive technology; it never
+      // persists.
+      group.addEventListener("toggle", () => {
+        summary.setAttribute("aria-expanded", String(group.open));
+      });
+      // A click's default action toggles <details> after dispatch. The one
+      // group the owner changed is persisted after that action, so the
+      // forced-open active group cannot overwrite another stored choice.
+      summary.addEventListener("click", () => {
+        window.setTimeout(() => {
+          const stored = navGroupState();
+          stored[group.dataset.navGroup] = group.open;
+          writeNavGroupState(stored);
+        }, 0);
+      });
+    }
+    const toggle = document.getElementById("nav-toggle");
+    const nav = document.getElementById("nav-menu");
+    if (!toggle || !nav) return;
+    toggle.addEventListener("click", () => setNavDrawer(!navDrawerOpen()));
+    // A destination that is already active changes no hash, so the router does
+    // not run; the drawer still closes on the selection itself.
+    nav.addEventListener("click", (event) => {
+      const link = event.target instanceof Element ? event.target.closest("[data-nav]") : null;
+      if (link) setNavDrawer(false);
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape" || state.modalOpen || !navDrawerOpen()) return;
+      event.preventDefault();
+      setNavDrawer(false, { focusToggle: true });
+    });
+  }
+
   // ---------------------------------------------------------------- events
 
   let eventSource = null;

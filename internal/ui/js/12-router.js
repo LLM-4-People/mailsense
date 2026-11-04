@@ -126,6 +126,9 @@
       if (item.dataset.nav === name) item.setAttribute("aria-current", "page");
       else item.removeAttribute("aria-current");
     }
+    installNav();
+    syncNavGroups(name);
+    setNavDrawer(false);
   }
 
   function setTopbarMeta(...nodes) {

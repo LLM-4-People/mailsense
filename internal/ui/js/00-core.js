@@ -41,6 +41,7 @@
   const BOOT_POLL_SLOW_INTERVAL_MS = 2000;
   const BOOT_POLL_DEADLINE_MS = 120000;
   const SCREEN_IDS = ["hub", "brief", "mail", "companies", "ask", "labels", "answers", "learning", "sources", "settings", "logs"];
+  const NAV_GROUPS_KEY = "mailsense.nav.groups";
   const SETTINGS_ADVANCED_KEY = "mailsense.settings.advanced";
   const BRIEF_SINCE_KEY = "mailsense.brief.since";
   const BRIEF_SINCE_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/;

@@ -17,7 +17,7 @@ window.MailsenseI18nCatalogs.fr = {
   "nav.sources": "Sources",
   "nav.settings": "Réglages",
   "nav.logs": "Journal",
-  "nav.system": "Système",
+  "nav.system": "Système", "nav.menu": "Menu", "nav.group.work": "Travail", "nav.group.ask": "Questions", "nav.group.teach": "Enseigner", "nav.group.configure": "Configurer", "nav.group.system": "Système",
   "nav.shortcut": "Ctrl K",
   "nav.review_badge": { "one": "{count} suggestion à réviser", "other": "{count} suggestions à réviser" },
 
