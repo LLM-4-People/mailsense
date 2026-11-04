@@ -167,6 +167,31 @@ jobs:
       - name: build the shipped windows binary
         run: scripts/build.sh windows
 
+  # The installer was only ever compiled during a tag, so a typo in the script
+  # waited until release day. This job compiles the real package on every pull
+  # request with the same script the release uses.
+  installer:
+    name: installer compile
+    runs-on: windows-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version-file: go.mod
+          cache: false
+      - uses: ./.github/actions/go-cache
+        with:
+          suffix: installer
+      - name: build the Windows binary
+        shell: bash
+        run: scripts/build.sh windows
+      - name: install Inno Setup
+        run: choco install innosetup --no-progress -y
+      - name: compile the installer
+        shell: bash
+        run: packaging/windows/compile.sh
+
   vuln:
     name: vulnerability scan
     runs-on: ubuntu-latest

@@ -101,22 +101,11 @@ jobs:
         run: choco install innosetup --no-progress -y
       # mailsense.iss asks cmd for the same generated page list the Linux
       # tarball reads, so the installer has no hand-written docs list.
+      # compile.sh owns the ISCC invocation and reads dist/VERSION, so the
+      # release and the pull-request check compile the same script.
       - name: compile the installer
         shell: bash
-        env:
-          VERSION: ${{ steps.version.outputs.value }}
-          # Git Bash rewrites a leading slash into a drive path, so ISCC saw
-          # /DAppVersion and /DSourceExe as two more script filenames and
-          # refused the command. Both names disable that conversion.
-          MSYS2_ARG_CONV_EXCL: "*"
-          MSYS_NO_PATHCONV: "1"
-        run: |
-          set -euo pipefail
-          iscc="/c/Program Files (x86)/Inno Setup 6/ISCC.exe"
-          source="$(pwd -W)/dist/mailsense.exe"
-          printf 'iscc /DAppVersion=%s /DSourceExe=%s\n' "$VERSION" "$source"
-          "$iscc" "/DAppVersion=$VERSION" "/DSourceExe=$source" \
-            packaging/windows/mailsense.iss
+        run: packaging/windows/compile.sh
       - name: verify the installer
         shell: bash
         env:
