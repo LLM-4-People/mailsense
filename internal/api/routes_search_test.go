@@ -6,8 +6,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/LLM-4-People/mailsense/internal/config/configtest"
 	"github.com/LLM-4-People/mailsense/internal/engine"
+	"github.com/LLM-4-People/mailsense/internal/fixturetest"
 	"github.com/LLM-4-People/mailsense/internal/learning/learningtest"
 	"github.com/LLM-4-People/mailsense/internal/mail"
 	"github.com/LLM-4-People/mailsense/internal/mail/mailtest"
@@ -103,15 +103,7 @@ func TestSearchEndpointMapsEveryFilter(t *testing.T) {
 // a quote inside a word is still a valid query.
 func TestSearchEndpointRejectsEmptyFoldedQuery(t *testing.T) {
 	w := newWorld()
-	cfg := configtest.New(t, map[string]any{source.SettingSelected: []any{source.StoreKey("src", "store-1")}})
-	st, err := store.Open(t.Context(), cfg, nil, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { _ = st.Close() })
-	if err := st.UpsertSource(t.Context(), "src", "test", "Test", source.Capabilities{}); err != nil {
-		t.Fatal(err)
-	}
+	cfg, st := fixturetest.OpenStore(t, nil)
 	m := mailtest.Message("src", "1")
 	m.Subject = "bonjour merci"
 	if err := st.UpsertMessages(t.Context(), 0, []mail.Message{m}); err != nil {

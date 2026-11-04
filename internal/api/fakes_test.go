@@ -518,6 +518,8 @@ type fakeLabels struct {
 	queueErr       error
 	put            feedback.PutResult
 	putErr         error
+	del            feedback.PutResult
+	delErr         error
 	startInfo      jobs.Info
 	startErr       error
 	judgeInfo      jobs.Info
@@ -525,9 +527,12 @@ type fakeLabels struct {
 	lastQuery      layer1.LabelQuery
 	lastContains   layer1.LabelQuery
 	lastContainsID int64
+	lastDeleteID   int64
+	lastDeleteQ    string
 	queueCalls     int
 	containsCalls  int
 	putCalls       int
+	deleteCalls    int
 	startCalls     int
 	judgeCalls     int
 }
@@ -563,6 +568,50 @@ func (f *fakeLabels) LabelQueueContains(_ context.Context, q layer1.LabelQuery, 
 func (f *fakeLabels) PutLabels(context.Context, []feedback.PutItem) (feedback.PutResult, error) {
 	f.putCalls++
 	return f.put, f.putErr
+}
+
+func (f *fakeLabels) DeleteLabel(_ context.Context, messageID int64, question string) (feedback.PutResult, error) {
+	f.deleteCalls++
+	f.lastDeleteID, f.lastDeleteQ = messageID, question
+	return f.del, f.delErr
+}
+
+type fakeUsage struct {
+	rows     []store.UsageRow
+	err      error
+	lastDays int
+	calls    int
+}
+
+func (f *fakeUsage) List(_ context.Context, days int) ([]store.UsageRow, error) {
+	f.calls++
+	f.lastDays = days
+	return f.rows, f.err
+}
+
+type fakeSources struct {
+	start, resume, retry                SourceActionView
+	startErr, resumeErr, retryErr       error
+	startCalls, resumeCalls, retryCalls int
+	lastID                              string
+}
+
+func (f *fakeSources) Start(_ context.Context, sourceID string) (SourceActionView, error) {
+	f.startCalls++
+	f.lastID = sourceID
+	return f.start, f.startErr
+}
+
+func (f *fakeSources) Resume(_ context.Context, sourceID string) (SourceActionView, error) {
+	f.resumeCalls++
+	f.lastID = sourceID
+	return f.resume, f.resumeErr
+}
+
+func (f *fakeSources) RetryDetails(_ context.Context, sourceID string) (SourceActionView, error) {
+	f.retryCalls++
+	f.lastID = sourceID
+	return f.retry, f.retryErr
 }
 
 type fakeHub struct {

@@ -59,6 +59,8 @@ type Services struct {
 	Sidecar       SidecarAPI
 	Logs          LogsAPI
 	Labels        Layer1API
+	Usage         UsageAPI
+	Sources       SourcesAPI
 	Hub           HubAPI
 	Messages      MessagesAPI
 	Threads       ThreadAPI
@@ -313,6 +315,23 @@ type Layer1API interface {
 	// only pre-gate message read the app allows.
 	LabelQueueContains(ctx context.Context, q layer1.LabelQuery, messageID int64) (bool, error)
 	PutLabels(ctx context.Context, items []feedback.PutItem) (feedback.PutResult, error)
+	// DeleteLabel removes one owner label and answers the same PutResult
+	// envelope as PutLabels.
+	DeleteLabel(ctx context.Context, messageID int64, question string) (feedback.PutResult, error)
+}
+
+// UsageAPI is the persisted inference counters, bounded to a day window.
+type UsageAPI interface {
+	List(ctx context.Context, days int) ([]store.UsageRow, error)
+}
+
+// SourcesAPI performs the owner actions a connector exposes outside a sync:
+// start its application, resume a stopped connection, and clear the messages
+// set aside after a failed detail read.
+type SourcesAPI interface {
+	Start(ctx context.Context, sourceID string) (SourceActionView, error)
+	Resume(ctx context.Context, sourceID string) (SourceActionView, error)
+	RetryDetails(ctx context.Context, sourceID string) (SourceActionView, error)
 }
 
 // HubAPI is the pre-gate read side: the hub, its label summary and the
@@ -327,6 +346,48 @@ type HubAPI interface {
 type SourceInfo struct {
 	ID   string `json:"id"`
 	Kind string `json:"kind"`
+}
+
+// SourceActionView is the one answer of an owner action on a source. Action
+// and Source name what ran; Retried is the number of messages retry-details
+// cleared and is absent for the other actions.
+type SourceActionView struct {
+	Action  string `json:"action"`
+	Source  string `json:"source"`
+	Retried int    `json:"retried,omitempty"`
+}
+
+// UsageTotals is the sum of one usage window.
+type UsageTotals struct {
+	Calls        int64   `json:"calls"`
+	Failures     int64   `json:"failures,omitempty"`
+	InputTokens  int64   `json:"input_tokens"`
+	OutputTokens int64   `json:"output_tokens"`
+	CostUSD      float64 `json:"cost_usd"`
+}
+
+// UsageView is the inference spend read model: the requested window, its
+// totals and the per-day, per-provider, per-model rows. Rows is always an
+// array, newest day first.
+type UsageView struct {
+	Days   int              `json:"days"`
+	Totals UsageTotals      `json:"totals"`
+	Rows   []store.UsageRow `json:"rows"`
+}
+
+// UsageViewFor is the one projection of stored usage rows to the wire view:
+// the totals are summed here, never by a second copy of the handler.
+func UsageViewFor(rows []store.UsageRow, days int) UsageView {
+	rows = nonNilSlice(rows)
+	out := UsageView{Days: days, Rows: rows}
+	for _, row := range rows {
+		out.Totals.Calls += row.Calls
+		out.Totals.Failures += row.Failures
+		out.Totals.InputTokens += row.InputTokens
+		out.Totals.OutputTokens += row.OutputTokens
+		out.Totals.CostUSD += row.CostUSD
+	}
+	return out
 }
 
 // StatusView is the status screen. The adapter fills the service-owned
@@ -812,6 +873,8 @@ func (s Services) validate() error {
 		{"sidecar", s.Sidecar != nil},
 		{"logs", s.Logs != nil},
 		{"labels", s.Labels != nil},
+		{"usage", s.Usage != nil},
+		{"sources", s.Sources != nil},
 		{"hub", s.Hub != nil},
 		{"messages", s.Messages != nil},
 		{"threads", s.Threads != nil},

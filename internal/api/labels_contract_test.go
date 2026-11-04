@@ -8,11 +8,10 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/LLM-4-People/mailsense/internal/config/configtest"
 	"github.com/LLM-4-People/mailsense/internal/feedback"
+	"github.com/LLM-4-People/mailsense/internal/fixturetest"
 	"github.com/LLM-4-People/mailsense/internal/mail"
 	"github.com/LLM-4-People/mailsense/internal/mail/mailtest"
-	"github.com/LLM-4-People/mailsense/internal/source"
 	"github.com/LLM-4-People/mailsense/internal/store"
 	"github.com/LLM-4-People/mailsense/internal/triage/taxonomy"
 )
@@ -30,19 +29,15 @@ func (s labelerService) PutLabels(ctx context.Context, items []feedback.PutItem)
 	return s.labeler.PutBatch(ctx, s.profile, items)
 }
 
+func (s labelerService) DeleteLabel(ctx context.Context, messageID int64, question string) (feedback.PutResult, error) {
+	return s.labeler.Delete(ctx, s.profile, messageID, question)
+}
+
 // labelWorld builds the API over a real store and labeler, with n visible
 // messages, and returns the message row ids.
 func labelWorld(t *testing.T, n int) (*Server, *httptest.Server, *world, *store.Store, []int64) {
 	t.Helper()
-	cfg := configtest.New(t, map[string]any{source.SettingSelected: mailtest.Picked([]string{"src"})})
-	st, err := store.Open(t.Context(), cfg, nil, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { _ = st.Close() })
-	if err := st.UpsertSource(t.Context(), "src", "test", "T", source.Capabilities{}); err != nil {
-		t.Fatal(err)
-	}
+	cfg, st := fixturetest.OpenStore(t, nil)
 	msgs := make([]mail.Message, n)
 	for i := range n {
 		msgs[i] = mailtest.Message("src", fmt.Sprintf("m%d", i))

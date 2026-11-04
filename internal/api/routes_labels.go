@@ -90,3 +90,20 @@ func (s *Server) handleLabelBatch(w http.ResponseWriter, r *http.Request) {
 	}
 	s.writeJSON(w, r, http.StatusOK, result)
 }
+
+// handleLabelDelete removes one owner label. It answers the same PutResult
+// envelope as the batch write; the labeler owns the known-question and
+// visible-message rules, and an absent label row is idempotent.
+func (s *Server) handleLabelDelete(w http.ResponseWriter, r *http.Request) {
+	messageID, err := pathID(r, "message_id")
+	if err != nil {
+		s.writeError(w, r, err)
+		return
+	}
+	result, err := s.services.Labels.DeleteLabel(r.Context(), messageID, r.PathValue("question"))
+	if err != nil {
+		s.writeError(w, r, err)
+		return
+	}
+	s.writeJSON(w, r, http.StatusOK, result)
+}

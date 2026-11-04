@@ -138,6 +138,9 @@ func (s *Server) mapError(err error) *APIError {
 		}
 		return out
 	}
+	if errors.Is(err, feedback.ErrUnknownLabelQuestion) {
+		return InvalidLabelQuestion()
+	}
 	var apiErr *APIError
 	if errors.As(err, &apiErr) {
 		if apiErr.Status == 0 {
@@ -458,6 +461,27 @@ func ErrInvalidSettingKeys(key string) *APIError {
 // endpoints" error.
 func ErrUseMailboxEndpoint() *APIError {
 	return &APIError{Status: http.StatusConflict, Code: "use_mailbox_endpoint", Message: "use the mailbox endpoints"}
+}
+
+// InvalidLabelQuestion is the one unknown-question answer of label deletion.
+func InvalidLabelQuestion() *APIError {
+	return &APIError{Status: http.StatusBadRequest, Code: "invalid_question",
+		Message: "the question is not in the profile", Params: map[string]string{"name": "question"}}
+}
+
+// UnknownSource is the one unknown-source answer of the source owner actions.
+// The sync and discovery routes keep their older 422 answer; an action names
+// one source record, so a missing id is a missing resource.
+func UnknownSource() *APIError {
+	return notFoundWith("unknown_source", "unknown mail source")
+}
+
+// SourceActionUnsupported is the one "this source cannot do that" answer.
+// The connector is valid; its optional capability is not implemented.
+func SourceActionUnsupported(action, sourceID string) *APIError {
+	return &APIError{Status: http.StatusConflict, Code: "action_unsupported",
+		Message: "the mail source does not support this action",
+		Params:  map[string]string{"action": action, "source": sourceID}}
 }
 
 // ErrUnknownCompany is the one unknown-company error.

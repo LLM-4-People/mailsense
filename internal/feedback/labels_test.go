@@ -1,6 +1,7 @@
 package feedback
 
 import (
+	"errors"
 	"testing"
 
 	"github.com/LLM-4-People/mailsense/internal/config/configtest"
@@ -51,7 +52,7 @@ func TestPutAndLoadLabels(t *testing.T) {
 	if err != nil || len(ls) != 2 || skipped != 1 || ls[0].Sender != "elodie@example.org" || ls[1].Value.Number != 1 || ls[0].At.IsZero() || ls[0].Created.IsZero() {
 		t.Fatalf("labels %+v skipped %d %v", ls, skipped, err)
 	}
-	if err := lb.Delete(ctx, id, "category"); err != nil {
+	if _, err := lb.Delete(ctx, p, id, "category"); err != nil {
 		t.Fatal(err)
 	}
 	<-changes.C
@@ -171,5 +172,38 @@ func TestPutJudgeStoresItsSourcePromptAndOneEvent(t *testing.T) {
 	}
 	if _, err := lb.PutJudge(ctx, p, id, "d", nil); err == nil {
 		t.Fatal("an empty judge batch was accepted")
+	}
+}
+
+// Delete validates the question and the message, and removing an already
+// absent label is idempotent because the store's delete is.
+func TestDeleteLabelIsValidatedAndIdempotent(t *testing.T) {
+	st, p, ids, _, lb := batchWorld(t, 1)
+	ctx := t.Context()
+	if err := lb.Put(ctx, p, ids[0], "category", "work"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := lb.Delete(ctx, p, ids[0], "not_a_question"); !errors.Is(err, ErrUnknownLabelQuestion) {
+		t.Fatalf("unknown question error %v", err)
+	}
+	if _, err := lb.Delete(ctx, p, 999999, "category"); !errors.Is(err, store.ErrNotFound) {
+		t.Fatalf("missing message error %v", err)
+	}
+	for range 2 {
+		got, err := lb.Delete(ctx, p, ids[0], "category")
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(got.Stored) != 1 || got.Stored[0].MessageID != ids[0] || got.Stored[0].Question != "category" ||
+			got.Stored[0].Source != store.LabelManual {
+			t.Fatalf("delete result %+v", got)
+		}
+	}
+	rows, err := st.ListLabels(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(rows) != 0 {
+		t.Fatalf("label still stored: %+v", rows)
 	}
 }

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/LLM-4-People/mailsense/internal/feedback"
@@ -170,4 +171,81 @@ func TestLabelBatchValidationIsAProblem(t *testing.T) {
 	if w.labels.putCalls != 1 {
 		t.Fatalf("put calls %d", w.labels.putCalls)
 	}
+}
+
+// The delete route answers the batch envelope and refuses only the path id;
+// the labeler owns the question and message rules.
+func TestLabelDeleteWireAndErrors(t *testing.T) {
+	srv, ts, w := newTestServer(t)
+	w.labels.del = feedback.PutResult{Stored: []feedback.StoredLabel{{MessageID: 7, Question: "category", Source: store.LabelManual}}}
+	status, _, data := do(t, ts, srv, request{method: "DELETE", path: "/api/labels/7/category"})
+	mustStatus(t, status, 200, data)
+	if w.labels.deleteCalls != 1 || w.labels.lastDeleteID != 7 || w.labels.lastDeleteQ != "category" {
+		t.Fatalf("delete call %d id %d question %q", w.labels.deleteCalls, w.labels.lastDeleteID, w.labels.lastDeleteQ)
+	}
+	body := decodeMap(t, data)
+	stored, _ := body["stored"].([]any)
+	if len(stored) != 1 {
+		t.Fatalf("stored %#v", body["stored"])
+	}
+	item, _ := stored[0].(map[string]any)
+	if item["message_id"] != float64(7) || item["question"] != "category" || item["source"] != store.LabelManual {
+		t.Fatalf("stored item %#v", item)
+	}
+
+	cases := []struct {
+		name   string
+		path   string
+		err    error
+		status int
+		code   string
+	}{
+		{"malformed id", "/api/labels/nope/category", nil, 400, "invalid_id"},
+		{"zero id", "/api/labels/0/category", nil, 400, "invalid_id"},
+		{"unknown question", "/api/labels/7/not_a_question", feedback.ErrUnknownLabelQuestion, 400, "invalid_question"},
+		{"missing message", "/api/labels/7/category", store.ErrNotFound, 404, "not_found"},
+	}
+	before := w.labels.deleteCalls
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			w.labels.delErr = tc.err
+			status, _, data := do(t, ts, srv, request{method: "DELETE", path: tc.path})
+			mustStatus(t, status, tc.status, data)
+			if code := errorCode(t, data); code != tc.code {
+				t.Fatalf("code %q, want %q", code, tc.code)
+			}
+		})
+	}
+	if w.labels.deleteCalls-before != 2 {
+		t.Fatalf("a malformed path reached the service: %d calls", w.labels.deleteCalls-before)
+	}
+}
+
+// Against the real store and labeler, a deleted label is gone from every
+// read, and deleting it again is idempotent (the store's delete is).
+func TestLabelDeleteRemovesTheStoredLabel(t *testing.T) {
+	srv, ts, w, st, ids := labelWorld(t, 1)
+	status, _, data := do(t, ts, srv, request{method: "POST", path: "/api/labels",
+		body: `{"items":[{"message_id":` + jsonNumber(ids[0]) + `,"question":"category","value":"work"}]}`})
+	mustStatus(t, status, 200, data)
+	if n := labelCount(t, st); n != 1 {
+		t.Fatalf("label stored %d", n)
+	}
+	path := "/api/labels/" + jsonNumber(ids[0]) + "/category"
+	for range 2 {
+		status, _, data := do(t, ts, srv, request{method: "DELETE", path: path})
+		mustStatus(t, status, 200, data)
+	}
+	if n := labelCount(t, st); n != 0 {
+		t.Fatalf("deleted label still listed: %d", n)
+	}
+	if w.labels.deleteCalls != 0 {
+		t.Fatalf("the API bypassed the real labeler: %d fake calls", w.labels.deleteCalls)
+	}
+}
+
+// jsonNumber renders a positive row id as the JSON literal the label batch
+// takes, so the contract test never hand-formats one.
+func jsonNumber(n int64) string {
+	return strconv.FormatInt(n, 10)
 }

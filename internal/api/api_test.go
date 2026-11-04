@@ -52,6 +52,8 @@ type world struct {
 	sidecar       *fakeSidecar
 	logs          *fakeLogs
 	labels        *fakeLabels
+	usage         *fakeUsage
+	sources       *fakeSources
 	hub           *fakeHub
 	messages      *fakeMessages
 	threads       *fakeThreads
@@ -116,7 +118,16 @@ func newWorld() *world {
 		labels: &fakeLabels{
 			queue:     layer1.LabelQueue{Question: "category", Strategy: layer1.LabelStrategyMissing, Tasks: []layer1.LabelTask{{MessageID: 1, Question: "category"}}},
 			put:       feedback.PutResult{Stored: []feedback.StoredLabel{{MessageID: 1, Question: "category", Source: "manual"}}},
+			del:       feedback.PutResult{Stored: []feedback.StoredLabel{{MessageID: 1, Question: "category", Source: "manual"}}},
 			startInfo: info("job-layer1", "layer1", runstate.Running), judgeInfo: info("job-judge", "labels.judge", runstate.Running),
+		},
+		usage: &fakeUsage{rows: []store.UsageRow{
+			{Day: "2026-11-04", Provider: "decider", Model: "deepseek", Calls: 3, Failures: 1, InputTokens: 30, OutputTokens: 9, CostUSD: 0.25},
+		}},
+		sources: &fakeSources{
+			start:  SourceActionView{Action: "start", Source: "outlook"},
+			resume: SourceActionView{Action: "resume", Source: "outlook"},
+			retry:  SourceActionView{Action: "retry-details", Source: "outlook", Retried: 2},
 		},
 		messages: &fakeMessages{view: MessageView{RowID: 1, Revision: 1, Message: &MessageWire{ID: "m1", Subject: "synthetic"}}},
 		threads:  &fakeThreads{view: ThreadView{ConversationID: "C1"}},
@@ -152,7 +163,7 @@ func newWorld() *world {
 	w.services = Services{
 		Bus: w.bus, Status: w.status, Learning: w.learning, Jobs: w.jobs, HeldRemovals: w.held, Mailboxes: w.mailboxes, Runs: w.runs,
 		Triage: w.triage, Search: w.search, Settings: w.settings, Secrets: w.secrets, Providers: w.providers,
-		Sidecar: w.sidecar, Logs: w.logs, Labels: w.labels, Hub: w.hub, Messages: w.messages,
+		Sidecar: w.sidecar, Logs: w.logs, Labels: w.labels, Usage: w.usage, Sources: w.sources, Hub: w.hub, Messages: w.messages,
 		Threads: w.threads, Conversations: w.conversations, Commitments: w.commitments, Brief: w.brief,
 		Priority: w.priority, Agenda: w.agenda, Ask: w.ask,
 		Companies: w.companies, Shutdown: w.shutdown, Boot: w.boot,

@@ -20,6 +20,7 @@ func TestEveryEndpointSucceeds(t *testing.T) {
 		status int
 	}{
 		{"status", request{method: "GET", path: "/api/status"}, 200},
+		{"usage", request{method: "GET", path: "/api/usage"}, 200},
 		{"boot", request{method: "GET", path: "/api/boot"}, 200},
 		{"learning", request{method: "GET", path: "/api/learning"}, 200},
 		{"gate", request{method: "GET", path: "/api/gate"}, 200},
@@ -37,6 +38,9 @@ func TestEveryEndpointSucceeds(t *testing.T) {
 		{"declare", request{method: "POST", path: "/api/mailboxes/declare", body: `{"key":"store-1","address":"owner@example.test"}`}, 200},
 		{"undeclare", request{method: "POST", path: "/api/mailboxes/undeclare", body: `{"key":"store-1","address":"owner@example.test"}`}, 200},
 		{"sync", request{method: "POST", path: "/api/actions/sync", body: `{"source":"outlook"}`}, 202},
+		{"source start", request{method: "POST", path: "/api/sources/outlook/start", body: `{}`}, 200},
+		{"source resume", request{method: "POST", path: "/api/sources/outlook/resume", body: `{}`}, 200},
+		{"source retry details", request{method: "POST", path: "/api/sources/outlook/retry-details", body: `{}`}, 200},
 		{"evidence", request{method: "POST", path: "/api/actions/run_evidence", body: `{}`}, 202},
 		{"index", request{method: "POST", path: "/api/actions/index", body: `{"stores":["store-1"]}`}, 202},
 		{"layer1", request{method: "POST", path: "/api/actions/run_layer1", body: `{}`}, 202},
@@ -66,6 +70,7 @@ func TestEveryEndpointSucceeds(t *testing.T) {
 		{"label queue", request{method: "GET", path: "/api/labels/queue?question=category&limit=1"}, 200},
 		{"label review queue", request{method: "GET", path: "/api/labels/queue?question=category&limit=1&review=true"}, 200},
 		{"labels", request{method: "POST", path: "/api/labels", body: `{"items":[{"message_id":1,"question":"category","value":"work"}]}`}, 200},
+		{"label delete", request{method: "DELETE", path: "/api/labels/1/category"}, 200},
 		{"messages", request{method: "GET", path: "/api/messages"}, 200},
 		{"message", request{method: "GET", path: "/api/messages/1"}, 200},
 		{"thread", request{method: "GET", path: "/api/threads/C1"}, 200},
@@ -105,6 +110,7 @@ func TestEveryEndpointRejectsTheWrongMethod(t *testing.T) {
 		path   string
 	}{
 		{"POST", "/api/status"},
+		{"POST", "/api/usage"},
 		{"POST", "/api/boot"},
 		{"POST", "/api/learning"},
 		{"POST", "/api/gate"},
@@ -119,6 +125,7 @@ func TestEveryEndpointRejectsTheWrongMethod(t *testing.T) {
 		{"GET", "/api/mailboxes/declare"},
 		{"GET", "/api/mailboxes/undeclare"},
 		{"GET", "/api/actions/sync"},
+		{"GET", "/api/sources/outlook/start"},
 		{"POST", "/api/settings"},
 		{"POST", "/api/settings/time.zone"},
 		{"GET", "/api/settings/reload"},
@@ -138,6 +145,7 @@ func TestEveryEndpointRejectsTheWrongMethod(t *testing.T) {
 		{"POST", "/api/events"},
 		{"POST", "/api/labels/queue"},
 		{"GET", "/api/labels"},
+		{"POST", "/api/labels/1/category"},
 		{"POST", "/api/messages"},
 		{"POST", "/api/messages/1"},
 		{"POST", "/api/messages/1/attachments/0"},

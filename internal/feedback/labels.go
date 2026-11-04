@@ -14,6 +14,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"maps"
 	"slices"
@@ -285,13 +286,34 @@ func (lb *Labeler) put(ctx context.Context, p *taxonomy.Profile, items []PutItem
 	return PutResult{Stored: stored}, nil
 }
 
-// Delete removes the owner's label of a message's question.
-func (lb *Labeler) Delete(ctx context.Context, messageID int64, question string) error {
+// ErrUnknownLabelQuestion is the one refusal of a label write or delete
+// naming a question the current profile does not have.
+var ErrUnknownLabelQuestion = errors.New("feedback: unknown label question")
+
+// Delete removes the owner's manual label of a message's question and returns
+// the identifier the route reports. The question must exist in the profile
+// and the message must be visible; deleting a label that is already gone is
+// idempotent, because the store's delete is (the second call publishes the
+// same removal event).
+func (lb *Labeler) Delete(ctx context.Context, p *taxonomy.Profile, messageID int64, question string) (PutResult, error) {
+	if p == nil {
+		return PutResult{}, fmt.Errorf("feedback: a profile is required")
+	}
+	if _, ok := p.Question(question); !ok {
+		return PutResult{}, fmt.Errorf("%w: %q", ErrUnknownLabelQuestion, question)
+	}
+	found, err := lb.st.MessageIDs(ctx, store.MessageFilter{RowIDs: []int64{messageID}})
+	if err != nil {
+		return PutResult{}, err
+	}
+	if len(found) == 0 {
+		return PutResult{}, store.ErrNotFound
+	}
 	if err := lb.st.DeleteLabel(ctx, messageID, question, store.LabelManual); err != nil {
-		return err
+		return PutResult{}, err
 	}
 	lb.changed(messageID, question, "delete")
-	return nil
+	return PutResult{Stored: []StoredLabel{{MessageID: messageID, Question: question, Source: store.LabelManual}}}, nil
 }
 
 func (lb *Labeler) changed(messageID int64, question, action string) {

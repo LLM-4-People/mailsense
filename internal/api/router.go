@@ -11,6 +11,7 @@ import (
 func (s *Server) buildHandler() http.Handler {
 	s.mux = http.NewServeMux()
 	s.get("/api/status", false, s.handleStatus)
+	s.get("/api/usage", false, s.handleUsage)
 	s.get("/api/setup", false, s.handleSetup)
 	s.get("/api/boot", false, s.handleBoot)
 	s.get("/api/learning", false, s.handleLearning)
@@ -34,6 +35,7 @@ func (s *Server) buildHandler() http.Handler {
 	s.post("/api/mailboxes/undeclare", false, s.handleMailboxUndeclare)
 
 	s.post("/api/actions/{action}", false, s.handleAction)
+	s.post("/api/sources/{id}/{action}", true, s.handleSourceAction)
 
 	s.get("/api/settings", false, s.handleSettings)
 	// The settings subtree is dispatched by hand: a methodless literal
@@ -74,6 +76,9 @@ func (s *Server) buildHandler() http.Handler {
 	s.get("/api/labels/summary", false, s.handleLabelSummary)
 	s.get("/api/labels/queue", true, s.handleLabelQueue)
 	s.post("/api/labels", false, s.handleLabelBatch)
+	s.methods("/api/labels/{message_id}/{question}", "DELETE", false, map[string]http.HandlerFunc{
+		"DELETE": s.handleLabelDelete,
+	})
 	// The all-mail list is an exact literal beside the message wildcard;
 	// ServeMux prefers the exact path, and both keep their JSON 405
 	// fallback.

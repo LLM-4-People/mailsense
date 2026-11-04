@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/LLM-4-People/mailsense/internal/events"
+	"github.com/LLM-4-People/mailsense/internal/fixturetest"
 	"github.com/LLM-4-People/mailsense/internal/learning"
 	"github.com/LLM-4-People/mailsense/internal/logx"
 	"github.com/LLM-4-People/mailsense/internal/syncer"
@@ -178,18 +179,6 @@ func openSSEURL(t *testing.T, base string, srv *Server, path string, ctx context
 		t.Fatalf("first SSE frame is not retry: %+v", f)
 	}
 	return st
-}
-
-func waitFor(t *testing.T, what string, cond func() bool) {
-	t.Helper()
-	deadline := time.Now().Add(3 * time.Second)
-	for time.Now().Before(deadline) {
-		if cond() {
-			return
-		}
-		time.Sleep(time.Millisecond)
-	}
-	t.Fatalf("timed out waiting for %s", what)
 }
 
 func entry(seq uint64, message string) logx.Entry {
@@ -550,7 +539,7 @@ func TestSSELogWakeIsAReferenceNotThePayload(t *testing.T) {
 	// behaves like Logs and reads the ring after the wake.
 	idle := openSSE(t, ts, srv, "/api/events", nil, context.Background())
 	logs := openSSE(t, ts, srv, "/api/events", nil, context.Background())
-	waitFor(t, "both stream clients", func() bool { return srv.hub.Count() == 2 })
+	fixturetest.WaitUntil(t, 3*time.Second, "both stream clients", func() bool { return srv.hub.Count() == 2 })
 
 	const n = 100
 	entries := make([]logx.Entry, n)
@@ -609,17 +598,17 @@ func TestSSECancellation(t *testing.T) {
 	t.Run("request context", func(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		st := openSSE(t, ts, srv, "/api/events?since=0", nil, ctx)
-		waitFor(t, "the stream to register", func() bool { return srv.hub.Count() == 1 })
+		fixturetest.WaitUntil(t, 3*time.Second, "the stream to register", func() bool { return srv.hub.Count() == 1 })
 		cancel()
-		waitFor(t, "the stream to leave the hub", func() bool { return srv.hub.Count() == 0 })
+		fixturetest.WaitUntil(t, 3*time.Second, "the stream to leave the hub", func() bool { return srv.hub.Count() == 0 })
 		st.close()
 	})
 
 	t.Run("client disconnect", func(t *testing.T) {
 		st := openSSE(t, ts, srv, "/api/events?since=0", nil, context.Background())
-		waitFor(t, "the stream to register", func() bool { return srv.hub.Count() == 1 })
+		fixturetest.WaitUntil(t, 3*time.Second, "the stream to register", func() bool { return srv.hub.Count() == 1 })
 		_ = st.resp.Body.Close()
-		waitFor(t, "the stream to leave the hub", func() bool { return srv.hub.Count() == 0 })
+		fixturetest.WaitUntil(t, 3*time.Second, "the stream to leave the hub", func() bool { return srv.hub.Count() == 0 })
 	})
 
 	t.Run("cancel during a large seed", func(t *testing.T) {
@@ -630,9 +619,9 @@ func TestSSECancellation(t *testing.T) {
 		w.logs.Reset(entries...)
 		ctx, cancel := context.WithCancel(context.Background())
 		st := openSSE(t, ts, srv, "/api/events?since=0", nil, ctx)
-		waitFor(t, "the stream to register", func() bool { return srv.hub.Count() == 1 })
+		fixturetest.WaitUntil(t, 3*time.Second, "the stream to register", func() bool { return srv.hub.Count() == 1 })
 		cancel()
-		waitFor(t, "the stream to leave the hub", func() bool { return srv.hub.Count() == 0 })
+		fixturetest.WaitUntil(t, 3*time.Second, "the stream to leave the hub", func() bool { return srv.hub.Count() == 0 })
 		st.close()
 	})
 }
@@ -644,7 +633,7 @@ func TestSSEMaxClients(t *testing.T) {
 	w.logs.Reset(entry(1, "one"))
 	srv, ts, _ := newTestServerWith(t, opts, w)
 	first := openSSE(t, ts, srv, "/api/events", nil, context.Background())
-	waitFor(t, "the first client", func() bool { return srv.hub.Count() == 1 })
+	fixturetest.WaitUntil(t, 3*time.Second, "the first client", func() bool { return srv.hub.Count() == 1 })
 
 	status, header, data := do(t, ts, srv, request{method: "GET", path: "/api/events"})
 	mustStatus(t, status, 503, data)
@@ -655,12 +644,12 @@ func TestSSEMaxClients(t *testing.T) {
 		t.Fatalf("code %q", code)
 	}
 	first.close()
-	waitFor(t, "the first client to leave", func() bool { return srv.hub.Count() == 0 })
+	fixturetest.WaitUntil(t, 3*time.Second, "the first client to leave", func() bool { return srv.hub.Count() == 0 })
 
 	second := openSSE(t, ts, srv, "/api/events", nil, context.Background())
-	waitFor(t, "the second client", func() bool { return srv.hub.Count() == 1 })
+	fixturetest.WaitUntil(t, 3*time.Second, "the second client", func() bool { return srv.hub.Count() == 1 })
 	second.close()
-	waitFor(t, "the second client to leave", func() bool { return srv.hub.Count() == 0 })
+	fixturetest.WaitUntil(t, 3*time.Second, "the second client to leave", func() bool { return srv.hub.Count() == 0 })
 }
 
 func TestSSEShutdownWhileStreaming(t *testing.T) {
@@ -669,7 +658,7 @@ func TestSSEShutdownWhileStreaming(t *testing.T) {
 	w.logs.Reset(entry(1, "one"))
 	srv, base := newStartedServer(t, opts, w)
 	st := openSSEURL(t, base, srv, "api/events", context.Background())
-	waitFor(t, "the stream to register", func() bool { return srv.hub.Count() == 1 })
+	fixturetest.WaitUntil(t, 3*time.Second, "the stream to register", func() bool { return srv.hub.Count() == 1 })
 
 	ctx, cancel := context.WithTimeout(context.Background(), opts.ShutdownTimeout)
 	defer cancel()

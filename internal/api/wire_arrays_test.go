@@ -78,6 +78,7 @@ func TestListEndpointsNeverAnswerNull(t *testing.T) {
 	w.status.view = StatusView{}
 	w.jobs.list = nil
 	w.held.folders = nil
+	w.usage.rows = nil
 	w.mailboxes.list, w.mailboxes.boxes = nil, nil
 	w.secrets.view = SecretsView{Kind: "dpapi"}
 	w.providers.list, w.providers.roles = nil, nil
@@ -119,6 +120,7 @@ func TestListEndpointsNeverAnswerNull(t *testing.T) {
 		{name: "learned settings", path: "/api/settings/learned", arrays: [][]string{{"learned"}}},
 		{name: "sidecar", path: "/api/sidecar", arrays: [][]string{{"builds"}, {"runtimes"}}},
 		{name: "status", path: "/api/status", arrays: [][]string{{"sources"}, {"restart_pending"}}, objects: [][]string{{"store_meta"}}},
+		{name: "usage", path: "/api/usage", arrays: [][]string{{"rows"}}},
 		{name: "thread", path: "/api/threads/C1", arrays: [][]string{{"messages"}, {"participants"}}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

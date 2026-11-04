@@ -116,6 +116,18 @@ type Connector interface {
 	Sync(ctx context.Context, folder mail.Folder, cursor Cursor, sink Sink) (Cursor, error)
 }
 
+// Starter is implemented by connectors whose application can be started at
+// the owner's request. Background work never calls it.
+type Starter interface {
+	StartOutlook(ctx context.Context) error
+}
+
+// Resumer is implemented by connectors whose connection stopped after
+// repeated losses and waits for the owner to resume it.
+type Resumer interface {
+	Resume() error
+}
+
 // FolderStatus is what a connector knows about a stored folder that its
 // last Discover did not return.
 type FolderStatus int

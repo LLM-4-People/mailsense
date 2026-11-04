@@ -130,6 +130,8 @@ func servicesFor(a *app, shutdown *shutdownRequest, boot *bootState) api.Service
 		Sidecar:       sidecarAPI{w},
 		Logs:          logsAPI{w},
 		Labels:        layer1API{w},
+		Usage:         usageAPI{w},
+		Sources:       sourcesAPI{w},
 		Hub:           hubAPI{w},
 		Messages:      messagesAPI{w},
 		Threads:       threadAPI{w},
@@ -373,6 +375,12 @@ func (a jobsAPI) Cancel(id string) (jobs.Info, bool) {
 	return j.Info(), true
 }
 
+type usageAPI struct{ w *wire }
+
+func (a usageAPI) List(ctx context.Context, days int) ([]store.UsageRow, error) {
+	return a.w.app.st.ListUsage(ctx, days)
+}
+
 type mailboxesAPI struct{ w *wire }
 
 func (a mailboxesAPI) List(ctx context.Context) ([]store.MailboxView, error) {
@@ -462,6 +470,71 @@ func (a runsAPI) StartIndex(ctx context.Context, stores []string) (jobs.Info, er
 		}
 	}
 	return startedJob(a.w.app.index.Start(a.w.app.jobs, index.Options{Stores: stores}))
+}
+
+// sourcesAPI is the owner-action surface of one connector. Only the optional
+// interfaces a connector actually implements are callable; a capability it
+// does not declare is a named 409, never a panic or a silent sync.
+type sourcesAPI struct{ w *wire }
+
+func (a sourcesAPI) connector(id string) (source.Connector, error) {
+	if a.w == nil || a.w.app == nil || a.w.app.registry == nil {
+		return nil, api.UnknownSource()
+	}
+	c, ok := a.w.app.registry.Get(id)
+	if !ok {
+		return nil, api.UnknownSource()
+	}
+	return c, nil
+}
+
+func (a sourcesAPI) Start(ctx context.Context, id string) (api.SourceActionView, error) {
+	c, err := a.connector(id)
+	if err != nil {
+		return api.SourceActionView{}, err
+	}
+	starter, ok := c.(source.Starter)
+	if !ok {
+		return api.SourceActionView{}, api.SourceActionUnsupported("start", id)
+	}
+	if err := starter.StartOutlook(ctx); err != nil {
+		return api.SourceActionView{}, err
+	}
+	return api.SourceActionView{Action: "start", Source: id}, nil
+}
+
+func (a sourcesAPI) Resume(ctx context.Context, id string) (api.SourceActionView, error) {
+	c, err := a.connector(id)
+	if err != nil {
+		return api.SourceActionView{}, err
+	}
+	resumer, ok := c.(source.Resumer)
+	if !ok {
+		return api.SourceActionView{}, api.SourceActionUnsupported("resume", id)
+	}
+	if err := resumer.Resume(); err != nil {
+		return api.SourceActionView{}, err
+	}
+	return api.SourceActionView{Action: "resume", Source: id}, nil
+}
+
+func (a sourcesAPI) RetryDetails(ctx context.Context, id string) (api.SourceActionView, error) {
+	c, err := a.connector(id)
+	if err != nil {
+		return api.SourceActionView{}, err
+	}
+	if _, ok := c.(source.DetailReader); !ok {
+		return api.SourceActionView{}, api.SourceActionUnsupported("retry-details", id)
+	}
+	if a.w.app.syncer == nil {
+		return api.SourceActionView{}, &api.APIError{Status: http.StatusServiceUnavailable,
+			Code: "unavailable", Message: "the sync service is unavailable"}
+	}
+	retried, err := a.w.app.syncer.RetryDetails(ctx, id)
+	if err != nil {
+		return api.SourceActionView{}, err
+	}
+	return api.SourceActionView{Action: "retry-details", Source: id, Retried: retried}, nil
 }
 
 type triageAPI struct{ w *wire }
@@ -960,6 +1033,14 @@ func (a layer1API) PutLabels(ctx context.Context, items []feedback.PutItem) (fee
 		return feedback.PutResult{}, api.ErrInvalidProfile()
 	}
 	return a.w.app.labels.PutBatch(ctx, profile, items)
+}
+
+func (a layer1API) DeleteLabel(ctx context.Context, messageID int64, question string) (feedback.PutResult, error) {
+	profile, err := taxonomy.Load(a.w.app.cfg)
+	if err != nil {
+		return feedback.PutResult{}, api.ErrInvalidProfile()
+	}
+	return a.w.app.labels.Delete(ctx, profile, messageID, question)
 }
 
 type messagesAPI struct{ w *wire }
