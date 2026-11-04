@@ -21,8 +21,8 @@ next, this file wins.
 
 Publish Mailsense as an installable, bilingual, local-first desktop product
 under `https://github.com/LLM-4-People/mailsense`, licensed AGPL-3.0-or-later,
-with a generated public surface, an installer for Windows and Linux, a first-run
-setup, and documentation that a new owner can follow without help.
+with a generated public surface, a Windows installer, a first-run setup, and
+documentation that a new owner can follow without help.
 
 ## Current status, 2026-11-04
 
@@ -70,8 +70,8 @@ setup, and documentation that a new owner can follow without help.
    `mailsense`, public.
 5. **Voice:** plain, specific, non-promotional, in both languages. The
    mechanical guard is `internal/prose`.
-6. **Installers:** Inno Setup for Windows (per-user, no admin) and a tarball
-   with `packaging/linux/install.sh` for Linux.
+6. **Installer:** Inno Setup for Windows (per-user, no admin). The source builds
+   on Linux as a preview with an empty inbox, and it is not a release download.
 7. **Documentation site:** Jekyll from `docs/`, English and French, deployed by
    `.github/workflows/pages.yml`.
 8. **First run:** an overlay over the shell, not a router screen. It writes the
@@ -102,14 +102,14 @@ setup, and documentation that a new owner can follow without help.
   and every generated output, so a missing English or French page fails the
   check. `cmd/gensite` has `-write`, `-check` and `-pages`; `make
   site-check` passes.
-- Every bilingual guide pair declared in `internal/site` ships, and the release
-  tarball reads that same page list. The pages cover install, first run,
+- Every bilingual guide pair declared in `internal/site` ships, and the
+  installer reads that same page list. The pages cover install, first run,
   mailboxes, providers, learning, privacy, security, troubleshooting, FAQ and
   contributing.
 - The docs match the product: classic Outlook COM on Windows, no Microsoft
-  sign-in, Linux preview with no live source, downloaded runtime with Windows
-  and Linux sizes, no SQL console, no diagnostics export bundle, local training
-  and remote requests stated plainly.
+  sign-in, a Linux source preview with no live source, downloaded runtime with
+  Windows and Linux sizes, no SQL console, no diagnostics export bundle, local
+  training and remote requests stated plainly.
 - First-run backend: `ui.setup.done` in the schema, `GET /api/setup`, and tests
   for a fresh install, a marker, an existing selected mailbox, and discovered
   but unselected stores.
@@ -118,8 +118,8 @@ setup, and documentation that a new owner can follow without help.
   a Not now path on the mail step; the chosen language applied before the next
   step paints; French and English catalogs; contract tests for the manifest,
   boot order, route reuse and catalog coverage.
-- Windows Inno Setup, Linux tarball installer, CI, release, Pages, CodeQL,
-  issue templates, PR template and dependabot exist and parse.
+- Windows Inno Setup, CI, release, Pages, CodeQL, issue templates, PR template
+  and dependabot exist and parse.
 - `scripts/test-fast.sh` and `scripts/test.sh` are green on the final tree.
 
 ### Blocked or waiting on the owner
@@ -155,8 +155,8 @@ setup, and documentation that a new owner can follow without help.
       analysis reports zero open alerts.
 - [ ] Pull request 1 is merged.
 - [ ] Pages is enabled and the bilingual site is verified.
-- [ ] A tagged release publishes the installer, the tarball, the SBOM and the
-      checksum manifest, and the installer is verified on Windows.
+- [ ] A tagged release publishes the installer, the SBOM and the checksum
+      manifest, and the installer is verified on Windows.
 
 ## Next actions, in order
 
@@ -164,8 +164,8 @@ setup, and documentation that a new owner can follow without help.
    green.
 2. Watch the Pages workflow on `main`, then verify the English and French
    landing pages, every guide page, both READMEs and every navigation link.
-3. Create the first version tag and verify the release assets: Windows
-   installer, Linux tarball, SBOM, checksums and provenance attestation.
+3. Create the first version tag and verify the release assets: the Windows
+   installer, the SBOM, the checksums and the provenance attestation.
 4. Install the Windows package on a Windows test machine and run the first-run
    setup from a clean data directory.
 5. Announce.
@@ -178,7 +178,7 @@ setup, and documentation that a new owner can follow without help.
 - [x] `scripts/build.sh` produces version-stamped Windows and Linux binaries.
 - [x] Windows Inno Setup script, per user, no admin, data preserved on
       uninstall.
-- [x] Linux tarball installer with a desktop entry and XDG data directory.
+- [x] Linux source preview with an empty inbox; it is not a release download.
 - [x] The local runtime is fetched on first use, pinned by version and SHA-256,
       verified before every launch, with no offline bundle.
 - [x] Unsigned Windows builds are labelled on the install page.

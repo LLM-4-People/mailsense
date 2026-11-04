@@ -23,11 +23,12 @@ Not in this build. The only live source is classic Outlook on Windows through
 COM. New Outlook, Outlook on the web, IMAP, POP, the Gmail API and Microsoft
 Graph are not connected.
 
-## Why is the inbox empty on Linux?
+## Does it run on Linux?
 
-The Linux build is a preview. It opens the window, renders the screens and
-explains the missing source, but it has no live mail connector. The inbox stays
-empty by design.
+The release ships a Windows installer; the source also builds on Linux as a
+preview with an empty inbox, and that build is not a release download. The
+preview opens the window and explains the missing live source, so the inbox
+stays empty.
 
 ## Do I need a model to use it?
 
@@ -39,9 +40,8 @@ local runtime can provide.
 ## Where is my data?
 
 The status bar shows the data directory. On Windows it is
-`%LOCALAPPDATA%\Mailsense`; on Linux it is
-`${XDG_DATA_HOME:-~/.local/share}/mailsense`. Set `MAILSENSE_DATA_DIR` before
-launch to use another directory.
+`%LOCALAPPDATA%\Mailsense`. Set `MAILSENSE_DATA_DIR` before launch to use
+another directory.
 
 ## How do I delete my data?
 

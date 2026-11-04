@@ -18,7 +18,7 @@ image:
     <p class="promise">Ask your mail a question. It answers with a count, a list, or a written answer that cites the messages it used.</p>
     <p class="lede">It reads the classic Outlook profile already open on your PC. Ask answers from the local index; a written answer comes only from a model you configured and the messages it can cite. The store, the classifier and the learned profile stay on your disk.</p>
     <p class="hero-actions"><a class="button" href="install.html">Install</a><a class="text-link" href="first-run.html">Read the first-run guide</a></p>
-    <p class="hero-note">Windows installer, or the Linux preview. No account, no telemetry.</p>
+    <p class="hero-note">Windows installer. No account, no telemetry.</p>
   </div>
   <figure class="hero-art">
     <img src="assets/queue-en.svg" width="640" height="480" alt="An invented ranked queue with three rows: verify an invoice, reply to a kickoff, read workshop notes.">
@@ -141,7 +141,7 @@ image:
       <p>It reads the profile through COM. New Outlook, Outlook on the web, IMAP, POP, the Gmail API, Microsoft Graph and file import are not connected in this build.</p>
     </li>
     <li>
-      <h3>The Linux build is a preview.</h3>
+      <h3>The Linux preview is built from source.</h3>
       <p>It opens, renders every screen and explains the missing source. The inbox stays empty because there is no live connector yet.</p>
     </li>
     <li>
@@ -166,14 +166,13 @@ image:
 <section class="install" id="install" aria-labelledby="install-title">
   <div class="install-copy">
     <h2 id="install-title">Install</h2>
-    <p class="section-lead">Windows is the supported live build. Linux is a preview.</p>
-    <h3>Windows</h3><p>Download the per-user installer from <a href="https://github.com/LLM-4-People/mailsense/releases">Releases</a>. It needs the Microsoft Edge WebView2 runtime, which Windows 11 and current Windows 10 already have. The build is not code-signed, so Windows may ask you to confirm the publisher.</p>
-    <h3>Linux</h3><p>Download the amd64 tarball, extract it and run install.sh for a menu entry, or run the binary directly.</p>
+    <p class="section-lead">The release ships a Windows installer; the source also builds on Linux as a preview with an empty inbox, and that build is not a release download.</p>
+    <h3>Windows</h3><p>Download the installer from <a href="https://github.com/LLM-4-People/mailsense/releases">Releases</a>. The install is per user and needs no administrator rights. The database and settings live in <code>%LOCALAPPDATA%\Mailsense</code>, and uninstalling keeps them until you delete that directory. Mailsense needs the Microsoft Edge WebView2 runtime, which Windows 11 and current Windows 10 already have. The build is not code-signed, so SmartScreen may ask you to confirm the publisher.</p>
   </div>
   <div class="install-panel">
-    <p class="panel-label">Linux preview</p>
-    <pre><code>tar -xzf mailsense-*-linux-amd64.tar.gz &amp;&amp; cd mailsense-*-linux-amd64 &amp;&amp; ./install.sh</code></pre>
-    <p class="note">One command for the Linux preview, from the directory that holds the downloaded tarball.</p>
+    <p class="panel-label">Windows installer</p>
+    <pre><code>mailsense-&lt;version&gt;-setup.exe</code></pre>
+    <p class="note">The version comes from the release tag. Download the file from the <a href="https://github.com/LLM-4-People/mailsense/releases">releases page</a>.</p>
     <a class="button button-light" href="first-run.html">Read the first-run guide</a>
   </div>
 </section>
