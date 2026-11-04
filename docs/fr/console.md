@@ -7,7 +7,7 @@ lang: fr
 # Console
 
 <!-- nav:start -->
-[Documentation](index.md) · [Installation](install.md) · [Premier démarrage](first-run.md) · **Console** · [Boîtes](mailboxes.md) · [Fournisseurs](providers.md) · [Apprentissage](learning.md) · [FAQ](faq.md) · [Confidentialité](privacy.md) · [Sécurité](security.md) · [Dépannage](troubleshooting.md) · [Contribuer](contributing.md) · [English](../console.md)
+[Documentation](index.md) · [Installation](install.md) · [Premier démarrage](first-run.md) · **Console** · [Boîtes](mailboxes.md) · [Fournisseurs](providers.md) · [Apprentissage](learning.md) · [FAQ](faq.md) · [Confidentialité](privacy.md) · [Sécurité](security.md) · [Dépannage](troubleshooting.md) · [Contribuer](contributing.md) · <a href="../console.html" hreflang="en" lang="en" data-lang-switch="en">English</a>
 <!-- nav:end -->
 
 

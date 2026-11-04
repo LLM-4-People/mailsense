@@ -170,6 +170,9 @@ func (s Site) Landing(lang string) []byte {
 	out.WriteString("layout: default\n")
 	fmt.Fprintf(&out, "title: %s\n", yamlQuote(title))
 	fmt.Fprintf(&out, "lang: %s\n", yamlQuote(lang))
+	// The head override reads this flag, so only the two landings carry the
+	// alternate links and the automatic language switch.
+	out.WriteString("language_switch: true\n")
 	fmt.Fprintf(&out, "description: %s\n", yamlQuote(s.Hero.Promise.For(lang)))
 	// The theme's head calls jekyll-seo-tag, which turns this image block into
 	// the Open Graph and Twitter card. The path, size and alt text come from

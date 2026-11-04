@@ -10,7 +10,6 @@ header_pages:
   - "install.md"
   - "first-run.md"
   - "privacy.md"
-  - "fr/index.md"
 markdown: "kramdown"
 plugins:
   - "jekyll-relative-links"

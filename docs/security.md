@@ -6,7 +6,7 @@ title: Security
 # Security
 
 <!-- nav:start -->
-[Documentation](index.md) · [Install](install.md) · [First run](first-run.md) · [Console](console.md) · [Mailboxes](mailboxes.md) · [Providers](providers.md) · [Learning](learning.md) · [FAQ](faq.md) · [Privacy](privacy.md) · **Security** · [Troubleshooting](troubleshooting.md) · [Contributing](contributing.md) · [Français](fr/security.md)
+[Documentation](index.md) · [Install](install.md) · [First run](first-run.md) · [Console](console.md) · [Mailboxes](mailboxes.md) · [Providers](providers.md) · [Learning](learning.md) · [FAQ](faq.md) · [Privacy](privacy.md) · **Security** · [Troubleshooting](troubleshooting.md) · [Contributing](contributing.md) · <a href="fr/security.html" hreflang="fr" lang="fr" data-lang-switch="fr">Français</a>
 <!-- nav:end -->
 
 Mailsense is a local desktop app. It reads a mail profile on the same machine,

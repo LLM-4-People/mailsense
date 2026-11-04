@@ -2,6 +2,7 @@
 layout: default
 title: "Mailsense (français)"
 lang: "fr"
+language_switch: true
 description: "Mailsense transforme votre boîte Outlook en une liste classée de ce qui vous attend, avec la raison sur chaque ligne."
 image:
   path: "/assets/social-preview.png"
@@ -25,7 +26,7 @@ image:
   </figure>
 </header>
 
-[Installation](install.md) · [Premier démarrage](first-run.md) · [Console](console.md) · [Boîtes](mailboxes.md) · [Fournisseurs](providers.md) · [Apprentissage](learning.md) · [FAQ](faq.md) · [Confidentialité](privacy.md) · [Sécurité](security.md) · [Dépannage](troubleshooting.md) · [Contribuer](contributing.md) · [English](../index.md)
+[Installation](install.md) · [Premier démarrage](first-run.md) · [Console](console.md) · [Boîtes](mailboxes.md) · [Fournisseurs](providers.md) · [Apprentissage](learning.md) · [FAQ](faq.md) · [Confidentialité](privacy.md) · [Sécurité](security.md) · [Dépannage](troubleshooting.md) · [Contribuer](contributing.md) · <a href="../" hreflang="en" lang="en" data-lang-switch="en">English</a>
 
 <section class="differences" aria-labelledby="differences-title">
   <h2 id="differences-title">Trois choses qu&#39;il fait autrement</h2>
