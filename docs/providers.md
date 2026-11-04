@@ -6,7 +6,7 @@ title: Providers
 # Providers
 
 <!-- nav:start -->
-[Documentation](index.md) · [Install](install.md) · [First run](first-run.md) · [Console](console.md) · [Mailboxes](mailboxes.md) · **Providers** · [Learning](learning.md) · [FAQ](faq.md) · [Privacy](privacy.md) · [Security](security.md) · [Troubleshooting](troubleshooting.md) · [Contributing](contributing.md) · [Français](fr/providers.md)
+[Documentation](index.md) · [Ask](ask.md) · [Install](install.md) · [First run](first-run.md) · [Console](console.md) · [Mailboxes](mailboxes.md) · **Providers** · [Learning](learning.md) · [FAQ](faq.md) · [Privacy](privacy.md) · [Security](security.md) · [Troubleshooting](troubleshooting.md) · [Contributing](contributing.md) · <a href="fr/providers.html" hreflang="fr" lang="fr" data-lang-switch="fr">Français</a>
 <!-- nav:end -->
 
 A provider is a record you add. The app ships no built-in provider and no

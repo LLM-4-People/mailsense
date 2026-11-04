@@ -7,7 +7,7 @@ lang: fr
 # Apprentissage
 
 <!-- nav:start -->
-[Documentation](index.md) · [Installation](install.md) · [Premier démarrage](first-run.md) · [Console](console.md) · [Boîtes](mailboxes.md) · [Fournisseurs](providers.md) · **Apprentissage** · [FAQ](faq.md) · [Confidentialité](privacy.md) · [Sécurité](security.md) · [Dépannage](troubleshooting.md) · [Contribuer](contributing.md) · [English](../learning.md)
+[Documentation](index.md) · [Demander](ask.md) · [Installation](install.md) · [Premier démarrage](first-run.md) · [Console](console.md) · [Boîtes](mailboxes.md) · [Fournisseurs](providers.md) · **Apprentissage** · [FAQ](faq.md) · [Confidentialité](privacy.md) · [Sécurité](security.md) · [Dépannage](troubleshooting.md) · [Contribuer](contributing.md) · <a href="../learning.html" hreflang="en" lang="en" data-lang-switch="en">English</a>
 <!-- nav:end -->
 
 

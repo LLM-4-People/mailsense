@@ -51,6 +51,24 @@ type Difference struct {
 	Body  Localized `json:"body"`
 }
 
+// AskExample is one question the README offers and what its answer is.
+type AskExample struct {
+	Question Localized `json:"question"`
+	Body     Localized `json:"body"`
+}
+
+// AskSection owns the Ask-first surface. The landing renders one row per
+// mechanism and the README renders one bullet per example, from this one copy.
+type AskSection struct {
+	Title     Localized    `json:"title"`
+	Lead      Localized    `json:"lead"`
+	Items     []Difference `json:"items"`
+	Examples  []AskExample `json:"examples"`
+	Guarantee Localized    `json:"guarantee"`
+	Note      Localized    `json:"note"`
+	Guide     Localized    `json:"guide"`
+}
+
 // Limit is one honest current limitation.
 type Limit struct {
 	Title Localized `json:"title"`
@@ -110,8 +128,9 @@ type Site struct {
 		FigureAlt     Localized `json:"figure_alt"`
 		FigureCaption Localized `json:"figure_caption"`
 	} `json:"hero"`
-	Media       Media     `json:"media"`
-	Nav         []NavItem `json:"nav"`
+	Media       Media      `json:"media"`
+	Ask         AskSection `json:"ask"`
+	Nav         []NavItem  `json:"nav"`
 	Differences struct {
 		Title Localized    `json:"title"`
 		Lead  Localized    `json:"lead"`
@@ -132,14 +151,14 @@ type Site struct {
 		Items []Limit   `json:"items"`
 	} `json:"limits"`
 	Install struct {
-		Title       Localized `json:"title"`
-		Lead        Localized `json:"lead"`
-		Windows     Localized `json:"windows"`
-		Linux       Localized `json:"linux"`
-		Command     string    `json:"command"`
-		CommandNote Localized `json:"command_note"`
-		FirstRun    Localized `json:"first_run"`
-		Note        Localized `json:"note"`
+		Title    Localized `json:"title"`
+		Lead     Localized `json:"lead"`
+		Windows  Localized `json:"windows"`
+		Panel    Localized `json:"panel"`
+		File     string    `json:"file"`
+		FileNote Localized `json:"file_note"`
+		FirstRun Localized `json:"first_run"`
+		Note     Localized `json:"note"`
 	} `json:"install"`
 	Status struct {
 		Title Localized `json:"title"`
@@ -283,6 +302,12 @@ func (s Site) Validate() error {
 	if s.Facts.RuntimeWindowsMB <= 0 || s.Facts.RuntimeLinuxMB <= 0 {
 		problems = append(problems, "runtime facts are missing")
 	}
+	enLanding, frLanding := s.landingPath("en"), s.landingPath("fr")
+	if enLanding == "" || frLanding == "" {
+		problems = append(problems, "the page table has no landing page pair")
+	} else if enLanding == frLanding {
+		problems = append(problems, "the two landing pages share a path")
+	}
 	require("hero.eyebrow", s.Hero.Eyebrow)
 	require("hero.title", s.Hero.Title)
 	require("hero.promise", s.Hero.Promise)
@@ -291,6 +316,26 @@ func (s Site) Validate() error {
 	require("hero.note", s.Hero.Note)
 	require("hero.figure_alt", s.Hero.FigureAlt)
 	require("hero.figure_caption", s.Hero.FigureCaption)
+	require("ask.title", s.Ask.Title)
+	require("ask.lead", s.Ask.Lead)
+	if len(s.Ask.Items) != 3 {
+		problems = append(problems, fmt.Sprintf("ask.items has %d items, want three", len(s.Ask.Items)))
+	}
+	for index, item := range s.Ask.Items {
+		require(fmt.Sprintf("ask.items[%d].tag", index), item.Tag)
+		require(fmt.Sprintf("ask.items[%d].title", index), item.Title)
+		require(fmt.Sprintf("ask.items[%d].body", index), item.Body)
+	}
+	if len(s.Ask.Examples) == 0 {
+		problems = append(problems, "ask.examples is empty")
+	}
+	for index, example := range s.Ask.Examples {
+		require(fmt.Sprintf("ask.examples[%d].question", index), example.Question)
+		require(fmt.Sprintf("ask.examples[%d].body", index), example.Body)
+	}
+	require("ask.guarantee", s.Ask.Guarantee)
+	require("ask.note", s.Ask.Note)
+	require("ask.guide", s.Ask.Guide)
 	require("differences.title", s.Differences.Title)
 	require("differences.lead", s.Differences.Lead)
 	if len(s.Differences.Items) != 3 {
@@ -330,12 +375,12 @@ func (s Site) Validate() error {
 	require("install.title", s.Install.Title)
 	require("install.lead", s.Install.Lead)
 	require("install.windows", s.Install.Windows)
-	require("install.linux", s.Install.Linux)
-	require("install.command_note", s.Install.CommandNote)
+	require("install.panel", s.Install.Panel)
+	require("install.file_note", s.Install.FileNote)
 	require("install.first_run", s.Install.FirstRun)
 	require("install.note", s.Install.Note)
-	if strings.TrimSpace(s.Install.Command) == "" {
-		problems = append(problems, "install.command is empty")
+	if strings.TrimSpace(s.Install.File) == "" {
+		problems = append(problems, "install.file is empty")
 	}
 	require("status.title", s.Status.Title)
 	require("status.body", s.Status.Body)
@@ -374,7 +419,7 @@ func (s Site) Validate() error {
 	for name, text := range s.localizedText() {
 		checkText(name, text)
 	}
-	checkText("install.command", s.Install.Command)
+	checkText("install.file", s.Install.File)
 	checkText("build.commands", s.Build.Commands)
 	if len(problems) > 0 {
 		return errors.New(strings.Join(problems, "; "))
@@ -453,6 +498,20 @@ func (s Site) localizedText() map[string]string {
 	add("hero.note", s.Hero.Note)
 	add("hero.figure_alt", s.Hero.FigureAlt)
 	add("hero.figure_caption", s.Hero.FigureCaption)
+	add("ask.title", s.Ask.Title)
+	add("ask.lead", s.Ask.Lead)
+	for index, item := range s.Ask.Items {
+		add(fmt.Sprintf("ask.items[%d].tag", index), item.Tag)
+		add(fmt.Sprintf("ask.items[%d].title", index), item.Title)
+		add(fmt.Sprintf("ask.items[%d].body", index), item.Body)
+	}
+	for index, example := range s.Ask.Examples {
+		add(fmt.Sprintf("ask.examples[%d].question", index), example.Question)
+		add(fmt.Sprintf("ask.examples[%d].body", index), example.Body)
+	}
+	add("ask.guarantee", s.Ask.Guarantee)
+	add("ask.note", s.Ask.Note)
+	add("ask.guide", s.Ask.Guide)
 	add("differences.title", s.Differences.Title)
 	add("differences.lead", s.Differences.Lead)
 	for index, item := range s.Differences.Items {
@@ -480,8 +539,8 @@ func (s Site) localizedText() map[string]string {
 	add("install.title", s.Install.Title)
 	add("install.lead", s.Install.Lead)
 	add("install.windows", s.Install.Windows)
-	add("install.linux", s.Install.Linux)
-	add("install.command_note", s.Install.CommandNote)
+	add("install.panel", s.Install.Panel)
+	add("install.file_note", s.Install.FileNote)
 	add("install.first_run", s.Install.FirstRun)
 	add("install.note", s.Install.Note)
 	add("status.title", s.Status.Title)
@@ -638,6 +697,10 @@ func (s Site) Pages() []Page {
 			Render: func(site Site, lang string) []byte { return site.Banner(lang) }},
 		Page{Key: "stylesheet", EN: "docs/assets/main.scss", FR: "docs/assets/main.scss",
 			Render: func(site Site, _ string) []byte { return site.Stylesheet() }},
+		// The head override carries the alternates and the language script.
+		// Both trees include the same file; the page condition is Liquid.
+		Page{Key: "head", EN: "docs/_includes/head.html", FR: "docs/_includes/head.html",
+			Render: func(site Site, _ string) []byte { return site.Head() }},
 		Page{Key: "config", EN: "docs/_config.yml", FR: "docs/_config.yml",
 			Render: func(site Site, _ string) []byte { return site.Config() }},
 	)
@@ -720,7 +783,7 @@ func (s Site) PublicPages() []string {
 }
 
 // PublicPagePaths returns the public pages under docs/, or under docs/fr/ for
-// French. It is what the release workflow copies into the tarball.
+// French. It is what the release workflow copies into the installer.
 func (s Site) PublicPagePaths(lang string) []string {
 	var out []string
 	for _, page := range s.Pages() {

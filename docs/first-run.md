@@ -6,7 +6,7 @@ title: First run
 # First run
 
 <!-- nav:start -->
-[Documentation](index.md) · [Install](install.md) · **First run** · [Console](console.md) · [Mailboxes](mailboxes.md) · [Providers](providers.md) · [Learning](learning.md) · [FAQ](faq.md) · [Privacy](privacy.md) · [Security](security.md) · [Troubleshooting](troubleshooting.md) · [Contributing](contributing.md) · [Français](fr/first-run.md)
+[Documentation](index.md) · [Ask](ask.md) · [Install](install.md) · **First run** · [Console](console.md) · [Mailboxes](mailboxes.md) · [Providers](providers.md) · [Learning](learning.md) · [FAQ](faq.md) · [Privacy](privacy.md) · [Security](security.md) · [Troubleshooting](troubleshooting.md) · [Contributing](contributing.md) · <a href="fr/first-run.html" hreflang="fr" lang="fr" data-lang-switch="fr">Français</a>
 <!-- nav:end -->
 
 The first start opens a short setup screen. It writes a marker when you finish,
@@ -25,8 +25,9 @@ Settings.
    On Linux there is no live source yet, so this step explains that and lets you
    finish.
 3. **Model.** The local runtime is downloaded on first use: about 342 MB on
-   Windows, 328 MB on Linux. You can add a remote provider instead, or skip this
-   step and add one later in Settings, Providers. Triage needs a decider and
+   Windows. The Linux source preview uses the same runtime and model, about
+   328 MB. You can add a remote provider instead, or skip this step and add one
+   later in Settings, Providers. Triage needs a decider and
    answers `422 provider_not_configured` without one; Search works without a
    decider, and the local classifier still learns from your answers.
 4. **Finish.** Mailsense shows the default ceilings: 80% CPU, 85% memory and 90%

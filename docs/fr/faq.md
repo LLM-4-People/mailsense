@@ -7,7 +7,7 @@ lang: fr
 # FAQ
 
 <!-- nav:start -->
-[Documentation](index.md) · [Installation](install.md) · [Premier démarrage](first-run.md) · [Console](console.md) · [Boîtes](mailboxes.md) · [Fournisseurs](providers.md) · [Apprentissage](learning.md) · **FAQ** · [Confidentialité](privacy.md) · [Sécurité](security.md) · [Dépannage](troubleshooting.md) · [Contribuer](contributing.md) · [English](../faq.md)
+[Documentation](index.md) · [Demander](ask.md) · [Installation](install.md) · [Premier démarrage](first-run.md) · [Console](console.md) · [Boîtes](mailboxes.md) · [Fournisseurs](providers.md) · [Apprentissage](learning.md) · **FAQ** · [Confidentialité](privacy.md) · [Sécurité](security.md) · [Dépannage](troubleshooting.md) · [Contribuer](contributing.md) · <a href="../faq.html" hreflang="en" lang="en" data-lang-switch="en">English</a>
 <!-- nav:end -->
 
 
@@ -25,11 +25,12 @@ Pas dans cette version. La seule source en direct est Outlook classique sous
 Windows par COM. Le nouvel Outlook, Outlook sur le web, IMAP, POP, l'API Gmail et
 Microsoft Graph ne sont pas connectés.
 
-## Pourquoi la boîte est-elle vide sous Linux ?
+## Fonctionne-t-il sous Linux ?
 
-La version Linux est un aperçu. Elle ouvre la fenêtre, affiche les écrans et
-explique la source manquante, mais elle n'a pas de connecteur de courrier en
-direct. La boîte reste vide par conception.
+La version publiée est un installateur Windows ; les sources se compilent aussi
+sous Linux en aperçu, avec une boîte vide, et cette compilation n'est pas
+proposée au téléchargement. L'aperçu ouvre la fenêtre et explique la source en
+direct manquante ; la boîte reste donc vide.
 
 ## Faut-il un modèle pour l'utiliser ?
 
@@ -41,9 +42,8 @@ recherche sémantique a besoin d'un embeddeur, que le moteur local peut fournir.
 ## Où sont mes données ?
 
 La barre d'état affiche le répertoire de données. Sous Windows, c'est
-`%LOCALAPPDATA%\Mailsense` ; sous Linux, c'est
-`${XDG_DATA_HOME:-~/.local/share}/mailsense`. Définissez `MAILSENSE_DATA_DIR`
-avant le lancement pour en utiliser un autre.
+`%LOCALAPPDATA%\Mailsense`. Définissez `MAILSENSE_DATA_DIR` avant le lancement
+pour en utiliser un autre.
 
 ## Comment supprimer mes données ?
 

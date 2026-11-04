@@ -7,7 +7,7 @@ lang: fr
 # Console
 
 <!-- nav:start -->
-[Documentation](index.md) · [Installation](install.md) · [Premier démarrage](first-run.md) · **Console** · [Boîtes](mailboxes.md) · [Fournisseurs](providers.md) · [Apprentissage](learning.md) · [FAQ](faq.md) · [Confidentialité](privacy.md) · [Sécurité](security.md) · [Dépannage](troubleshooting.md) · [Contribuer](contributing.md) · [English](../console.md)
+[Documentation](index.md) · [Demander](ask.md) · [Installation](install.md) · [Premier démarrage](first-run.md) · **Console** · [Boîtes](mailboxes.md) · [Fournisseurs](providers.md) · [Apprentissage](learning.md) · [FAQ](faq.md) · [Confidentialité](privacy.md) · [Sécurité](security.md) · [Dépannage](troubleshooting.md) · [Contribuer](contributing.md) · <a href="../console.html" hreflang="en" lang="en" data-lang-switch="en">English</a>
 <!-- nav:end -->
 
 
@@ -227,8 +227,8 @@ Un réglage Q&R désactivé affiche la raison et un lien vers ce réglage. Un ve
 fermé affiche Ouvrir l'apprentissage et le bouton Aperçu de test. Une option
 distante non configurée, inutilisable ou inconnue le dit et renvoie aux réglages
 des fournisseurs, tandis qu'Auto et Local restent disponibles. Un index de
-recherche encore en préparation ou un délai de recherche dépassé conserve les
-messages correspondants et propose Réessayer. Un échec de rédaction ou une
+recherche encore en préparation ou un délai de recherche dépassé garde la
+question et propose Réessayer. Un échec de rédaction ou une
 réponse qui n'a pas pu être ancrée conserve les messages correspondants et nomme
 le fournisseur. Sans
 correspondance, l'écran propose d'autres mots, une question plus courte ou un
@@ -236,7 +236,9 @@ sujet plus large. Une question trop courte est refusée dans le champ. Une
 réponse rédigée dans une autre langue est affichée telle quelle, avec ses
 citations, et l'avis précise que redemander appelle de nouveau le fournisseur.
 
-Écrans liés : Réponses, Courrier, Réglages (Fournisseurs) et Apprentissage.
+Écrans liés : Réponses, Courrier, Réglages (Fournisseurs) et Apprentissage. Le
+guide complet couvre les trois modes, l'ancrage, la requête au fournisseur et les
+limites : [Demander](ask.md).
 
 ## Réponses
 

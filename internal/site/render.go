@@ -170,6 +170,9 @@ func (s Site) Landing(lang string) []byte {
 	out.WriteString("layout: default\n")
 	fmt.Fprintf(&out, "title: %s\n", yamlQuote(title))
 	fmt.Fprintf(&out, "lang: %s\n", yamlQuote(lang))
+	// The head override reads this flag, so only the two landings carry the
+	// alternate links and the automatic language switch.
+	out.WriteString("language_switch: true\n")
 	fmt.Fprintf(&out, "description: %s\n", yamlQuote(s.Hero.Promise.For(lang)))
 	// The theme's head calls jekyll-seo-tag, which turns this image block into
 	// the Open Graph and Twitter card. The path, size and alt text come from
@@ -200,6 +203,23 @@ func (s Site) Landing(lang string) []byte {
 
 	out.WriteString(s.navLine(lang, "index"))
 	out.WriteString("\n\n")
+
+	out.WriteString(`<section class="ask" aria-labelledby="ask-title">` + "\n")
+	fmt.Fprintf(&out, `  <h2 id="ask-title">%s</h2>`+"\n", html.EscapeString(s.Ask.Title.For(lang)))
+	fmt.Fprintf(&out, `  <p class="section-lead">%s</p>`+"\n", s.inlineHTML(s.Ask.Lead.For(lang), lang))
+	out.WriteString(`  <ol class="ask-list">` + "\n")
+	for _, mechanism := range s.Ask.Items {
+		out.WriteString("    <li>\n")
+		fmt.Fprintf(&out, `      <p class="card-tag">%s</p>`+"\n", html.EscapeString(mechanism.Tag.For(lang)))
+		fmt.Fprintf(&out, `      <h3>%s</h3>`+"\n", html.EscapeString(mechanism.Title.For(lang)))
+		fmt.Fprintf(&out, `      <p>%s</p>`+"\n", s.inlineHTML(mechanism.Body.For(lang), lang))
+		out.WriteString("    </li>\n")
+	}
+	out.WriteString("  </ol>\n")
+	fmt.Fprintf(&out, `  <p class="note">%s</p>`+"\n", s.inlineHTML(s.Ask.Note.For(lang), lang))
+	fmt.Fprintf(&out, `  <p><a class="text-link" href="%s">%s</a></p>`+"\n",
+		htmlHref(links["ask"]), html.EscapeString(s.Ask.Guide.For(lang)))
+	out.WriteString("</section>\n\n")
 
 	out.WriteString(`<section class="differences" aria-labelledby="differences-title">` + "\n")
 	fmt.Fprintf(&out, `  <h2 id="differences-title">%s</h2>`+"\n", html.EscapeString(s.Differences.Title.For(lang)))
@@ -274,12 +294,11 @@ func (s Site) Landing(lang string) []byte {
 	fmt.Fprintf(&out, `    <h2 id="install-title">%s</h2>`+"\n", html.EscapeString(s.Install.Title.For(lang)))
 	fmt.Fprintf(&out, `    <p class="section-lead">%s</p>`+"\n", s.inlineHTML(s.Install.Lead.For(lang), lang))
 	fmt.Fprintf(&out, `    <h3>Windows</h3><p>%s</p>`+"\n", s.inlineHTML(s.Install.Windows.For(lang), lang))
-	fmt.Fprintf(&out, `    <h3>Linux</h3><p>%s</p>`+"\n", s.inlineHTML(s.Install.Linux.For(lang), lang))
 	out.WriteString("  </div>\n")
 	out.WriteString(`  <div class="install-panel">` + "\n")
-	fmt.Fprintf(&out, `    <p class="panel-label">Linux preview</p>`+"\n")
-	fmt.Fprintf(&out, `    <pre><code>%s</code></pre>`+"\n", html.EscapeString(s.Install.Command))
-	fmt.Fprintf(&out, `    <p class="note">%s</p>`+"\n", s.inlineHTML(s.Install.CommandNote.For(lang), lang))
+	fmt.Fprintf(&out, `    <p class="panel-label">%s</p>`+"\n", html.EscapeString(s.Install.Panel.For(lang)))
+	fmt.Fprintf(&out, `    <pre><code>%s</code></pre>`+"\n", html.EscapeString(s.Install.File))
+	fmt.Fprintf(&out, `    <p class="note">%s</p>`+"\n", s.inlineHTML(s.Install.FileNote.For(lang), lang))
 	fmt.Fprintf(&out, `    <a class="button button-light" href="%s">%s</a>`+"\n", htmlHref(links["first_run"]), html.EscapeString(s.Install.FirstRun.For(lang)))
 	out.WriteString("  </div>\n")
 	out.WriteString("</section>\n\n")
@@ -315,6 +334,18 @@ func (s Site) Readme(lang string) []byte {
 	out.WriteString(s.readmeNav(lang))
 	out.WriteString("\n\n")
 
+	heading(&out, s.Ask.Title.For(lang))
+	paragraph(&out, readmeText(s.Ask.Lead.For(lang)))
+	for _, example := range s.Ask.Examples {
+		text := fmt.Sprintf("**%s** %s", example.Question.For(lang), readmeText(example.Body.For(lang)))
+		out.WriteString(item("- ", text, 80))
+		out.WriteString("\n")
+	}
+	out.WriteString("\n")
+	paragraph(&out, readmeText(s.Ask.Guarantee.For(lang)))
+	paragraph(&out, readmeText(s.Ask.Note.For(lang)))
+	fmt.Fprintf(&out, "[%s](%s)\n\n", s.Ask.Guide.For(lang), links["ask"])
+
 	heading(&out, s.Differences.Title.For(lang))
 	for _, difference := range s.Differences.Items {
 		text := fmt.Sprintf("**%s** %s", difference.Title.For(lang), readmeText(difference.Body.For(lang)))
@@ -348,12 +379,12 @@ func (s Site) Readme(lang string) []byte {
 	out.WriteString("\n")
 
 	heading(&out, s.Install.Title.For(lang))
+	paragraph(&out, readmeText(s.Install.Lead.For(lang)))
 	paragraph(&out, "**Windows.** "+readmeText(s.Install.Windows.For(lang)))
-	paragraph(&out, "**Linux.** "+readmeText(s.Install.Linux.For(lang)))
-	out.WriteString("```bash\n")
-	out.WriteString(s.Install.Command)
+	out.WriteString("```text\n")
+	out.WriteString(s.Install.File)
 	out.WriteString("\n```\n\n")
-	paragraph(&out, readmeText(s.Install.CommandNote.For(lang)))
+	paragraph(&out, readmeText(s.Install.FileNote.For(lang)))
 	fmt.Fprintf(&out, "[%s](%s)\n\n", s.Install.FirstRun.For(lang), links["first_run"])
 
 	heading(&out, s.Status.Title.For(lang))

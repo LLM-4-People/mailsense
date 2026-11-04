@@ -266,3 +266,36 @@ func TestEveryMediaScreenHasACaptureRoutine(t *testing.T) {
 		}
 	}
 }
+
+// TestEveryPageDeclaresTheFavicon keeps the icon links and their files in
+// step. The head is generated once for every page, so a missing file or a
+// renamed asset would otherwise show up as a blank tab in the browser.
+func TestEveryPageDeclaresTheFavicon(t *testing.T) {
+	value, err := Load(root(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	head := string(value.Head())
+	for _, want := range []string{
+		`rel="icon" type="image/svg+xml" href="{{ "/assets/mark.svg" | relative_url }}"`,
+		`rel="icon" type="image/png" sizes="32x32" href="{{ "/assets/favicon-32.png" | relative_url }}"`,
+		`rel="apple-touch-icon" href="{{ "/assets/apple-touch-icon.png" | relative_url }}"`,
+	} {
+		if !strings.Contains(head, want) {
+			t.Errorf("the head does not declare %s", want)
+		}
+	}
+	rootDir := root(t)
+	for name, size := range map[string]int{
+		"docs/assets/favicon-32.png":       32,
+		"docs/assets/apple-touch-icon.png": 180,
+	} {
+		width, height := pngSize(t, filepath.Join(rootDir, name))
+		if width != size || height != size {
+			t.Errorf("%s is %dx%d, want %dx%d", name, width, height, size, size)
+		}
+	}
+	if _, err := os.Stat(filepath.Join(rootDir, "docs/assets/mark.svg")); err != nil {
+		t.Errorf("the SVG favicon is missing: %v", err)
+	}
+}

@@ -2,24 +2,42 @@
 
 # Mailsense
 
-**Mailsense transforme votre boîte Outlook en une liste classée de ce qui vous
-attend, avec la raison sur chaque ligne.**
+**Posez une question à votre courrier. Il répond par un décompte, une liste ou
+une réponse écrite qui cite les messages utilisés.**
 
-Il lit le profil Outlook classique déjà ouvert sur votre PC. Le stockage, le
-classifieur et le profil appris restent sur votre disque. Un modèle distant ne
-s'exécute que si vous en ajoutez un.
+Il lit le profil Outlook classique déjà ouvert sur votre PC. Ask répond depuis
+l'index local ; une réponse écrite ne vient que d'un modèle que vous avez
+configuré et des messages qu'il peut citer. Le stockage, le classifieur et le
+profil appris restent sur votre disque.
 
-![Mailsense: Votre boîte, classée. Chaque ligne s'explique.](docs/assets/banner-fr.svg)
+![Mailsense: Demandez à votre courrier. Chaque citation ouvre le message.](docs/assets/banner-fr.svg)
 
-[English](README.md) · [Documentation](docs/fr/index.md) · [Installation](docs/fr/install.md) · [Premier démarrage](docs/fr/first-run.md) · [Console](docs/fr/console.md) · [Boîtes](docs/fr/mailboxes.md) · [Fournisseurs](docs/fr/providers.md) · [Apprentissage](docs/fr/learning.md) · [FAQ](docs/fr/faq.md) · [Confidentialité](docs/fr/privacy.md) · [Sécurité](docs/fr/security.md) · [Dépannage](docs/fr/troubleshooting.md) · [Contribuer](docs/fr/contributing.md) · [Site de documentation](https://llm-4-people.github.io/mailsense/fr/)
+[English](README.md) · [Documentation](docs/fr/index.md) · [Demander](docs/fr/ask.md) · [Installation](docs/fr/install.md) · [Premier démarrage](docs/fr/first-run.md) · [Console](docs/fr/console.md) · [Boîtes](docs/fr/mailboxes.md) · [Fournisseurs](docs/fr/providers.md) · [Apprentissage](docs/fr/learning.md) · [FAQ](docs/fr/faq.md) · [Confidentialité](docs/fr/privacy.md) · [Sécurité](docs/fr/security.md) · [Dépannage](docs/fr/troubleshooting.md) · [Contribuer](docs/fr/contributing.md) · [Site de documentation](https://llm-4-people.github.io/mailsense/fr/)
+
+## Commencez par une question
+
+Ask répond en clair à une question sur votre courrier. L'écran nomme le
+mécanisme qui a répondu : une requête typée, une recherche ou un modèle que vous
+avez configuré.
+
+- **Combien de messages sont urgents ?** renvoie un décompte du classement
+  local. Aucun modèle n'est appelé.
+- **Résume le fil sur la fenêtre de livraison.** renvoie une réponse écrite avec
+  une citation pour chaque affirmation quand un fournisseur est configuré. En
+  mode Local, la même question renvoie les messages correspondants et indique
+  que Local n'appelle jamais de modèle.
+
+Chaque citation ouvre le message qu'elle nomme, et chaque réponse est conservée
+avec sa question pour être rouverte.
+
+Ask est borné par `qa.max_messages`, `qa.retrieval_timeout`, `qa.call_timeout`
+et les deux réglages de budget. Un index en préparation garde la question et
+propose Réessayer.
+
+[Lire le guide Ask](docs/fr/ask.md)
 
 ## Trois choses qu'il fait autrement
 
-- **Chaque étiquette nomme sa source.** Une décision est stockée comme des
-  réponses à des questions nommées, avec la confiance de chaque réponse quand ce
-  type de question en porte une et les éléments de preuve qui la soutiennent. Le
-  détail du message montre les champs lus par le modèle. Quand un index est
-  partiel, l'écran nomme la partie manquante.
 - **La file est ordonnée par une règle locale fixe.** Un moteur Go local ordonne
   chaque message à partir des signaux stockés : un message suspect ajoute 100,
   une décision 45, une réponse 30, les niveaux d'urgence et d'échéance ajoutent
@@ -27,6 +45,11 @@ s'exécute que si vous en ajoutez un.
   suffit pour entrer, et un signal de suspicion, de décision, de réponse,
   d'urgence ou d'échéance entre toujours. Le courrier automatisé de masse
   n'entre jamais, quelle que soit l'urgence de son texte.
+- **Chaque étiquette nomme sa source.** Une décision est stockée comme des
+  réponses à des questions nommées, avec la confiance de chaque réponse quand ce
+  type de question en porte une et les éléments de preuve qui la soutiennent. Le
+  détail du message montre les champs lus par le modèle. Quand un index est
+  partiel, l'écran nomme la partie manquante.
 - **Il s'abstient tant que vos propres étiquettes ne l'ont pas certifié.** Le
   classifieur local entraîne une tête par question sur vos corrections. Une
   question n'est certifiée que lorsque la borne inférieure de Wilson de sa
@@ -43,9 +66,9 @@ Mailsense fait quatre types de requêtes réseau. Chacune a une raison visible.
 
 - Le moteur local et le modèle de plongements épinglés, téléchargés une fois et
   vérifiés par SHA-256 avant usage.
-- Une requête vers un fournisseur distant que vous avez configuré, y compris le
-  triage automatique après une synchronisation. Elle porte les champs du message
-  dont cet appel a besoin.
+- Une requête vers un fournisseur distant que vous avez configuré, pour une
+  réponse Ask ou le triage automatique après une synchronisation. Elle porte la
+  question et les champs du message dont cet appel a besoin.
 - Une liste de modèles d'un fournisseur quand vous cliquez sur Récupérer les
   modèles.
 - Une petite requête de test quand vous cliquez sur Tester. Un test est
@@ -71,9 +94,9 @@ régissent ce qu'il fait d'une requête que vous lui envoyez. Voir
   profil par COM. Le nouvel Outlook, Outlook sur le web, IMAP, POP, l'API Gmail,
   Microsoft Graph et l'import de fichiers ne sont pas connectés dans cette
   version.
-- **La version Linux est un aperçu.** Elle s'ouvre, affiche tous les écrans et
-  explique la source manquante. La boîte reste vide parce qu'il n'y a pas encore
-  de connecteur en direct.
+- **L'aperçu Linux est compilé depuis les sources.** Il s'ouvre, affiche tous
+  les écrans et explique la source manquante. La boîte reste vide parce qu'il
+  n'y a pas encore de connecteur en direct.
 - **Il lit et classe. Il n'agit pas sur la boîte.** Aucun envoi, aucune
   suppression, aucun déplacement et aucun changement d'état de lecture. Le
   connecteur est en lecture seule.
@@ -88,21 +111,25 @@ régissent ce qu'il fait d'une requête que vous lui envoyez. Voir
 
 ## Installer
 
-**Windows.** Téléchargez l'installateur par utilisateur depuis la
-[page des versions](https://github.com/LLM-4-People/mailsense/releases). Il a
-besoin du runtime Microsoft Edge WebView2, déjà présent sous Windows 11 et
-Windows 10 à jour. La version n'est pas signée, Windows peut donc demander une
-confirmation.
+La version publiée est un installateur Windows ; les sources se compilent aussi
+sous Linux en aperçu, avec une boîte vide, et cette compilation n'est pas
+proposée au téléchargement.
 
-**Linux.** Téléchargez l'archive amd64, décompressez-la et lancez install.sh
-pour une entrée de menu, ou lancez directement le binaire.
+**Windows.** Téléchargez l'installateur depuis la
+[page des versions](https://github.com/LLM-4-People/mailsense/releases).
+L'installation est par utilisateur et ne demande pas de droits administrateur.
+La base et les réglages sont dans `%LOCALAPPDATA%\Mailsense`, et la
+désinstallation les conserve jusqu'à ce que vous supprimiez ce répertoire.
+Mailsense a besoin du runtime Microsoft Edge WebView2, déjà présent sous Windows
+11 et Windows 10 à jour. La version n'est pas signée, SmartScreen peut donc
+demander une confirmation.
 
-```bash
-tar -xzf mailsense-*-linux-amd64.tar.gz && cd mailsense-*-linux-amd64 && ./install.sh
+```text
+mailsense-<version>-setup.exe
 ```
 
-Une commande pour l'aperçu Linux, depuis le répertoire qui contient l'archive
-téléchargée.
+La version vient de l'étiquette de version. Téléchargez le fichier depuis la
+[page des versions](https://github.com/LLM-4-People/mailsense/releases).
 
 [Lire le guide du premier démarrage](docs/fr/first-run.md)
 
@@ -115,7 +142,7 @@ de version signalent tout ce qui demande une migration.
 ## Construire depuis les sources
 
 Go (la version de `go.mod`), Node 22 pour les harnais d'interface, et Playwright
-pour la suite navigateur.
+pour la suite navigateur, en option.
 
 ```bash
 scripts/build.sh all        # dist/mailsense and dist/mailsense.exe

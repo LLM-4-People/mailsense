@@ -39,17 +39,15 @@ categories:
     exclusive: true
   - title: "Other changes"
 
-  # Version resolution uses the pull request title convention, so a feature
-  # moves the minor version even when its area label put it in an area section.
-  - type: "version-resolver"
-    semver-increment: "major"
-    when:
-      conventional:
-        breaking: true
-  - type: "version-resolver"
-    semver-increment: "minor"
-    when:
-      conventional:
-        type: "feat"
-  - type: "version-resolver"
-    semver-increment: "patch"
+# The resolver reads labels, not titles. The three release labels are set on a
+# pull request before it merges; a pull request without one resolves to patch.
+# They cannot live under categories: an entry there without a title is not a
+# category and is ignored.
+version-resolver:
+  major:
+    labels: ["release: major"]
+  minor:
+    labels: ["release: minor"]
+  patch:
+    labels: ["release: patch"]
+  default: patch

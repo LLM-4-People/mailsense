@@ -6,7 +6,7 @@ title: Privacy
 # Privacy
 
 <!-- nav:start -->
-[Documentation](index.md) · [Install](install.md) · [First run](first-run.md) · [Console](console.md) · [Mailboxes](mailboxes.md) · [Providers](providers.md) · [Learning](learning.md) · [FAQ](faq.md) · **Privacy** · [Security](security.md) · [Troubleshooting](troubleshooting.md) · [Contributing](contributing.md) · [Français](fr/privacy.md)
+[Documentation](index.md) · [Ask](ask.md) · [Install](install.md) · [First run](first-run.md) · [Console](console.md) · [Mailboxes](mailboxes.md) · [Providers](providers.md) · [Learning](learning.md) · [FAQ](faq.md) · **Privacy** · [Security](security.md) · [Troubleshooting](troubleshooting.md) · [Contributing](contributing.md) · <a href="fr/privacy.html" hreflang="fr" lang="fr" data-lang-switch="fr">Français</a>
 <!-- nav:end -->
 
 Mailsense is local-first. The live source is the classic Outlook profile already
@@ -30,10 +30,11 @@ Mailsense makes four kinds of network request, and only for the reasons below:
    time, it downloads its artifacts and model from the pinned URLs recorded in
    the app, and verifies each SHA-256 before use.
 2. **A remote provider request.** Only when you configure a remote provider and
-   a call runs. The request contains the message fields that call needs. The
-   provider's terms apply. Settings, Providers names the endpoint and the model.
-   Automatic triage can make this call after a sync without a screen asking; a
-   provider test makes one small call when you press Test.
+   a call runs. The request contains the question when Ask writes an answer, and
+   the message fields that call needs. The provider's terms apply. Settings,
+   Providers names the endpoint and the model. Automatic triage can make this
+   call after a sync without a screen asking; a provider test makes one small
+   call when you press Test.
 3. **A provider model list.** Only when you ask the Providers screen to fetch the
    models a provider offers.
 4. **Nothing else.** No telemetry, no analytics, no update ping, no hidden
@@ -60,7 +61,7 @@ jobs, warnings and errors behind a screen. There is no hidden second record.
 
 The data directory is shown in the app's status bar. Delete it to remove the
 store, indexes, settings and logs. On Windows, uninstalling the app keeps the
-data directory; on Linux, removing the binary keeps it too.
+data directory until you delete it.
 
 <!-- footer:start -->
 [Source](https://github.com/LLM-4-People/mailsense) · AGPL-3.0-or-later · [Documentation](https://llm-4-people.github.io/mailsense/) · [Privacy](privacy.md)

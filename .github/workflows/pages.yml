@@ -39,6 +39,10 @@ jobs:
         with:
           source: ./docs
           destination: ./_site
-      - uses: actions/upload-pages-artifact@56afc609e74202658d3ffba0e8f6dda462b719fa # v3
+      # v5 pins its nested artifacts/upload-artifact call by commit SHA. The
+      # repository requires SHA pinning for every action, including nested
+      # ones, and v3 referenced that action by tag, so the deploy was refused
+      # before it started.
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
       - id: deployment
         uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4

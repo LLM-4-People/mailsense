@@ -2,29 +2,51 @@
 
 # Mailsense
 
-**Mailsense turns your Outlook mailbox into a ranked list of what needs you,
-with the reason on every row.**
+**Ask your mail a question. It answers with a count, a list, or a written answer
+that cites the messages it used.**
 
-It reads the classic Outlook profile already open on your PC. The message store,
-the classifier and the learned profile stay on your disk. A remote model runs
-only when you add one.
+It reads the classic Outlook profile already open on your PC. Ask answers from
+the local index; a written answer comes only from a model you configured and the
+messages it can cite. The store, the classifier and the learned profile stay on
+your disk.
 
-![Mailsense: Your mailbox, ranked. Every row explains itself.](docs/assets/banner-en.svg)
+![Mailsense: Ask your mail. Every citation opens the message.](docs/assets/banner-en.svg)
 
-[Français](README.fr.md) · [Documentation](docs/index.md) · [Install](docs/install.md) · [First run](docs/first-run.md) · [Console](docs/console.md) · [Mailboxes](docs/mailboxes.md) · [Providers](docs/providers.md) · [Learning](docs/learning.md) · [FAQ](docs/faq.md) · [Privacy](docs/privacy.md) · [Security](docs/security.md) · [Troubleshooting](docs/troubleshooting.md) · [Contributing](docs/contributing.md) · [Docs site](https://llm-4-people.github.io/mailsense/)
+[Français](README.fr.md) · [Documentation](docs/index.md) · [Ask](docs/ask.md) · [Install](docs/install.md) · [First run](docs/first-run.md) · [Console](docs/console.md) · [Mailboxes](docs/mailboxes.md) · [Providers](docs/providers.md) · [Learning](docs/learning.md) · [FAQ](docs/faq.md) · [Privacy](docs/privacy.md) · [Security](docs/security.md) · [Troubleshooting](docs/troubleshooting.md) · [Contributing](docs/contributing.md) · [Docs site](https://llm-4-people.github.io/mailsense/)
+
+## Ask first
+
+Ask answers a question about your mail in plain language. The screen names which
+mechanism answered it: a typed query, a search, or a model you configured.
+
+- **How many messages are urgent?** returns a count from the local ranking. No
+  model is called.
+- **Summarize the thread about the delivery window.** returns a written answer
+  with a citation on every claim when a provider is configured. In Local mode
+  the same question returns the matching messages and says that Local never
+  calls a model.
+
+Every citation opens the message it names, and every answer is stored with its
+question so you can reopen it.
+
+Ask is bounded by `qa.max_messages`, `qa.retrieval_timeout`, `qa.call_timeout`
+and the two budget settings. A warming index keeps the question and offers Try
+again.
+
+[Read the Ask guide](docs/ask.md)
 
 ## Three things it does differently
 
-- **Every label names its source.** A decision is stored as answers to named
-  questions, with the confidence each answer carries where the question type has
-  one and the evidence behind it. The message detail shows the fields the model
-  read. When an index is partial, the screen names the missing part.
 - **The queue is scored by a fixed local policy.** A local Go scorer ranks each
   message from stored signals: a suspicious message adds 100, a decision 45, a
   reply 30, urgency and deadline levels add fixed weights, and recency adds at
   most 12. A score of 20 is the floor, and a suspicious, decision, reply, urgent
   or deadline signal always enters. Bulk automated mail never enters, however
   urgent its text.
+- **Every label names its source.** A decision is stored as answers to named
+  questions, with the confidence each answer carries where the question type has
+  one and the evidence behind it. The message detail shows the fields the model
+  read. When an index is partial, the screen names the missing part.
 - **It abstains until your own labels certify it.** The local classifier trains
   one head per question on your corrections. A question is certified only when
   the Wilson lower bound of its answered precision reaches 0.99 on a held-out
@@ -41,8 +63,9 @@ see.
 
 - The pinned local runtime and embedding model, downloaded once and checked
   against SHA-256 before use.
-- A request to a remote provider you configured, including automatic triage
-  after a sync. It carries the message fields that call needs.
+- A request to a remote provider you configured, for an Ask answer or automatic
+  triage after a sync. It carries the question and the message fields that call
+  needs.
 - A provider model list when you press Fetch models.
 - One small test request when you press Test. A test is billable and is not
   covered by a budget.
@@ -64,9 +87,9 @@ with a request you send. See [privacy](docs/privacy.md).
 - **Only classic Outlook on Windows is a live source.** It reads the profile
   through COM. New Outlook, Outlook on the web, IMAP, POP, the Gmail API,
   Microsoft Graph and file import are not connected in this build.
-- **The Linux build is a preview.** It opens, renders every screen and explains
-  the missing source. The inbox stays empty because there is no live connector
-  yet.
+- **The Linux preview is built from source.** It opens, renders every screen and
+  explains the missing source. The inbox stays empty because there is no live
+  connector yet.
 - **It reads and ranks. It does not act on the mailbox.** No sending, deleting,
   moving or read-state changes. The connector is read-only.
 - **Triage needs a decider.** Without one, triage answers 422
@@ -78,21 +101,23 @@ with a request you send. See [privacy](docs/privacy.md).
 
 ## Install
 
-**Windows.** Download the per-user installer from
-[Releases](https://github.com/LLM-4-People/mailsense/releases). It needs the
-Microsoft Edge WebView2 runtime, which Windows 11 and current Windows 10 already
-have. The build is not code-signed, so Windows may ask you to confirm the
-publisher.
+The release ships a Windows installer; the source also builds on Linux as a
+preview with an empty inbox, and that build is not a release download.
 
-**Linux.** Download the amd64 tarball, extract it and run install.sh for a menu
-entry, or run the binary directly.
+**Windows.** Download the installer from
+[Releases](https://github.com/LLM-4-People/mailsense/releases). The install is
+per user and needs no administrator rights. The database and settings live in
+`%LOCALAPPDATA%\Mailsense`, and uninstalling keeps them until you delete that
+directory. Mailsense needs the Microsoft Edge WebView2 runtime, which Windows 11
+and current Windows 10 already have. The build is not code-signed, so
+SmartScreen may ask you to confirm the publisher.
 
-```bash
-tar -xzf mailsense-*-linux-amd64.tar.gz && cd mailsense-*-linux-amd64 && ./install.sh
+```text
+mailsense-<version>-setup.exe
 ```
 
-One command for the Linux preview, from the directory that holds the downloaded
-tarball.
+The version comes from the release tag. Download the file from the
+[releases page](https://github.com/LLM-4-People/mailsense/releases).
 
 [Read the first-run guide](docs/first-run.md)
 

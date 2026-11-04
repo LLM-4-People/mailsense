@@ -45,15 +45,24 @@ func (s Site) docsLabel(lang string) string {
 	return "Documentation"
 }
 
-// docLanguageSwitch points at the same page in the other language tree.
+// docLanguageSwitch points at the same page in the other language tree. The
+// generated navigation is the one language switch, so it marks its link for the
+// stored preference and the delegated click listener. The anchor is written as
+// HTML because Markdown has no portable attribute syntax; the href is built
+// with the same .md to .html rule as every generated HTML anchor.
 func (s Site) docLanguageSwitch(lang, current string) string {
 	if lang == "fr" {
-		return fmt.Sprintf("[English](%s)", "../"+pageFile(current))
+		if current == "index" {
+			return `<a href="../" hreflang="en" lang="en" data-lang-switch="en">English</a>`
+		}
+		return fmt.Sprintf(`<a href="%s" hreflang="en" lang="en" data-lang-switch="en">English</a>`,
+			htmlHref("../"+pageFile(current)))
 	}
+	href := "fr/" + pageFile(current)
 	if current == "index" {
-		return "[Français](fr/)"
+		href = "fr/"
 	}
-	return fmt.Sprintf("[Français](%s)", "fr/"+pageFile(current))
+	return fmt.Sprintf(`<a href="%s" hreflang="fr" lang="fr" data-lang-switch="fr">Français</a>`, htmlHref(href))
 }
 
 // footerLine is the one page footer for one authored page.

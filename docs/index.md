@@ -2,44 +2,69 @@
 layout: default
 title: "Mailsense"
 lang: "en"
-description: "Mailsense turns your Outlook mailbox into a ranked list of what needs you, with the reason on every row."
+language_switch: true
+description: "Ask your mail a question. It answers with a count, a list, or a written answer that cites the messages it used."
 image:
   path: "/assets/social-preview.png"
   width: 1200
   height: 630
-  alt: "Mailsense: Your mailbox, ranked. Every row explains itself."
+  alt: "Mailsense: Ask your mail. Every citation opens the message."
 ---
 
 <header class="hero">
   <div class="hero-copy">
-    <p class="eyebrow">Local mail triage for Windows</p>
+    <p class="eyebrow">Ask and local triage for Windows</p>
     <h1>Mailsense</h1>
-    <p class="promise">Mailsense turns your Outlook mailbox into a ranked list of what needs you, with the reason on every row.</p>
-    <p class="lede">It reads the classic Outlook profile already open on your PC. The message store, the classifier and the learned profile stay on your disk. A remote model runs only when you add one.</p>
+    <p class="promise">Ask your mail a question. It answers with a count, a list, or a written answer that cites the messages it used.</p>
+    <p class="lede">It reads the classic Outlook profile already open on your PC. Ask answers from the local index; a written answer comes only from a model you configured and the messages it can cite. The store, the classifier and the learned profile stay on your disk.</p>
     <p class="hero-actions"><a class="button" href="install.html">Install</a><a class="text-link" href="first-run.html">Read the first-run guide</a></p>
-    <p class="hero-note">Windows installer, or the Linux preview. No account, no telemetry.</p>
+    <p class="hero-note">Windows installer. No account, no telemetry.</p>
   </div>
   <figure class="hero-art">
     <img src="assets/queue-en.svg" width="640" height="480" alt="An invented ranked queue with three rows: verify an invoice, reply to a kickoff, read workshop notes.">
-    <figcaption>An invented queue. The action and the reason sit on every row.</figcaption>
+    <figcaption>The queue is the second proof. An invented queue, with the action and the reason on every row.</figcaption>
   </figure>
 </header>
 
-[Install](install.md) · [First run](first-run.md) · [Console](console.md) · [Mailboxes](mailboxes.md) · [Providers](providers.md) · [Learning](learning.md) · [FAQ](faq.md) · [Privacy](privacy.md) · [Security](security.md) · [Troubleshooting](troubleshooting.md) · [Contributing](contributing.md) · [Français](fr/)
+[Ask](ask.md) · [Install](install.md) · [First run](first-run.md) · [Console](console.md) · [Mailboxes](mailboxes.md) · [Providers](providers.md) · [Learning](learning.md) · [FAQ](faq.md) · [Privacy](privacy.md) · [Security](security.md) · [Troubleshooting](troubleshooting.md) · [Contributing](contributing.md) · <a href="fr/" hreflang="fr" lang="fr" data-lang-switch="fr">Français</a>
+
+<section class="ask" aria-labelledby="ask-title">
+  <h2 id="ask-title">Ask first</h2>
+  <p class="section-lead">Ask answers a question about your mail in plain language. The screen names which mechanism answered it: a typed query, a search, or a model you configured.</p>
+  <ol class="ask-list">
+    <li>
+      <p class="card-tag">Grounded</p>
+      <h3>A written answer cites every message it uses.</h3>
+      <p>The model is asked to write at most 120 words and marks each claim with a message number. The server checks every marker against the retrieved set, refuses an answer whose marker points outside it, renumbers the markers to citation positions and keeps a citation only when it names a real message. When no citation survives, the matching messages stay on screen with a notice that names the cause.</p>
+    </li>
+    <li>
+      <p class="card-tag">Local</p>
+      <h3>A count or a ranking is computed, not written.</h3>
+      <p>A count, a ranking and a company profile are read from the local index and the stored facts. The number and the rows come from a typed query, never from model text. Local mode never calls a model: the same count still answers, and a free-form question returns the matching messages with a notice that says Local never calls a model.</p>
+    </li>
+    <li>
+      <p class="card-tag">Trace</p>
+      <h3>A citation opens the message, and the answer is kept.</h3>
+      <p>Each citation row carries the subject, the sender and the date, and links to the message it names. Each answer is stored with its question, its route, its mode, its citations and, when a model was used, its provider and model. The history rail reopens it, and Clear history removes every stored answer.</p>
+    </li>
+  </ol>
+  <p class="note">Ask is bounded by <code>qa.max_messages</code>, <code>qa.retrieval_timeout</code>, <code>qa.call_timeout</code> and the two budget settings. A warming index keeps the question and offers Try again.</p>
+  <p><a class="text-link" href="ask.html">Read the Ask guide</a></p>
+</section>
 
 <section class="differences" aria-labelledby="differences-title">
   <h2 id="differences-title">Three things it does differently</h2>
-  <p class="section-lead">Each one is a mechanism you can inspect.</p>
+  <p class="section-lead">The queue, the evidence and the gate. Each one is a mechanism you can inspect.</p>
   <div class="cards">
     <article class="card">
-      <p class="card-tag">01 / Evidence</p>
-      <h3>Every label names its source.</h3>
-      <p>A decision is stored as answers to named questions, with the confidence each answer carries where the question type has one and the evidence behind it. The message detail shows the fields the model read. When an index is partial, the screen names the missing part.</p>
-    </article>
-    <article class="card">
-      <p class="card-tag">02 / Queue</p>
+      <p class="card-tag">01 / Queue</p>
       <h3>The queue is scored by a fixed local policy.</h3>
       <p>A local Go scorer ranks each message from stored signals: a suspicious message adds 100, a decision 45, a reply 30, urgency and deadline levels add fixed weights, and recency adds at most 12. A score of 20 is the floor, and a suspicious, decision, reply, urgent or deadline signal always enters. Bulk automated mail never enters, however urgent its text.</p>
+    </article>
+    <article class="card">
+      <p class="card-tag">02 / Evidence</p>
+      <h3>Every label names its source.</h3>
+      <p>A decision is stored as answers to named questions, with the confidence each answer carries where the question type has one and the evidence behind it. The message detail shows the fields the model read. When an index is partial, the screen names the missing part.</p>
     </article>
     <article class="card">
       <p class="card-tag">03 / Learning</p>
@@ -50,20 +75,20 @@ image:
 </section>
 
 <section class="shots" aria-labelledby="shots-title">
-  <h2 id="shots-title">The screens you will use</h2>
+  <h2 id="shots-title">The screens, starting with Ask</h2>
   <p class="section-lead">Captured from the Linux preview with an invented mailbox. No real mail appears here.</p>
   <div class="shot-grid">
     <figure class="shot">
-      <img src="assets/screenshots/en/home.png" width="1440" height="900" loading="eager" decoding="async" alt="Mailsense: Home">
+      <img src="assets/screenshots/en/ask.png" width="1440" height="900" loading="eager" decoding="async" alt="Mailsense: Ask with an answer">
+      <figcaption><strong>Ask with an answer</strong> Ask leads: a question and its written answer, with every citation under the text opening the message it names.</figcaption>
+    </figure>
+    <figure class="shot">
+      <img src="assets/screenshots/en/home.png" width="1440" height="900" loading="lazy" decoding="async" alt="Mailsense: Home">
       <figcaption><strong>Home</strong> The day in three columns: what needs a reply, what needs a decision, and what is coming up.</figcaption>
     </figure>
     <figure class="shot">
       <img src="assets/screenshots/en/mail.png" width="1440" height="900" loading="lazy" decoding="async" alt="Mailsense: Mail with a message open">
       <figcaption><strong>Mail with a message open</strong> The selected message shows its sender, its body and the fields the local model read.</figcaption>
-    </figure>
-    <figure class="shot">
-      <img src="assets/screenshots/en/ask.png" width="1440" height="900" loading="lazy" decoding="async" alt="Mailsense: Ask with an answer">
-      <figcaption><strong>Ask with an answer</strong> A question and its grounded answer, with the message it cites under the text.</figcaption>
     </figure>
     <figure class="shot">
       <img src="assets/screenshots/en/teach.png" width="1440" height="900" loading="lazy" decoding="async" alt="Mailsense: Teach">
@@ -94,7 +119,7 @@ image:
   <div class="boundary-grid">
     <div class="boundary-col leaves"><h3>Leaves, only when it runs</h3><ul>
       <li>The pinned local runtime and embedding model, downloaded once and checked against SHA-256 before use.</li>
-      <li>A request to a remote provider you configured, including automatic triage after a sync. It carries the message fields that call needs.</li>
+      <li>A request to a remote provider you configured, for an Ask answer or automatic triage after a sync. It carries the question and the message fields that call needs.</li>
       <li>A provider model list when you press Fetch models.</li>
       <li>One small test request when you press Test. A test is billable and is not covered by a budget.</li>
     </ul></div>
@@ -116,7 +141,7 @@ image:
       <p>It reads the profile through COM. New Outlook, Outlook on the web, IMAP, POP, the Gmail API, Microsoft Graph and file import are not connected in this build.</p>
     </li>
     <li>
-      <h3>The Linux build is a preview.</h3>
+      <h3>The Linux preview is built from source.</h3>
       <p>It opens, renders every screen and explains the missing source. The inbox stays empty because there is no live connector yet.</p>
     </li>
     <li>
@@ -141,14 +166,13 @@ image:
 <section class="install" id="install" aria-labelledby="install-title">
   <div class="install-copy">
     <h2 id="install-title">Install</h2>
-    <p class="section-lead">Windows is the supported live build. Linux is a preview.</p>
-    <h3>Windows</h3><p>Download the per-user installer from <a href="https://github.com/LLM-4-People/mailsense/releases">Releases</a>. It needs the Microsoft Edge WebView2 runtime, which Windows 11 and current Windows 10 already have. The build is not code-signed, so Windows may ask you to confirm the publisher.</p>
-    <h3>Linux</h3><p>Download the amd64 tarball, extract it and run install.sh for a menu entry, or run the binary directly.</p>
+    <p class="section-lead">The release ships a Windows installer; the source also builds on Linux as a preview with an empty inbox, and that build is not a release download.</p>
+    <h3>Windows</h3><p>Download the installer from <a href="https://github.com/LLM-4-People/mailsense/releases">Releases</a>. The install is per user and needs no administrator rights. The database and settings live in <code>%LOCALAPPDATA%\Mailsense</code>, and uninstalling keeps them until you delete that directory. Mailsense needs the Microsoft Edge WebView2 runtime, which Windows 11 and current Windows 10 already have. The build is not code-signed, so SmartScreen may ask you to confirm the publisher.</p>
   </div>
   <div class="install-panel">
-    <p class="panel-label">Linux preview</p>
-    <pre><code>tar -xzf mailsense-*-linux-amd64.tar.gz &amp;&amp; cd mailsense-*-linux-amd64 &amp;&amp; ./install.sh</code></pre>
-    <p class="note">One command for the Linux preview, from the directory that holds the downloaded tarball.</p>
+    <p class="panel-label">Windows installer</p>
+    <pre><code>mailsense-&lt;version&gt;-setup.exe</code></pre>
+    <p class="note">The version comes from the release tag. Download the file from the <a href="https://github.com/LLM-4-People/mailsense/releases">releases page</a>.</p>
     <a class="button button-light" href="first-run.html">Read the first-run guide</a>
   </div>
 </section>
@@ -162,5 +186,5 @@ image:
 
 <footer class="page-footer">
   <p><strong>Mailsense</strong> · <a href="https://github.com/LLM-4-People/mailsense">Source</a> · <a href="https://github.com/LLM-4-People/mailsense/LICENSE">AGPL-3.0-or-later</a> · <a href="https://llm-4-people.github.io/mailsense/">Documentation</a></p>
-  <p><a href="privacy.html">Privacy</a> · Your mailbox, ranked. Every row explains itself.</p>
+  <p><a href="privacy.html">Privacy</a> · Ask your mail. Every citation opens the message.</p>
 </footer>

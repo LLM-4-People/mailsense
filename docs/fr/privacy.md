@@ -7,7 +7,7 @@ lang: fr
 # Confidentialité
 
 <!-- nav:start -->
-[Documentation](index.md) · [Installation](install.md) · [Premier démarrage](first-run.md) · [Console](console.md) · [Boîtes](mailboxes.md) · [Fournisseurs](providers.md) · [Apprentissage](learning.md) · [FAQ](faq.md) · **Confidentialité** · [Sécurité](security.md) · [Dépannage](troubleshooting.md) · [Contribuer](contributing.md) · [English](../privacy.md)
+[Documentation](index.md) · [Demander](ask.md) · [Installation](install.md) · [Premier démarrage](first-run.md) · [Console](console.md) · [Boîtes](mailboxes.md) · [Fournisseurs](providers.md) · [Apprentissage](learning.md) · [FAQ](faq.md) · **Confidentialité** · [Sécurité](security.md) · [Dépannage](troubleshooting.md) · [Contribuer](contributing.md) · <a href="../privacy.html" hreflang="en" lang="en" data-lang-switch="en">English</a>
 <!-- nav:end -->
 
 
@@ -33,12 +33,12 @@ suivantes :
    fichiers et son modèle sont téléchargés depuis les adresses épinglées dans
    l'application, puis chaque empreinte SHA-256 est vérifiée.
 2. **Requête à un fournisseur distant.** Seulement si vous configurez un
-   fournisseur distant et qu'un appel s'exécute. La requête contient les champs
-   du message dont cet appel a besoin. Les conditions du fournisseur
-   s'appliquent. Réglages, Fournisseurs indique l'adresse et le modèle. Le
-   triage automatique peut faire cet appel après une synchronisation sans qu'un
-   écran le demande ; le test d'un fournisseur fait un petit appel quand vous
-   cliquez sur Tester.
+   fournisseur distant et qu'un appel s'exécute. La requête contient la question
+   quand Ask rédige une réponse, et les champs du message dont cet appel a
+   besoin. Les conditions du fournisseur s'appliquent. Réglages, Fournisseurs
+   indique l'adresse et le modèle. Le triage automatique peut faire cet appel
+   après une synchronisation sans qu'un écran le demande ; le test d'un
+   fournisseur fait un petit appel quand vous cliquez sur Tester.
 3. **Liste de modèles d'un fournisseur.** Seulement quand vous demandez à
    l'écran Fournisseurs de récupérer les modèles offerts.
 4. **Rien d'autre.** Aucune télémétrie, aucune analyse, aucun appel de mise à
@@ -68,8 +68,8 @@ registre caché.
 
 Le répertoire de données est affiché dans la barre d'état de l'application.
 Supprimez-le pour retirer le stockage, les index, les réglages et les journaux.
-Sous Windows, la désinstallation conserve le répertoire ; sous Linux, supprimer
-le binaire le conserve aussi.
+Sous Windows, la désinstallation conserve le répertoire jusqu'à ce que vous le
+supprimiez.
 
 <!-- footer:start -->
 [Code source](https://github.com/LLM-4-People/mailsense) · AGPL-3.0-or-later · [Documentation](https://llm-4-people.github.io/mailsense/fr/) · [Confidentialité](privacy.md)

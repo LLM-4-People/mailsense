@@ -3,6 +3,12 @@ name: release
 on:
   push:
     tags: ["v*"]
+  # A tag push is the normal path. If that event is lost, or a job failed and
+  # the tag cannot be moved, dispatch this workflow at the tag ref:
+  #   gh workflow run release.yml --ref v0.1.0
+  # The version still comes from GITHUB_REF_NAME, so the assets keep matching
+  # the tag they are published against.
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -39,38 +45,6 @@ jobs:
         run: test -n "${GITHUB_REF_NAME#v}"
       - run: scripts/test.sh
 
-  binaries:
-    name: linux binaries
-    needs: verify
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
-        with:
-          go-version-file: go.mod
-          cache: true
-      - name: version
-        id: version
-        shell: bash
-        run: echo "value=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
-      # scripts/build.sh is the one build owner: CGO off, -trimpath, the GUI
-      # subsystem for Windows, and the version stamp in internal/buildinfo.
-      - name: build the Linux binary
-        env:
-          VERSION: ${{ steps.version.outputs.value }}
-        run: scripts/build.sh linux
-      - name: linux tarball
-        # package.sh is the one owner of the tarball name and payload. It
-        # reads dist/VERSION, which scripts/build.sh just wrote, and ships the
-        # installer checksum it verifies.
-        run: packaging/linux/package.sh
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: binaries
-          path: dist/*
-          if-no-files-found: error
-
   installer:
     name: windows installer
     needs: verify
@@ -95,14 +69,11 @@ jobs:
         run: choco install innosetup --no-progress -y
       # mailsense.iss asks cmd for the same generated page list the Linux
       # tarball reads, so the installer has no hand-written docs list.
+      # compile.sh owns the ISCC invocation and reads dist/VERSION, so the
+      # release and the pull-request check compile the same script.
       - name: compile the installer
         shell: bash
-        env:
-          VERSION: ${{ steps.version.outputs.value }}
-        run: |
-          iscc="/c/Program Files (x86)/Inno Setup 6/ISCC.exe"
-          "$iscc" "/DAppVersion=$VERSION" "/DSourceExe=$(pwd -W)/dist/mailsense.exe" \
-            packaging/windows/mailsense.iss
+        run: packaging/windows/compile.sh
       - name: verify the installer
         shell: bash
         env:
@@ -114,8 +85,11 @@ jobs:
             echo "error: $setup is missing or empty" >&2
             exit 1
           fi
+          # A Windows version resource is fixed width, so ProductVersion comes
+          # back padded with spaces. Trim both ends before comparing.
           product="$(powershell.exe -NoProfile -NonInteractive -Command \
-            "(Get-Item -LiteralPath '$(cygpath -w "$setup")').VersionInfo.ProductVersion" | tr -d '\r')"
+            "(Get-Item -LiteralPath '$(cygpath -w "$setup")').VersionInfo.ProductVersion" |
+            tr -d '\r' | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
           case "$product" in
             "$VERSION" | "$VERSION.0") ;;
             *)
@@ -141,7 +115,8 @@ jobs:
             exit 1
           fi
           build="$(powershell.exe -NoProfile -NonInteractive -Command \
-            "(Get-Content -Raw -LiteralPath '$(cygpath -w "$descriptor")' | ConvertFrom-Json).build" | tr -d '\r')"
+            "(Get-Content -Raw -LiteralPath '$(cygpath -w "$descriptor")' | ConvertFrom-Json).build" |
+            tr -d '\r' | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
           if [[ "$build" != "$VERSION" ]]; then
             echo "error: the binary embeds version '$build', not '$VERSION'" >&2
             scripts/stop-windows.sh 30 || true
@@ -156,7 +131,7 @@ jobs:
 
   publish:
     name: publish
-    needs: [binaries, installer]
+    needs: [installer]
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
@@ -183,57 +158,27 @@ jobs:
       # A missing, renamed or stale asset fails here, before anything is
       # published. The expected set is derived from the tag, and the tarball
       # is checked against the generated public page list and the stamp.
+      # The release ships one file. Anything else in dist means a job uploaded
+      # something it should not, so publishing stops here.
       - name: verify the downloaded artifact set
         shell: bash
         env:
           VERSION: ${{ steps.version.outputs.value }}
         run: |
           set -euo pipefail
-          name="mailsense-${VERSION}-linux-amd64"
-          tarball="${name}.tar.gz"
           installer="mailsense-${VERSION}-setup.exe"
-          expected="$(printf '%s\n' mailsense "$tarball" "$installer" | LC_ALL=C sort)"
           actual="$(find dist -maxdepth 1 -type f -printf '%f\n' | LC_ALL=C sort)"
-          if [[ "$actual" != "$expected" ]]; then
+          if [[ "$actual" != "$installer" ]]; then
             echo "error: the release asset set does not match the tag ${VERSION}" >&2
-            diff <(printf '%s\n' "$expected") <(printf '%s\n' "$actual") >&2 || true
+            echo "expected: $installer" >&2
+            echo "found:" >&2
+            printf '%s\n' "$actual" >&2
             exit 1
           fi
-          for asset in mailsense "$tarball" "$installer"; do
-            if [[ ! -s "dist/${asset}" ]]; then
-              echo "error: dist/${asset} is missing or empty" >&2
-              exit 1
-            fi
-          done
-          work="$(mktemp -d)"
-          trap 'rm -rf "$work"' EXIT
-          tar -xzf "dist/${tarball}" -C "$work"
-          for file in mailsense install.sh README.md LICENSE NOTICE; do
-            if [[ ! -s "$work/${name}/${file}" ]]; then
-              echo "error: ${tarball} is missing ${file}" >&2
-              exit 1
-            fi
-          done
-          tar -tzf "dist/${tarball}" \
-            | sed -n "s|^${name}/||p" \
-            | grep -E '^docs/.*\.md$' \
-            | LC_ALL=C sort > "$work/tarball-docs"
-          {
-            go run ./cmd/gensite -pages=en
-            go run ./cmd/gensite -pages=fr
-          } | LC_ALL=C sort > "$work/expected-docs"
-          if ! diff -u "$work/expected-docs" "$work/tarball-docs"; then
-            echo "error: the tarball docs do not match the generated public page list" >&2
+          [[ -s "dist/${installer}" ]] || {
+            echo "error: dist/${installer} is missing or empty" >&2
             exit 1
-          fi
-          if ! strings -a "dist/mailsense" | grep -Fx -- "$VERSION" > /dev/null; then
-            echo "error: dist/mailsense does not embed version ${VERSION}" >&2
-            exit 1
-          fi
-          if ! strings -a "$work/${name}/mailsense" | grep -Fx -- "$VERSION" > /dev/null; then
-            echo "error: the tarball binary does not embed version ${VERSION}" >&2
-            exit 1
-          fi
+          }
       # One CycloneDX SBOM for the release artifact set. It is published with
       # the assets and covered by the checksum manifest.
       - name: SBOM

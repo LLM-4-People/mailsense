@@ -6,7 +6,7 @@ title: Troubleshooting
 # Troubleshooting
 
 <!-- nav:start -->
-[Documentation](index.md) · [Install](install.md) · [First run](first-run.md) · [Console](console.md) · [Mailboxes](mailboxes.md) · [Providers](providers.md) · [Learning](learning.md) · [FAQ](faq.md) · [Privacy](privacy.md) · [Security](security.md) · **Troubleshooting** · [Contributing](contributing.md) · [Français](fr/troubleshooting.md)
+[Documentation](index.md) · [Ask](ask.md) · [Install](install.md) · [First run](first-run.md) · [Console](console.md) · [Mailboxes](mailboxes.md) · [Providers](providers.md) · [Learning](learning.md) · [FAQ](faq.md) · [Privacy](privacy.md) · [Security](security.md) · **Troubleshooting** · [Contributing](contributing.md) · <a href="fr/troubleshooting.html" hreflang="fr" lang="fr" data-lang-switch="fr">Français</a>
 <!-- nav:end -->
 
 ## The inbox is empty
@@ -57,10 +57,9 @@ files. There is no separate diagnostics export bundle.
 
 ## Where the data is
 
-The status bar shows the data directory. It is
-`%LOCALAPPDATA%\Mailsense` on Windows and
-`${XDG_DATA_HOME:-~/.local/share}/mailsense` on Linux. Set
-`MAILSENSE_DATA_DIR` before launch to use another directory.
+The status bar shows the data directory. On Windows it is
+`%LOCALAPPDATA%\Mailsense`. Set `MAILSENSE_DATA_DIR` before launch to use
+another directory.
 
 <!-- footer:start -->
 [Source](https://github.com/LLM-4-People/mailsense) · AGPL-3.0-or-later · [Documentation](https://llm-4-people.github.io/mailsense/) · [Privacy](privacy.md)
