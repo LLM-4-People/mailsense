@@ -243,6 +243,7 @@ section { margin: 4.8rem 0; }
 .ask-list {
   list-style: none;
   padding: 0;
+  max-width: none;
   margin: 2.2rem 0 1.4rem;
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -378,8 +379,11 @@ section { margin: 4.8rem 0; }
 /* Authored pages and long-form reading */
 .wrapper > h1 { margin-top: 2.8rem; }
 .wrapper > h2 { padding-top: 0.2rem; }
-.wrapper ul, .wrapper ol { padding-left: 1.35rem; max-width: 70ch; }
-.wrapper li { margin: 0.4rem 0; }
+/* Reading width applies to prose lists only. A generated layout list (the Ask
+   grid and any future card grid) carries a class and must fill its container;
+   without this, the 70ch cap shrank the Ask cards to two thirds of the page. */
+.wrapper :is(ul, ol):not([class]) { padding-left: 1.35rem; max-width: 70ch; }
+.wrapper :is(ul, ol):not([class]) li { margin: 0.4rem 0; }
 .wrapper blockquote {
   margin: 1.6rem 0;
   padding: 0.1rem 0 0.1rem 1.2rem;

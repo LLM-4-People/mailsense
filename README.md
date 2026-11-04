@@ -87,9 +87,9 @@ with a request you send. See [privacy](docs/privacy.md).
 - **Only classic Outlook on Windows is a live source.** It reads the profile
   through COM. New Outlook, Outlook on the web, IMAP, POP, the Gmail API,
   Microsoft Graph and file import are not connected in this build.
-- **The Linux build is a preview.** It opens, renders every screen and explains
-  the missing source. The inbox stays empty because there is no live connector
-  yet.
+- **The Linux preview is built from source.** It opens, renders every screen and
+  explains the missing source. The inbox stays empty because there is no live
+  connector yet.
 - **It reads and ranks. It does not act on the mailbox.** No sending, deleting,
   moving or read-state changes. The connector is read-only.
 - **Triage needs a decider.** Without one, triage answers 422
@@ -101,21 +101,23 @@ with a request you send. See [privacy](docs/privacy.md).
 
 ## Install
 
-**Windows.** Download the per-user installer from
-[Releases](https://github.com/LLM-4-People/mailsense/releases). It needs the
-Microsoft Edge WebView2 runtime, which Windows 11 and current Windows 10 already
-have. The build is not code-signed, so Windows may ask you to confirm the
-publisher.
+The release ships a Windows installer; the source also builds on Linux as a
+preview with an empty inbox, and that build is not a release download.
 
-**Linux.** Download the amd64 tarball, extract it and run install.sh for a menu
-entry, or run the binary directly.
+**Windows.** Download the installer from
+[Releases](https://github.com/LLM-4-People/mailsense/releases). The install is
+per user and needs no administrator rights. The database and settings live in
+`%LOCALAPPDATA%\Mailsense`, and uninstalling keeps them until you delete that
+directory. Mailsense needs the Microsoft Edge WebView2 runtime, which Windows 11
+and current Windows 10 already have. The build is not code-signed, so
+SmartScreen may ask you to confirm the publisher.
 
-```bash
-tar -xzf mailsense-*-linux-amd64.tar.gz && cd mailsense-*-linux-amd64 && ./install.sh
+```text
+mailsense-<version>-setup.exe
 ```
 
-One command for the Linux preview, from the directory that holds the downloaded
-tarball.
+The version comes from the release tag. Download the file from the
+[releases page](https://github.com/LLM-4-People/mailsense/releases).
 
 [Read the first-run guide](docs/first-run.md)
 

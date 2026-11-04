@@ -68,8 +68,8 @@ registre caché.
 
 Le répertoire de données est affiché dans la barre d'état de l'application.
 Supprimez-le pour retirer le stockage, les index, les réglages et les journaux.
-Sous Windows, la désinstallation conserve le répertoire ; sous Linux, supprimer
-le binaire le conserve aussi.
+Sous Windows, la désinstallation conserve le répertoire jusqu'à ce que vous le
+supprimiez.
 
 <!-- footer:start -->
 [Code source](https://github.com/LLM-4-People/mailsense) · AGPL-3.0-or-later · [Documentation](https://llm-4-people.github.io/mailsense/fr/) · [Confidentialité](privacy.md)

@@ -60,8 +60,8 @@ answer history stay in a SQLite directory the owner chooses.
   Outlook on Windows through COM.
 - A team that needs Mail to send, delete, move or mark messages read. The
   connector is read-only, and Ask cannot act on the mailbox either.
-- A Linux desktop user who needs live mail today. The Linux build is a preview
-  with an empty inbox.
+- A Linux desktop user who needs live mail today. The source builds on Linux as
+  a preview with an empty inbox, and that build is not a release download.
 - Someone who wants the app to decide without labels. Triage needs a decider, and
   the certified path needs the owner's own answers.
 - Someone who wants Ask to search the web. It answers from the local mail and
@@ -113,7 +113,7 @@ question cannot hold a worker or a provider call without a limit.
 | A question about the mail | Ask returns a count, a list or a written answer, and every citation opens the message | A chat answer, often with no link to the source message |
 | Offline use | Local screens, full-text search, classifier and runtime after install | Usually requires a network |
 | Mailbox actions | Read-only | Often sends, files and changes read state |
-| Platform | Classic Outlook on Windows live; Linux preview | Usually web and mobile |
+| Platform | Classic Outlook on Windows live; Linux source preview | Usually web and mobile |
 | Source and cost | AGPL-3.0-or-later, no paid tier; a remote provider bills under its terms | Subscription, with the vendor's terms |
 
 The comparison is about the default shape of each product. A specific cloud
@@ -124,7 +124,8 @@ assistant may differ; read its terms before making a claim about it.
 - Only classic Outlook on Windows is a live source. New Outlook, Outlook on the
   web, IMAP, POP, the Gmail API, Microsoft Graph and file import are not
   connected.
-- The Linux build opens and renders, but the inbox stays empty.
+- The Linux source preview opens and renders, but the inbox stays empty, and it
+  is not a release download.
 - No sending, deleting, moving or read-state changes, and Ask does not search the
   web.
 - Ask needs no provider in Local mode, but a written answer needs one. Without a
@@ -142,9 +143,8 @@ assistant may differ; read its terms before making a claim about it.
    read from mail.
 2. Choose Look for stores, pick one store, and start the sync. Say plainly that
    nothing was read before this choice.
-3. On Model, choose the local runtime. The download is about 342 MB on Windows
-   and 328 MB on Linux, verified against a pinned SHA-256. Skip means no triage;
-   Search still works.
+3. On Model, choose the local runtime. The download is about 342 MB on Windows,
+   verified against a pinned SHA-256. Skip means no triage; Search still works.
 4. Finish. Point at the resource ceilings and at the partial-index notice while
    the first sync runs.
 5. Open Ask. Switch the selector to Local and ask "How many messages are
@@ -177,7 +177,7 @@ assistant may differ; read its terms before making a claim about it.
 - A partial-index notice that appears only when the semantic index is incomplete.
 - A resource ceiling that pauses a job and writes the reason to Logs.
 - The pinned runtime size and hash in the catalog.
-- The Linux preview with an empty inbox and the explanation on Sources.
+- The Linux source preview with an empty inbox and the explanation on Sources.
 - The four network request kinds on the privacy page.
 
 ## Copy rules
