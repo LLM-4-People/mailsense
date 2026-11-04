@@ -1,0 +1,27 @@
+[
+  {
+    "name": "Atelier Nord",
+    "address": "bonjour@atelier-nord.test",
+    "role": "design studio"
+  },
+  {
+    "name": "Morgan Ellis",
+    "address": "morgan.ellis@atelier-nord.test",
+    "role": "project lead"
+  },
+  {
+    "name": "Studio Lumen",
+    "address": "facturation@studio-lumen.test",
+    "role": "billing desk"
+  },
+  {
+    "name": "Harbor Logistics",
+    "address": "planning@harbor-logistics.test",
+    "role": "delivery planning"
+  },
+  {
+    "name": "Sam Rivera",
+    "address": "sam.rivera@harbor-logistics.test",
+    "role": "mailbox owner"
+  }
+]

@@ -171,7 +171,14 @@ func (s Site) Landing(lang string) []byte {
 	fmt.Fprintf(&out, "title: %s\n", yamlQuote(title))
 	fmt.Fprintf(&out, "lang: %s\n", yamlQuote(lang))
 	fmt.Fprintf(&out, "description: %s\n", yamlQuote(s.Hero.Promise.For(lang)))
-	fmt.Fprintf(&out, "image: %s\n", yamlQuote(s.docAsset("banner", lang)))
+	// The theme's head calls jekyll-seo-tag, which turns this image block into
+	// the Open Graph and Twitter card. The path, size and alt text come from
+	// the one media table, so the preview cannot drift from the committed PNG.
+	out.WriteString("image:\n")
+	fmt.Fprintf(&out, "  path: %s\n", yamlQuote("/"+strings.TrimPrefix(s.Media.SocialPreview, "docs/")))
+	fmt.Fprintf(&out, "  width: %d\n", s.Media.SocialWidth)
+	fmt.Fprintf(&out, "  height: %d\n", s.Media.SocialHeight)
+	fmt.Fprintf(&out, "  alt: %s\n", yamlQuote(s.Product+": "+s.Hero.Banner.For(lang)))
 	out.WriteString("---\n\n")
 
 	out.WriteString(`<header class="hero">` + "\n")
@@ -204,6 +211,29 @@ func (s Site) Landing(lang string) []byte {
 		fmt.Fprintf(&out, `      <h3>%s</h3>`+"\n", html.EscapeString(difference.Title.For(lang)))
 		fmt.Fprintf(&out, `      <p>%s</p>`+"\n", s.inlineHTML(difference.Body.For(lang), lang))
 		out.WriteString("    </article>\n")
+	}
+	out.WriteString("  </div>\n")
+	out.WriteString("</section>\n\n")
+
+	out.WriteString(`<section class="shots" aria-labelledby="shots-title">` + "\n")
+	fmt.Fprintf(&out, `  <h2 id="shots-title">%s</h2>`+"\n", html.EscapeString(s.Media.Title.For(lang)))
+	fmt.Fprintf(&out, `  <p class="section-lead">%s</p>`+"\n", s.inlineHTML(s.Media.Lead.For(lang), lang))
+	out.WriteString(`  <div class="shot-grid">` + "\n")
+	for index, shot := range s.Media.Screenshots {
+		out.WriteString(`    <figure class="shot">` + "\n")
+		// Only the first image is above the fold: it loads with the page, and
+		// every later capture waits until the reader scrolls to it.
+		loading := "lazy"
+		if index == 0 {
+			loading = "eager"
+		}
+		fmt.Fprintf(&out, `      <img src="%s" width="%d" height="%d" loading="%s" decoding="async" alt="%s">`+"\n",
+			html.EscapeString(s.mediaAsset(lang, s.ScreenshotPath(shot.Key, lang))),
+			s.Media.ScreenshotWidth, s.Media.ScreenshotHeight, loading,
+			html.EscapeString(s.Product+": "+shot.Title.For(lang)))
+		fmt.Fprintf(&out, `      <figcaption><strong>%s</strong> %s</figcaption>`+"\n",
+			html.EscapeString(shot.Title.For(lang)), s.inlineHTML(shot.Caption.For(lang), lang))
+		out.WriteString("    </figure>\n")
 	}
 	out.WriteString("  </div>\n")
 	out.WriteString("</section>\n\n")

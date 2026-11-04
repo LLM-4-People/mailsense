@@ -57,6 +57,30 @@ type Limit struct {
 	Body  Localized `json:"body"`
 }
 
+// Screenshot is one product capture shown on the landing pages. The key names
+// the capture the browser script takes; the caption is its accessible
+// description.
+type Screenshot struct {
+	Key     string    `json:"key"`
+	Title   Localized `json:"title"`
+	Caption Localized `json:"caption"`
+}
+
+// Media owns the capture dimensions, the two asset locations and the ordered
+// screen list. The Go renderer, the truth test and the browser capture script
+// all read this one table, so an asset name or a size is never typed twice.
+type Media struct {
+	Title            Localized    `json:"title"`
+	Lead             Localized    `json:"lead"`
+	ScreenshotDir    string       `json:"screenshot_dir"`
+	ScreenshotWidth  int          `json:"screenshot_width"`
+	ScreenshotHeight int          `json:"screenshot_height"`
+	SocialPreview    string       `json:"social_preview"`
+	SocialWidth      int          `json:"social_width"`
+	SocialHeight     int          `json:"social_height"`
+	Screenshots      []Screenshot `json:"screenshots"`
+}
+
 // NavItem is one public destination.
 type NavItem struct {
 	Key     string    `json:"key"`
@@ -86,6 +110,7 @@ type Site struct {
 		FigureAlt     Localized `json:"figure_alt"`
 		FigureCaption Localized `json:"figure_caption"`
 	} `json:"hero"`
+	Media       Media     `json:"media"`
 	Nav         []NavItem `json:"nav"`
 	Differences struct {
 		Title Localized    `json:"title"`
@@ -322,6 +347,9 @@ func (s Site) Validate() error {
 	}
 	require("license.title", s.License.Title)
 	require("license.body", s.License.Body)
+	require("media.title", s.Media.Title)
+	require("media.lead", s.Media.Lead)
+	problems = append(problems, s.validateMedia()...)
 	if len(s.Nav) == 0 {
 		problems = append(problems, "nav is empty")
 	}
@@ -352,6 +380,61 @@ func (s Site) Validate() error {
 		return errors.New(strings.Join(problems, "; "))
 	}
 	return nil
+}
+
+// validateMedia refuses a media table that cannot produce a stable asset path:
+// an asset outside docs/assets, a non-positive size, a duplicate screen key or
+// a caption missing in one language.
+func (s Site) validateMedia() []string {
+	var problems []string
+	require := func(name string, value Localized) {
+		if strings.TrimSpace(value.EN) == "" {
+			problems = append(problems, name+": en is empty")
+		}
+		if strings.TrimSpace(value.FR) == "" {
+			problems = append(problems, name+": fr is empty")
+		}
+	}
+	checkAsset := func(name, dir string) {
+		if !strings.HasPrefix(dir, "docs/assets/") {
+			problems = append(problems, name+" must be under docs/assets/")
+		}
+		if strings.Contains(dir, "..") || filepath.IsAbs(dir) {
+			problems = append(problems, name+" must be a relative path without ..")
+		}
+	}
+	if s.Media.ScreenshotWidth <= 0 || s.Media.ScreenshotHeight <= 0 {
+		problems = append(problems, "media screenshot size must be positive")
+	}
+	if s.Media.SocialWidth <= 0 || s.Media.SocialHeight <= 0 {
+		problems = append(problems, "media social size must be positive")
+	}
+	checkAsset("media.screenshot_dir", s.Media.ScreenshotDir)
+	checkAsset("media.social_preview", s.Media.SocialPreview)
+	if !strings.HasSuffix(s.Media.SocialPreview, ".png") {
+		problems = append(problems, "media.social_preview must be a PNG")
+	}
+	keys := map[string]bool{}
+	for index, shot := range s.Media.Screenshots {
+		name := fmt.Sprintf("media.screenshots[%d]", index)
+		if strings.TrimSpace(shot.Key) == "" {
+			problems = append(problems, name+".key is empty")
+			continue
+		}
+		if !pageKeyRE.MatchString(shot.Key) {
+			problems = append(problems, fmt.Sprintf("%s.key %q is not a lower_snake name", name, shot.Key))
+		}
+		if keys[shot.Key] {
+			problems = append(problems, fmt.Sprintf("%s.key %q is declared twice", name, shot.Key))
+		}
+		keys[shot.Key] = true
+		require(name+".title", shot.Title)
+		require(name+".caption", shot.Caption)
+	}
+	if len(s.Media.Screenshots) == 0 {
+		problems = append(problems, "media.screenshots is empty")
+	}
+	return problems
 }
 
 // localizedText is every public string that can carry a placeholder. It is
@@ -408,6 +491,12 @@ func (s Site) localizedText() map[string]string {
 	add("build.note", s.Build.Note)
 	add("license.title", s.License.Title)
 	add("license.body", s.License.Body)
+	add("media.title", s.Media.Title)
+	add("media.lead", s.Media.Lead)
+	for index, shot := range s.Media.Screenshots {
+		add(fmt.Sprintf("media.screenshots[%d].title", index), shot.Title)
+		add(fmt.Sprintf("media.screenshots[%d].caption", index), shot.Caption)
+	}
 	for index, item := range s.Nav {
 		add(fmt.Sprintf("nav[%d].label", index), item.Label)
 	}
@@ -460,6 +549,28 @@ func mbLabel(lang string) string {
 		return "Mo"
 	}
 	return "MB"
+}
+
+// ScreenshotName is the one file name convention for a capture. The screen key
+// is lower_snake in the source; the asset name uses hyphens like every other
+// generated file.
+func ScreenshotName(key string) string {
+	return strings.ReplaceAll(key, "_", "-") + ".png"
+}
+
+// ScreenshotPath returns the repository-relative PNG path for one screen.
+func (s Site) ScreenshotPath(key, lang string) string {
+	return path.Join(s.Media.ScreenshotDir, lang, ScreenshotName(key))
+}
+
+// mediaAsset turns a repository-relative asset into the reference a page under
+// docs/ uses. A French page is one directory deeper.
+func (s Site) mediaAsset(lang, name string) string {
+	rel := strings.TrimPrefix(name, "docs/")
+	if lang == "fr" {
+		return "../" + rel
+	}
+	return rel
 }
 
 // Page is one row of the public page table. The table is the single owner of

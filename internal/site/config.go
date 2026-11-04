@@ -18,6 +18,17 @@ func docsRel(name string) string {
 	return strings.TrimPrefix(name, "docs/")
 }
 
+// siteOrigin is the scheme and host the published site uses, derived from the
+// one docs_site fact. Jekyll's absolute_url needs it for canonical links and
+// the social cards; baseurl stays its own fact.
+func (s Site) siteOrigin() string {
+	origin := strings.TrimSuffix(s.DocsSite, "/")
+	if base := strings.TrimSuffix(s.BaseURL, "/"); base != "" && strings.HasSuffix(origin, base) {
+		origin = strings.TrimSuffix(origin, base)
+	}
+	return origin
+}
+
 // Config renders docs/_config.yml. The header page list and the exclude list
 // come from the page table and the files present, so neither is hand-copied.
 func (s Site) Config() []byte {
@@ -27,7 +38,7 @@ func (s Site) Config() []byte {
 	fmt.Fprintf(&out, "description: %s\n", yamlQuote(s.Hero.Promise.EN))
 	out.WriteString("theme: \"minima\"\n")
 	fmt.Fprintf(&out, "baseurl: %s\n", yamlQuote(s.BaseURL))
-	out.WriteString("url: \"\"\n")
+	fmt.Fprintf(&out, "url: %s\n", yamlQuote(s.siteOrigin()))
 	out.WriteString("lang: \"en\"\n")
 	out.WriteString("header_pages:\n")
 	for _, item := range s.Nav {

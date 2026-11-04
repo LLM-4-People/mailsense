@@ -3,7 +3,11 @@ layout: default
 title: "Mailsense"
 lang: "en"
 description: "Mailsense turns your Outlook mailbox into a ranked list of what needs you, with the reason on every row."
-image: "assets/banner-en.svg"
+image:
+  path: "/assets/social-preview.png"
+  width: 1200
+  height: 630
+  alt: "Mailsense: Your mailbox, ranked. Every row explains itself."
 ---
 
 <header class="hero">
@@ -42,6 +46,45 @@ image: "assets/banner-en.svg"
       <h3>It abstains until your own labels certify it.</h3>
       <p>The local classifier trains one head per question on your corrections. A question is certified only when the Wilson lower bound of its answered precision reaches 0.99 on a held-out split, with at least 200 training labels, 50 evaluation labels and 0.5 coverage. Below that threshold it abstains, and the Learning screen names the stage that blocks it.</p>
     </article>
+  </div>
+</section>
+
+<section class="shots" aria-labelledby="shots-title">
+  <h2 id="shots-title">The screens you will use</h2>
+  <p class="section-lead">Captured from the Linux preview with an invented mailbox. No real mail appears here.</p>
+  <div class="shot-grid">
+    <figure class="shot">
+      <img src="assets/screenshots/en/home.png" width="1440" height="900" loading="eager" decoding="async" alt="Mailsense: Home">
+      <figcaption><strong>Home</strong> The day in three columns: what needs a reply, what needs a decision, and what is coming up.</figcaption>
+    </figure>
+    <figure class="shot">
+      <img src="assets/screenshots/en/mail.png" width="1440" height="900" loading="lazy" decoding="async" alt="Mailsense: Mail with a message open">
+      <figcaption><strong>Mail with a message open</strong> The selected message shows its sender, its body and the fields the local model read.</figcaption>
+    </figure>
+    <figure class="shot">
+      <img src="assets/screenshots/en/ask.png" width="1440" height="900" loading="lazy" decoding="async" alt="Mailsense: Ask with an answer">
+      <figcaption><strong>Ask with an answer</strong> A question and its grounded answer, with the message it cites under the text.</figcaption>
+    </figure>
+    <figure class="shot">
+      <img src="assets/screenshots/en/teach.png" width="1440" height="900" loading="lazy" decoding="async" alt="Mailsense: Teach">
+      <figcaption><strong>Teach</strong> One question at a time. The suggestion is shown, and your answer is the label that trains the local model.</figcaption>
+    </figure>
+    <figure class="shot">
+      <img src="assets/screenshots/en/learning.png" width="1440" height="900" loading="lazy" decoding="async" alt="Mailsense: Learning">
+      <figcaption><strong>Learning</strong> Each stage reports its own progress, and the screen names the step that still blocks certification.</figcaption>
+    </figure>
+    <figure class="shot">
+      <img src="assets/screenshots/en/sources.png" width="1440" height="900" loading="lazy" decoding="async" alt="Mailsense: Sources">
+      <figcaption><strong>Sources</strong> The Outlook store, the picked mailbox and the folders Mailsense can read.</figcaption>
+    </figure>
+    <figure class="shot">
+      <img src="assets/screenshots/en/settings.png" width="1440" height="900" loading="lazy" decoding="async" alt="Mailsense: Settings">
+      <figcaption><strong>Settings</strong> The everyday settings first. The full schema stays one click away.</figcaption>
+    </figure>
+    <figure class="shot">
+      <img src="assets/screenshots/en/first-run.png" width="1440" height="900" loading="lazy" decoding="async" alt="Mailsense: First run">
+      <figcaption><strong>First run</strong> The first launch writes the setup marker, names the data directory and asks for a time zone before it reads any mail.</figcaption>
+    </figure>
   </div>
 </section>
 

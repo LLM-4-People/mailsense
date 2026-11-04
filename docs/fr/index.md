@@ -3,7 +3,11 @@ layout: default
 title: "Mailsense (français)"
 lang: "fr"
 description: "Mailsense transforme votre boîte Outlook en une liste classée de ce qui vous attend, avec la raison sur chaque ligne."
-image: "../assets/banner-fr.svg"
+image:
+  path: "/assets/social-preview.png"
+  width: 1200
+  height: 630
+  alt: "Mailsense: Votre boîte, classée. Chaque ligne s'explique."
 ---
 
 <header class="hero">
@@ -42,6 +46,45 @@ image: "../assets/banner-fr.svg"
       <h3>Il s&#39;abstient tant que vos propres étiquettes ne l&#39;ont pas certifié.</h3>
       <p>Le classifieur local entraîne une tête par question sur vos corrections. Une question n&#39;est certifiée que lorsque la borne inférieure de Wilson de sa précision répondue atteint 0,99 sur une partition mise de côté, avec au moins 200 étiquettes d&#39;entraînement, 50 étiquettes d&#39;évaluation et une couverture de 0,5. En dessous, il s&#39;abstient, et l&#39;écran Apprentissage nomme l&#39;étape qui bloque.</p>
     </article>
+  </div>
+</section>
+
+<section class="shots" aria-labelledby="shots-title">
+  <h2 id="shots-title">Les écrans que vous utiliserez</h2>
+  <p class="section-lead">Capturés depuis l&#39;aperçu Linux avec une boîte inventée. Aucun courrier réel n&#39;apparaît ici.</p>
+  <div class="shot-grid">
+    <figure class="shot">
+      <img src="../assets/screenshots/fr/home.png" width="1440" height="900" loading="eager" decoding="async" alt="Mailsense: Accueil">
+      <figcaption><strong>Accueil</strong> La journée en trois colonnes : ce qui attend une réponse, ce qui attend une décision et ce qui arrive.</figcaption>
+    </figure>
+    <figure class="shot">
+      <img src="../assets/screenshots/fr/mail.png" width="1440" height="900" loading="lazy" decoding="async" alt="Mailsense: Courrier avec un message ouvert">
+      <figcaption><strong>Courrier avec un message ouvert</strong> Le message choisi montre son expéditeur, son corps et les champs lus par le modèle local.</figcaption>
+    </figure>
+    <figure class="shot">
+      <img src="../assets/screenshots/fr/ask.png" width="1440" height="900" loading="lazy" decoding="async" alt="Mailsense: Demander avec une réponse">
+      <figcaption><strong>Demander avec une réponse</strong> Une question et sa réponse appuyée sur vos messages, avec le message cité sous le texte.</figcaption>
+    </figure>
+    <figure class="shot">
+      <img src="../assets/screenshots/fr/teach.png" width="1440" height="900" loading="lazy" decoding="async" alt="Mailsense: Enseigner">
+      <figcaption><strong>Enseigner</strong> Une question à la fois. La suggestion est affichée, et votre réponse est l&#39;étiquette qui entraîne le modèle local.</figcaption>
+    </figure>
+    <figure class="shot">
+      <img src="../assets/screenshots/fr/learning.png" width="1440" height="900" loading="lazy" decoding="async" alt="Mailsense: Apprentissage">
+      <figcaption><strong>Apprentissage</strong> Chaque étape indique sa progression, et l&#39;écran nomme l&#39;étape qui bloque encore la certification.</figcaption>
+    </figure>
+    <figure class="shot">
+      <img src="../assets/screenshots/fr/sources.png" width="1440" height="900" loading="lazy" decoding="async" alt="Mailsense: Sources">
+      <figcaption><strong>Sources</strong> Le stockage Outlook, la boîte choisie et les dossiers que Mailsense peut lire.</figcaption>
+    </figure>
+    <figure class="shot">
+      <img src="../assets/screenshots/fr/settings.png" width="1440" height="900" loading="lazy" decoding="async" alt="Mailsense: Réglages">
+      <figcaption><strong>Réglages</strong> Les réglages du quotidien d&#39;abord. Le schéma complet reste à un clic.</figcaption>
+    </figure>
+    <figure class="shot">
+      <img src="../assets/screenshots/fr/first-run.png" width="1440" height="900" loading="lazy" decoding="async" alt="Mailsense: Premier démarrage">
+      <figcaption><strong>Premier démarrage</strong> Le premier lancement écrit le marqueur d&#39;installation, nomme le répertoire de données et demande un fuseau horaire avant de lire le courrier.</figcaption>
+    </figure>
   </div>
 </section>
 

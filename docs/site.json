@@ -37,6 +37,112 @@
       "fr": "Une file inventée. L'action et la raison figurent sur chaque ligne."
     }
   },
+  "media": {
+    "title": {
+      "en": "The screens you will use",
+      "fr": "Les écrans que vous utiliserez"
+    },
+    "lead": {
+      "en": "Captured from the Linux preview with an invented mailbox. No real mail appears here.",
+      "fr": "Capturés depuis l'aperçu Linux avec une boîte inventée. Aucun courrier réel n'apparaît ici."
+    },
+    "screenshot_dir": "docs/assets/screenshots",
+    "screenshot_width": 1440,
+    "screenshot_height": 900,
+    "social_preview": "docs/assets/social-preview.png",
+    "social_width": 1200,
+    "social_height": 630,
+    "screenshots": [
+      {
+        "key": "home",
+        "title": {
+          "en": "Home",
+          "fr": "Accueil"
+        },
+        "caption": {
+          "en": "The day in three columns: what needs a reply, what needs a decision, and what is coming up.",
+          "fr": "La journée en trois colonnes : ce qui attend une réponse, ce qui attend une décision et ce qui arrive."
+        }
+      },
+      {
+        "key": "mail",
+        "title": {
+          "en": "Mail with a message open",
+          "fr": "Courrier avec un message ouvert"
+        },
+        "caption": {
+          "en": "The selected message shows its sender, its body and the fields the local model read.",
+          "fr": "Le message choisi montre son expéditeur, son corps et les champs lus par le modèle local."
+        }
+      },
+      {
+        "key": "ask",
+        "title": {
+          "en": "Ask with an answer",
+          "fr": "Demander avec une réponse"
+        },
+        "caption": {
+          "en": "A question and its grounded answer, with the message it cites under the text.",
+          "fr": "Une question et sa réponse appuyée sur vos messages, avec le message cité sous le texte."
+        }
+      },
+      {
+        "key": "teach",
+        "title": {
+          "en": "Teach",
+          "fr": "Enseigner"
+        },
+        "caption": {
+          "en": "One question at a time. The suggestion is shown, and your answer is the label that trains the local model.",
+          "fr": "Une question à la fois. La suggestion est affichée, et votre réponse est l'étiquette qui entraîne le modèle local."
+        }
+      },
+      {
+        "key": "learning",
+        "title": {
+          "en": "Learning",
+          "fr": "Apprentissage"
+        },
+        "caption": {
+          "en": "Each stage reports its own progress, and the screen names the step that still blocks certification.",
+          "fr": "Chaque étape indique sa progression, et l'écran nomme l'étape qui bloque encore la certification."
+        }
+      },
+      {
+        "key": "sources",
+        "title": {
+          "en": "Sources",
+          "fr": "Sources"
+        },
+        "caption": {
+          "en": "The Outlook store, the picked mailbox and the folders Mailsense can read.",
+          "fr": "Le stockage Outlook, la boîte choisie et les dossiers que Mailsense peut lire."
+        }
+      },
+      {
+        "key": "settings",
+        "title": {
+          "en": "Settings",
+          "fr": "Réglages"
+        },
+        "caption": {
+          "en": "The everyday settings first. The full schema stays one click away.",
+          "fr": "Les réglages du quotidien d'abord. Le schéma complet reste à un clic."
+        }
+      },
+      {
+        "key": "first_run",
+        "title": {
+          "en": "First run",
+          "fr": "Premier démarrage"
+        },
+        "caption": {
+          "en": "The first launch writes the setup marker, names the data directory and asks for a time zone before it reads any mail.",
+          "fr": "Le premier lancement écrit le marqueur d'installation, nomme le répertoire de données et demande un fuseau horaire avant de lire le courrier."
+        }
+      }
+    ]
+  },
   "nav": [
     {
       "key": "install",
