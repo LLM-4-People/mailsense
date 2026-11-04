@@ -53,18 +53,36 @@ jobs:
           if-no-files-found: ignore
 
   tests:
-    name: tests
+    name: tests (${{ matrix.shard }})
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [A, B, C, RACE]
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version-file: go.mod
-          cache: true
+          # One cache per shard, below. The shared setup-go cache is immutable
+          # once written, so the first job to finish would freeze a cache that
+          # lacks the other shards' compiled tests.
+          cache: false
+      - name: cache the shard's Go build and module directories
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+        with:
+          path: |
+            ~/go/pkg/mod
+            ~/.cache/go-build
+          key: go-${{ runner.os }}-${{ matrix.shard }}-${{ hashFiles('go.sum') }}
+          restore-keys: |
+            go-${{ runner.os }}-${{ matrix.shard }}-
+            go-${{ runner.os }}-
       - run: scripts/test-fast.sh
         env:
           STAGES: tests
+          SHARDS: ${{ matrix.shard }}
           # The sidecar suite binds loopback ports, so it owns a runner of
           # its own instead of running before the shards.
           SIDECAR: "off"

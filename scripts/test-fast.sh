@@ -16,6 +16,8 @@
 #   STAGES        all (default) | lint | tests | sidecar: CI runs the halves on
 #                 separate runners so a slow vet never delays the tests, and
 #                 the port-binding sidecar suite gets a runner of its own
+#   SHARDS        A,B,C,RACE (default) | any comma-separated subset: which
+#                 shards this process runs, so CI can give each one a runner
 #   SHARD_P       packages built/tested concurrently per shard (default 4)
 #   RACE          auto (default: -race on qa and api when cgo works) | on | off
 #   SIDECAR       on (default) | off: the sidecar suite binds loopback ports
@@ -35,8 +37,23 @@ TEST_TIMEOUT="${TEST_TIMEOUT:-300}"
 SHARD_P="${SHARD_P:-4}"
 SIDECAR="${SIDECAR:-on}"
 STAGES="${STAGES:-all}"
+# Which shards this process runs. CI gives each one its own runner, so the
+# survivor count is a wall-clock choice, not a correctness one: every shard
+# still runs exactly one package set.
+SHARDS="${SHARDS:-A,B,C,RACE}"
 [[ "$TEST_TIMEOUT" =~ ^[1-9][0-9]*$ ]] || die "TEST_TIMEOUT must be a positive whole number of seconds"
 [[ "$SHARD_P" =~ ^[1-9][0-9]*$ ]] || die "SHARD_P must be a positive whole number"
+IFS=',' read -r -a shard_selection <<<"$SHARDS"
+((${#shard_selection[@]})) || die "SHARDS must name at least one of A, B, C, RACE"
+declare -A shard_wanted=()
+for shard in "${shard_selection[@]}"; do
+	case "$shard" in
+	A | B | C | RACE) ;;
+	*) die "SHARDS names an unknown shard: $shard (A, B, C, RACE)" ;;
+	esac
+	[[ -z "${shard_wanted[$shard]:-}" ]] || die "SHARDS names $shard twice"
+	shard_wanted[$shard]=1
+done
 case "$SIDECAR" in
 on | off) ;;
 *) die "SIDECAR must be on or off" ;;
@@ -174,28 +191,32 @@ wait_shard() { # name package-count
 	fi
 }
 
-if ((${#RACE_FLAGS[@]})); then
-	# One shard keeps the process count at four, which is the runner's core
-	# count. Two race builds and three shards oversubscribed it and made the
-	# whole stage slower than this single shard.
-	say "race shard (qa, api)"
-	start_shard RACE env CGO_ENABLED=1 "$GO" test "${RACE_FLAGS[@]}" -vet=off -count=1 -timeout "${TEST_TIMEOUT}s" "$@" ./internal/qa ./internal/api
-else
-	say "race check skipped (RACE=off, or no cgo/C compiler)"
+if [[ -n "${shard_wanted[RACE]:-}" ]]; then
+	if ((${#RACE_FLAGS[@]})); then
+		say "race shard (qa, api)"
+		start_shard RACE env CGO_ENABLED=1 "$GO" test "${RACE_FLAGS[@]}" -vet=off -count=1 -timeout "${TEST_TIMEOUT}s" "$@" ./internal/qa ./internal/api
+	else
+		say "race check skipped (RACE=off, or no cgo/C compiler)"
+		unset 'shard_wanted[RACE]'
+	fi
 fi
-say "shard A (${#pkgs_a[@]} packages)"
-start_shard A "$GO" test -vet=off -count=1 -timeout "${TEST_TIMEOUT}s" -p "$SHARD_P" "$@" "${pkgs_a[@]}"
-say "shard B (${#pkgs_b[@]} packages)"
-start_shard B "$GO" test -vet=off -count=1 -timeout "${TEST_TIMEOUT}s" -p "$SHARD_P" "$@" "${pkgs_b[@]}"
-say "shard C (${#shard_c[@]} packages)"
-start_shard C "$GO" test -vet=off -count=1 -timeout "${TEST_TIMEOUT}s" -p "$SHARD_P" "$@" "${shard_c[@]}"
+if [[ -n "${shard_wanted[A]:-}" ]]; then
+	say "shard A (${#pkgs_a[@]} packages)"
+	start_shard A "$GO" test -vet=off -count=1 -timeout "${TEST_TIMEOUT}s" -p "$SHARD_P" "$@" "${pkgs_a[@]}"
+fi
+if [[ -n "${shard_wanted[B]:-}" ]]; then
+	say "shard B (${#pkgs_b[@]} packages)"
+	start_shard B "$GO" test -vet=off -count=1 -timeout "${TEST_TIMEOUT}s" -p "$SHARD_P" "$@" "${pkgs_b[@]}"
+fi
+if [[ -n "${shard_wanted[C]:-}" ]]; then
+	say "shard C (${#shard_c[@]} packages)"
+	start_shard C "$GO" test -vet=off -count=1 -timeout "${TEST_TIMEOUT}s" -p "$SHARD_P" "$@" "${shard_c[@]}"
+fi
 
-wait_shard A "${#pkgs_a[@]}" || failed=1
-wait_shard B "${#pkgs_b[@]}" || failed=1
-wait_shard C "${#shard_c[@]}" || failed=1
-if ((${#RACE_FLAGS[@]})); then
-	wait_shard RACE 2 || failed=1
-fi
+if [[ -n "${shard_wanted[A]:-}" ]]; then wait_shard A "${#pkgs_a[@]}" || failed=1; fi
+if [[ -n "${shard_wanted[B]:-}" ]]; then wait_shard B "${#pkgs_b[@]}" || failed=1; fi
+if [[ -n "${shard_wanted[C]:-}" ]]; then wait_shard C "${#shard_c[@]}" || failed=1; fi
+if [[ -n "${shard_wanted[RACE]:-}" ]]; then wait_shard RACE 2 || failed=1; fi
 ((failed == 0)) || die "test shards failed; each FAIL above names the shard and the command that reruns it"
 
 say "all fast checks passed (exhaustive gate: scripts/test.sh)"

@@ -33,6 +33,10 @@ exists.
   request titles and sizes, path labels, release drafting, OSSF Scorecard, Go
   dependency submission, first-contribution guidance and a stale policy that
   never closes a pull request.
+- CI runs the lint and vet half, the test half and the sidecar suite on
+  separate runners, cross-builds the Windows binary on Linux, and analyzes Go
+  and JavaScript in parallel. The fast gate went from about six minutes to
+  about two.
 - Public voice and personal-data rules are mechanical. The gate rejects em
   dashes, spaced en dashes, double hyphen punctuation, stock phrases,
   title-case headings, rhetorical transitions and environment, client, machine
