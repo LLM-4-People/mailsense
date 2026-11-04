@@ -33,7 +33,11 @@ jobs:
         if: matrix.language == 'go'
         with:
           go-version-file: go.mod
-          cache: true
+          cache: false
+      - uses: ./.github/actions/go-cache
+        if: matrix.language == 'go'
+        with:
+          suffix: codeql-go
       - uses: github/codeql-action/init@a3d1b77a1ba1550fbb5c74db1dc3a11f4a481126 # v3
         with:
           languages: ${{ matrix.language }}

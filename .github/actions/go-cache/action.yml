@@ -1,0 +1,25 @@
+name: go cache
+description: >-
+  Restore and save the Go module and build caches for one job. A GitHub cache
+  is immutable once written, so a single shared key would freeze whatever the
+  first job to finish happened to compile and leave every other job cold. The
+  suffix gives each job its own cache; restore-keys still seed a new job from
+  the closest existing one.
+
+inputs:
+  suffix:
+    description: Cache namespace for this job, for example lint or tests-A.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830 # v4
+      with:
+        path: |
+          ~/go/pkg/mod
+          ~/.cache/go-build
+        key: go-${{ runner.os }}-${{ inputs.suffix }}-${{ hashFiles('go.sum') }}
+        restore-keys: |
+          go-${{ runner.os }}-${{ inputs.suffix }}-
+          go-${{ runner.os }}-
