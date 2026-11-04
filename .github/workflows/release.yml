@@ -3,6 +3,12 @@ name: release
 on:
   push:
     tags: ["v*"]
+  # A tag push is the normal path. If that event is lost, or a job failed and
+  # the tag cannot be moved, dispatch this workflow at the tag ref:
+  #   gh workflow run release.yml --ref v0.1.0
+  # The version still comes from GITHUB_REF_NAME, so the assets keep matching
+  # the tag they are published against.
+  workflow_dispatch:
 
 permissions:
   contents: read
