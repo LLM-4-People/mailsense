@@ -7,6 +7,10 @@ exists.
 ## Unreleased
 
 ### Added
+- Ask leads the public surface: both landings, both READMEs and the selling
+  guide open with a question answered from local mail, the screen table leads
+  with the Ask capture, and a new bilingual guide covers the three modes,
+  grounding, citations, the provider request and the limits.
 - The project is released under the GNU Affero General Public License, version
   3 or later.
 - First-run setup with a basic and an advanced path, resumable and idempotent.

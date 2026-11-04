@@ -169,8 +169,8 @@ function captureRoutines(lang: Lang): Record<string, (page: Page, baseURL: strin
     },
     ask: async (page, baseURL) => {
       const question = lang === "fr"
-        ? "Qu'est-ce qui attend ma réponse cette semaine ?"
-        : "What needs my reply this week?";
+        ? "Qui attend la proposition Northwind ?"
+        : "Who is waiting on the Northwind proposal?";
       const answer = lang === "fr"
         ? "Trois fils attendent encore votre réponse."
         : "Three threads still need you.";

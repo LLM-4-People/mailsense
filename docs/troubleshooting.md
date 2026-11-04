@@ -6,7 +6,7 @@ title: Troubleshooting
 # Troubleshooting
 
 <!-- nav:start -->
-[Documentation](index.md) · [Install](install.md) · [First run](first-run.md) · [Console](console.md) · [Mailboxes](mailboxes.md) · [Providers](providers.md) · [Learning](learning.md) · [FAQ](faq.md) · [Privacy](privacy.md) · [Security](security.md) · **Troubleshooting** · [Contributing](contributing.md) · <a href="fr/troubleshooting.html" hreflang="fr" lang="fr" data-lang-switch="fr">Français</a>
+[Documentation](index.md) · [Ask](ask.md) · [Install](install.md) · [First run](first-run.md) · [Console](console.md) · [Mailboxes](mailboxes.md) · [Providers](providers.md) · [Learning](learning.md) · [FAQ](faq.md) · [Privacy](privacy.md) · [Security](security.md) · **Troubleshooting** · [Contributing](contributing.md) · <a href="fr/troubleshooting.html" hreflang="fr" lang="fr" data-lang-switch="fr">Français</a>
 <!-- nav:end -->
 
 ## The inbox is empty

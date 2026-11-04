@@ -6,7 +6,7 @@ title: Install
 # Install Mailsense
 
 <!-- nav:start -->
-[Documentation](index.md) · **Install** · [First run](first-run.md) · [Console](console.md) · [Mailboxes](mailboxes.md) · [Providers](providers.md) · [Learning](learning.md) · [FAQ](faq.md) · [Privacy](privacy.md) · [Security](security.md) · [Troubleshooting](troubleshooting.md) · [Contributing](contributing.md) · <a href="fr/install.html" hreflang="fr" lang="fr" data-lang-switch="fr">Français</a>
+[Documentation](index.md) · [Ask](ask.md) · **Install** · [First run](first-run.md) · [Console](console.md) · [Mailboxes](mailboxes.md) · [Providers](providers.md) · [Learning](learning.md) · [FAQ](faq.md) · [Privacy](privacy.md) · [Security](security.md) · [Troubleshooting](troubleshooting.md) · [Contributing](contributing.md) · <a href="fr/install.html" hreflang="fr" lang="fr" data-lang-switch="fr">Français</a>
 <!-- nav:end -->
 
 Mailsense reads live mail from the classic Outlook profile that is already open

@@ -7,7 +7,7 @@ lang: fr
 # Sécurité
 
 <!-- nav:start -->
-[Documentation](index.md) · [Installation](install.md) · [Premier démarrage](first-run.md) · [Console](console.md) · [Boîtes](mailboxes.md) · [Fournisseurs](providers.md) · [Apprentissage](learning.md) · [FAQ](faq.md) · [Confidentialité](privacy.md) · **Sécurité** · [Dépannage](troubleshooting.md) · [Contribuer](contributing.md) · <a href="../security.html" hreflang="en" lang="en" data-lang-switch="en">English</a>
+[Documentation](index.md) · [Demander](ask.md) · [Installation](install.md) · [Premier démarrage](first-run.md) · [Console](console.md) · [Boîtes](mailboxes.md) · [Fournisseurs](providers.md) · [Apprentissage](learning.md) · [FAQ](faq.md) · [Confidentialité](privacy.md) · **Sécurité** · [Dépannage](troubleshooting.md) · [Contribuer](contributing.md) · <a href="../security.html" hreflang="en" lang="en" data-lang-switch="en">English</a>
 <!-- nav:end -->
 
 

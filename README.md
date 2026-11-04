@@ -2,29 +2,51 @@
 
 # Mailsense
 
-**Mailsense turns your Outlook mailbox into a ranked list of what needs you,
-with the reason on every row.**
+**Ask your mail a question. It answers with a count, a list, or a written answer
+that cites the messages it used.**
 
-It reads the classic Outlook profile already open on your PC. The message store,
-the classifier and the learned profile stay on your disk. A remote model runs
-only when you add one.
+It reads the classic Outlook profile already open on your PC. Ask answers from
+the local index; a written answer comes only from a model you configured and the
+messages it can cite. The store, the classifier and the learned profile stay on
+your disk.
 
-![Mailsense: Your mailbox, ranked. Every row explains itself.](docs/assets/banner-en.svg)
+![Mailsense: Ask your mail. Every citation opens the message.](docs/assets/banner-en.svg)
 
-[Français](README.fr.md) · [Documentation](docs/index.md) · [Install](docs/install.md) · [First run](docs/first-run.md) · [Console](docs/console.md) · [Mailboxes](docs/mailboxes.md) · [Providers](docs/providers.md) · [Learning](docs/learning.md) · [FAQ](docs/faq.md) · [Privacy](docs/privacy.md) · [Security](docs/security.md) · [Troubleshooting](docs/troubleshooting.md) · [Contributing](docs/contributing.md) · [Docs site](https://llm-4-people.github.io/mailsense/)
+[Français](README.fr.md) · [Documentation](docs/index.md) · [Ask](docs/ask.md) · [Install](docs/install.md) · [First run](docs/first-run.md) · [Console](docs/console.md) · [Mailboxes](docs/mailboxes.md) · [Providers](docs/providers.md) · [Learning](docs/learning.md) · [FAQ](docs/faq.md) · [Privacy](docs/privacy.md) · [Security](docs/security.md) · [Troubleshooting](docs/troubleshooting.md) · [Contributing](docs/contributing.md) · [Docs site](https://llm-4-people.github.io/mailsense/)
+
+## Ask first
+
+Ask answers a question about your mail in plain language. The screen names which
+mechanism answered it: a typed query, a search, or a model you configured.
+
+- **How many messages are urgent?** returns a count from the local ranking. No
+  model is called.
+- **Summarize the thread about the delivery window.** returns a written answer
+  with a citation on every claim when a provider is configured. In Local mode
+  the same question returns the matching messages and says that Local never
+  calls a model.
+
+Every citation opens the message it names, and every answer is stored with its
+question so you can reopen it.
+
+Ask is bounded by `qa.max_messages`, `qa.retrieval_timeout`, `qa.call_timeout`
+and the two budget settings. A warming index keeps the question and offers Try
+again.
+
+[Read the Ask guide](docs/ask.md)
 
 ## Three things it does differently
 
-- **Every label names its source.** A decision is stored as answers to named
-  questions, with the confidence each answer carries where the question type has
-  one and the evidence behind it. The message detail shows the fields the model
-  read. When an index is partial, the screen names the missing part.
 - **The queue is scored by a fixed local policy.** A local Go scorer ranks each
   message from stored signals: a suspicious message adds 100, a decision 45, a
   reply 30, urgency and deadline levels add fixed weights, and recency adds at
   most 12. A score of 20 is the floor, and a suspicious, decision, reply, urgent
   or deadline signal always enters. Bulk automated mail never enters, however
   urgent its text.
+- **Every label names its source.** A decision is stored as answers to named
+  questions, with the confidence each answer carries where the question type has
+  one and the evidence behind it. The message detail shows the fields the model
+  read. When an index is partial, the screen names the missing part.
 - **It abstains until your own labels certify it.** The local classifier trains
   one head per question on your corrections. A question is certified only when
   the Wilson lower bound of its answered precision reaches 0.99 on a held-out
@@ -41,8 +63,9 @@ see.
 
 - The pinned local runtime and embedding model, downloaded once and checked
   against SHA-256 before use.
-- A request to a remote provider you configured, including automatic triage
-  after a sync. It carries the message fields that call needs.
+- A request to a remote provider you configured, for an Ask answer or automatic
+  triage after a sync. It carries the question and the message fields that call
+  needs.
 - A provider model list when you press Fetch models.
 - One small test request when you press Test. A test is billable and is not
   covered by a budget.

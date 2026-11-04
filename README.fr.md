@@ -2,24 +2,42 @@
 
 # Mailsense
 
-**Mailsense transforme votre boîte Outlook en une liste classée de ce qui vous
-attend, avec la raison sur chaque ligne.**
+**Posez une question à votre courrier. Il répond par un décompte, une liste ou
+une réponse écrite qui cite les messages utilisés.**
 
-Il lit le profil Outlook classique déjà ouvert sur votre PC. Le stockage, le
-classifieur et le profil appris restent sur votre disque. Un modèle distant ne
-s'exécute que si vous en ajoutez un.
+Il lit le profil Outlook classique déjà ouvert sur votre PC. Ask répond depuis
+l'index local ; une réponse écrite ne vient que d'un modèle que vous avez
+configuré et des messages qu'il peut citer. Le stockage, le classifieur et le
+profil appris restent sur votre disque.
 
-![Mailsense: Votre boîte, classée. Chaque ligne s'explique.](docs/assets/banner-fr.svg)
+![Mailsense: Demandez à votre courrier. Chaque citation ouvre le message.](docs/assets/banner-fr.svg)
 
-[English](README.md) · [Documentation](docs/fr/index.md) · [Installation](docs/fr/install.md) · [Premier démarrage](docs/fr/first-run.md) · [Console](docs/fr/console.md) · [Boîtes](docs/fr/mailboxes.md) · [Fournisseurs](docs/fr/providers.md) · [Apprentissage](docs/fr/learning.md) · [FAQ](docs/fr/faq.md) · [Confidentialité](docs/fr/privacy.md) · [Sécurité](docs/fr/security.md) · [Dépannage](docs/fr/troubleshooting.md) · [Contribuer](docs/fr/contributing.md) · [Site de documentation](https://llm-4-people.github.io/mailsense/fr/)
+[English](README.md) · [Documentation](docs/fr/index.md) · [Demander](docs/fr/ask.md) · [Installation](docs/fr/install.md) · [Premier démarrage](docs/fr/first-run.md) · [Console](docs/fr/console.md) · [Boîtes](docs/fr/mailboxes.md) · [Fournisseurs](docs/fr/providers.md) · [Apprentissage](docs/fr/learning.md) · [FAQ](docs/fr/faq.md) · [Confidentialité](docs/fr/privacy.md) · [Sécurité](docs/fr/security.md) · [Dépannage](docs/fr/troubleshooting.md) · [Contribuer](docs/fr/contributing.md) · [Site de documentation](https://llm-4-people.github.io/mailsense/fr/)
+
+## Commencez par une question
+
+Ask répond en clair à une question sur votre courrier. L'écran nomme le
+mécanisme qui a répondu : une requête typée, une recherche ou un modèle que vous
+avez configuré.
+
+- **Combien de messages sont urgents ?** renvoie un décompte du classement
+  local. Aucun modèle n'est appelé.
+- **Résume le fil sur la fenêtre de livraison.** renvoie une réponse écrite avec
+  une citation pour chaque affirmation quand un fournisseur est configuré. En
+  mode Local, la même question renvoie les messages correspondants et indique
+  que Local n'appelle jamais de modèle.
+
+Chaque citation ouvre le message qu'elle nomme, et chaque réponse est conservée
+avec sa question pour être rouverte.
+
+Ask est borné par `qa.max_messages`, `qa.retrieval_timeout`, `qa.call_timeout`
+et les deux réglages de budget. Un index en préparation garde la question et
+propose Réessayer.
+
+[Lire le guide Ask](docs/fr/ask.md)
 
 ## Trois choses qu'il fait autrement
 
-- **Chaque étiquette nomme sa source.** Une décision est stockée comme des
-  réponses à des questions nommées, avec la confiance de chaque réponse quand ce
-  type de question en porte une et les éléments de preuve qui la soutiennent. Le
-  détail du message montre les champs lus par le modèle. Quand un index est
-  partiel, l'écran nomme la partie manquante.
 - **La file est ordonnée par une règle locale fixe.** Un moteur Go local ordonne
   chaque message à partir des signaux stockés : un message suspect ajoute 100,
   une décision 45, une réponse 30, les niveaux d'urgence et d'échéance ajoutent
@@ -27,6 +45,11 @@ s'exécute que si vous en ajoutez un.
   suffit pour entrer, et un signal de suspicion, de décision, de réponse,
   d'urgence ou d'échéance entre toujours. Le courrier automatisé de masse
   n'entre jamais, quelle que soit l'urgence de son texte.
+- **Chaque étiquette nomme sa source.** Une décision est stockée comme des
+  réponses à des questions nommées, avec la confiance de chaque réponse quand ce
+  type de question en porte une et les éléments de preuve qui la soutiennent. Le
+  détail du message montre les champs lus par le modèle. Quand un index est
+  partiel, l'écran nomme la partie manquante.
 - **Il s'abstient tant que vos propres étiquettes ne l'ont pas certifié.** Le
   classifieur local entraîne une tête par question sur vos corrections. Une
   question n'est certifiée que lorsque la borne inférieure de Wilson de sa
@@ -43,9 +66,9 @@ Mailsense fait quatre types de requêtes réseau. Chacune a une raison visible.
 
 - Le moteur local et le modèle de plongements épinglés, téléchargés une fois et
   vérifiés par SHA-256 avant usage.
-- Une requête vers un fournisseur distant que vous avez configuré, y compris le
-  triage automatique après une synchronisation. Elle porte les champs du message
-  dont cet appel a besoin.
+- Une requête vers un fournisseur distant que vous avez configuré, pour une
+  réponse Ask ou le triage automatique après une synchronisation. Elle porte la
+  question et les champs du message dont cet appel a besoin.
 - Une liste de modèles d'un fournisseur quand vous cliquez sur Récupérer les
   modèles.
 - Une petite requête de test quand vous cliquez sur Tester. Un test est
