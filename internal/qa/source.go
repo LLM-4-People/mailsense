@@ -42,12 +42,12 @@ func (s *Source) Generator() (Generator, error) {
 		return nil, fmt.Errorf("%w: a config and secret store are required", ErrUnavailable)
 	}
 	cfg := s.deps.Config
-	id := cfg.String("qa.provider")
+	id := cfg.String(SettingProvider)
 	if id == "" {
 		return nil, fmt.Errorf("%w: no Q&A generator is configured (set qa.provider)", ErrUnavailable)
 	}
 	key := cfg.VersionKey(engine.ProvidersFileSetting) + "|" + id +
-		"|" + strconv.Itoa(cfg.Int("qa.max_answer_tokens"))
+		"|" + strconv.Itoa(cfg.Int(SettingMaxAnswerTokens))
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	if s.gen != nil && s.key == key {
@@ -61,7 +61,7 @@ func (s *Source) Generator() (Generator, error) {
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrUnavailable, err)
 	}
-	p.ReserveOutputTokens = p.AnswerOutputTokens(cfg.Int("qa.max_answer_tokens"))
+	p.ReserveOutputTokens = p.AnswerOutputTokens(cfg.Int(SettingMaxAnswerTokens))
 	if p.APIKeySecret != "" {
 		value, err := s.deps.Secrets.Get(p.APIKeySecret)
 		if err != nil || value == "" {

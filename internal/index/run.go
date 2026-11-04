@@ -80,7 +80,7 @@ func (ix *Indexer) run(ctx context.Context, o Options, report func(Progress)) (R
 	}
 	ix.log.Info("index run started", "run", rep.RunID, "space", rep.Space, "eligible", cov.Eligible, "indexed", cov.Indexed,
 		"stale", cov.Stale, "pending", cov.Pending, "selected", len(work))
-	batch := ix.cfg.Int("embed.batch_size")
+	batch := ix.cfg.Int(SettingEmbedBatch)
 	if sizer, ok := e.(interface{ MaxBatch() int }); ok {
 		// One index batch is one provider request: a failed batch then costs
 		// at most N+1 calls instead of discarding already-paid sub-batches.

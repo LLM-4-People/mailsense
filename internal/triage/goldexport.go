@@ -27,7 +27,7 @@ func (t *Triager) ExportGold(ctx context.Context, st *store.Store, o goldexport.
 		return nil, err
 	}
 	snap := t.cfg.Snapshot()
-	legacy, err := goldexport.LegacyCategories(o.Legacy, snap.Int("archive.max_line_bytes"))
+	legacy, err := goldexport.LegacyCategories(o.Legacy, snap.Int(SettingArchiveMaxLineBytes))
 	if err != nil {
 		return nil, err
 	}

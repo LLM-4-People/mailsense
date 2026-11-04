@@ -17,13 +17,10 @@ import (
 
 // limits are the per-message rules (mail.* and rfc5322.* settings).
 type limits struct {
-	bodyChars, headerChars, htmlChars int
-	maxDepth                          int
-	inlinePartBytes                   int
-	inlineTotalBytes                  int
-	inlineParts                       int
-	rawCharset                        encoding.Encoding // decodes raw 8-bit header lines
-	times                             mail.Times
+	mail.Limits
+	maxDepth   int
+	rawCharset encoding.Encoding // decodes raw 8-bit header lines
+	times      mail.Times
 }
 
 // parse maps one RFC 5322 message (RFC 6532 UTF-8 headers, RFC 2047
@@ -53,14 +50,14 @@ func parse(data []byte, lim limits) (mail.Message, netmail.Header, error) {
 		return mail.Message{}, nil, err
 	}
 	w := &walker{dec: dec, maxDepth: lim.maxDepth, m: &m,
-		inlinePartMax: lim.inlinePartBytes, inlineTotalMax: lim.inlineTotalBytes, inlineMaxParts: lim.inlineParts}
+		inlinePartMax: lim.InlinePartBytes, inlineTotalMax: lim.InlineTotalBytes, inlineMaxParts: lim.InlineParts}
 	w.entity(textproto.MIMEHeader(h), body, 0)
 	rawHTML := strings.Join(w.html, "\n")
 	// The plain body stays the learning/search body. The HTML alternative is
 	// captured separately for display: a non-blank text stub never hides it.
 	m.BodyHTMLKnown = true
 	if rawHTML != "" {
-		m.BodyHTML, m.BodyHTMLTruncated = mail.TruncateHTML(rawHTML, lim.htmlChars)
+		m.BodyHTML, m.BodyHTMLTruncated = mail.TruncateHTML(rawHTML, lim.HTMLChars)
 		if m.BodyHTMLTruncated {
 			m.Alter(mail.AltBodyHTMLTruncated, strconv.Itoa(mail.UTF16Len(rawHTML)))
 		}
@@ -69,9 +66,9 @@ func parse(data []byte, lim limits) (mail.Message, netmail.Header, error) {
 	if strings.TrimSpace(text) == "" {
 		text = htmlText(rawHTML)
 	}
-	m.Body, m.BodyTruncated = mail.TruncateUTF16(text, lim.bodyChars)
+	m.Body, m.BodyTruncated = mail.TruncateUTF16(text, lim.BodyChars)
 	var cut bool
-	if m.Headers, cut = mail.TruncateUTF16(string(bytes.TrimRight(data[:headerEnd(data)], "\r\n")), lim.headerChars); cut {
+	if m.Headers, cut = mail.TruncateUTF16(string(bytes.TrimRight(data[:headerEnd(data)], "\r\n")), lim.HeaderChars); cut {
 		m.Alter(mail.AltHeadersTruncated, "")
 	}
 	m.Attachments = w.attachments

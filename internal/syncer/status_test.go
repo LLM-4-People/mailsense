@@ -6,23 +6,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/LLM-4-People/mailsense/internal/fixturetest/fixturewait"
 	"github.com/LLM-4-People/mailsense/internal/jobs"
 	"github.com/LLM-4-People/mailsense/internal/source"
 )
-
-// waitUntil polls a cheap predicate; these tests assert asynchronous run
-// outcomes, never a sleep-and-hope delay.
-func waitUntil(t *testing.T, what string, ok func() bool) {
-	t.Helper()
-	deadline := time.Now().Add(10 * time.Second)
-	for time.Now().Before(deadline) {
-		if ok() {
-			return
-		}
-		time.Sleep(5 * time.Millisecond)
-	}
-	t.Fatalf("timed out waiting for %s", what)
-}
 
 func discoveredFake(t *testing.T, s *Syncer, selected bool) *fakeConn {
 	t.Helper()
@@ -126,12 +113,12 @@ func TestSchedulerFetchesImmediatelyHonorsAutoAndStops(t *testing.T) {
 		defer close(done)
 		sched.Run(ctx)
 	}()
-	waitUntil(t, "the immediate sync job", func() bool { return len(m.List()) == 1 })
+	fixturewait.WaitUntil(t, 10*time.Second, "the immediate sync job", func() bool { return len(m.List()) == 1 })
 	info := waitJob(t, m, m.List()[0].ID)
 	if info.Status != "succeeded" {
 		t.Fatalf("automatic sync: %+v", info)
 	}
-	waitUntil(t, "synced status", func() bool { return s.Status().Synced })
+	fixturewait.WaitUntil(t, 10*time.Second, "synced status", func() bool { return s.Status().Synced })
 
 	cancel()
 	select {

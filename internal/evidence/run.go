@@ -295,7 +295,7 @@ func (e *Engine) finish(ctx context.Context, rep *Report, start time.Time, err e
 		if ferr := e.st.FinishEvidenceRun(keep, rep.RunID, rep.State, string(body), rep.Error); ferr != nil && err == nil {
 			err = ferr
 		}
-		if runs, schemas, perr := e.st.PruneEvidence(keep, e.cfg.Int("evidence.runs.keep"), rep.Schema); perr != nil {
+		if runs, schemas, perr := e.st.PruneEvidence(keep, e.cfg.Int(settingRunsKeep), rep.Schema); perr != nil {
 			e.log.Warn("evidence history not pruned", "err", perr)
 		} else if runs+schemas > 0 {
 			e.log.Debug("evidence history pruned", "runs", runs, "schemas", schemas)

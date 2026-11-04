@@ -9,6 +9,7 @@ import (
 
 	"github.com/LLM-4-People/mailsense/internal/clock/clocktest"
 	"github.com/LLM-4-People/mailsense/internal/events"
+	"github.com/LLM-4-People/mailsense/internal/fixturetest"
 	"github.com/LLM-4-People/mailsense/internal/jobs"
 	"github.com/LLM-4-People/mailsense/internal/mail"
 	"github.com/LLM-4-People/mailsense/internal/resource"
@@ -108,18 +109,6 @@ func advancedSync() syncer.Report {
 	return syncer.Report{Status: runstate.Succeeded, Totals: store.RunTotals{Written: 1}}
 }
 
-// waitForTrigger polls cond until it holds, failing the test after a bound.
-func waitForTrigger(t *testing.T, what string, cond func() bool) {
-	t.Helper()
-	deadline := time.Now().Add(10 * time.Second)
-	for !cond() {
-		if time.Now().After(deadline) {
-			t.Fatalf("timed out waiting for %s", what)
-		}
-		time.Sleep(time.Millisecond)
-	}
-}
-
 // startSyncTrigger starts the worker over the world's bus and cleans it up.
 func startSyncTrigger(t *testing.T, w *world, jm *jobs.Manager) *syncTrigger {
 	t.Helper()
@@ -173,7 +162,7 @@ func TestTriggerProbesOncePerGenerationAndDecides(t *testing.T) {
 	for range 3 {
 		events.Publish(w.bus, syncer.TopicFinished, advancedSync())
 	}
-	waitForTrigger(t, "the three reports to reach the worker", func() bool { return tr.requested.Load() == 3 })
+	fixturetest.WaitUntil(t, 10*time.Second, "the three reports to reach the worker", func() bool { return tr.requested.Load() == 3 })
 	select {
 	case rep := <-fin.C:
 		if rep.State != runstate.Succeeded || rep.Decided != 1 {
@@ -239,7 +228,7 @@ func TestNoWorkProbeBuildsNoCoreAndSkipsUnchangedGeneration(t *testing.T) {
 	for range 2 {
 		events.Publish(w.bus, syncer.TopicFinished, advancedSync())
 	}
-	waitForTrigger(t, "the coalesced reports", func() bool { return tr.requested.Load() == 3 })
+	fixturetest.WaitUntil(t, 10*time.Second, "the coalesced reports", func() bool { return tr.requested.Load() == 3 })
 	stop()
 
 	if got := scans.Load(); got != 1 {
@@ -299,7 +288,7 @@ func TestReportDuringRunIsOneFollowUp(t *testing.T) {
 	for range 3 {
 		events.Publish(w.bus, syncer.TopicFinished, advancedSync())
 	}
-	waitForTrigger(t, "the reports during the run", func() bool { return tr.requested.Load() == 4 })
+	fixturetest.WaitUntil(t, 10*time.Second, "the reports during the run", func() bool { return tr.requested.Load() == 4 })
 
 	if got := scans.Load(); got != 1 {
 		t.Fatalf("a report during a run ran %d probes, want 1 (the first)", got)

@@ -105,7 +105,7 @@ func (c *Connector) name() string { return filepath.Base(c.root) }
 // roles reads rfc5322.folder_roles ("<folder path>=<role>").
 func (c *Connector) roles() map[string]mail.FolderRole {
 	out := map[string]mail.FolderRole{}
-	for _, p := range c.cfg.Strings("rfc5322.folder_roles") {
+	for _, p := range c.cfg.Strings(SettingFolderRoles) {
 		path, role, _ := strings.Cut(p, "=")
 		out[path] = mail.FolderRole(role)
 	}
@@ -134,7 +134,7 @@ func (c *Connector) Sync(ctx context.Context, folder mail.Folder, cursor source.
 		return cursor, nil
 	}
 	snap := c.cfg.Snapshot()
-	items, err := listItems(spec, int64(snap.Int("rfc5322.max_message_mb"))<<20)
+	items, err := listItems(spec, int64(snap.Int(SettingMaxMessageMB))<<20)
 	if err != nil {
 		return "", err
 	}
@@ -212,16 +212,12 @@ func (c *Connector) message(it item, folder mail.Folder, lim limits, roles map[s
 
 // limitsOf reads the per-message rules of a sync.
 func limitsOf(snap *config.Snapshot) (limits, error) {
-	raw, err := htmlindex.Get(snap.String("rfc5322.headers.raw_charset"))
+	raw, err := htmlindex.Get(snap.String(SettingRawCharset))
 	if err != nil {
-		return limits{}, fmt.Errorf("rfc5322: rfc5322.headers.raw_charset %q is not a known charset: %w", snap.String("rfc5322.headers.raw_charset"), err)
+		return limits{}, fmt.Errorf("rfc5322: %s %q is not a known charset: %w", SettingRawCharset, snap.String(SettingRawCharset), err)
 	}
-	return limits{bodyChars: snap.Int("mail.body.max_chars"), headerChars: snap.Int("mail.headers.max_chars"),
-		htmlChars: snap.Int("mail.body.html_max_chars"), maxDepth: snap.Int("rfc5322.mime.max_depth"),
-		inlinePartBytes:  snap.Int("mail.inline_assets.max_part_bytes"),
-		inlineTotalBytes: snap.Int("mail.inline_assets.max_total_bytes"),
-		inlineParts:      snap.Int("mail.inline_assets.max_parts"),
-		rawCharset:       raw, times: mail.TimesFromConfig(snap)}, nil
+	return limits{Limits: mail.LimitsFromConfig(snap), maxDepth: snap.Int(SettingMimeMaxDepth),
+		rawCharset: raw, times: mail.TimesFromConfig(snap)}, nil
 }
 
 // labelRole is a Gmail label's role: rfc5322.folder_roles first, then the

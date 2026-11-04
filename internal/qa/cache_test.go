@@ -3,6 +3,8 @@ package qa
 import (
 	"testing"
 	"time"
+
+	"github.com/LLM-4-People/mailsense/internal/clock/clocktest"
 )
 
 // A repeated freeform question is answered once. The same question on another
@@ -10,7 +12,7 @@ import (
 // the plan is date-relative and the prompt embeds today.
 func TestAnswerCacheExpiresWithTheOwnerDay(t *testing.T) {
 	w := newWorld(t, false)
-	clock := w.svc.clock.(*fixedClock)
+	clock := w.svc.clock.(*clocktest.Fake)
 	planFallback(w)
 	ask := func() {
 		t.Helper()
@@ -26,12 +28,12 @@ func TestAnswerCacheExpiresWithTheOwnerDay(t *testing.T) {
 	if w.gen.calls != 1 {
 		t.Fatalf("a repeated ask re-called the provider: %d calls", w.gen.calls)
 	}
-	clock.now = clock.now.Add(11 * time.Minute)
+	clock.Advance(11 * time.Minute)
 	ask()
 	if w.gen.calls != 2 {
 		t.Fatalf("an expired answer was replayed: %d calls", w.gen.calls)
 	}
-	clock.now = clock.now.Add(24 * time.Hour)
+	clock.Advance(24 * time.Hour)
 	ask()
 	if w.gen.calls != 3 {
 		t.Fatalf("an answer from another day was replayed: %d calls", w.gen.calls)

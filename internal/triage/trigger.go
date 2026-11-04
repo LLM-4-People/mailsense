@@ -13,20 +13,6 @@ import (
 	"github.com/LLM-4-People/mailsense/internal/syncer"
 )
 
-// Settings the package owns. They are read from the live configuration on
-// every event, so turning triage.auto off stops the next run without a
-// restart.
-const (
-	SettingAuto     = "triage.auto"
-	SettingBatch    = "triage.auto.batch"
-	SettingInterval = "triage.auto.interval"
-	// DeciderSetting names the provider/model/fingerprint the decider runs.
-	DeciderSetting = "triage.decider"
-	// SettingLeaseTTL is how long a run's lease is held before another
-	// process may take the store over.
-	SettingLeaseTTL = "triage.lease_ttl"
-)
-
 // probeTimeout bounds the automatic trigger's existence probe. A probe is one
 // indexed EXISTS over the candidate predicate; a store that cannot answer
 // within this bound leaves the request pending for the next report (and the

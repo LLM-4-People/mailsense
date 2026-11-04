@@ -57,4 +57,9 @@ const (
 	// calendar occurrences the world pass keeps.
 	SettingCalendarPastDays   = "calendar.sync.past_days"
 	SettingCalendarFutureDays = "calendar.sync.future_days"
+
+	// SettingSubaddressSeparators splits a declared address into its
+	// subaddress parts for the scope fingerprint. The store reads the same
+	// key for its identity pass; it owns no exported name for it.
+	SettingSubaddressSeparators = "scope.subaddress_separators"
 )

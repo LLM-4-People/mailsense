@@ -975,10 +975,10 @@ func (s *Service) askPlanned(ctx context.Context, view AskView, question, langua
 // planner and the deterministic summary share it, so a new call path cannot
 // bypass qa.call_timeout or qa.budget.*.
 func (s *Service) generationContext(ctx context.Context) (context.Context, context.CancelFunc) {
-	guard := engine.NewBudgetGuard(engine.Budget{MaxCalls: s.cfg.Int("qa.budget.max_calls"),
-		MaxUSD: s.cfg.Float("qa.budget.max_usd"), AllowUnpriced: false})
+	guard := engine.NewBudgetGuard(engine.Budget{MaxCalls: s.cfg.Int(SettingBudgetMaxCalls),
+		MaxUSD: s.cfg.Float(SettingBudgetMaxUSD), AllowUnpriced: false})
 	return context.WithTimeout(engine.WithReserver(ctx, guard),
-		time.Duration(s.cfg.Int("qa.call_timeout"))*time.Second)
+		time.Duration(s.cfg.Int(SettingCallTimeout))*time.Second)
 }
 
 // retrievalContext is the one local-retrieval budget for every question that
@@ -986,7 +986,7 @@ func (s *Service) generationContext(ctx context.Context) (context.Context, conte
 // share qa.retrieval_timeout, so neither can race the search box's interactive
 // budget or hold a worker without a bound.
 func (s *Service) retrievalContext(ctx context.Context) (context.Context, context.CancelFunc) {
-	return context.WithTimeout(ctx, s.cfg.Duration("qa.retrieval_timeout"))
+	return context.WithTimeout(ctx, s.cfg.Duration(SettingRetrievalTimeout))
 }
 
 // plannerContext retrieves owner messages for a content answer. A question
@@ -1010,7 +1010,7 @@ func (s *Service) plannerContext(ctx context.Context, question string, org *worl
 			return msgs, threads, facts, nil
 		}
 	}
-	limit := s.cfg.Int("qa.max_messages")
+	limit := s.cfg.Int(SettingMaxMessages)
 	todayScoped := questionMentionsToday(question)
 	filter := store.SearchFilter{OwnerOnly: true}
 	if todayScoped {

@@ -440,7 +440,7 @@ func (s *Service) AskConversation(ctx context.Context, req AskRequest) (AskView,
 	if err != nil {
 		return AskView{}, err
 	}
-	if !s.cfg.Bool("qa.enabled") {
+	if !s.cfg.Bool(SettingEnabled) {
 		return AskView{}, ErrDisabled
 	}
 	if err := s.gate.Allow(ctx); err != nil {
@@ -892,7 +892,7 @@ const plannerVersion = 11
 // carry across it. An unconfigured planner has no cacheable answer, so it
 // gets one explicit namespace rather than a record id.
 func (s *Service) plannerIdentity() string {
-	id := strings.TrimSpace(s.cfg.String("qa.provider"))
+	id := strings.TrimSpace(s.cfg.String(SettingProvider))
 	key := s.cfg.VersionKey(engine.ProvidersFileSetting) + "|" + id
 	s.plannerMu.Lock()
 	defer s.plannerMu.Unlock()

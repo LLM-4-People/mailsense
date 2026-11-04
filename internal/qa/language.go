@@ -19,7 +19,7 @@ func (s *Service) finalizeGeneratedAnswer(view AskView, language string) AskView
 		return view
 	}
 	cleaned := mail.CleanBody(view.Answer)
-	guess := locale.Language(cleaned, s.cfg.Int("qa.answer_language.min_letters"))
+	guess := locale.Language(cleaned, s.cfg.Int(SettingAnswerLanguageMinLetters))
 	if guess.Tag == locale.Undetermined || guess.Tag == language {
 		return view
 	}

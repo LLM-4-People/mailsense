@@ -124,7 +124,7 @@ func (ix *Indexer) AfterChanges(bus *events.Bus) (stop func(), err error) {
 		return nil, err
 	}
 	stopHealth, err := events.On(bus, engine.TopicProviderHealth, buffer, func(st engine.ProviderStatus) {
-		if st.Healthy && st.Provider == ix.cfg.String("embed.provider") {
+		if st.Healthy && st.Provider == ix.cfg.String(SettingEmbedProvider) {
 			ix.ResetUnavailable()
 		}
 	})

@@ -23,6 +23,8 @@ var settingKeys = []struct {
 	{SettingMaxLoggedFailures, config.TypeInt},
 	{SettingRunsKeep, config.TypeInt},
 	{SettingAfterSync, config.TypeBool},
+	{SettingEmbedProvider, config.TypeString},
+	{SettingEmbedBatch, config.TypeInt},
 }
 
 // TestSettingConstantsResolve: every key the package reads exists in the
@@ -68,9 +70,11 @@ func TestEverySettingConstantIsListed(t *testing.T) {
 	}
 }
 
-// TestNoSettingKeyLiteralAtReadSites: a read site never spells the key.
+// TestNoSettingKeyLiteralAtReadSites: a read site never spells the key. Every
+// accessor call with a string argument is rejected, whatever its prefix, so a
+// future key cannot slip in as a literal.
 func TestNoSettingKeyLiteralAtReadSites(t *testing.T) {
-	readSite := regexp.MustCompile(`\.(Int|Bool|Duration|Float|String|Strings)\("([a-z_.]+)"`)
+	readSite := regexp.MustCompile(`\.(Int|Bool|Duration|Float|String|Strings|Ints)\("([^"]*)"`)
 	files, err := filepath.Glob("*.go")
 	if err != nil {
 		t.Fatal(err)
@@ -84,9 +88,6 @@ func TestNoSettingKeyLiteralAtReadSites(t *testing.T) {
 			t.Fatal(err)
 		}
 		for _, match := range readSite.FindAllStringSubmatch(string(data), -1) {
-			if !strings.HasPrefix(match[2], "index.") {
-				continue
-			}
 			t.Errorf("%s reads the key literal %s; use its Setting* constant", file, match[0])
 		}
 	}

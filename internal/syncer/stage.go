@@ -67,7 +67,7 @@ func stageCacheKey(cfg *config.Config, st *store.Store) string {
 		st.MailGeneration(),
 		source.Scope(snap),
 		strings.Join(snap.Strings(source.SettingDeclared), "\x00"),
-		strings.Join(snap.Strings("scope.subaddress_separators"), "\x00"))
+		strings.Join(snap.Strings(SettingSubaddressSeparators), "\x00"))
 }
 
 func (s *mailboxesStage) status(ctx context.Context) (learning.StageStatus, error) {

@@ -430,17 +430,12 @@ func (t *Triager) core(ctx context.Context) (*core, error) {
 // stamp identifies what a core was built from (gen: a store generation).
 func (t *Triager) stamp(gen uint64) string {
 	evidence := ""
-	if t.cfg.Bool("triage.facts.evidence") && t.evidence != nil {
+	if t.cfg.Bool(SettingFactsEvidence) && t.evidence != nil {
 		evidence = "evidence " + t.evidence.Version()
 	}
 	return fmt.Sprintf("%d|%s|%v|%s", gen, t.cfg.VersionKey(taxonomy.ProfileFileSetting, RulesFileSetting),
 		t.cfg.Strings(source.SettingSelected), evidence)
 }
-
-// SettingFolderRoles is the setting that names the triaged population's folder
-// roles. It is the store's one spelling of the key, which the triage reads,
-// the layer-1 route key, the run fingerprint and the queue inputs all use.
-const SettingFolderRoles = store.SettingTriageFolderRoles
 
 // FolderRoles are the folder roles of the triaged population, converted by
 // the one owner so a role the store scopes and a role the triage ranks are the
@@ -491,7 +486,7 @@ func (t *Triager) buildCore(ctx context.Context) (*core, error) {
 // (nil when off); on without an evidence engine is an error, never a
 // silent state without them.
 func (t *Triager) evidenceFacts(ctx context.Context) (map[int64]string, error) {
-	if !t.cfg.Bool("triage.facts.evidence") {
+	if !t.cfg.Bool(SettingFactsEvidence) {
 		return nil, nil
 	}
 	if t.evidence == nil {

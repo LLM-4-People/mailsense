@@ -59,12 +59,6 @@ var phraseNames = []string{"history", "history_sender", "history_domain", "histo
 	"fact_questions", "fact_links", "fact_caps", "fact_length", "fact_length_chars", "fact_shape", "fact_shape_sentences", "fact_arrival",
 	"unknown_sender"}
 
-// RulesFileSetting is the setting that names the owner's rules override. It is
-// the one spelling of the key: the loader reads it and every cache stamp
-// beside it (the triage version key, the layer-1 trigger) passes the constant,
-// so a rename cannot leave a cache keyed on a dead stamp.
-const RulesFileSetting = "triage.rules.file"
-
 // LoadRules reads the embedded rules merged with triage.rules.file
 // (config.Overlay: the one reader of shipped data + the user's file).
 func LoadRules(cfg *config.Config) (*Rules, error) {

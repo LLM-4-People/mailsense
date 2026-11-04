@@ -78,7 +78,7 @@ func (e *Engine) readsAny(keys []string) bool {
 // while evidence.after_runs is on: it starts now, or right after the run
 // in progress.
 func (e *Engine) startAfter(m *jobs.Manager, why string) {
-	if !e.cfg.Bool("evidence.after_runs") {
+	if !e.cfg.Bool(settingAfterRuns) {
 		return
 	}
 	e.single.Want(func() {

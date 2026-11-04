@@ -53,7 +53,7 @@ func (s *Service) executeTopicRanking(ctx context.Context, view AskView, key, la
 	if err != nil {
 		return AskView{}, err
 	}
-	searchLimit := s.cfg.Int("search.max_hits")
+	searchLimit := s.cfg.Int(store.SettingSearchMaxHits)
 	if searchLimit < 1 {
 		searchLimit = 200
 	}

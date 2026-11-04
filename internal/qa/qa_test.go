@@ -16,6 +16,7 @@ import (
 	"time"
 	"unicode/utf8"
 
+	"github.com/LLM-4-People/mailsense/internal/clock/clocktest"
 	"github.com/LLM-4-People/mailsense/internal/config"
 	"github.com/LLM-4-People/mailsense/internal/config/configtest"
 	"github.com/LLM-4-People/mailsense/internal/engine"
@@ -522,7 +523,7 @@ func newWorld(t *testing.T, preview bool) *testWorld {
 	w.source = &fakeSource{gen: w.gen}
 	w.gate.preview = preview
 	svc, err := New(cfg, Deps{Store: w.store, Priority: w.prio, Search: w.search, Gate: w.gate,
-		Generator: w.source, Clock: &fixedClock{now: time.Date(2026, 10, 26, 12, 0, 0, 0, time.UTC)}})
+		Generator: w.source, Clock: clocktest.New(time.Date(2026, 10, 26, 12, 0, 0, 0, time.UTC))})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -575,11 +576,6 @@ func TestPlannerIdentityFollowsTheRecordFingerprint(t *testing.T) {
 		t.Fatal("an endpoint change must invalidate cached plans and answers")
 	}
 }
-
-type fixedClock struct{ now time.Time }
-
-func (c *fixedClock) Now() time.Time                             { return c.now }
-func (c *fixedClock) Sleep(context.Context, time.Duration) error { return nil }
 
 func item(id int64, reasons ...string) priority.Item {
 	return priority.Item{MessageID: id, Subject: fmt.Sprintf("subject %d", id), SenderName: "sender",

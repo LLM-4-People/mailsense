@@ -37,6 +37,7 @@ var settingKeys = []struct {
 	{SettingCalendarSyncEnabled, config.TypeBool},
 	{SettingCalendarPastDays, config.TypeInt},
 	{SettingCalendarFutureDays, config.TypeInt},
+	{SettingSubaddressSeparators, config.TypeList},
 }
 
 // TestSettingConstantsResolve: every key the package reads exists in the
@@ -90,7 +91,7 @@ func TestEverySettingConstantIsListed(t *testing.T) {
 // a read site never spells the key. A re-introduced literal would compile and
 // run, and only a schema check on the constant would not see it.
 func TestNoSettingKeyLiteralAtReadSites(t *testing.T) {
-	readSite := regexp.MustCompile(`\.(Int|Bool|Duration|Float|String)\("([a-z_.]+)"`)
+	readSite := regexp.MustCompile(`\.(Int|Bool|Duration|Float|String|Strings|Ints)\("([^"]*)"`)
 	files, err := filepath.Glob("*.go")
 	if err != nil {
 		t.Fatal(err)
@@ -104,11 +105,6 @@ func TestNoSettingKeyLiteralAtReadSites(t *testing.T) {
 			t.Fatal(err)
 		}
 		for _, match := range readSite.FindAllStringSubmatch(string(data), -1) {
-			key := match[2]
-			if !strings.HasPrefix(key, "sync.") && !strings.HasPrefix(key, "contacts.sync.") &&
-				!strings.HasPrefix(key, "calendar.sync.") {
-				continue
-			}
 			t.Errorf("%s reads the key literal %s; use its Setting* constant", file, match[0])
 		}
 	}

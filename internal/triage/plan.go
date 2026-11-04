@@ -241,8 +241,8 @@ func (t *Triager) classifyItem(p *Plan, s *session, it *item, state string, cach
 
 // planOf is an empty plan of a session: its key and the budget settings.
 func (t *Triager) planOf(s *session) *Plan {
-	p := &Plan{Key: s.key, Budget: Budget{MaxCalls: t.cfg.Int("triage.budget.max_calls"), MaxUSD: t.cfg.Float("triage.budget.max_usd"),
-		AllowUnpriced: t.cfg.Bool("triage.budget.allow_unpriced")}}
+	p := &Plan{Key: s.key, Budget: Budget{MaxCalls: t.cfg.Int(SettingBudgetMaxCalls), MaxUSD: t.cfg.Float(SettingBudgetMaxUSD),
+		AllowUnpriced: t.cfg.Bool(SettingBudgetAllowUnpriced)}}
 	p.StaleEstimate.PriceKnown = true
 	return p
 }

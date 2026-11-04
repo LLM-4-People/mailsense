@@ -19,4 +19,9 @@ const (
 	SettingRunsKeep = "index.runs.keep"
 	// SettingAfterSync starts the index after a sync that advanced the mail.
 	SettingAfterSync = "index.after_sync"
+	// SettingEmbedProvider names the embedder record the index verifies
+	// against and SettingEmbedBatch is how many messages one embedding call
+	// carries.
+	SettingEmbedProvider = "embed.provider"
+	SettingEmbedBatch    = "embed.batch_size"
 )

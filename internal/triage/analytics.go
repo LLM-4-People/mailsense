@@ -41,12 +41,12 @@ func (t *Triager) Analytics(ctx context.Context) (*Analytics, error) {
 	fb := feedback.SettingsFrom(t.cfg)
 	judged := v.Judged()
 	return &Analytics{Coverage: v.Coverage,
-		Evaluation:   feedback.Evaluate(judged, v.labels, weakReplies(v, t.cfg.Duration("feedback.weak_reply.within")), v.Profile),
+		Evaluation:   feedback.Evaluate(judged, v.labels, weakReplies(v, t.cfg.Duration(SettingWeakReplyWithin)), v.Profile),
 		Thresholds:   feedback.Calibrate(judged, v.labels, v.Profile, fb.CalibrationStep, fb.CalibrationMin),
 		Escalation:   feedback.CalibrateEscalation(judged, v.labels, v.Profile, fb.EscalationAccuracy, fb.CalibrationStep, fb.CalibrationMin),
 		Correlations: feedback.Correlations(v.Analysis, judged, v.Profile, fb.Correlations),
 		Insights:     feedback.BuildInsights(v.Analysis, v.Behaviour, judged, v.Profile, fb.Insights),
-		Volume:       feedback.Patterns(v.Analysis, v.Behaviour, zone, t.cfg.String("calendar.hemisphere")), Behaviour: v.Behaviour}, nil
+		Volume:       feedback.Patterns(v.Analysis, v.Behaviour, zone, t.cfg.String(SettingHemisphere)), Behaviour: v.Behaviour}, nil
 }
 
 // weakReplies are the weak labels: for every judged owner inbox message,

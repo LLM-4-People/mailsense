@@ -185,12 +185,11 @@ func (c *Connector) settings() (settings, error) {
 }
 
 func compileSettings(snap *config.Snapshot) (settings, error) {
+	lim := mail.LimitsFromConfig(snap)
 	s := settings{
 		pageRows: snap.Int("outlook.table.page_rows"), preview: snap.Bool("outlook.table.body_preview"),
-		bodyMax: snap.Int("mail.body.max_chars"), htmlMax: snap.Int("mail.body.html_max_chars"),
-		headersMax:    snap.Int("mail.headers.max_chars"),
-		inlinePartMax: snap.Int("mail.inline_assets.max_part_bytes"), inlineTotalMax: snap.Int("mail.inline_assets.max_total_bytes"),
-		inlineParts: snap.Int("mail.inline_assets.max_parts"),
+		bodyMax: lim.BodyChars, htmlMax: lim.HTMLChars, headersMax: lim.HeaderChars,
+		inlinePartMax: lim.InlinePartBytes, inlineTotalMax: lim.InlineTotalBytes, inlineParts: lim.InlineParts,
 		retry: retryPolicy{attempts: snap.Int("outlook.com.retry.attempts"), base: snap.Duration("outlook.com.retry.base_delay"),
 			max: snap.Duration("outlook.com.retry.max_delay")},
 		selected: source.Selected(snap), times: mail.TimesFromConfig(snap), recheck: snap.Duration("outlook.sync.recheck_after"),

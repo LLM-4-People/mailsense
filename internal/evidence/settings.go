@@ -28,7 +28,11 @@ type Settings struct {
 	Threads        threads.Settings
 }
 
-// Setting keys signals declare (Signal.Settings).
+// Setting keys signals declare (Signal.Settings) plus the run's own
+// settings. A key spelled at its read sites drifts: a typo silently reads the
+// schema default instead of the configured value, so every read goes through
+// one of these names and the schema check in settings_test.go fails when one
+// stops resolving.
 const (
 	settingMinLetters     = "evidence.language.min_letters"
 	settingLangChars      = "evidence.language.max_chars"
@@ -38,6 +42,16 @@ const (
 	settingTemplateWindow = "evidence.template.window"
 	settingMaxDates       = "evidence.dates.max"
 	settingBuckets        = threads.SettingBuckets
+
+	// settingWorkers is the run's parallel worker count; 0 means every CPU.
+	settingWorkers = "evidence.workers"
+	// settingBatch is how many messages one evidence batch evaluates.
+	settingBatch = "evidence.batch_size"
+	// settingAfterRuns starts a run after a sync, an index run or a setting
+	// change.
+	settingAfterRuns = "evidence.after_runs"
+	// settingRunsKeep is how many evidence run reports are retained.
+	settingRunsKeep = "evidence.runs.keep"
 )
 
 // contextSettings are the settings a thread or history signal reads:
@@ -59,12 +73,12 @@ func settingsFrom(cfg *config.Config) (Settings, error) {
 	if err != nil {
 		return Settings{}, fmt.Errorf("evidence: %w", err)
 	}
-	workers := s.Int("evidence.workers")
+	workers := s.Int(settingWorkers)
 	if workers == 0 {
 		workers = runtime.GOMAXPROCS(0)
 	}
 	return Settings{Zone: zone, MinLetters: s.Int(settingMinLetters), LangChars: s.Int(settingLangChars),
 		MaxEdits: s.Int(settingMaxEdits), MinNameChars: s.Int(settingMinNameChars), TemplateCosine: s.Float(settingTemplateCosine),
-		TemplateWindow: s.Int(settingTemplateWindow), MaxDates: s.Int(settingMaxDates), Batch: s.Int("evidence.batch_size"),
+		TemplateWindow: s.Int(settingTemplateWindow), MaxDates: s.Int(settingMaxDates), Batch: s.Int(settingBatch),
 		Workers: workers, Domains: mail.NewDomains(s.Strings(mail.SettingSharedDomains)), Threads: th}, nil
 }

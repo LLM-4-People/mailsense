@@ -382,7 +382,7 @@ func (s *Service) companyEvidence(ctx context.Context, question string, org worl
 	if len(candidates) == 0 {
 		return nil, nil, facts, nil
 	}
-	if limit := s.cfg.Int("qa.max_messages"); len(candidates) > limit {
+	if limit := s.cfg.Int(SettingMaxMessages); len(candidates) > limit {
 		candidates = candidates[:limit]
 	}
 	selected := make(map[int64]bool, len(candidates))

@@ -115,7 +115,7 @@ func (t *Triager) execute(ctx context.Context, s *session, plan *Plan, rep *Repo
 	rs := newRunState(rep, plan.Budget)
 	work := make(chan item)
 	var wg sync.WaitGroup
-	for range t.cfg.Int("triage.workers") {
+	for range t.cfg.Int(SettingWorkers) {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
@@ -262,7 +262,7 @@ func (t *Triager) recordFailure(rs *runState, rowID int64, err error, count bool
 	if count {
 		rs.rep.Failed++
 	}
-	if rs.logged < t.cfg.Int("triage.max_logged_failures") {
+	if rs.logged < t.cfg.Int(SettingMaxLoggedFailures) {
 		rs.logged++
 		rs.rep.Failures = append(rs.rep.Failures, Failure{MessageID: rowID, Error: err.Error()})
 		t.log.Warn("message not decided", "message", rowID, "err", err)
