@@ -2,6 +2,7 @@
 layout: default
 title: "Mailsense"
 lang: "en"
+language_switch: true
 description: "Mailsense turns your Outlook mailbox into a ranked list of what needs you, with the reason on every row."
 image:
   path: "/assets/social-preview.png"
@@ -25,7 +26,7 @@ image:
   </figure>
 </header>
 
-[Install](install.md) · [First run](first-run.md) · [Console](console.md) · [Mailboxes](mailboxes.md) · [Providers](providers.md) · [Learning](learning.md) · [FAQ](faq.md) · [Privacy](privacy.md) · [Security](security.md) · [Troubleshooting](troubleshooting.md) · [Contributing](contributing.md) · [Français](fr/)
+[Install](install.md) · [First run](first-run.md) · [Console](console.md) · [Mailboxes](mailboxes.md) · [Providers](providers.md) · [Learning](learning.md) · [FAQ](faq.md) · [Privacy](privacy.md) · [Security](security.md) · [Troubleshooting](troubleshooting.md) · [Contributing](contributing.md) · <a href="fr/" hreflang="fr" lang="fr" data-lang-switch="fr">Français</a>
 
 <section class="differences" aria-labelledby="differences-title">
   <h2 id="differences-title">Three things it does differently</h2>

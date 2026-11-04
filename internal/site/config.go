@@ -51,11 +51,9 @@ func (s Site) Config() []byte {
 			}
 		}
 	}
-	for _, page := range s.Pages() {
-		if page.Key == "index" {
-			fmt.Fprintf(&out, "  - %s\n", yamlQuote(docsRel(page.FR)))
-		}
-	}
+	// The theme header does not carry a second language switch. The generated
+	// navigation marks its switch link for the stored preference, while a
+	// header link would be unmarked and could bounce a reader back.
 	out.WriteString("markdown: \"kramdown\"\n")
 	out.WriteString("plugins:\n  - \"jekyll-relative-links\"\n")
 	out.WriteString("relative_links:\n  enabled: true\n  collections: false\n")

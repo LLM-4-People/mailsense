@@ -283,6 +283,12 @@ func (s Site) Validate() error {
 	if s.Facts.RuntimeWindowsMB <= 0 || s.Facts.RuntimeLinuxMB <= 0 {
 		problems = append(problems, "runtime facts are missing")
 	}
+	enLanding, frLanding := s.landingPath("en"), s.landingPath("fr")
+	if enLanding == "" || frLanding == "" {
+		problems = append(problems, "the page table has no landing page pair")
+	} else if enLanding == frLanding {
+		problems = append(problems, "the two landing pages share a path")
+	}
 	require("hero.eyebrow", s.Hero.Eyebrow)
 	require("hero.title", s.Hero.Title)
 	require("hero.promise", s.Hero.Promise)
@@ -638,6 +644,10 @@ func (s Site) Pages() []Page {
 			Render: func(site Site, lang string) []byte { return site.Banner(lang) }},
 		Page{Key: "stylesheet", EN: "docs/assets/main.scss", FR: "docs/assets/main.scss",
 			Render: func(site Site, _ string) []byte { return site.Stylesheet() }},
+		// The head override carries the alternates and the language script.
+		// Both trees include the same file; the page condition is Liquid.
+		Page{Key: "head", EN: "docs/_includes/head.html", FR: "docs/_includes/head.html",
+			Render: func(site Site, _ string) []byte { return site.Head() }},
 		Page{Key: "config", EN: "docs/_config.yml", FR: "docs/_config.yml",
 			Render: func(site Site, _ string) []byte { return site.Config() }},
 	)
