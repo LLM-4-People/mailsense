@@ -117,8 +117,11 @@ jobs:
             echo "error: $setup is missing or empty" >&2
             exit 1
           fi
+          # A Windows version resource is fixed width, so ProductVersion comes
+          # back padded with spaces. Trim both ends before comparing.
           product="$(powershell.exe -NoProfile -NonInteractive -Command \
-            "(Get-Item -LiteralPath '$(cygpath -w "$setup")').VersionInfo.ProductVersion" | tr -d '\r')"
+            "(Get-Item -LiteralPath '$(cygpath -w "$setup")').VersionInfo.ProductVersion" |
+            tr -d '\r' | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
           case "$product" in
             "$VERSION" | "$VERSION.0") ;;
             *)
@@ -144,7 +147,8 @@ jobs:
             exit 1
           fi
           build="$(powershell.exe -NoProfile -NonInteractive -Command \
-            "(Get-Content -Raw -LiteralPath '$(cygpath -w "$descriptor")' | ConvertFrom-Json).build" | tr -d '\r')"
+            "(Get-Content -Raw -LiteralPath '$(cygpath -w "$descriptor")' | ConvertFrom-Json).build" |
+            tr -d '\r' | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//')"
           if [[ "$build" != "$VERSION" ]]; then
             echo "error: the binary embeds version '$build', not '$VERSION'" >&2
             scripts/stop-windows.sh 30 || true
