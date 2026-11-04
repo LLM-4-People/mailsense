@@ -28,16 +28,18 @@ setup, and documentation that a new owner can follow without help.
 
 - Repository `LLM-4-People/mailsense` exists and is public. Pull request 1
   carries the whole tree from the initial `main` commit.
-- Branch head is `7e733cc`. The working tree is clean and equal to the remote
-  branch. Exploratory work that was not requested was discarded.
-- Required checks pass: fast gate, windows build, vulnerability scan,
-  dependency review and CodeQL analysis. Playwright also passes.
-- Merge is blocked for one measured reason: the repository ruleset requires
-  every review thread to be resolved, and 19 CodeQL `go/clear-text-logging`
-  threads are open on `cmd/mailsense`, `internal/api/errors.go`,
-  `internal/index`, `internal/layer1`, `internal/onboarding`,
-  `internal/engine/embed` and `internal/triage`. The CodeQL check run fails on
-  the same 19 alerts.
+- Branch head is `dddda18`. The public voice and personal-data gates pass on
+  1,784 tracked files.
+- The 19 CodeQL `go/clear-text-logging` alerts are fixed at their logging
+  sinks through `logx.RedactedError`, and the analysis now reports zero open
+  alerts. All 19 review threads are resolved, so the ruleset blocker is gone.
+- Every required check passes on `dddda18`: fast gate, windows build,
+  vulnerability scan, dependency review, CodeQL analysis, Playwright,
+  actionlint, the generated-link crawl and the pull-request title check.
+- The fast gate briefly failed on a stale `docs/_config.yml`. The committed
+  file came from a generator change that was still uncommitted, so the
+  committed generator emitted a different `url`. Both are committed together
+  now and `go run ./cmd/gensite -check` passes.
 - Pages is enabled with `build_type=workflow`, but the workflow has never run
   from `main`, so the site is not live yet.
 - There are no tags and no releases. The release workflow, installer, SBOM,
@@ -121,9 +123,8 @@ setup, and documentation that a new owner can follow without help.
 
 ### Blocked or waiting on the owner
 
-- Merge of pull request 1 is blocked by 19 unresolved CodeQL review threads.
-  The ruleset requires every thread to be resolved. The 19 threads are all
-  `go/clear-text-logging` and are listed in the current status above.
+- Nothing blocks the merge any more. The ruleset requirement is satisfied:
+  every required check passes and no review thread is open.
 - Pages is enabled but the first deployment still waits for the merge.
 - The Windows installer has not been compiled or installed. Only the portable
   binary was verified on a Windows test machine.
@@ -149,29 +150,25 @@ setup, and documentation that a new owner can follow without help.
 - [x] `scripts/test-fast.sh` and `scripts/test.sh` are green on the final tree.
 - [x] The repository exists under `LLM-4-People/mailsense`, the first commit is
       pushed on a branch, and every required check passes.
-- [ ] The 19 CodeQL review threads are resolved and pull request 1 is merged.
+- [x] The CodeQL alerts are fixed, every review thread is resolved and the
+      analysis reports zero open alerts.
+- [ ] Pull request 1 is merged.
 - [ ] Pages is enabled and the bilingual site is verified.
 - [ ] A tagged release publishes the installer, the tarball, the SBOM and the
       checksum manifest, and the installer is verified on Windows.
 
 ## Next actions, in order
 
-1. Fix the 19 `go/clear-text-logging` alerts at their owners, resolve every
-   review thread, confirm the CodeQL check run is green, and merge pull request
-   1 into `main`.
+1. Merge pull request 1 into `main` once the checks on the final commit are
+   green.
 2. Watch the Pages workflow on `main`, then verify the English and French
    landing pages, every guide page, both READMEs and every navigation link.
 3. Create the first version tag and verify the release assets: Windows
    installer, Linux tarball, SBOM, checksums and provenance attestation.
-4. Install the Windows package on a Windows test machine and run the first-run setup
-   from a clean data directory.
-5. Extend the first-run setup with the advanced path and with pre-fill,
-   pre-fetch and pre-compute where the product can do it safely.
-6. Run the PII and voice sweeps again over every public surface, and extend
-   `internal/prose` so the new prohibitions on generated prose and double
-   hyphen punctuation are mechanically enforced in both languages.
-7. Finish the selling speech and the screenshots, then announce.
-8. The owner revokes the two removed provider keys.
+4. Install the Windows package on a Windows test machine and run the first-run
+   setup from a clean data directory.
+5. Announce.
+6. The owner revokes the two removed provider keys.
 
 ## Workstreams
 
@@ -204,19 +201,22 @@ setup, and documentation that a new owner can follow without help.
 
 ### C. Public release polish
 
-- [ ] Sweep every tracked file for personal data, real client names, machine
+- [x] Sweep every tracked file for personal data, real client names, machine
       names, mailbox addresses, internal vendor names and environment paths.
-      Add the residue patterns to a mechanical check so a reappearance fails
-      the gate.
-- [ ] Remove all environment-specific references and documentation.
-- [ ] Extend `internal/prose` to reject em dashes, spaced en dashes, double
-      hyphen punctuation, stock phrases and generated-prose markers in every
-      public English and French file, including the console catalogs.
-- [ ] Rewrite the landing pages, READMEs, install pages and selling speech in a
+      The patterns live in `scripts/pii-patterns.tsv` and
+      `scripts/check-pii.sh` runs them on every fast and exhaustive gate.
+- [x] Remove all environment-specific references and documentation, including
+      the private live harness and the three notes that only recorded private
+      history.
+- [x] Extend `internal/prose` to reject em dashes, spaced en dashes, double
+      hyphen punctuation, stock phrases, title-case headings, rhetorical
+      transitions and a closing restatement in every public English and French
+      file. The console catalogs reuse the same owner.
+- [x] Rewrite the landing pages, READMEs, install pages and selling speech in a
       plain, familiar voice in both languages. No literal translation.
-- [ ] Add screenshots from a clean first run with invented mail only.
-- [ ] Confirm the repository description, topics, social preview and landing
-      links are set once and generated where possible.
+- [x] Add screenshots from a clean first run with invented mail only.
+- [x] Confirm the repository description, topics, homepage and landing links
+      are set once and generated where possible.
 
 ### C2. Console scope
 
@@ -231,7 +231,11 @@ that blocks the first-run setup, the installer or a documented public flow.
 - [x] `docs/SELLING.md` for positioning, limits and objections.
 - [x] The privacy page states local training, remote request shapes, automatic
       triage and the absence of telemetry.
-- [ ] Screenshots from a clean first run, with no real mail.
+- [x] Screenshots from a clean first run, with no real mail. Eight screens in
+      both languages come from the Linux preview with a fixed clock, and a
+      truth test fails when a listed image is missing or has the wrong size.
+- [x] A 1200x630 social preview generated from the brand banner, wired through
+      the theme's existing SEO include.
 
 ### E. GitHub automation
 
@@ -260,6 +264,19 @@ the gate output, and the residual risk in the round's entry below.
 
 Newest first. The older evidence log below keeps its original chronological
 order.
+
+Round 132 (publication ready): the nineteen clear-text-logging flows are
+projected through `logx.RedactedError` at every sink, the analysis reports zero
+open alerts and the review threads are resolved. The personal-data scan passes
+on 1,784 tracked files with 105 deny patterns, and the voice guard covers the
+new prohibitions. The installer has one version owner and a local verification
+script; the release workflow calls `packaging/linux/package.sh`. Ten bounded
+automation workflows are pinned and least-privilege. Eight documented screens
+in both languages and a 1200x630 social preview ship with truth tests. The
+fast gate failed once on a stale `docs/_config.yml` because the generator
+change was not committed beside its output; both are committed together now.
+Next: merge, watch Pages, verify every page and link, tag `v0.1.0`, verify the
+release assets, install on Windows and announce.
 
 Round 131 (publication state): pull request 1 is open from
 `release/publication` at `7e733cc`. Fast gate, windows build, vulnerability
@@ -343,8 +360,12 @@ and the live/resilience Playwright specs pass.
 
 ## Residual risks
 
-- Merge is blocked until the 19 CodeQL clear-text-logging threads are resolved.
-  Resolving a thread without fixing the underlying flow would only hide it.
+- `logx.Redact` is policy-based, not encryption: a secret that is neither
+  registered nor matching a built-in pattern survives inside an error body.
+  The nineteen flagged paths carried the secret-store name, never a value.
+- `internal/bootstrap.Report` writes startup errors to a file and a native
+  dialog without the redaction projection. That text contains a secret name
+  only today, but it is the one startup surface that bypasses the projection.
 - Pages has never deployed from `main`; the first run can still fail on a
   repository setting or a missing environment.
 - The release workflow and the Windows installer have never run on a tag. The
