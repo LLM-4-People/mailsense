@@ -33,9 +33,10 @@ setup, and documentation that a new owner can follow without help.
 - The 19 CodeQL `go/clear-text-logging` alerts are fixed at their logging
   sinks through `logx.RedactedError`, and the analysis now reports zero open
   alerts. All 19 review threads are resolved, so the ruleset blocker is gone.
-- Every required check passes on `dddda18`: fast gate, windows build,
-  vulnerability scan, dependency review, CodeQL analysis, Playwright,
-  actionlint, the generated-link crawl and the pull-request title check.
+- Every required check passes. The fast gate is 58 seconds on a warm cache:
+  lint and vet 30 s, the four test shards 33 to 46 s each, the sidecar suite
+  50 s and the windows cross-build 21 s. CodeQL is about 2 minutes and is the
+  remaining pole.
 - The fast gate briefly failed on a stale `docs/_config.yml`. The committed
   file came from a generator change that was still uncommitted, so the
   committed generator emitted a different `url`. Both are committed together
@@ -264,6 +265,17 @@ the gate output, and the residual risk in the round's entry below.
 
 Newest first. The older evidence log below keeps its original chronological
 order.
+
+Round 133 (CI speed): the fast gate went from six minutes twenty-five to
+fifty-eight seconds on a warm cache. The gate is now the lint and vet job, four
+test shard jobs, the sidecar job and a joining job; every job keeps its own Go
+module and build cache through one composite action, because a GitHub cache is
+immutable once written. Vet runs one host pass plus the packages that declare
+each tag, instead of ten full module builds. The windows job cross-compiles the
+shipped binary on Linux, which the tree allows because it has no cgo and no
+assembly. CodeQL analyzes Go and JavaScript in parallel and stays at about two
+minutes, so it is the remaining pole. The Companies cache test now owns the
+event stream like its two siblings, which removes the intermittent failure.
 
 Round 132 (publication ready): the nineteen clear-text-logging flows are
 projected through `logx.RedactedError` at every sink, the analysis reports zero
