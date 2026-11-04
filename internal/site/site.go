@@ -151,14 +151,14 @@ type Site struct {
 		Items []Limit   `json:"items"`
 	} `json:"limits"`
 	Install struct {
-		Title       Localized `json:"title"`
-		Lead        Localized `json:"lead"`
-		Windows     Localized `json:"windows"`
-		Linux       Localized `json:"linux"`
-		Command     string    `json:"command"`
-		CommandNote Localized `json:"command_note"`
-		FirstRun    Localized `json:"first_run"`
-		Note        Localized `json:"note"`
+		Title    Localized `json:"title"`
+		Lead     Localized `json:"lead"`
+		Windows  Localized `json:"windows"`
+		Panel    Localized `json:"panel"`
+		File     string    `json:"file"`
+		FileNote Localized `json:"file_note"`
+		FirstRun Localized `json:"first_run"`
+		Note     Localized `json:"note"`
 	} `json:"install"`
 	Status struct {
 		Title Localized `json:"title"`
@@ -375,12 +375,12 @@ func (s Site) Validate() error {
 	require("install.title", s.Install.Title)
 	require("install.lead", s.Install.Lead)
 	require("install.windows", s.Install.Windows)
-	require("install.linux", s.Install.Linux)
-	require("install.command_note", s.Install.CommandNote)
+	require("install.panel", s.Install.Panel)
+	require("install.file_note", s.Install.FileNote)
 	require("install.first_run", s.Install.FirstRun)
 	require("install.note", s.Install.Note)
-	if strings.TrimSpace(s.Install.Command) == "" {
-		problems = append(problems, "install.command is empty")
+	if strings.TrimSpace(s.Install.File) == "" {
+		problems = append(problems, "install.file is empty")
 	}
 	require("status.title", s.Status.Title)
 	require("status.body", s.Status.Body)
@@ -419,7 +419,7 @@ func (s Site) Validate() error {
 	for name, text := range s.localizedText() {
 		checkText(name, text)
 	}
-	checkText("install.command", s.Install.Command)
+	checkText("install.file", s.Install.File)
 	checkText("build.commands", s.Build.Commands)
 	if len(problems) > 0 {
 		return errors.New(strings.Join(problems, "; "))
@@ -539,8 +539,8 @@ func (s Site) localizedText() map[string]string {
 	add("install.title", s.Install.Title)
 	add("install.lead", s.Install.Lead)
 	add("install.windows", s.Install.Windows)
-	add("install.linux", s.Install.Linux)
-	add("install.command_note", s.Install.CommandNote)
+	add("install.panel", s.Install.Panel)
+	add("install.file_note", s.Install.FileNote)
 	add("install.first_run", s.Install.FirstRun)
 	add("install.note", s.Install.Note)
 	add("status.title", s.Status.Title)
@@ -783,7 +783,7 @@ func (s Site) PublicPages() []string {
 }
 
 // PublicPagePaths returns the public pages under docs/, or under docs/fr/ for
-// French. It is what the release workflow copies into the tarball.
+// French. It is what the release workflow copies into the installer.
 func (s Site) PublicPagePaths(lang string) []string {
 	var out []string
 	for _, page := range s.Pages() {

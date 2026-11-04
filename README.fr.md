@@ -94,9 +94,9 @@ régissent ce qu'il fait d'une requête que vous lui envoyez. Voir
   profil par COM. Le nouvel Outlook, Outlook sur le web, IMAP, POP, l'API Gmail,
   Microsoft Graph et l'import de fichiers ne sont pas connectés dans cette
   version.
-- **La version Linux est un aperçu.** Elle s'ouvre, affiche tous les écrans et
-  explique la source manquante. La boîte reste vide parce qu'il n'y a pas encore
-  de connecteur en direct.
+- **L'aperçu Linux est compilé depuis les sources.** Il s'ouvre, affiche tous
+  les écrans et explique la source manquante. La boîte reste vide parce qu'il
+  n'y a pas encore de connecteur en direct.
 - **Il lit et classe. Il n'agit pas sur la boîte.** Aucun envoi, aucune
   suppression, aucun déplacement et aucun changement d'état de lecture. Le
   connecteur est en lecture seule.
@@ -111,21 +111,25 @@ régissent ce qu'il fait d'une requête que vous lui envoyez. Voir
 
 ## Installer
 
-**Windows.** Téléchargez l'installateur par utilisateur depuis la
-[page des versions](https://github.com/LLM-4-People/mailsense/releases). Il a
-besoin du runtime Microsoft Edge WebView2, déjà présent sous Windows 11 et
-Windows 10 à jour. La version n'est pas signée, Windows peut donc demander une
-confirmation.
+La version publiée est un installateur Windows ; les sources se compilent aussi
+sous Linux en aperçu, avec une boîte vide, et cette compilation n'est pas
+proposée au téléchargement.
 
-**Linux.** Téléchargez l'archive amd64, décompressez-la et lancez install.sh
-pour une entrée de menu, ou lancez directement le binaire.
+**Windows.** Téléchargez l'installateur depuis la
+[page des versions](https://github.com/LLM-4-People/mailsense/releases).
+L'installation est par utilisateur et ne demande pas de droits administrateur.
+La base et les réglages sont dans `%LOCALAPPDATA%\Mailsense`, et la
+désinstallation les conserve jusqu'à ce que vous supprimiez ce répertoire.
+Mailsense a besoin du runtime Microsoft Edge WebView2, déjà présent sous Windows
+11 et Windows 10 à jour. La version n'est pas signée, SmartScreen peut donc
+demander une confirmation.
 
-```bash
-tar -xzf mailsense-*-linux-amd64.tar.gz && cd mailsense-*-linux-amd64 && ./install.sh
+```text
+mailsense-<version>-setup.exe
 ```
 
-Une commande pour l'aperçu Linux, depuis le répertoire qui contient l'archive
-téléchargée.
+La version vient de l'étiquette de version. Téléchargez le fichier depuis la
+[page des versions](https://github.com/LLM-4-People/mailsense/releases).
 
 [Lire le guide du premier démarrage](docs/fr/first-run.md)
 
