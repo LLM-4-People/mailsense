@@ -61,21 +61,10 @@ jobs:
           VERSION: ${{ steps.version.outputs.value }}
         run: scripts/build.sh linux
       - name: linux tarball
-        env:
-          VERSION: ${{ steps.version.outputs.value }}
-        run: |
-          set -euo pipefail
-          name="mailsense-${VERSION}-linux-amd64"
-          mkdir -p "dist/$name/docs/fr"
-          cp dist/mailsense "dist/$name/"
-          cp packaging/linux/install.sh "dist/$name/"
-          cp README.md LICENSE NOTICE "dist/$name/"
-          mapfile -t pages < <(go run ./cmd/gensite -pages=en)
-          cp --parents "${pages[@]}" "dist/$name/"
-          mapfile -t pages_fr < <(go run ./cmd/gensite -pages=fr)
-          cp --parents "${pages_fr[@]}" "dist/$name/"
-          tar -C dist -czf "dist/$name.tar.gz" "$name"
-          rm -rf "dist/$name"
+        # package.sh is the one owner of the tarball name and payload. It
+        # reads dist/VERSION, which scripts/build.sh just wrote, and ships the
+        # installer checksum it verifies.
+        run: packaging/linux/package.sh
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: binaries

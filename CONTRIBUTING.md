@@ -82,8 +82,11 @@ fact over a claim. Do not describe a feature that the code does not implement.
 
 ## Commit messages
 
-`area: imperative summary`, then a body that says what was wrong, what the fix
-is, and how it was verified.
+`type(scope): imperative summary`, then a body that says what was wrong, what
+the fix is, and how it was verified. The checked types are `feat`, `fix`,
+`docs`, `test`, `refactor`, `release`, `build` and `ci`, with an optional scope
+and an optional `!` for a breaking change. The authoritative list is the
+`ALLOWED_TYPES` value in `.github/workflows/pr-title.yml`.
 
 ## Developer certificate of origin
 
