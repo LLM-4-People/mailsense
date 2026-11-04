@@ -212,7 +212,7 @@ jobs:
       # statement for every file listed in the manifest. There is no private
       # key in this repository.
       - name: provenance
-        uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-checksums: dist/SHA256SUMS
       # A release that the release drafter published already carries the
