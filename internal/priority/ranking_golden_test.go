@@ -20,6 +20,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/LLM-4-People/mailsense/internal/clock/clocktest"
 	"github.com/LLM-4-People/mailsense/internal/config/configtest"
 	"github.com/LLM-4-People/mailsense/internal/mail"
 	"github.com/LLM-4-People/mailsense/internal/route"
@@ -206,7 +207,7 @@ func goldenBuild(t *testing.T) (*cachedRanking, *fakeThreads, map[string]bool) {
 	rows, threads, now := goldenFixture(t)
 	cfg := configtest.New(t, map[string]any{"learning.test_mode": false})
 	fs := &fakeStore{rows: rows}
-	svc, err := New(cfg, Deps{Store: fs, Gate: allowGate{}, Config: cfg, Clock: &fakeClock{now: now},
+	svc, err := New(cfg, Deps{Store: fs, Gate: allowGate{}, Config: cfg, Clock: clocktest.New(now),
 		Threads: threads, RouteKey: testRouteKey})
 	if err != nil {
 		t.Fatal(err)
@@ -270,7 +271,7 @@ func TestPackedRankingIgnoresTheScanOrder(t *testing.T) {
 	slices.Reverse(rows)
 	cfg := configtest.New(t, map[string]any{"learning.test_mode": false})
 	svc, err := New(cfg, Deps{Store: &fakeStore{rows: rows}, Gate: allowGate{}, Config: cfg,
-		Clock: &fakeClock{now: now}, Threads: threads, RouteKey: testRouteKey})
+		Clock: clocktest.New(now), Threads: threads, RouteKey: testRouteKey})
 	if err != nil {
 		t.Fatal(err)
 	}

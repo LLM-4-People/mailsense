@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/LLM-4-People/mailsense/internal/clock/clocktest"
+	"github.com/LLM-4-People/mailsense/internal/fixturetest"
 	"github.com/LLM-4-People/mailsense/internal/mail"
 )
 
@@ -60,7 +61,7 @@ func TestListRefreshInstallsUnderSampledGeneration(t *testing.T) {
 	if _, err := svc.List(t.Context(), ListQuery{Limit: 10}); err != nil {
 		t.Fatal(err)
 	}
-	waitFor(t, "list refresh for the newer generation", func() bool {
+	fixturetest.WaitUntil(t, 2*time.Second, "list refresh for the newer generation", func() bool {
 		state := readListCache(svc)
 		return state.gen == current && !state.refreshing
 	})

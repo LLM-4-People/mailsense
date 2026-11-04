@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/LLM-4-People/mailsense/internal/clock/clocktest"
 	"github.com/LLM-4-People/mailsense/internal/config/configtest"
 	"github.com/LLM-4-People/mailsense/internal/engine"
 	"github.com/LLM-4-People/mailsense/internal/route"
@@ -68,7 +69,7 @@ func admittedService(t *testing.T, rows []store.PriorityRow, adm Admission) (*Se
 	t.Helper()
 	cfg := configtest.New(t, nil)
 	fs := &fakeStore{rows: rows}
-	svc, err := New(cfg, Deps{Store: fs, Gate: allowGate{}, Config: cfg, Clock: &fakeClock{now: testNow},
+	svc, err := New(cfg, Deps{Store: fs, Gate: allowGate{}, Config: cfg, Clock: clocktest.New(testNow),
 		Admission: adm, RouteKey: testRouteKey})
 	if err != nil {
 		t.Fatal(err)
@@ -282,7 +283,7 @@ func TestPreviewFlipDoesNotScanBesideARefresh(t *testing.T) {
 	cfg := configtest.New(t, nil)
 	var preview atomic.Bool
 	svc, err := New(cfg, Deps{Store: fs, Gate: settingGate{preview: preview.Load}, Config: cfg,
-		Clock: &fakeClock{now: testNow}, RouteKey: testRouteKey})
+		Clock: clocktest.New(testNow), RouteKey: testRouteKey})
 	if err != nil {
 		t.Fatal(err)
 	}

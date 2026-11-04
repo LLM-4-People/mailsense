@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/LLM-4-People/mailsense/internal/clock/clocktest"
 	"github.com/LLM-4-People/mailsense/internal/config/configtest"
 	"github.com/LLM-4-People/mailsense/internal/engine"
 	"github.com/LLM-4-People/mailsense/internal/mail"
@@ -21,7 +22,7 @@ import (
 
 // newServiceAt is newService with a fixed clock, so parity across stream
 // orders is not hidden by a moving recency score.
-func newServiceAt(t *testing.T, rows []store.PriorityRow, clk *fakeClock) *Service {
+func newServiceAt(t *testing.T, rows []store.PriorityRow, clk *clocktest.Fake) *Service {
 	t.Helper()
 	cfg := configtest.New(t, map[string]any{"learning.test_mode": false})
 	svc, err := New(cfg, Deps{Store: &fakeStore{rows: rows}, Gate: allowGate{}, Config: cfg, Clock: clk, RouteKey: testRouteKey})
@@ -344,7 +345,7 @@ func TestRankingIsIndependentOfStreamOrder(t *testing.T) {
 		for j, index := range order {
 			rows[j] = base[index]
 		}
-		svc := newServiceAt(t, rows, &fakeClock{now: testNow})
+		svc := newServiceAt(t, rows, clocktest.New(testNow))
 		page, err := svc.RankPage(t.Context(), FilterAll, len(base), 0)
 		if err != nil {
 			t.Fatal(err)

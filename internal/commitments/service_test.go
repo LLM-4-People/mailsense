@@ -16,11 +16,9 @@ import (
 	"github.com/LLM-4-People/mailsense/internal/action"
 	"github.com/LLM-4-People/mailsense/internal/agenda"
 	"github.com/LLM-4-People/mailsense/internal/clock/clocktest"
-	"github.com/LLM-4-People/mailsense/internal/config/configtest"
 	"github.com/LLM-4-People/mailsense/internal/contacts"
-	"github.com/LLM-4-People/mailsense/internal/mail/mailtest"
+	"github.com/LLM-4-People/mailsense/internal/fixturetest"
 	"github.com/LLM-4-People/mailsense/internal/priority"
-	"github.com/LLM-4-People/mailsense/internal/source"
 	"github.com/LLM-4-People/mailsense/internal/store"
 	"github.com/LLM-4-People/mailsense/internal/subject"
 	"github.com/LLM-4-People/mailsense/internal/threadintel"
@@ -386,35 +384,14 @@ func wantOrder(t *testing.T, res Result, ids ...int64) {
 	}
 }
 
-func waitUntil(t *testing.T, what string, ok func() bool) {
-	t.Helper()
-	deadline := time.Now().Add(5 * time.Second)
-	for time.Now().Before(deadline) {
-		if ok() {
-			return
-		}
-		time.Sleep(time.Millisecond)
-	}
-	t.Fatalf("timed out waiting for %s", what)
-}
-
 // testBook builds a real CompanyBook with one declared external company so
 // the counterpart rule is exercised against the real resolver rather than a
 // hand-built struct (which the store deliberately cannot construct).
 func testBook(t *testing.T) *store.CompanyBook {
 	t.Helper()
-	cfg := configtest.New(t, map[string]any{
-		source.SettingSelected: mailtest.Picked([]string{"src"}),
-		"mail.domains.shared":  []any{"gmail.com"},
+	_, st := fixturetest.OpenStore(t, map[string]any{
+		"mail.domains.shared": []any{"gmail.com"},
 	})
-	st, err := store.Open(t.Context(), cfg, nil, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { _ = st.Close() })
-	if err := st.UpsertSource(t.Context(), "src", "test", "Test", source.Capabilities{}); err != nil {
-		t.Fatal(err)
-	}
 	ref := store.StoreRef{SourceID: "src", StoreID: "store-1"}
 	if err := st.ReplaceContacts(t.Context(), ref, "Contacts", []contacts.Contact{
 		{EntryID: "alice", DisplayName: "Alice Martin", Company: "Atelier Nord",
@@ -1189,7 +1166,7 @@ func TestListServesStaleWhileOneRefreshRuns(t *testing.T) {
 
 	close(release)
 	var fresh Result
-	waitUntil(t, "the refreshed set", func() bool {
+	fixturetest.WaitUntil(t, 5*time.Second, "the refreshed set", func() bool {
 		res, err := f.svc.List(t.Context(), Filter{})
 		if err != nil {
 			return false
@@ -1242,7 +1219,7 @@ func TestListRefreshesWhenTheGenerationMoves(t *testing.T) {
 	}
 	close(release)
 
-	waitUntil(t, "the generation refresh", func() bool {
+	fixturetest.WaitUntil(t, 5*time.Second, "the generation refresh", func() bool {
 		res, err := f.svc.List(t.Context(), Filter{})
 		return err == nil && len(res.Items) == 3 && res.Counts["reply"] == 0
 	})
@@ -1271,14 +1248,14 @@ func TestListKeepsStaleAfterAFailedRefreshAndRetries(t *testing.T) {
 	if len(stale.Items) != 5 {
 		t.Fatalf("stale result %+v", stale)
 	}
-	waitUntil(t, "the failed refresh", func() bool {
+	fixturetest.WaitUntil(t, 5*time.Second, "the failed refresh", func() bool {
 		_, _, book := f.st.calls()
 		return book >= bookBefore+1
 	})
 
 	// The set is still stale, so the next request retries instead of serving
 	// it as fresh forever.
-	waitUntil(t, "the retried failed refresh", func() bool {
+	fixturetest.WaitUntil(t, 5*time.Second, "the retried failed refresh", func() bool {
 		res, err := f.svc.List(t.Context(), Filter{})
 		if err != nil {
 			return false
@@ -1294,7 +1271,7 @@ func TestListKeepsStaleAfterAFailedRefreshAndRetries(t *testing.T) {
 	remaining := f.st.deadlineRows()
 	f.st.setDeadlines(remaining[1:])
 	var res Result
-	waitUntil(t, "the successful retry", func() bool {
+	fixturetest.WaitUntil(t, 5*time.Second, "the successful retry", func() bool {
 		got, err := f.svc.List(t.Context(), Filter{})
 		if err != nil {
 			return false
@@ -1338,7 +1315,7 @@ func TestListRefreshSurvivesACancelledRequestContext(t *testing.T) {
 		t.Fatal("the detached refresh never started")
 	}
 	close(release)
-	waitUntil(t, "the detached refresh", func() bool {
+	fixturetest.WaitUntil(t, 5*time.Second, "the detached refresh", func() bool {
 		res, err := f.svc.List(t.Context(), Filter{})
 		return err == nil && len(res.Items) == 4
 	})
@@ -1378,7 +1355,7 @@ func TestListRefreshesWhenTheRouteGenerationMoves(t *testing.T) {
 	if stale.GeneratedAt != first.GeneratedAt {
 		t.Fatal("a route generation move rebuilt synchronously")
 	}
-	waitUntil(t, "the route generation refresh", func() bool {
+	fixturetest.WaitUntil(t, 5*time.Second, "the route generation refresh", func() bool {
 		_, _, book := f.st.calls()
 		return book == bookBefore+1
 	})

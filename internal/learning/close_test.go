@@ -2,11 +2,11 @@ package learning
 
 import (
 	"context"
-	"runtime"
 	"testing"
 	"time"
 
 	"github.com/LLM-4-People/mailsense/internal/clock/clocktest"
+	"github.com/LLM-4-People/mailsense/internal/fixturetest/fixturewait"
 )
 
 // statusClock is the fixed clock of the close tests.
@@ -101,7 +101,7 @@ func TestALateComputeNeverInstallsAsFresh(t *testing.T) {
 	a.set(StageStatus{State: Done, Progress: Progress{Done: 100, Total: 100}})
 	a.setBlocker(nil, nil)
 	close(release)
-	waitUntil(t, "the late compute to finish", func() bool {
+	fixturewait.WaitUntil(t, 5*time.Second, "the late compute to finish", func() bool {
 		m.mu.Lock()
 		defer m.mu.Unlock()
 		return !m.refreshing
@@ -137,17 +137,5 @@ func TestALateComputeNeverInstallsAsFresh(t *testing.T) {
 	}
 	if !m.Close(t.Context()) {
 		t.Fatal("the later Close did not observe the join")
-	}
-}
-
-// waitUntil polls a condition on the scheduler.
-func waitUntil(t *testing.T, what string, condition func() bool) {
-	t.Helper()
-	deadline := time.Now().Add(5 * time.Second)
-	for !condition() {
-		if time.Now().After(deadline) {
-			t.Fatalf("%s did not happen", what)
-		}
-		runtime.Gosched()
 	}
 }

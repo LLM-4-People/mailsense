@@ -7,6 +7,7 @@ import (
 	"sync/atomic"
 	"testing"
 
+	"github.com/LLM-4-People/mailsense/internal/clock/clocktest"
 	"github.com/LLM-4-People/mailsense/internal/config/configtest"
 	"github.com/LLM-4-People/mailsense/internal/engine"
 	"github.com/LLM-4-People/mailsense/internal/learning"
@@ -43,7 +44,7 @@ func TestRankingUsesGatePreviewAnswers(t *testing.T) {
 	var gateOn atomic.Bool
 	fs := &fakeStore{rows: []store.PriorityRow{row}}
 	svc, err := New(cfg, Deps{Store: fs, Gate: settingGate{preview: gateOn.Load},
-		Config: cfg, Clock: &fakeClock{now: testNow}, RouteKey: testRouteKey})
+		Config: cfg, Clock: clocktest.New(testNow), RouteKey: testRouteKey})
 	if err != nil {
 		t.Fatal(err)
 	}

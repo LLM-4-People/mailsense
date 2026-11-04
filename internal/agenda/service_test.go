@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/LLM-4-People/mailsense/internal/calendar"
+	"github.com/LLM-4-People/mailsense/internal/clock/clocktest"
 	"github.com/LLM-4-People/mailsense/internal/threadintel"
 )
 
@@ -66,13 +67,7 @@ func (f *fakeThreads) ThreadStates(context.Context) (map[string]threadintel.Asse
 	return f.states, f.err
 }
 
-type fakeClock struct{ now time.Time }
-
-func (c *fakeClock) Now() time.Time                             { return c.now }
-func (c *fakeClock) Sleep(context.Context, time.Duration) error { return nil }
-func (c *fakeClock) Advance(d time.Duration)                    { c.now = c.now.Add(d) }
-
-func serviceFixture(t *testing.T) (*Service, *fakeWorld, *fakeThreads, *fakeClock) {
+func serviceFixture(t *testing.T) (*Service, *fakeWorld, *fakeThreads, *clocktest.Fake) {
 	t.Helper()
 	now := ts("2026-11-03T09:00:00Z")
 	w := &fakeWorld{
@@ -87,7 +82,7 @@ func serviceFixture(t *testing.T) (*Service, *fakeWorld, *fakeThreads, *fakeCloc
 		"C1": {State: threadintel.AwaitingOwner, ReplyToMessageID: 7, ActorName: "Client", OwnerActorName: "Client"},
 		"C2": {State: threadintel.AnsweredByOther, ReplyToMessageID: 8, ActorName: "Colleague", OwnerActorName: "Colleague"},
 	}}
-	clk := &fakeClock{now: now}
+	clk := clocktest.New(now)
 	return New(Deps{Store: w, Threads: th, Clock: clk, DefaultHorizon: 3 * time.Hour}), w, th, clk
 }
 

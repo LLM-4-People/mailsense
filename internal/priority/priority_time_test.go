@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/LLM-4-People/mailsense/internal/clock/clocktest"
 	"github.com/LLM-4-People/mailsense/internal/route"
 	"github.com/LLM-4-People/mailsense/internal/store"
 )
@@ -48,7 +49,7 @@ func TestTimestampContractAtBothEntryPoints(t *testing.T) {
 		{MessageID: 2, ConversationID: "C2", Subject: "invalid", ReceivedAt: "not-a-mail-instant",
 			Route: map[string]route.Answer{"reply_needed": noul("reply_needed", 0.9)}},
 	}
-	svc := newServiceAt(t, rows, &fakeClock{now: testNow})
+	svc := newServiceAt(t, rows, clocktest.New(testNow))
 	page, err := svc.RankPage(t.Context(), FilterAll, 5, 0)
 	if err != nil {
 		t.Fatal(err)

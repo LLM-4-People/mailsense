@@ -16,6 +16,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/LLM-4-People/mailsense/internal/clock/clocktest"
 	"github.com/LLM-4-People/mailsense/internal/config/configtest"
 	"github.com/LLM-4-People/mailsense/internal/mail"
 	"github.com/LLM-4-People/mailsense/internal/route"
@@ -83,7 +84,7 @@ func packedService(tb testing.TB, rows []store.PriorityRow, states map[string]th
 	tb.Helper()
 	cfg := configtest.New(tb, map[string]any{"learning.test_mode": false})
 	svc, err := New(cfg, Deps{Store: &fakeStore{rows: rows}, Gate: allowGate{}, Config: cfg,
-		Clock: &fakeClock{now: now}, Threads: &fakeThreads{states: states}, RouteKey: testRouteKey})
+		Clock: clocktest.New(now), Threads: &fakeThreads{states: states}, RouteKey: testRouteKey})
 	if err != nil {
 		tb.Fatal(err)
 	}

@@ -7,8 +7,10 @@ import (
 	"testing"
 	"time"
 
+	"github.com/LLM-4-People/mailsense/internal/clock/clocktest"
 	"github.com/LLM-4-People/mailsense/internal/config/configtest"
 	"github.com/LLM-4-People/mailsense/internal/engine"
+	"github.com/LLM-4-People/mailsense/internal/fixturetest"
 	"github.com/LLM-4-People/mailsense/internal/route"
 	"github.com/LLM-4-People/mailsense/internal/store"
 	"github.com/LLM-4-People/mailsense/internal/threadintel"
@@ -66,7 +68,7 @@ func TestServiceCacheAndBounds(t *testing.T) {
 		Route: map[string]route.Answer{"reply_needed": noul("reply_needed", 0.9)}}
 	cfg := configtest.New(t, nil)
 	fs := &fakeStore{rows: []store.PriorityRow{row}}
-	clk := &fakeClock{now: testNow}
+	clk := clocktest.New(testNow)
 	svc, err := New(cfg, Deps{Store: fs, Gate: allowGate{}, Config: cfg, Clock: clk, RouteKey: testRouteKey})
 	if err != nil {
 		t.Fatal(err)
@@ -113,7 +115,7 @@ func TestRankingKeepsAnUnchangedSnapshotPastCacheTTL(t *testing.T) {
 		Route: map[string]route.Answer{"reply_needed": noul("reply_needed", 0.9)}}
 	cfg := configtest.New(t, nil)
 	fs := &fakeStore{rows: []store.PriorityRow{row}}
-	clk := &fakeClock{now: testNow}
+	clk := clocktest.New(testNow)
 	svc, err := New(cfg, Deps{Store: fs, Gate: allowGate{}, Config: cfg, Clock: clk, RouteKey: testRouteKey})
 	if err != nil {
 		t.Fatal(err)
@@ -151,7 +153,7 @@ func TestRankingKeepsAnUnchangedSnapshotPastCacheTTL(t *testing.T) {
 		t.Fatal(err)
 	}
 	if got := fs.callCount(); got != 1 {
-		t.Fatalf("a read at %s rebuilt inside maxCacheTTL: %d store scans", clk.now.Sub(first.at), got)
+		t.Fatalf("a read at %s rebuilt inside maxCacheTTL: %d store scans", clk.Now().Sub(first.at), got)
 	}
 
 	// Crossing maxCacheTTL starts exactly one refresh and still serves the
@@ -186,7 +188,7 @@ func TestRankingRebuildsImmediatelyOnAGenerationChange(t *testing.T) {
 		Route: map[string]route.Answer{"reply_needed": noul("reply_needed", 0.9)}}
 	cfg := configtest.New(t, nil)
 	fs := &fakeStore{rows: []store.PriorityRow{old}}
-	clk := &fakeClock{now: testNow}
+	clk := clocktest.New(testNow)
 	svc, err := New(cfg, Deps{Store: fs, Gate: allowGate{}, Config: cfg, Clock: clk, RouteKey: testRouteKey})
 	if err != nil {
 		t.Fatal(err)
@@ -239,7 +241,7 @@ func TestServicePreviewCacheFlagAndErrors(t *testing.T) {
 		t.Fatalf("preview flag not passed to the store: %v", flags)
 	}
 	fs.setErr(errors.New("boom"))
-	clk := &fakeClock{now: testNow}
+	clk := clocktest.New(testNow)
 	// A new service (empty cache) surfaces the store error.
 	cfg := configtest.New(t, nil)
 	bad, _ := New(cfg, Deps{Store: fs, Gate: allowGate{}, Config: cfg, Clock: clk, RouteKey: testRouteKey})
@@ -248,15 +250,13 @@ func TestServicePreviewCacheFlagAndErrors(t *testing.T) {
 	}
 }
 
-type fakeClock struct{ now time.Time }
-
 func TestServicePreviewFlagSeparatesTheCache(t *testing.T) {
 	row := store.PriorityRow{MessageID: 1, ReceivedAt: receivedAgo(0),
 		Route:   map[string]route.Answer{"reply_needed": notCertified(engine.Noul), "urgency": score("urgency", 4)},
 		Preview: map[string]engine.Answer{"reply_needed": {Type: engine.Noul, Value: 0.9}}}
 	cfg := configtest.New(t, nil)
 	fs := &fakeStore{rows: []store.PriorityRow{row}}
-	clk := &fakeClock{now: testNow}
+	clk := clocktest.New(testNow)
 	svc, err := New(cfg, Deps{Store: fs, Gate: settingGate{preview: cfg.Preview}, Config: cfg, Clock: clk, RouteKey: testRouteKey})
 	if err != nil {
 		t.Fatal(err)
@@ -277,13 +277,12 @@ func TestServicePreviewFlagSeparatesTheCache(t *testing.T) {
 	}
 }
 
-// waitUntil polls cond until it holds, failing the test instead of hanging.
 func TestRankingServesStaleAcrossAGenerationChange(t *testing.T) {
 	old := store.PriorityRow{MessageID: 1, Subject: "old", ReceivedAt: receivedAgo(0),
 		Route: map[string]route.Answer{"reply_needed": noul("reply_needed", 0.9)}}
 	fresh := store.PriorityRow{MessageID: 2, Subject: "new", ReceivedAt: receivedAgo(0),
 		Route: map[string]route.Answer{"reply_needed": noul("reply_needed", 0.9)}}
-	clk := &fakeClock{now: testNow}
+	clk := clocktest.New(testNow)
 	svc, fs := newBlockingService(t, []store.PriorityRow{old}, clk)
 	if _, _, _, err := svc.Rank(t.Context(), FilterAll, 8); err != nil {
 		t.Fatal(err)
@@ -332,7 +331,7 @@ func TestRankingServesStaleAcrossAGenerationChange(t *testing.T) {
 
 	fs.setRows([]store.PriorityRow{old, fresh})
 	close(release)
-	waitUntil(t, "the ranking rebuilt for the new generation", func() bool {
+	fixturetest.WaitUntil(t, 5*time.Second, "the ranking rebuilt for the new generation", func() bool {
 		svc.mu.Lock()
 		defer svc.mu.Unlock()
 		return svc.cached != nil && len(svc.cached.items) == 2
@@ -343,7 +342,7 @@ func TestRankingServesStaleWhileRefreshRuns(t *testing.T) {
 		Route: map[string]route.Answer{"reply_needed": noul("reply_needed", 0.9)}}
 	fresh := store.PriorityRow{MessageID: 2, Subject: "new", ReceivedAt: receivedAgo(0),
 		Route: map[string]route.Answer{"reply_needed": noul("reply_needed", 0.9)}}
-	clk := &fakeClock{now: testNow}
+	clk := clocktest.New(testNow)
 	svc, fs := newBlockingService(t, []store.PriorityRow{old}, clk)
 	if items, total, _, err := svc.Rank(t.Context(), FilterAll, 8); err != nil || len(items) != 1 ||
 		items[0].MessageID != 1 || total != 1 {
@@ -396,7 +395,7 @@ func TestRankingServesStaleWhileRefreshRuns(t *testing.T) {
 
 	fs.setRows([]store.PriorityRow{old, fresh})
 	close(release)
-	waitUntil(t, "the refreshed ranking", func() bool {
+	fixturetest.WaitUntil(t, 5*time.Second, "the refreshed ranking", func() bool {
 		svc.mu.Lock()
 		defer svc.mu.Unlock()
 		return svc.cached != nil && len(svc.cached.items) == 2
@@ -411,7 +410,7 @@ func TestRankingFailedRefreshKeepsCacheAndRetries(t *testing.T) {
 		Route: map[string]route.Answer{"reply_needed": noul("reply_needed", 0.9)}}
 	fresh := store.PriorityRow{MessageID: 2, Subject: "new", ReceivedAt: receivedAgo(0),
 		Route: map[string]route.Answer{"reply_needed": noul("reply_needed", 0.9)}}
-	clk := &fakeClock{now: testNow}
+	clk := clocktest.New(testNow)
 	svc, fs := newBlockingService(t, []store.PriorityRow{old}, clk)
 	if items, _, _, err := svc.Rank(t.Context(), FilterAll, 8); err != nil || len(items) != 1 {
 		t.Fatalf("warm ranking: %v %v", items, err)
@@ -446,7 +445,7 @@ func TestRankingFailedRefreshKeepsCacheAndRetries(t *testing.T) {
 	if items, _, _, err := svc.Rank(t.Context(), FilterAll, 8); err != nil || len(items) != 1 {
 		t.Fatalf("retry stale serve: %v %v", items, err)
 	}
-	waitUntil(t, "the retried ranking", func() bool {
+	fixturetest.WaitUntil(t, 5*time.Second, "the retried ranking", func() bool {
 		svc.mu.Lock()
 		defer svc.mu.Unlock()
 		return svc.cached != nil && len(svc.cached.items) == 2
@@ -463,7 +462,7 @@ func TestRankingRefreshHeadErrorKeepsTheOldCache(t *testing.T) {
 		Route: map[string]route.Answer{"reply_needed": noul("reply_needed", 0.9)}}
 	fresh := store.PriorityRow{MessageID: 2, Subject: "new", ReceivedAt: receivedAgo(0), Body: "new body",
 		Route: map[string]route.Answer{"reply_needed": noul("reply_needed", 0.9)}}
-	clk := &fakeClock{now: testNow}
+	clk := clocktest.New(testNow)
 	svc, fs := newBlockingService(t, []store.PriorityRow{old}, clk)
 	if items, _, _, err := svc.Rank(t.Context(), FilterAll, 8); err != nil || len(items) != 1 ||
 		items[0].MessageID != 1 || items[0].Snippet == "" {
@@ -492,7 +491,7 @@ func TestRankingRefreshHeadErrorKeepsTheOldCache(t *testing.T) {
 	if items, _, _, err := svc.Rank(t.Context(), FilterAll, 8); err != nil || len(items) != 1 {
 		t.Fatalf("retry stale serve: %v %v", items, err)
 	}
-	waitUntil(t, "the retried ranking", func() bool {
+	fixturetest.WaitUntil(t, 5*time.Second, "the retried ranking", func() bool {
 		svc.mu.Lock()
 		defer svc.mu.Unlock()
 		return svc.cached != nil && len(svc.cached.items) == 2
@@ -507,7 +506,7 @@ func TestRankingPreviewChangeBuildsSynchronously(t *testing.T) {
 		Preview: map[string]engine.Answer{"reply_needed": {Type: engine.Noul, Value: 0.9}}}
 	fs := &fakeStore{rows: []store.PriorityRow{row}}
 	cfg := configtest.New(t, nil)
-	clk := &fakeClock{now: testNow}
+	clk := clocktest.New(testNow)
 	svc, err := New(cfg, Deps{Store: fs, Gate: settingGate{preview: cfg.Preview}, Config: cfg, Clock: clk, RouteKey: testRouteKey})
 	if err != nil {
 		t.Fatal(err)
@@ -572,7 +571,7 @@ func TestRankPageReportsTheSnapshotBuildTime(t *testing.T) {
 	row := store.PriorityRow{MessageID: 1, Subject: "s", ReceivedAt: receivedAgo(0),
 		Route: map[string]route.Answer{"reply_needed": noul("reply_needed", 0.9)}}
 	cfg := configtest.New(t, nil)
-	clk := &fakeClock{now: testNow}
+	clk := clocktest.New(testNow)
 	svc, err := New(cfg, Deps{Store: &fakeStore{rows: []store.PriorityRow{row}}, Gate: allowGate{},
 		Config: cfg, Clock: clk, RouteKey: testRouteKey})
 	if err != nil {

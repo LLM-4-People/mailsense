@@ -14,8 +14,8 @@ import (
 
 	"github.com/LLM-4-People/mailsense/internal/clock/clocktest"
 	"github.com/LLM-4-People/mailsense/internal/config"
-	"github.com/LLM-4-People/mailsense/internal/config/configtest"
 	"github.com/LLM-4-People/mailsense/internal/contacts"
+	"github.com/LLM-4-People/mailsense/internal/fixturetest"
 	"github.com/LLM-4-People/mailsense/internal/learning"
 	"github.com/LLM-4-People/mailsense/internal/mail"
 	"github.com/LLM-4-People/mailsense/internal/mail/mailtest"
@@ -106,21 +106,13 @@ func newTestService(t *testing.T, priority Priority) (*Service, *store.Store, *c
 // test can count or fail one read without changing the service.
 func newTestServiceWith(t *testing.T, priority Priority, seam func(*store.Store) storeReader) (*Service, *store.Store, *config.Config, *clocktest.Fake) {
 	t.Helper()
-	cfg := configtest.New(t, map[string]any{
+	cfg, st := fixturetest.OpenStore(t, map[string]any{
 		// store-2 is picked so the cross-store reply test sees it.
 		source.SettingSelected: mailtest.Picked([]string{"src"}, [2]string{"src", "store-2"}),
 		"store.max_open_conns": 1,
 		// The Facts tests use a Gmail sender as the unresolved case.
 		"mail.domains.shared": []any{"gmail.com"},
 	})
-	st, err := store.Open(t.Context(), cfg, nil, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { _ = st.Close() })
-	if err := st.UpsertSource(t.Context(), "src", "test", "Test", source.Capabilities{}); err != nil {
-		t.Fatal(err)
-	}
 	clk := clocktest.New(time.Date(2026, 10, 26, 9, 0, 0, 0, time.UTC))
 	var readStore storeReader = st
 	if seam != nil {
@@ -256,7 +248,7 @@ func TestPageServesStaleWhilePageRefreshRuns(t *testing.T) {
 	}
 
 	close(release)
-	waitUntil(t, "the page cache refresh", func() bool {
+	fixturetest.WaitUntil(t, 5*time.Second, "the page cache refresh", func() bool {
 		page, err := svc.Page(t.Context(), Query{})
 		return err == nil && page.GeneratedAt != firstAt
 	})
@@ -854,7 +846,7 @@ func TestPageSnapshotCacheAndGeneration(t *testing.T) {
 	if row := pageRow(t, page, "C1"); row.State.State != threadintel.AwaitingOwner {
 		t.Fatalf("an expired snapshot did not serve stale: %+v", row.State)
 	}
-	waitUntil(t, "the TTL snapshot refresh", func() bool {
+	fixturetest.WaitUntil(t, 5*time.Second, "the TTL snapshot refresh", func() bool {
 		return pageRow(t, pageUncached(t, svc, Query{}), "C1").State.State == threadintel.AnsweredByOther
 	})
 	if priority.callCount() != 2 {
@@ -869,7 +861,7 @@ func TestPageSnapshotCacheAndGeneration(t *testing.T) {
 	if page.Total != 1 {
 		t.Fatalf("a changed generation did not serve stale: %+v", page)
 	}
-	waitUntil(t, "the generation snapshot refresh", func() bool {
+	fixturetest.WaitUntil(t, 5*time.Second, "the generation snapshot refresh", func() bool {
 		return pageUncached(t, svc, Query{}).Total == 2
 	})
 	if priority.callCount() != 3 {
@@ -881,18 +873,6 @@ func TestPageSnapshotCacheAndGeneration(t *testing.T) {
 	}
 	if row := pageRow(t, page, "C2"); row.State.State != threadintel.NoAction {
 		t.Fatalf("new conversation state %+v", row.State)
-	}
-}
-
-// waitUntil polls cond until it holds, failing the test instead of hanging.
-func waitUntil(t *testing.T, what string, cond func() bool) {
-	t.Helper()
-	deadline := time.Now().Add(5 * time.Second)
-	for !cond() {
-		if time.Now().After(deadline) {
-			t.Fatalf("timed out waiting for %s", what)
-		}
-		time.Sleep(time.Millisecond)
 	}
 }
 
@@ -960,7 +940,7 @@ func TestPageServesStaleWhileSnapshotRefreshRuns(t *testing.T) {
 
 	priority.setState("C1", stateFor("C1", threadintel.AnsweredByOther))
 	close(release)
-	waitUntil(t, "the refreshed conversation snapshot", func() bool {
+	fixturetest.WaitUntil(t, 5*time.Second, "the refreshed conversation snapshot", func() bool {
 		return pageRow(t, pageUncached(t, svc, Query{}), "C1").State.State == threadintel.AnsweredByOther
 	})
 	refreshed := pageUncached(t, svc, Query{})
@@ -1142,7 +1122,7 @@ func TestPageRepeatedCallScansNothing(t *testing.T) {
 	// The detached rebuild lands and the next page rebuilds once with the new
 	// conversation. Polling Page is the observable completion: until the
 	// snapshot is installed every call serves the stale page with no scan.
-	waitUntil(t, "the detached snapshot rebuild", func() bool {
+	fixturetest.WaitUntil(t, 5*time.Second, "the detached snapshot rebuild", func() bool {
 		page, err := svc.Page(t.Context(), Query{Limit: 10})
 		return err == nil && page.Total == 4
 	})
@@ -1193,11 +1173,11 @@ func TestPageFailedSnapshotRefreshKeepsCacheAndRetries(t *testing.T) {
 	if first.Total != 0 || len(first.Conversations) != 0 {
 		t.Fatalf("stale page after a failed refresh: %+v", first)
 	}
-	waitUntil(t, "the failed refresh", func() bool { return flaky.attempts() == 2 })
+	fixturetest.WaitUntil(t, 5*time.Second, "the failed refresh", func() bool { return flaky.attempts() == 2 })
 
 	// The failure cleared the in-flight flag, so a later request retries
 	// instead of serving the expired snapshot as fresh forever.
-	waitUntil(t, "the retried refresh", func() bool {
+	fixturetest.WaitUntil(t, 5*time.Second, "the retried refresh", func() bool {
 		pageUncached(t, svc, Query{})
 		return flaky.attempts() == 3
 	})
@@ -1205,7 +1185,7 @@ func TestPageFailedSnapshotRefreshKeepsCacheAndRetries(t *testing.T) {
 	// A recovered store refreshes the same stale entry, and serving never
 	// failed while it was unavailable.
 	flaky.setFail(false)
-	waitUntil(t, "the recovered refresh", func() bool {
+	fixturetest.WaitUntil(t, 5*time.Second, "the recovered refresh", func() bool {
 		pageUncached(t, svc, Query{})
 		return flaky.attempts() == 4
 	})
@@ -1650,7 +1630,7 @@ func TestPageGenerationMoveDuringBuildKeepsSnapshotIdentity(t *testing.T) {
 
 	// The next request uses the new generation; the stale snapshot is served
 	// once while its refresh runs, then the page rebuilds with the write.
-	waitUntil(t, "the post-write page", func() bool {
+	fixturetest.WaitUntil(t, 5*time.Second, "the post-write page", func() bool {
 		page, err := svc.Page(t.Context(), Query{})
 		return err == nil && len(page.Conversations) == 2
 	})

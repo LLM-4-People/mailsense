@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/LLM-4-People/mailsense/internal/clock/clocktest"
 	"github.com/LLM-4-People/mailsense/internal/route"
 	"github.com/LLM-4-People/mailsense/internal/store"
 )
@@ -47,7 +48,7 @@ func waitRank(t *testing.T, what string, out <-chan coldResult, timeout time.Dur
 // single-flight the second reader started its own scan and discarded the
 // first result.
 func TestRankingColdBuildIsSingleFlight(t *testing.T) {
-	svc, fs := newBlockingService(t, []store.PriorityRow{coldRow(1)}, &fakeClock{now: testNow})
+	svc, fs := newBlockingService(t, []store.PriorityRow{coldRow(1)}, clocktest.New(testNow))
 	started := make(chan struct{}, 1)
 	release := make(chan struct{})
 	fs.block(started, release)
@@ -89,7 +90,7 @@ func TestRankingColdBuildIsSingleFlight(t *testing.T) {
 // A caller that gives up waiting does not cancel the shared build: the next
 // caller still gets the one result instead of paying for a second scan.
 func TestRankingColdBuildSurvivesCallerCancellation(t *testing.T) {
-	svc, fs := newBlockingService(t, []store.PriorityRow{coldRow(1)}, &fakeClock{now: testNow})
+	svc, fs := newBlockingService(t, []store.PriorityRow{coldRow(1)}, clocktest.New(testNow))
 	started := make(chan struct{}, 1)
 	release := make(chan struct{})
 	fs.block(started, release)
@@ -129,7 +130,7 @@ func TestRankingColdBuildSurvivesCallerCancellation(t *testing.T) {
 // A failed cold build is shared by the readers waiting on it. The next call
 // retries: a failure is not cached.
 func TestRankingColdBuildFailureIsSharedAndRetried(t *testing.T) {
-	svc, fs := newBlockingService(t, []store.PriorityRow{coldRow(1)}, &fakeClock{now: testNow})
+	svc, fs := newBlockingService(t, []store.PriorityRow{coldRow(1)}, clocktest.New(testNow))
 	started := make(chan struct{}, 1)
 	release := make(chan struct{})
 	fs.block(started, release)
@@ -176,7 +177,7 @@ func TestRankingColdBuildFailureIsSharedAndRetried(t *testing.T) {
 // that build to clear, then builds the new preview once. It never starts a
 // second scan beside the one already in flight.
 func TestRankingColdBuildWaitsForADifferentPreview(t *testing.T) {
-	svc, fs := newBlockingService(t, []store.PriorityRow{coldRow(1)}, &fakeClock{now: testNow})
+	svc, fs := newBlockingService(t, []store.PriorityRow{coldRow(1)}, clocktest.New(testNow))
 	started := make(chan struct{}, 2)
 	release := make(chan struct{})
 	fs.block(started, release)
@@ -226,7 +227,7 @@ func TestRankingColdBuildWaitsForADifferentPreview(t *testing.T) {
 // A waiter that gives up does not cancel the build it joined: the builder
 // completes it, and a later caller reads the cache without another scan.
 func TestRankingColdBuildWaiterCancellationDoesNotCancelTheBuild(t *testing.T) {
-	svc, fs := newBlockingService(t, []store.PriorityRow{coldRow(1)}, &fakeClock{now: testNow})
+	svc, fs := newBlockingService(t, []store.PriorityRow{coldRow(1)}, clocktest.New(testNow))
 	started := make(chan struct{}, 1)
 	release := make(chan struct{})
 	fs.block(started, release)
@@ -275,7 +276,7 @@ func TestRankingColdBuildWaiterCancellationDoesNotCancelTheBuild(t *testing.T) {
 // Close is idempotent: a second call returns while the first is still
 // waiting, and neither call starts another build.
 func TestCloseIsIdempotent(t *testing.T) {
-	svc, fs := newBlockingService(t, []store.PriorityRow{coldRow(1)}, &fakeClock{now: testNow})
+	svc, fs := newBlockingService(t, []store.PriorityRow{coldRow(1)}, clocktest.New(testNow))
 	started := make(chan struct{}, 1)
 	release := make(chan struct{})
 	fs.block(started, release)
@@ -329,7 +330,7 @@ func TestCloseWaitsForANonCooperativeBuild(t *testing.T) {
 	closeTimeout = 50 * time.Millisecond
 	t.Cleanup(func() { closeTimeout = original })
 
-	svc, fs := newBlockingService(t, []store.PriorityRow{coldRow(1)}, &fakeClock{now: testNow})
+	svc, fs := newBlockingService(t, []store.PriorityRow{coldRow(1)}, clocktest.New(testNow))
 	started := make(chan struct{}, 1)
 	release := make(chan struct{})
 	fs.blockUncooperative(started, release)
@@ -371,7 +372,7 @@ func TestCloseWaitsForANonCooperativeBuild(t *testing.T) {
 // Close ends a cold build that is still reading the store, so shutdown can
 // close the store without a reader behind it. No later call starts a build.
 func TestCloseCancelsAColdBuild(t *testing.T) {
-	svc, fs := newBlockingService(t, []store.PriorityRow{coldRow(1)}, &fakeClock{now: testNow})
+	svc, fs := newBlockingService(t, []store.PriorityRow{coldRow(1)}, clocktest.New(testNow))
 	started := make(chan struct{}, 1)
 	release := make(chan struct{})
 	fs.block(started, release)

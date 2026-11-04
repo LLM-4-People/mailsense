@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/LLM-4-People/mailsense/internal/clock/clocktest"
+	"github.com/LLM-4-People/mailsense/internal/fixturetest"
 	"github.com/LLM-4-People/mailsense/internal/mail"
 )
 
@@ -107,7 +108,7 @@ func TestListServesTheRacedRebuildAndRefreshesBehind(t *testing.T) {
 	// The next read rebuilt behind the served snapshot for the current
 	// generation, so a later read pays nothing.
 	refreshed := now.Add(2 * time.Second)
-	waitFor(t, "refresh for the current generation", func() bool {
+	fixturetest.WaitUntil(t, 2*time.Second, "refresh for the current generation", func() bool {
 		state := readListCache(svc)
 		return state.gen == current && !state.refreshing && state.at.Equal(refreshed)
 	})

@@ -14,6 +14,7 @@ import (
 	"github.com/LLM-4-People/mailsense/internal/clock/clocktest"
 	"github.com/LLM-4-People/mailsense/internal/config/configtest"
 	"github.com/LLM-4-People/mailsense/internal/events"
+	"github.com/LLM-4-People/mailsense/internal/fixturetest"
 	"github.com/LLM-4-People/mailsense/internal/runstate"
 	"github.com/LLM-4-People/mailsense/internal/store"
 	"github.com/LLM-4-People/mailsense/internal/syncer"
@@ -34,17 +35,6 @@ func waitFor[T any](t *testing.T, ch <-chan T, what string) T {
 		t.Fatalf("timed out waiting for %s", what)
 		var zero T
 		return zero
-	}
-}
-
-func waitUntil(t *testing.T, what string, cond func() bool) {
-	t.Helper()
-	deadline := time.Now().Add(5 * time.Second)
-	for !cond() {
-		if time.Now().After(deadline) {
-			t.Fatalf("timed out waiting for %s", what)
-		}
-		time.Sleep(time.Millisecond)
 	}
 }
 
@@ -107,7 +97,7 @@ func TestBurstOfAdvancedSyncsProducesOneRun(t *testing.T) {
 	for range 9 {
 		events.Publish(bus, syncer.TopicFinished, advancedSync())
 	}
-	waitUntil(t, "ten requests at the worker", func() bool { return tr.requested.Load() == 10 })
+	fixturetest.WaitUntil(t, 5*time.Second, "ten requests at the worker", func() bool { return tr.requested.Load() == 10 })
 	close(release)
 	waitFor(t, starts, "the learning pass")
 
@@ -143,7 +133,7 @@ func TestEventDuringRunProducesOneFollowUpAfterTheInterval(t *testing.T) {
 	for range 10 {
 		events.Publish(bus, syncer.TopicFinished, advancedSync())
 	}
-	waitUntil(t, "the in-flight requests", func() bool { return tr.requested.Load() == 11 })
+	fixturetest.WaitUntil(t, 5*time.Second, "the in-flight requests", func() bool { return tr.requested.Load() == 11 })
 	close(release)
 	secondStart := waitFor(t, starts, "the follow-up pass")
 
@@ -244,7 +234,7 @@ func TestStopCancelsInFlightPassAndJoins(t *testing.T) {
 		waitFor(t, tr.done, "the worker to exit")
 		bus.Close()
 	}
-	waitUntil(t, "the trigger goroutines to exit", func() bool { return runtime.NumGoroutine() <= before+2 })
+	fixturetest.WaitUntil(t, 5*time.Second, "the trigger goroutines to exit", func() bool { return runtime.NumGoroutine() <= before+2 })
 }
 
 type pauseAdmission struct {

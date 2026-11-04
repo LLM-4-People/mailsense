@@ -112,7 +112,7 @@ func TestLabelsAndUsage(t *testing.T) {
 		}
 	}
 	_ = s.AddUsage(ctx, engine.UsageRecord{Provider: "subq", Model: "m", Usage: engine.Usage{Calls: 1}, Failed: true})
-	usage, _ := s.ListUsage(ctx)
+	usage, _ := s.ListUsage(ctx, 365)
 	if len(usage) != 1 || usage[0].Calls != 3 || usage[0].Failures != 1 || usage[0].InputTokens != 200 || usage[0].CostUSD != 1 {
 		t.Fatalf("usage %+v", usage)
 	}

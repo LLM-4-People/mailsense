@@ -3,13 +3,13 @@ package viewcache
 import (
 	"context"
 	"errors"
-	"runtime"
 	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/LLM-4-People/mailsense/internal/clock/clocktest"
+	"github.com/LLM-4-People/mailsense/internal/fixturetest/fixturewait"
 )
 
 // A fresh entry is served without building, and concurrent callers of a
@@ -114,12 +114,12 @@ func TestFailedFirstBuildIsSharedThenRetried(t *testing.T) {
 		})
 		waiter <- err
 	}()
-	waitFor(t, func() bool {
+	fixturewait.WaitUntil(t, 5*time.Second, "the waiter joined the failed build", func() bool {
 		cache.mu.Lock()
 		defer cache.mu.Unlock()
 		cached := cache.entries[1]
 		return cached != nil && cached.waiters == 1
-	}, "the waiter joined the failed build")
+	})
 	close(release)
 
 	for _, err := range []error{<-builder, <-waiter} {
@@ -180,12 +180,12 @@ func TestExpiredServesStaleAndRefreshesOnce(t *testing.T) {
 		t.Fatalf("a second refresh started: %q %v builds %d", second, err, builds.Load())
 	}
 	close(release)
-	waitFor(t, func() bool {
+	fixturewait.WaitUntil(t, 5*time.Second, "the refresh installed its result", func() bool {
 		cache.mu.Lock()
 		defer cache.mu.Unlock()
 		cached := cache.entries[1]
 		return cached != nil && cached.set && cached.view == "v2" && !cached.refreshing
-	}, "the refresh installed its result")
+	})
 
 	// A failed refresh keeps the last snapshot and clears the refresh flag.
 	clk.Advance(11 * time.Second)
@@ -196,12 +196,12 @@ func TestExpiredServesStaleAndRefreshesOnce(t *testing.T) {
 	}); err != nil || got != "v2" {
 		t.Fatalf("a failed refresh dropped the snapshot: %q %v", got, err)
 	}
-	waitFor(t, func() bool {
+	fixturewait.WaitUntil(t, 5*time.Second, "the failed refresh cleared its flag", func() bool {
 		cache.mu.Lock()
 		defer cache.mu.Unlock()
 		cached := cache.entries[1]
 		return cached != nil && cached.view == "v2" && !cached.refreshing
-	}, "the failed refresh cleared its flag")
+	})
 }
 
 // Keep is evaluated after a successful build and before installing. A
@@ -248,12 +248,12 @@ func TestKeepRejectsAnInstall(t *testing.T) {
 	if err != nil || stale != "v2" {
 		t.Fatalf("a rejected refresh did not serve the snapshot: %q %v", stale, err)
 	}
-	waitFor(t, func() bool {
+	fixturewait.WaitUntil(t, 5*time.Second, "the rejected refresh cleared its flag", func() bool {
 		cache.mu.Lock()
 		defer cache.mu.Unlock()
 		cached := cache.entries[1]
 		return cached != nil && cached.view == "v2" && !cached.refreshing
-	}, "the rejected refresh cleared its flag")
+	})
 	allow.Store(true)
 	if got, err := cache.Get(t.Context(), 1, func(context.Context) (string, error) {
 		builds.Add(1)
@@ -261,12 +261,12 @@ func TestKeepRejectsAnInstall(t *testing.T) {
 	}); err != nil || got != "v2" {
 		t.Fatalf("a later call did not retry the refresh: %q %v", got, err)
 	}
-	waitFor(t, func() bool {
+	fixturewait.WaitUntil(t, 5*time.Second, "the retried refresh installed its result", func() bool {
 		cache.mu.Lock()
 		defer cache.mu.Unlock()
 		cached := cache.entries[1]
 		return cached != nil && cached.view == "v4"
-	}, "the retried refresh installed its result")
+	})
 }
 
 // Keep may read the built value: a value that carries a generation older than
@@ -337,12 +337,12 @@ func TestKeepRejectsAFreshServeAndRefreshes(t *testing.T) {
 	if err != nil || stale != 1 {
 		t.Fatalf("a moved generation was not served stale: %d %v", stale, err)
 	}
-	waitFor(t, func() bool {
+	fixturewait.WaitUntil(t, 5*time.Second, "the rejected fresh serve refreshed", func() bool {
 		cache.mu.Lock()
 		defer cache.mu.Unlock()
 		cached := cache.entries[1]
 		return cached != nil && cached.view == 2 && !cached.refreshing
-	}, "the rejected fresh serve refreshed")
+	})
 	if got := builds.Load(); got != 2 {
 		t.Fatalf("%d builds, want the warm one and one refresh", got)
 	}
@@ -400,19 +400,6 @@ func TestIsBounded(t *testing.T) {
 	}
 	if builds.Load() != before+1 {
 		t.Fatal("the evicted entry was still served")
-	}
-}
-
-// waitFor polls a condition on the scheduler, never a wall-clock sleep. It
-// exists for the refresh path, which finishes on its own goroutine.
-func waitFor(t *testing.T, condition func() bool, what string) {
-	t.Helper()
-	deadline := time.Now().Add(5 * time.Second)
-	for !condition() {
-		if time.Now().After(deadline) {
-			t.Fatalf("%s did not happen", what)
-		}
-		runtime.Gosched()
 	}
 }
 

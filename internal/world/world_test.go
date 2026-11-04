@@ -16,8 +16,8 @@ import (
 	"github.com/LLM-4-People/mailsense/internal/calendar"
 	"github.com/LLM-4-People/mailsense/internal/clock/clocktest"
 	"github.com/LLM-4-People/mailsense/internal/config"
-	"github.com/LLM-4-People/mailsense/internal/config/configtest"
 	"github.com/LLM-4-People/mailsense/internal/contacts"
+	"github.com/LLM-4-People/mailsense/internal/fixturetest"
 	"github.com/LLM-4-People/mailsense/internal/mail"
 	"github.com/LLM-4-People/mailsense/internal/mail/mailtest"
 	"github.com/LLM-4-People/mailsense/internal/mailquery"
@@ -41,20 +41,11 @@ func worldTime(t *testing.T, value string) time.Time {
 // read.
 func openWorldStore(t *testing.T) (*store.Store, *config.Config) {
 	t.Helper()
-	cfg := configtest.New(t, map[string]any{
+	cfg, st := fixturetest.OpenStore(t, map[string]any{
 		"mail.domains.shared":  []any{"gmail.com"},
 		"time.zone":            "Europe/Paris",
 		"store.max_open_conns": 1,
-		source.SettingSelected: mailtest.Picked([]string{"src"}),
 	})
-	st, err := store.Open(t.Context(), cfg, nil, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	t.Cleanup(func() { _ = st.Close() })
-	if err := st.UpsertSource(t.Context(), "src", "test", "Test", source.Capabilities{}); err != nil {
-		t.Fatal(err)
-	}
 	return st, cfg
 }
 
@@ -801,7 +792,7 @@ func TestListServesStaleThenRefreshes(t *testing.T) {
 		t.Fatalf("an expired list rebuilt instead of serving stale: %q", stale.GeneratedAt)
 	}
 	refreshed := now.Add(cacheTTL + time.Second)
-	waitFor(t, "list refresh", func() bool {
+	fixturetest.WaitUntil(t, 2*time.Second, "list refresh", func() bool {
 		state := readListCache(svc)
 		return !state.refreshing && state.at.Equal(refreshed)
 	})
@@ -847,7 +838,7 @@ func TestListRefreshFailureKeepsStaleAndRetries(t *testing.T) {
 	if !reflect.DeepEqual(stale, first) {
 		t.Fatalf("a failed refresh changed the served list: %+v", stale)
 	}
-	waitFor(t, "failed list refresh", func() bool {
+	fixturetest.WaitUntil(t, 2*time.Second, "failed list refresh", func() bool {
 		state := readListCache(svc)
 		return !state.refreshing && state.at.Equal(now) && logs.warnings() == 1
 	})
@@ -856,7 +847,7 @@ func TestListRefreshFailureKeepsStaleAndRetries(t *testing.T) {
 	if _, err := svc.List(t.Context(), ListQuery{Limit: 10}); err != nil {
 		t.Fatal(err)
 	}
-	waitFor(t, "second failed list refresh", func() bool {
+	fixturetest.WaitUntil(t, 2*time.Second, "second failed list refresh", func() bool {
 		return !readListCache(svc).refreshing && logs.warnings() == 2
 	})
 	if state := readListCache(svc); !state.at.Equal(now) {
@@ -941,7 +932,7 @@ func TestProfileStaleWhileRevalidate(t *testing.T) {
 
 	close(release)
 	var fresh ProfileView
-	waitFor(t, "profile refresh", func() bool {
+	fixturetest.WaitUntil(t, 2*time.Second, "profile refresh", func() bool {
 		view, err := svc.Profile(t.Context(), key, 12, 30)
 		if err != nil {
 			return false
@@ -990,7 +981,7 @@ func TestProfileRefreshFailureKeepsStale(t *testing.T) {
 	if len(stale.OpenThreads) != 2 {
 		t.Fatalf("first read after the failure: %+v", stale.OpenThreads)
 	}
-	waitFor(t, "failed profile refresh", func() bool {
+	fixturetest.WaitUntil(t, 2*time.Second, "failed profile refresh", func() bool {
 		return priority.callCount() == 2
 	})
 	again, err := svc.Profile(t.Context(), key, 12, 30)
@@ -1003,7 +994,7 @@ func TestProfileRefreshFailureKeepsStale(t *testing.T) {
 
 	// The refresh flag was cleared: the next stale read starts one more
 	// attempt instead of being stuck.
-	waitFor(t, "second failed profile refresh", func() bool {
+	fixturetest.WaitUntil(t, 2*time.Second, "second failed profile refresh", func() bool {
 		view, err := svc.Profile(t.Context(), key, 12, 30)
 		return err == nil && len(view.OpenThreads) == 2 && priority.callCount() == 3
 	})
@@ -1044,7 +1035,7 @@ func TestWorldCachesInvalidateOnGeneration(t *testing.T) {
 		t.Fatal("a generation change rebuilt the list synchronously")
 	}
 	refreshed := now.Add(time.Second)
-	waitFor(t, "generation-triggered list refresh", func() bool {
+	fixturetest.WaitUntil(t, 2*time.Second, "generation-triggered list refresh", func() bool {
 		state := readListCache(svc)
 		return state.gen == gen && !state.refreshing && state.at.Equal(refreshed)
 	})
@@ -1056,7 +1047,7 @@ func TestWorldCachesInvalidateOnGeneration(t *testing.T) {
 		t.Fatal(err)
 	}
 	refreshedAt := now.Add(time.Second).UTC().Format(time.RFC3339)
-	waitFor(t, "generation-triggered profile refresh", func() bool {
+	fixturetest.WaitUntil(t, 2*time.Second, "generation-triggered profile refresh", func() bool {
 		view, err := svc.Profile(t.Context(), key, 12, 30)
 		return err == nil && view.GeneratedAt == refreshedAt
 	})
@@ -1203,18 +1194,6 @@ func (r *warnRecorder) warnings() int {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	return r.counted
-}
-
-func waitFor(t *testing.T, what string, ok func() bool) {
-	t.Helper()
-	deadline := time.Now().Add(2 * time.Second)
-	for time.Now().Before(deadline) {
-		if ok() {
-			return
-		}
-		time.Sleep(time.Millisecond)
-	}
-	t.Fatalf("timed out waiting for %s", what)
 }
 
 func worldPerson(list []store.CompanyPerson, address string) (store.CompanyPerson, bool) {

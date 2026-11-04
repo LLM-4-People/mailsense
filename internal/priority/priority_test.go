@@ -13,8 +13,10 @@ import (
 	"unicode/utf8"
 
 	"github.com/LLM-4-People/mailsense/internal/action"
+	"github.com/LLM-4-People/mailsense/internal/clock/clocktest"
 	"github.com/LLM-4-People/mailsense/internal/config/configtest"
 	"github.com/LLM-4-People/mailsense/internal/engine"
+	"github.com/LLM-4-People/mailsense/internal/fixturetest"
 	"github.com/LLM-4-People/mailsense/internal/mail"
 	"github.com/LLM-4-People/mailsense/internal/route"
 	"github.com/LLM-4-People/mailsense/internal/selective"
@@ -1069,12 +1071,6 @@ func TestServiceEmptyAndTieBreak(t *testing.T) {
 	}
 }
 
-func (c *fakeClock) Now() time.Time { return c.now }
-func (c *fakeClock) Sleep(context.Context, time.Duration) error {
-	return nil
-}
-func (c *fakeClock) Advance(d time.Duration) { c.now = c.now.Add(d) }
-
 func TestSignalsAreThresholdedPlainValues(t *testing.T) {
 	item, ok := scoreOne(t, map[string]route.Answer{
 		"urgency": score("urgency", 3.6), "reply_needed": noul("reply_needed", 0.5),
@@ -1235,23 +1231,12 @@ func TestActionsReturnsOnlyOwnerActions(t *testing.T) {
 	}
 }
 
-func waitUntil(t *testing.T, what string, cond func() bool) {
-	t.Helper()
-	deadline := time.Now().Add(5 * time.Second)
-	for !cond() {
-		if time.Now().After(deadline) {
-			t.Fatalf("timed out waiting for %s", what)
-		}
-		time.Sleep(time.Millisecond)
-	}
-}
-
 // waitPriorityIdle waits for any background refresh to finish and returns the
 // installed cache. Callers invoke it after a read that started a refresh.
 func waitPriorityIdle(t *testing.T, svc *Service) *cachedRanking {
 	t.Helper()
 	var c *cachedRanking
-	waitUntil(t, "the priority refresh to finish", func() bool {
+	fixturetest.WaitUntil(t, 5*time.Second, "the priority refresh to finish", func() bool {
 		svc.mu.Lock()
 		defer svc.mu.Unlock()
 		c = svc.cached
@@ -1407,7 +1392,7 @@ func (f *blockingStore) callCount() int {
 	return f.calls
 }
 
-func newBlockingService(t *testing.T, rows []store.PriorityRow, clk *fakeClock) (*Service, *blockingStore) {
+func newBlockingService(t *testing.T, rows []store.PriorityRow, clk *clocktest.Fake) (*Service, *blockingStore) {
 	t.Helper()
 	cfg := configtest.New(t, nil)
 	fs := &blockingStore{rows: rows}
