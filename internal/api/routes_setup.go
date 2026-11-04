@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"os"
 )
 
 // The setup screen's two setting keys. The schema owns their type, default and
@@ -23,6 +24,24 @@ type SetupView struct {
 	Language  string `json:"language"`
 	Mailboxes int    `json:"mailboxes"`
 	Selected  int    `json:"selected"`
+	// DatabaseBytes is the size of the SQLite file on disk, so the wizard can
+	// say what already exists before the first sync. DatabaseSizeKnown stays
+	// false when the file cannot be read: an absent size is not an empty one.
+	DatabaseBytes     int64 `json:"database_bytes"`
+	DatabaseSizeKnown bool  `json:"database_size_known"`
+}
+
+// setupDatabaseBytes reads the store file size. It is a supplementary fact:
+// a stat failure degrades the setup view, never fails it.
+func setupDatabaseBytes(path string) (int64, bool) {
+	if path == "" {
+		return 0, false
+	}
+	info, err := os.Stat(path)
+	if err != nil || info.IsDir() {
+		return 0, false
+	}
+	return info.Size(), true
 }
 
 // handleSetup answers whether the first-run screen should open. The completion
@@ -73,13 +92,16 @@ func (s *Server) handleSetup(w http.ResponseWriter, r *http.Request) {
 			selected++
 		}
 	}
+	databaseBytes, databaseKnown := setupDatabaseBytes(status.StorePath)
 	s.writeJSON(w, r, http.StatusOK, SetupView{
-		Needed:    !done && selected == 0,
-		Done:      done,
-		DataDir:   status.DataDir,
-		TimeZone:  status.TimeZone,
-		Language:  language,
-		Mailboxes: len(boxes),
-		Selected:  selected,
+		Needed:            !done && selected == 0,
+		Done:              done,
+		DataDir:           status.DataDir,
+		TimeZone:          status.TimeZone,
+		Language:          language,
+		Mailboxes:         len(boxes),
+		Selected:          selected,
+		DatabaseBytes:     databaseBytes,
+		DatabaseSizeKnown: databaseKnown,
 	})
 }

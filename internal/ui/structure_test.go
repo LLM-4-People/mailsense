@@ -151,9 +151,10 @@ var sourceLineBudget = map[string]int{
 	"internal/config/schema.json":            2203,
 	// The settings and diagnostics round added provider health, environment
 	// lock, default-value, job-filter and cross-link wording: nine keys in
-	// each catalog.
-	"internal/ui/i18n.fr.js": 2507,
-	"internal/ui/i18n.en.js": 2120,
+	// each catalog. The first-run round added the basic and advanced setup
+	// wording in both catalogs; the budget moved by the exact added lines.
+	"internal/ui/i18n.fr.js": 2610,
+	"internal/ui/i18n.en.js": 2223,
 	"internal/qa/qa_test.go": 4930,
 	// The three Node behavior harnesses each run the shared thread-state
 	// block before their view block: +2 lines per harness.

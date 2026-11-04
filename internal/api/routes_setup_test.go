@@ -2,6 +2,8 @@ package api
 
 import (
 	"encoding/json"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/LLM-4-People/mailsense/internal/source"
@@ -121,6 +123,53 @@ func TestSetupProjectsTheLanguage(t *testing.T) {
 	}
 	if view.Language != "fr" {
 		t.Fatalf("language = %q, want fr", view.Language)
+	}
+}
+
+// TestSetupReportsTheDatabaseSize keeps the storage fact honest before the
+// first sync. The size is read once from the store file the status route
+// already names.
+func TestSetupReportsTheDatabaseSize(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "mailsense.db")
+	body := make([]byte, 1234)
+	if err := os.WriteFile(path, body, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	srv, ts, w := newTestServer(t)
+	w.status.view = StatusView{DataDir: t.TempDir(), StorePath: path}
+
+	code, _, bodyBytes := do(t, ts, srv, request{method: "GET", path: "/api/setup"})
+	if code != 200 {
+		t.Fatalf("status = %d, body = %s", code, bodyBytes)
+	}
+	var view SetupView
+	if err := json.Unmarshal(bodyBytes, &view); err != nil {
+		t.Fatal(err)
+	}
+	if !view.DatabaseSizeKnown || view.DatabaseBytes != int64(len(body)) {
+		t.Fatalf("view = %+v, want the store file size %d", view, len(body))
+	}
+}
+
+// TestSetupDegradesWhenTheDatabaseSizeIsUnknown protects the optional read:
+// a missing store file leaves the size unknown and never fails the view.
+func TestSetupDegradesWhenTheDatabaseSizeIsUnknown(t *testing.T) {
+	srv, ts, w := newTestServer(t)
+	w.status.view = StatusView{DataDir: t.TempDir(), StorePath: filepath.Join(t.TempDir(), "absent.db")}
+
+	code, _, body := do(t, ts, srv, request{method: "GET", path: "/api/setup"})
+	if code != 200 {
+		t.Fatalf("status = %d, body = %s", code, body)
+	}
+	var view SetupView
+	if err := json.Unmarshal(body, &view); err != nil {
+		t.Fatal(err)
+	}
+	if view.DatabaseSizeKnown || view.DatabaseBytes != 0 {
+		t.Fatalf("view = %+v, want an unknown size", view)
+	}
+	if !view.Needed {
+		t.Fatalf("view = %+v, the unknown size must not change the predicate", view)
 	}
 }
 
