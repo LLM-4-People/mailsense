@@ -86,6 +86,16 @@ body {
   border-radius: 4px;
 }
 
+/* The shell clears the landmark's outline so a route change can move focus
+   to #main without scattering rings. A programmatic focus then has no visible
+   indicator, so the landmark restores one from the base sheet; the shell
+   module stays the owner of #main's layout. The negative offset keeps the
+   ring inside the clipped workspace. */
+#main:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+
 h1, h2, h3, h4, p, dl, dd, dt, figure { margin: 0; }
 h1, h2, h3, h4 { font-weight: 640; letter-spacing: -0.015em; }
 
@@ -834,7 +844,11 @@ code {
 .button.danger { color: var(--danger-ink); border-color: var(--danger-line); background: var(--danger-soft); }
 .button.quiet { background: transparent; border-color: transparent; box-shadow: none; color: var(--ink-soft); }
 .button.quiet:hover { background: rgba(30, 90, 70, 0.07); border-color: transparent; color: var(--accent-ink); }
-.button.small { min-height: 32px; padding: 4px 10px; font-size: 11.5px; border-radius: 8px; }
+/* A small button is the dense action on toolbars and inside cards. Its label
+   may be longer than the column (French is routinely a third longer), so it
+   grows to a second line instead of overflowing the row; min-height lets the
+   box grow and the centered text keeps both lines tidy. */
+.button.small { min-height: 32px; padding: 4px 10px; font-size: 11.5px; border-radius: 8px; white-space: normal; text-align: center; }
 .button.full { width: 100%; }
 .button.link { border-color: transparent; background: transparent; box-shadow: none; color: var(--accent-ink); padding-left: 2px; padding-right: 2px; min-height: 24px; }
 .button.link:hover { text-decoration: underline; }
@@ -1108,11 +1122,20 @@ progress.warn::-webkit-progress-value { background: var(--warn-ink); }
 progress.warn::-moz-progress-bar { background: var(--warn-ink); }
 
 /* The empty state is a core component: every screen shows one, so its
-   box, icon and copy hierarchy live here, not in the settings module. */
-.empty { display: grid; justify-items: center; gap: 8px; padding: 28px 20px; text-align: center; border: 1px dashed var(--line-strong); border-radius: var(--radius-sm); background: rgba(253, 251, 246, 0.6); }
+   box, icon and copy hierarchy live here, not in the settings module.
+   The Companies list pane is the one host that reuses the layout without
+   the dashed box, because the pane already draws the frame. Its host class
+   therefore joins the structural rules here and overrides only its own
+   deltas in the Companies sheet, so neither sheet keeps a second copy. */
+.empty,
+.companies-list-empty { display: grid; justify-items: center; text-align: center; }
+.empty { gap: 8px; padding: 28px 20px; border: 1px dashed var(--line-strong); border-radius: var(--radius-sm); background: rgba(253, 251, 246, 0.6); }
 .empty-icon { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 50%; color: var(--muted); background: var(--surface); }
-.empty h2 { font-family: var(--font-display); font-size: 22px; font-weight: 500; letter-spacing: -0.02em; }
-.empty p { max-width: 540px; color: var(--muted); font-size: 12.5px; }
+.empty h2,
+.companies-list-empty h3 { font-family: var(--font-display); font-weight: 500; }
+.empty h2 { font-size: 22px; letter-spacing: -0.02em; }
+.empty p,
+.companies-list-empty p { max-width: 540px; color: var(--muted); font-size: 12.5px; }
 .empty .button-row { margin-top: 4px; }
 
 /* One pager for every paged list: showing, load more, end and failed-page
@@ -1252,6 +1275,13 @@ progress.warn::-moz-progress-bar { background: var(--warn-ink); }
 .agenda-row-compact .agenda-title { font-size: 12.5px; }
 .agenda-row-compact .agenda-meta { margin-top: 1px; }
 .agenda-skeleton { padding: 10px 14px; display: grid; gap: 7px; }
+
+/* ---------- shared motion ---------- */
+
+/* One rotation for every spinner. The settings and companies sheets each
+   declared a byte-identical @keyframes spin, so the later copy silently owned
+   the global name; the shared component layer keeps the only declaration. */
+@keyframes spin { to { transform: rotate(360deg); } }
 /* ---------- home ---------- */
 
 .home-screen { gap: 14px; }
@@ -2872,9 +2902,12 @@ a.brief-org:hover { color: var(--accent-ink); text-decoration: underline; }
 .rejected-row .mono { overflow-wrap: anywhere; }
 .provider-result { margin-top: 6px; padding: 8px 10px; border: 1px solid var(--line); background: var(--surface-sunken); font-size: 11.5px; display: grid; gap: 2px; }
 .provider-result.error { border-color: var(--danger-line); background: var(--danger-soft); color: var(--danger-ink); }
-.provider-roles { display: grid; gap: 9px; padding: 12px; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--surface); }
+/* The role card sits inside the provider panel, not the viewport. When the
+   card is narrower than four French role labels (a narrow window, or a
+   scrollbar inside the panel), pair the cells instead of letting a label
+   spill into the gap. */
+.provider-roles { container-type: inline-size; display: grid; gap: 9px; padding: 12px; border: 1px solid var(--line-strong); border-radius: var(--radius); background: var(--surface); }
 .provider-roles-head h2 { font-family: var(--font-display); font-size: 17px; font-weight: 500; letter-spacing: -0.02em; }
-.provider-role-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px 12px; }
 .provider-role { display: grid; gap: 4px; min-width: 0; }
 .provider-role .select { width: 100%; min-width: 0; }
 .provider-role-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
@@ -3006,7 +3039,6 @@ a.brief-org:hover { color: var(--accent-ink); text-decoration: underline; }
 
 .loading { display: flex; align-items: center; gap: 9px; padding: 16px 4px; color: var(--muted); font-size: 12.5px; }
 .spinner { width: 15px; height: 15px; border: 2px solid var(--line-strong); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
 
 .skeleton-line { height: 11px; border-radius: 999px; background: var(--skeleton); animation: skeletonPulse 1.4s ease-in-out infinite; margin-bottom: 9px; }
 .skeleton-line:last-child { margin-bottom: 0; }
@@ -3119,9 +3151,13 @@ a.brief-org:hover { color: var(--accent-ink); text-decoration: underline; }
 .companies-row-top { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; min-width: 0; }
 .companies-row-label {
   min-width: 0;
+  /* The name is user data with no title tooltip: two lines keep it readable
+     instead of clipping it after one. */
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
   font-size: 13px;
   font-weight: 650;
   letter-spacing: -0.01em;
@@ -3132,26 +3168,14 @@ a.brief-org:hover { color: var(--accent-ink); text-decoration: underline; }
 .companies-row-meta > span + span::before { content: "·"; margin: 0 6px; color: var(--faint); }
 .companies-row-domain { max-width: 56%; overflow: hidden; text-overflow: ellipsis; }
 .companies-row-direction { color: var(--warn-ink); font-size: 10px; }
-.companies-list-empty {
-  display: grid;
-  justify-items: center;
-  gap: 7px;
-  padding: 26px 18px;
-  text-align: center;
-}
+/* The list pane already draws its own frame: its empty state reuses the
+   core layout from 20-components.css and drops only the dashed box, keeping
+   the pane's tighter rhythm and heading scale. */
+.companies-list-empty { gap: 7px; padding: 26px 18px; border: 0; border-radius: 0; background: transparent; }
 .companies-list-empty .empty-icon,
-.companies-profile-state .empty-icon {
-  display: grid;
-  place-items: center;
-  width: 38px;
-  height: 38px;
-  border: 1px solid var(--line);
-  border-radius: 50%;
-  color: var(--muted);
-  background: var(--surface-sunken);
-}
-.companies-list-empty h3 { font-family: var(--font-display); font-size: 19px; font-weight: 500; }
-.companies-list-empty p { max-width: 280px; color: var(--muted); font-size: 11.5px; }
+.companies-profile-state .empty-icon { width: 38px; height: 38px; background: var(--surface-sunken); }
+.companies-list-empty h3 { font-size: 19px; }
+.companies-list-empty p { max-width: 280px; font-size: 11.5px; }
 .companies-list-empty .button { margin-top: 2px; }
 .companies-skeleton-list { display: grid; }
 .companies-skeleton-row { display: grid; gap: 5px; padding: 10px 13px; border-bottom: 1px solid var(--line); }
@@ -3393,7 +3417,6 @@ a.brief-org:hover { color: var(--accent-ink); text-decoration: underline; }
   font-weight: 650;
 }
 .companies-profile-update .spinner { animation: spin 900ms linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) {
   .companies-profile-update .spinner { animation: none; }
 }
@@ -3521,7 +3544,6 @@ a.brief-org:hover { color: var(--accent-ink); text-decoration: underline; }
   .learning-next .button-row { justify-content: flex-start; }
   .labels-answer-pane::after { display: none; }
   .review-suggestion { flex-direction: column; }
-  .provider-role-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .provider-form-grid,
   .provider-field-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .subnav { position: static; display: flex; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
@@ -3672,7 +3694,6 @@ a.brief-org:hover { color: var(--accent-ink); text-decoration: underline; }
   .settings-actions .search-field { width: 100%; min-width: 0; }
   .settings-simple-note { align-items: flex-start; }
   .provider-roles { padding: 10px; }
-  .provider-role-grid,
   .provider-form-grid,
   .provider-field-grid { grid-template-columns: 1fr; }
   .provider-field.span-2 { grid-column: auto; }

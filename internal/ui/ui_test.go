@@ -4653,7 +4653,7 @@ func TestProviderEditorAndRoleSelects(t *testing.T) {
 	}
 	for _, required := range []string{
 		".provider-form", ".provider-form-grid", ".provider-field-grid", ".provider-card",
-		".provider-card-head", ".provider-card-actions", ".provider-roles", ".provider-role-grid",
+		".provider-card-head", ".provider-card-actions", ".provider-roles",
 		".provider-form-actions", ".provider-discovery", ".provider-discovery-select",
 		".provider-discovery-details",
 	} {

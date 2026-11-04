@@ -128,7 +128,7 @@
     logLast: 0,
     logTruncated: false,
     logDropped: [],
-    logFilters: { level: "", component: "" },
+    logFilters: { level: "", component: "", job: "" },
     triageRouted: null,
     triagePreview: false,
     triagePage: null,
@@ -451,14 +451,18 @@
 
   // link is the anchor twin of button: it must honour the same options, or a
   // site that asks for a small quiet link silently gets a full-size primary
-  // one (34 call sites did).
+  // one (34 call sites did). A prose link inside a sentence sets bare: it
+  // keeps its own class and the surrounding text's look instead of becoming
+  // a button.
   function link(label, href, opts = {}) {
     return h("a", {
-      class: ("button " + (opts.kind || "") + " " + (opts.small ? "small" : "") + " " + (opts.class || "")).trim(),
+      class: ((opts.bare ? "" : "button ") + (opts.kind || "") + " " + (opts.small ? "small" : "") + " " + (opts.class || "")).trim(),
       href,
       title: opts.title || "",
       "aria-label": opts.aria || null,
-    }, opts.icon ? icon(opts.icon, opts.small ? "small" : "") : null, h("span", { text: label }));
+    }, opts.icon && !opts.trailingIcon ? icon(opts.icon, opts.small ? "small" : "") : null,
+    h("span", { text: label }),
+    opts.icon && opts.trailingIcon ? icon(opts.icon, opts.small ? "small" : "") : null);
   }
 
 
@@ -2912,7 +2916,10 @@
         const value = previous[key];
         if (!value) continue;
         const attribute = "data-" + key.replace(/[A-Z]/g, (c) => "-" + c.toLowerCase());
-        node = dom.main.querySelector("[" + attribute + '="' + String(value).replace(/"/g, '\\"') + '"]');
+        // CSS.escape is the one escaping owner: a hand-rolled quote escape
+        // left the backslash unescaped, so a value carrying both characters
+        // built a selector that matched the wrong row (or threw).
+        node = dom.main.querySelector("[" + attribute + "=" + CSS.escape(String(value)) + "]");
         if (node) break;
       }
     }
@@ -3614,6 +3621,18 @@
     }
   }
   // ---------------------------------------------------------------- navigation
+
+  // navigateWith is the one cross-screen link of the interface. It is a real
+  // anchor, so it is keyboard reachable, opens in a new tab with the platform
+  // modifier, and Back returns to the route the owner left. A second ad hoc
+  // href is how a link forgets the router's interception and reloads the
+  // document. Callers name a SCREEN_ID and its route parameters, never a
+  // hand-built hash.
+  function navigateWith(label, name, params = {}, opts = {}) {
+    const anchor = link(label, routeHash(name, params), opts);
+    anchor.dataset.crosslink = name;
+    return anchor;
+  }
 
   let navInstalled = false;
 
@@ -8416,18 +8435,7 @@
     const actions = learningActions(open, labelsDone, review, firstQuestion, reviewQuestion, runChoice);
 
     const stateKind = partial ? "warn" : stateValue === "blocked" ? "blocked" : stateValue === "learned" ? "done" : stateValue === "open" ? "done" : "running";
-    const questionLinks = !open && topQuestions.length
-      ? h("div", { class: "learning-questions" },
-          h("h3", { text: t("learning.questions.title") }),
-          h("p", { class: "fine", text: t("learning.questions.sub") }),
-          h("div", { class: "learning-question-links" }, topQuestions.map((name) =>
-            h("a", {
-              class: "learning-question-link",
-              href: routeHash("labels", { question: name }),
-            },
-            h("span", { text: questionTitle(name) }),
-            icon("arrow-right", "small")))))
-      : null;
+    const questionLinks = !open ? learningQuestionLinks(topQuestions) : null;
 
     const callout = h("section", { class: "learning-callout " + (stateValue === "blocked" ? "blocked" : "") },
       h("div", { class: "learning-callout-top" },
@@ -8459,7 +8467,10 @@
           : t("learning.stages.done", { done: formatNumber(done), total: formatNumber(stages.length) })],
         [t("learning.blockers"), blockers.length ? formatNumber(blockers.length) : t("common.none")],
         [t("learning.running_jobs"), runningJobs.length
-          ? runningJobs.map((job) => jobNameLabel(job.name)).join(", ") : t("learning.running_jobs_none")],
+          ? h("span", null,
+            text(runningJobs.map((job) => jobNameLabel(job.name)).join(", ") + " "),
+            navigateWith(t("logs.open"), "logs", runningJobs.length === 1 ? { job: runningJobs[0].id } : {}, { bare: true }))
+          : t("learning.running_jobs_none")],
         summaryRead.error ? [t("learning.label_progress"), labelSummaryUnavailable(summaryRead.error)] : null,
         [t("learning.scope"), scope.length ? formatNumber(scope.length) : t("learning.scope_none")],
         [t("learning.time_zone"), zoneText],
@@ -8481,7 +8492,45 @@
       h("div", { class: "learning-body route-scroll section-scroll", dataset: { scrollKey: "learning-body" } },
         section(t("learning.timeline.title"), t("learning.timeline.sub"), null, timeline),
         blockers.length ? section(t("learning.blockers.title"), t("learning.blockers.sub", { count: blockers.length }), null,
-          h("div", { class: "blocker-list" }, blockers.map((entry) => blockerNode(entry)))) : null));
+          h("div", { class: "blocker-list" }, blockers.map((entry) => learningBlockerNode(entry)))) : null));
+  }
+
+  // learningQuestionLinks is the one list of the questions that help most: a
+  // link to the label queue for each, in the callout and nowhere else.
+  function learningQuestionLinks(topQuestions) {
+    if (!topQuestions.length) return null;
+    return h("div", { class: "learning-questions" },
+      h("h3", { text: t("learning.questions.title") }),
+      h("p", { class: "fine", text: t("learning.questions.sub") }),
+      h("div", { class: "learning-question-links" }, topQuestions.map((name) =>
+        navigateWith(questionTitle(name), "labels", { question: name }, {
+          bare: true,
+          class: "learning-question-link",
+          icon: "arrow-right",
+          trailingIcon: true,
+        }))));
+  }
+
+  // A blocker names where its fix lives. A failed run is diagnosed in Logs; a
+  // configuration blocker in the settings it names. The link rides under the
+  // shared blocker card, so every screen keeps the same blocker wording.
+  const LEARNING_BLOCKER_LINKS = {
+    evidence_run_failed: { screen: "logs", label: "logs.open" },
+    layer1_run_failed: { screen: "logs", label: "logs.open" },
+    layer1_config_invalid: { screen: "settings", label: "learning.link.settings", params: { tab: "general", q: "layer1." } },
+    evidence_config_invalid: { screen: "settings", label: "learning.link.settings", params: { tab: "general", q: "evidence." } },
+    time_zone_unconfirmed: { screen: "settings", label: "learning.link.settings", params: { tab: "general", q: "time.zone" } },
+    no_embedder: { screen: "settings", label: "learning.link.settings", params: { tab: "runtime" } },
+  };
+
+  function learningBlockerNode(entry) {
+    const node = blockerNode(entry);
+    const code = String(entry && entry.blocker && entry.blocker.code ? entry.blocker.code : "");
+    const target = LEARNING_BLOCKER_LINKS[code];
+    if (!target) return node;
+    node.append(h("div", { class: "button-row" },
+      navigateWith(t(target.label), target.screen, target.params || {}, { small: true })));
+    return node;
   }
 
   // learningActions is the callout's next-step list. A review count that
@@ -8493,13 +8542,13 @@
       return actions;
     }
     if (!labelsDone) {
-      actions.push(link(t("learning.action.answer"), routeHash("labels", firstQuestion ? { question: firstQuestion } : {}), { kind: "primary", small: true }));
+      actions.push(navigateWith(t("learning.action.answer"), "labels", firstQuestion ? { question: firstQuestion } : {}, { kind: "primary", small: true }));
     }
     if (review > 0) {
-      actions.push(link(t("learning.action.review", { count: review }), routeHash("labels", {
+      actions.push(navigateWith(t("learning.action.review", { count: review }), "labels", {
         review: "1",
         question: reviewQuestion ? reviewQuestion.question : firstQuestion,
-      }), { small: true }));
+      }, { small: true }));
     }
     if (runChoice) {
       actions.push(button(actionLabel(runChoice.action), (event) => executeAction(
@@ -9905,6 +9954,16 @@
       syncNowButton(discoverSelect, sources.length > 0), refreshButton,
       h("span", { class: "fine", text: t("sources.discovery_note") }));
 
+    const jobs = Array.isArray(jobsRead.value) ? jobsRead.value : [];
+    const htmlJobs = jobs.filter((job) => job.kind === "messages.html");
+    const htmlJob = htmlJobs.length ? htmlJobs[htmlJobs.length - 1] : null;
+    // The one job this screen can report: a sync or a display-HTML backfill
+    // that failed. Its detail is the job id in Logs, the only screen that
+    // holds the retained entries.
+    const failedJob = jobs
+      .filter((job) => job && job.status === "failed" && (job.kind === "sync" || job.kind === "messages.html"))
+      .sort((a, b) => String(b.finished_at || "").localeCompare(String(a.finished_at || "")))[0] || null;
+
     const mailboxTable = mailboxes.length
       ? sortableTable({
         caption: t("sources.mailboxes.caption"),
@@ -9945,18 +10004,36 @@
       }).node
       : emptyState(t("sources.registry.empty_title"), t("sources.registry.empty_body"), null, "sources");
 
-    const jobs = Array.isArray(jobsRead.value) ? jobsRead.value : [];
-    const htmlJobs = jobs.filter((job) => job.kind === "messages.html");
-    const htmlJob = htmlJobs.length ? htmlJobs[htmlJobs.length - 1] : null;
-
     const held = heldRead.value && Array.isArray(heldRead.value.folders) ? heldRead.value.folders : [];
     return h("div", { class: "screen sources-screen" },
       h("div", { class: "route-scroll section-scroll", dataset: { scrollKey: "sources-body" } },
-        section(t("sources.section.discover.title"), t("sources.section.discover.sub"), null, toolbar),
+        section(t("sources.section.discover.title"), t("sources.section.discover.sub"), null, toolbar, sourcesCrossLinks(failedJob)),
         section(t("sources.section.mailboxes.title"), t("sources.section.mailboxes.sub"), null, mailboxTable),
         heldRemovalsSection(held, heldRead.error),
         htmlBackfillSection(htmlJob, selectedSource, jobsRead.error),
         section(t("sources.registry.title"), t("sources.registry.sub"), null, registry)));
+  }
+
+  // sourcesCrossLinks is the one row of links out of Sources: the filters that
+  // decide what syncs, the failure that stopped it, and the learning it feeds.
+  // Each link carries the route parameters that land on the exact row or job.
+  function sourcesCrossLinks(failedJob) {
+    return fragment(
+      h("div", { class: "button-row" },
+        navigateWith(t("sources.link.sync_settings"), "settings", { tab: "general", q: "sync." }, { small: true }),
+        navigateWith(t("sources.link.outlook_filters"), "settings", { tab: "general", q: "outlook." }, { small: true }),
+        navigateWith(t("nav.learning"), "learning", {}, { small: true })),
+      failedJobNote(failedJob));
+  }
+
+  // failedJobNote names the failed sync or backfill and links to the job in
+  // Logs. The job screen does not exist yet, so the link filters the Logs
+  // screen by the job id the job manager writes on every entry.
+  function failedJobNote(job) {
+    if (!job || !job.id) return null;
+    return h("p", { class: "fine" },
+      text(jobSummaryName(job) + " "),
+      navigateWith(t("sources.link.failed_job"), "logs", { job: job.id }, { bare: true }));
   }
 
   // readHeldRemovals is intentionally uncached: the list is small, it is
@@ -15083,6 +15160,99 @@
     SETTINGS_SIMPLE_KEY_LIST.map(encodeURIComponent).join(",");
   let settingsFullInflight = null;
 
+  // The two tabs that own settings rows of their own. General owns everything
+  // else, and its search hands a match on another tab to that tab with the
+  // key in the query, so the owner lands on the row that matched.
+  const SETTINGS_RUNTIME_GROUP = "Local runtime";
+  const SETTINGS_MAILBOX_SOURCE = "sources";
+  const SETTINGS_MAILBOX_KEYS = new Set(["mailboxes.selected", "mailboxes.declared_addresses"]);
+
+  // settingOwnerTab is the one answer to "which tab edits this setting". The
+  // owner renders the editable row; every other tab links to it.
+  function settingOwnerTab(view) {
+    const key = view && view.key ? view.key : "";
+    if (PROVIDER_ROLE_SETTINGS.has(key)) return "providers";
+    if (view && view.group === SETTINGS_RUNTIME_GROUP) return "runtime";
+    return "general";
+  }
+
+  // settingEnvName is the environment override the server reads for a key:
+  // dots become underscores and the name is upper-cased (config.EnvName).
+  function settingEnvName(key) {
+    return "MAILSENSE_" + String(key || "").split(".").join("_").toUpperCase();
+  }
+
+  // settingValueText is the one reading of a schema value in the owner's
+  // language: a list, a boolean, a number and an empty value each read the
+  // same way whether it is the effective value or the default.
+  function settingValueText(value) {
+    if (Array.isArray(value)) return value.length ? value.map(jsonValue).join(", ") : t("common.none");
+    if (typeof value === "boolean") return value ? t("settings.yes") : t("settings.no");
+    if (value === null || value === undefined) return t("common.dash");
+    const plain = String(value);
+    return plain === "" ? t("common.none") : plain;
+  }
+
+  // settingDefaultText is the schema default in the owner's language. The
+  // view carries it as the schema's own value, so a default list, boolean or
+  // number reads the same way the effective value does.
+  function settingDefaultText(view) {
+    return settingValueText(view ? view.default : undefined);
+  }
+
+  // settingValuesEqual compares the effective value with the schema default.
+  // A duration is compared in nanoseconds because the schema states its
+  // shortest form ("15m") while the effective value carries Go's canonical
+  // form ("15m0s"): the two name the same wait.
+  function settingValuesEqual(view, left, right) {
+    if (view && view.type === "duration") {
+      const leftNanos = durationNanos(left);
+      const rightNanos = durationNanos(right);
+      if (leftNanos !== null && rightNanos !== null) return leftNanos === rightNanos;
+    }
+    if (Array.isArray(left) && Array.isArray(right)) {
+      return left.length === right.length && left.every((item, index) => settingValuesEqual(view, item, right[index]));
+    }
+    if (left && right && typeof left === "object" && typeof right === "object") {
+      return jsonValue(left) === jsonValue(right);
+    }
+    return String(left) === String(right);
+  }
+
+  function settingIsDefault(view) {
+    return settingValuesEqual(view, view.value, view.default);
+  }
+
+  // settingsTabSearchNote is the deep-link note on the tab a search handed a
+  // match to. It names what is filtered, offers the whole tab, and offers the
+  // full search that reaches every setting.
+  function settingsTabSearchNote(query, matches, tab) {
+    const wanted = String(query || "").trim();
+    if (!wanted) return null;
+    return h("div", { class: "settings-simple-note" },
+      h("p", { class: "fine", text: t("settings.search.tab_shown", { count: matches, query: wanted }) }),
+      h("div", { class: "button-row" },
+        navigateWith(t("settings.search.show_tab"), "settings", { tab }, { small: true }),
+        navigateWith(t("settings.filter_placeholder"), "settings", { tab: "general", q: wanted }, { small: true, kind: "primary" })));
+  }
+
+  // applySettingsTabSearch filters a tab the search handed a match to. The
+  // rows keep their place; only the ones whose corpus matched stay visible,
+  // and the note in front says how many did and how to see the whole tab.
+  function applySettingsTabSearch(content, tab) {
+    const query = String(state.settingsQuery || "").trim();
+    if (!query) return content;
+    const rows = [...content.querySelectorAll(".setting-row")];
+    let matches = 0;
+    for (const row of rows) {
+      const match = row.dataset.match === "1";
+      row.hidden = !match;
+      if (match) matches++;
+    }
+    content.prepend(settingsTabSearchNote(query, matches, tab));
+    return content;
+  }
+
   // loadAllSettings is the one lazy full read. Show all, Advanced, search and
   // a cache hit share it, so the toggles never race a second request.
   function loadAllSettings() {
@@ -15157,8 +15327,32 @@
     const content = tab === "providers" ? providersPanel(settings, providers)
       : tab === "runtime" ? runtimePanel(sidecar, providers, settings, status)
         : generalSettingsPanel(settings, status);
-    return h("div", { class: "screen settings-screen" },
-      h("div", { class: "settings-layout" }, subnav, content));
+    // A search that handed a match to another tab filters that tab's rows and
+    // says how many matched.
+    const filtered = tab === "general" ? content : applySettingsTabSearch(content, tab);
+    if (tab !== "general") bindSettingsTabSearch(tab);
+    const screen = h("div", { class: "screen settings-screen" },
+      h("div", { class: "settings-layout" }, subnav, filtered));
+    revealSettingMatch(seq);
+    return screen;
+  }
+
+  // revealSettingMatch carries a deep-linked search to the row it names: the
+  // row builder marks the match, and this scrolls it into view with the
+  // keyboard on it. The row stays the same element, so the focus is a real
+  // tab stop for the next Tab.
+  function revealSettingMatch(seq) {
+    // While the owner types in the shell bar the list filters under the caret;
+    // moving the view on each keystroke would fight the typing.
+    if (document.activeElement === dom.globalSearchInput) return;
+    if (!state.settingsQuery.trim()) return;
+    window.requestAnimationFrame(() => {
+      if (seq !== state.renderSeq) return;
+      const row = dom.main.querySelector('.setting-row[data-match="1"]');
+      if (!row || !row.isConnected) return;
+      row.scrollIntoView({ block: "center" });
+      row.focus({ preventScroll: true });
+    });
   }
 
   function settingsList(...children) {
@@ -15219,9 +15413,12 @@
 
   // settingsGroupNode is the one look of a settings group: title, count,
   // the optional live readout and rows. corpus is the optional search text
-  // General filters on.
+  // General filters on. Every tab renders its rows through settingRow.
   function settingsGroupNode(title, views, status, opts = {}) {
-    const rows = views.map((view) => settingRow(view, status, { simple: !!opts.simple }));
+    const rows = views.map((view) => settingRow(view, status, {
+      simple: !!opts.simple,
+      tab: opts.tab,
+    }));
     const usage = opts.usage ? resourceUsageNode(status) : null;
     return h("section", { class: "setting-group", dataset: opts.corpus ? { search: opts.corpus } : null },
       h("div", { class: "setting-group-head" },
@@ -15258,7 +15455,7 @@
       .filter((item) => !PROVIDER_ROLE_SETTINGS.has(item.key))
       // The Local engine tab owns the engine's settings (status and controls
       // together); a second copy in General made two screens disagree.
-      .filter((item) => item.group !== "Local runtime");
+      .filter((item) => item.group !== SETTINGS_RUNTIME_GROUP);
   }
 
   function settingsSimpleCount(byKey) {
@@ -15286,6 +15483,10 @@
     return warningBanner(h("div", null,
       h("strong", { text: t("settings.restart_banner", { count: pending.length }) }),
       text(pending.join(", ")),
+      // Reload re-reads settings.json. It cannot apply a restart-required
+      // value: only quitting and reopening the app can. The copy says which
+      // action does what instead of letting the toast imply a restart.
+      h("p", { class: "field-hint", text: t("settings.restart_explain") }),
       h("div", { class: "button-row" },
         button(t("settings.reload"), async (event) => {
           await withBusy(event.currentTarget, t("settings.reloading"), async () => {
@@ -15312,23 +15513,24 @@
       pill(pendingCount ? t("settings.restart_pending", { count: pendingCount }) : t("settings.no_restart_pending"), pendingCount ? "warn" : "done"));
   }
 
-  function settingsGroupView(status, title, views, corpusGroup, simpleRows = false) {
+  function settingsGroupView(status, title, views, corpusGroup, simpleRows = false, opts = {}) {
     const searchCorpus = [
       corpusGroup, settingGroupLabel(corpusGroup),
       title,
       ...views.flatMap((v) => [v.key, v.description, settingDescription(v), simpleSettingDescription(v)]),
     ].filter(Boolean).join(" ").toLowerCase();
     return settingsGroupNode(title, views, status, { simple: simpleRows, corpus: searchCorpus, count: !!corpusGroup,
+      tab: opts.tab,
       usage: views.some((view) => String(view.key || "").startsWith("resource.")) });
   }
 
-  function settingsGroupNodes(status, list, byKey, advanced, searching) {
+  function settingsGroupNodes(status, list, byKey, advanced, searching, opts = {}) {
     const nodes = [];
     if (!advanced && !searching) {
       for (const group of SETTINGS_SIMPLE_GROUPS) {
         const views = group.keys.map((key) => byKey.get(key)).filter(Boolean);
         if (!views.length) continue;
-        nodes.push(settingsGroupView(status, simpleSettingGroup(group.id), views, "", true));
+        nodes.push(settingsGroupView(status, simpleSettingGroup(group.id), views, "", true, opts));
       }
       return nodes;
     }
@@ -15339,9 +15541,20 @@
       groups.get(group).push(view);
     }
     for (const [group, views] of [...groups.entries()].sort((a, b) => localeCompare(a[0], b[0]))) {
-      nodes.push(settingsGroupView(status, settingGroupLabel(group), views, group));
+      nodes.push(settingsGroupView(status, settingGroupLabel(group), views, group, false, opts));
     }
     return nodes;
+  }
+
+  // settingsListScopes is the two views of one full payload: every schema
+  // setting for search, and the General tab's own rows for Advanced.
+  function settingsListScopes(view) {
+    const all = Array.isArray(view.settings) ? view.settings : [];
+    const general = generalSettingsList(view);
+    return {
+      search: { list: all, byKey: new Map(all.map((item) => [item.key, item])) },
+      full: { list: general, byKey: new Map(general.map((item) => [item.key, item])) },
+    };
   }
 
   function generalSettingsPanel(settings, status) {
@@ -15352,8 +15565,10 @@
     const total = typeof settings.total === "number" ? settings.total : simpleList.length;
     const pending = Array.isArray(settings.restart_pending) ? settings.restart_pending : [];
     const simpleByKey = new Map(simpleList.map((view) => [view.key, view]));
-    let fullList = null;
-    let fullByKey = null;
+    // Search reads the whole schema, including the rows the Providers and
+    // Local runtime tabs own.
+    let searchScope = null;
+    let fullScope = null;
     const search = h("input", { class: "input", type: "search", hidden: true, value: state.settingsQuery, placeholder: t("settings.filter_placeholder") });
     const count = h("span", { class: "fine", "aria-live": "polite" });
     let advanced = settingsAdvanced();
@@ -15388,21 +15603,20 @@
       return Math.max(0, total - settingsSimpleCount(simpleByKey));
     }
 
-    // usingFull is true while Advanced or search renders the lazy full list;
-    // Simple always renders the projection it loaded.
-    function usingFull() {
-      return fullLoaded && (advanced || searching);
-    }
+    // scopeOf is the one answer to what the current mode renders: search
+    // covers every setting, Advanced the General tab's own rows.
+    const scopeOf = () => searching && fullLoaded ? searchScope
+      : advanced && fullLoaded ? fullScope : { list: simpleList, byKey: simpleByKey };
 
     async function ensureFull() {
       // A settings write invalidates the read cache; the full list is then
       // stale even though it is already in hand, so reload it before use.
       if (fullLoaded && state.settingsAll && cached(SETTINGS_FULL_PATH) === state.settingsAll) return;
       try {
-        const view = await loadAllSettings();
+        const scopes = settingsListScopes(await loadAllSettings());
         fullLoaded = true;
-        fullList = generalSettingsList(view);
-        fullByKey = new Map(fullList.map((item) => [item.key, item]));
+        searchScope = scopes.search;
+        fullScope = scopes.full;
       } catch (error) {
         reportActionError(error);
       }
@@ -15420,14 +15634,13 @@
       searching = !!q;
       state.settingsQuery = search.value;
       clear(body);
-      const all = usingFull();
-      const scope = all ? fullList : simpleList;
-      appendChildren(body, [settingsGroupNodes(status, scope, all ? fullByKey : simpleByKey, advanced, searching), empty]);
+      const scope = scopeOf();
+      appendChildren(body, [settingsGroupNodes(status, scope.list, scope.byKey, advanced, searching, { tab: "general" }), empty]);
       intro.hidden = advanced || searching;
       simpleNote.hidden = advanced || searching;
       advancedNote.hidden = !advanced || searching;
       searchNote.hidden = !searching;
-      searchNote.textContent = searching ? t("settings.search.all", { count: scope.length }) : "";
+      searchNote.textContent = searching ? t("settings.search.all", { count: scope.list.length }) : "";
       hiddenNote.textContent = t("settings.simple.hidden", { count: hiddenCount() });
       for (const node of toggle.querySelectorAll("button")) {
         node.setAttribute("aria-pressed", node === toggle.children[advanced ? 1 : 0] ? "true" : "false");
@@ -15438,7 +15651,7 @@
     function applyFilter() {
       state.settingsQuery = search.value;
       const q = search.value.trim().toLowerCase();
-      const scope = usingFull() ? fullList : simpleList;
+      const scope = scopeOf();
       let shown = 0;
       for (const group of body.querySelectorAll(".setting-group")) {
         let visible = 0;
@@ -15504,26 +15717,74 @@
     }, "settings.filter_placeholder", "settings.filter_aria", () => state.settingsQuery);
   }
 
+  // bindSettingsTabSearch keeps the same bar honest on the tabs that are not
+  // General. Their rows are grouped by owner, so the bar re-renders the tab
+  // with the new query instead of proxying a detached panel: Back returns to
+  // the filtered view and the row builder owns the match badge.
+  function bindSettingsTabSearch(tab) {
+    setScopedSearch("settings", (value) => {
+      state.settingsQuery = String(value || "");
+      replaceRoute("settings", { tab, q: state.settingsQuery });
+      renderRoute();
+    }, "settings.filter_placeholder", "settings.filter_aria", () => state.settingsQuery);
+  }
+
+  // settingRowBadges is the one badge row of a settings row: the active search
+  // match, the effective layer and the schema's flags. A restart badge carries
+  // what a restart means, because Reload cannot apply it.
+  function settingRowBadges(view, matched) {
+    const layer = view.layer || "default";
+    return h("div", { class: "setting-badges" },
+      matched ? badge(t("settings.search.match"), "accent") : null,
+      badge(tOr("settings.layer." + layer, t("settings.layer.unknown", { layer })), layer === "env" ? "danger" : layer === "file" ? "warn" : layer === "learned" ? "accent" : ""),
+      view.restart_required ? badge(t("settings.badge.restart_required"), "warn") : null,
+      view.restart_pending ? badge(t("settings.badge.restart_pending"), "warn", t("settings.restart_explain")) : null,
+      view.secret ? badge(t("settings.badge.secret"), "plain") : null,
+      view.data_file ? badge(t("settings.badge.data_file"), "plain") : null,
+      view.learnable ? badge(t("settings.badge.learnable"), "plain") : null);
+  }
+
+  // settingRow is the one settings row builder: General, Providers and the
+  // Local runtime tab all render through it, so the schema default, the reset
+  // state, the environment lock and the restart badge cannot drift. opts.tab
+  // names the tab rendering the row: a setting owned by another tab renders as
+  // a pointer there instead of a second editor.
   function settingRow(view, status, opts = {}) {
     const key = view.key || "";
     const group = view.group || "Other";
     const layer = view.layer || "default";
+    const tab = opts.tab || "general";
+    const owner = settingOwnerTab(view);
     const localizedGroup = settingGroupLabel(group);
     const localizedDescription = opts.simple ? simpleSettingDescription(view) : settingDescription(view);
-    const badges = h("div", { class: "setting-badges" },
-      badge(tOr("settings.layer." + layer, t("settings.layer.unknown", { layer })), layer === "env" ? "danger" : layer === "file" ? "warn" : layer === "learned" ? "accent" : ""),
-      view.restart_required ? badge(t("settings.badge.restart_required"), "warn") : null,
-      view.restart_pending ? badge(t("settings.badge.restart_pending"), "warn") : null,
-      view.secret ? badge(t("settings.badge.secret"), "plain") : null,
-      view.data_file ? badge(t("settings.badge.data_file"), "plain") : null,
-      view.learnable ? badge(t("settings.badge.learnable"), "plain") : null);
+    const corpus = [key, group, localizedGroup, view.description, settingDescription(view),
+      simpleSettingDescription(view), t("settings.tab." + owner)].filter(Boolean).join(" ").toLowerCase();
+    // The route owns the search; every row reads the one value so the match
+    // badge and the tab filter can never disagree.
+    const query = String(state.settingsQuery || "").trim().toLowerCase();
+    const matched = !!query && corpus.includes(query);
+    if (owner !== tab) return settingOwnerRow(view, owner, { corpus, simple: opts.simple });
+    const envLocked = layer === "env";
+    const envHint = envLocked ? t("settings.env_hint", { env: settingEnvName(key) }) : "";
+    const mailbox = SETTINGS_MAILBOX_KEYS.has(key);
+    const badges = settingRowBadges(view, matched);
     const description = h("div", { class: "setting-title", text: localizedDescription });
-    const control = settingControl(view, status, opts, localizedDescription || key);
+    // A mailbox setting is written by the mailbox endpoints, which refuse a
+    // settings write by design. It shows what it holds and where it is
+    // managed, never an Apply that the server answers with 409.
+    const control = mailbox
+      ? { node: h("p", { class: "field-hint", text: t("settings.mailbox_hint") }), value: () => view.value }
+      : opts.control ? opts.control(view, status) : settingControl(view, status, opts, localizedDescription || key);
     const left = h("div", { class: "setting-copy" },
       description,
       h("code", { class: "setting-key", text: key }),
       badges);
     const right = h("div", { class: "setting-control" }, control.node);
+    // Every row names the schema default, so a value can be judged against it.
+    right.append(h("div", { class: "setting-meta" },
+      h("span", { text: t("settings.default_label") }), text(" "),
+      h("code", { class: "mono", text: settingDefaultText(view) })));
+    if (envHint) right.append(h("div", { class: "field-hint", text: envHint }));
     if (view.data_file) {
       const path = joinPath(status && status.data_dir ? status.data_dir : "", view.value);
       right.append(h("div", { class: "setting-meta" },
@@ -15578,18 +15839,56 @@
         }
       });
     };
-    const actions = h("div", { class: "setting-actions" },
-      button(t("settings.apply"), (event) => commitSetting(event, {
-        method: "PUT", busy: t("settings.applying"), done: "settings.saved", failed: "settings.rejected_value",
-      }), { kind: "primary", small: true }),
-      button(t("settings.reset"), (event) => commitSetting(event, {
-        method: "DELETE", busy: t("settings.resetting"), done: "settings.reset_done", failed: "settings.reset_failed",
-      }), { small: true, kind: "quiet" }),
-      view.format ? badge(view.format, "plain") : null);
-    right.append(actions, error);
-    const searchCorpus = [key, group, localizedGroup, view.description, settingDescription(view), localizedDescription].filter(Boolean).join(" ").toLowerCase();
-    const row = h("div", { class: "setting-row", dataset: { search: searchCorpus, simple: opts.simple ? "1" : "0" } }, left, right);
+    // The two actions carry the row's own state: an environment layer wins
+    // over the file, and a value already at its default has nothing to
+    // reset. Both say so instead of offering a write that cannot show.
+    const atDefault = settingIsDefault(view);
+    const actions = mailbox
+      ? h("div", { class: "setting-actions" },
+        navigateWith(t("settings.managed_in_sources"), SETTINGS_MAILBOX_SOURCE, {}, { small: true, icon: "arrow-right" }))
+      : opts.actions === false ? null
+        : h("div", { class: "setting-actions" },
+          button(t("settings.apply"), (event) => commitSetting(event, {
+            method: "PUT", busy: t("settings.applying"), done: "settings.saved", failed: "settings.rejected_value",
+          }), { kind: "primary", small: true, disabled: envLocked, title: envHint }),
+          button(t("settings.reset"), (event) => commitSetting(event, {
+            method: "DELETE", busy: t("settings.resetting"), done: "settings.reset_done", failed: "settings.reset_failed",
+          }), { small: true, kind: "quiet", disabled: atDefault, title: atDefault ? t("settings.reset_at_default") : "" }),
+          key.startsWith("log.") ? navigateWith(t("logs.open"), "logs", {}, { small: true }) : null,
+          view.format ? badge(view.format, "plain") : null);
+    if (actions) right.append(actions);
+    right.append(error);
+    const row = h("div", {
+      class: "setting-row",
+      dataset: { search: corpus, simple: opts.simple ? "1" : "0", setting: key },
+      tabindex: matched ? "-1" : null,
+    }, left, right);
+    if (matched) row.dataset.match = "1";
     return row;
+  }
+
+  // settingOwnerRow is a search match that lives on another tab. It names the
+  // owning tab and links there with the key in the query, so the owner lands
+  // on the row itself. It never writes: the owning tab is the only editor.
+  function settingOwnerRow(view, owner, opts = {}) {
+    const key = view.key || "";
+    const label = t("settings.tab." + owner);
+    const left = h("div", { class: "setting-copy" },
+      h("div", { class: "setting-title", text: settingDescription(view) }),
+      h("code", { class: "setting-key", text: key }),
+      h("div", { class: "setting-badges" },
+        badge(label, "accent"),
+        badge(tOr("settings.layer." + (view.layer || "default"), t("settings.layer.unknown", { layer: view.layer || "default" })), "plain")));
+    const right = h("div", { class: "setting-control" },
+      h("div", { class: "setting-meta" },
+        h("span", { text: t("settings.current_value") }), text(" "),
+        h("code", { class: "mono", text: settingValueText(view.value) })),
+      h("div", { class: "setting-meta" },
+        h("span", { text: t("settings.default_label") }), text(" "),
+        h("code", { class: "mono", text: settingDefaultText(view) })),
+      navigateWith(t("settings.search.open_owned", { tab: label }), "settings", { tab: owner, q: key },
+        { small: true, icon: "arrow-right", class: "setting-open-owner" }));
+    return h("div", { class: "setting-row", dataset: { search: opts.corpus || "", simple: opts.simple ? "1" : "0" } }, left, right);
   }
 
   // settingControl builds one control; the caller names it with the setting's
@@ -16523,6 +16822,32 @@
       },
     };
   }
+  // providerHealthNodes renders the health the API already reports: whether the
+  // last call succeeded, the counts, the last call time and the last error. A
+  // failing provider links to the engine component in Logs.
+  function providerHealthNodes(record) {
+    const status = record && record.status && typeof record.status === "object" ? record.status : null;
+    if (!status) return [];
+    const calls = Number(status.calls) || 0;
+    const failures = Number(status.failures) || 0;
+    const healthy = status.healthy === true;
+    const state = calls === 0
+      ? badge(t("settings.providers.health.no_calls"), "plain")
+      : healthy ? badge(t("settings.providers.health.ok"), "ok") : badge(t("settings.providers.health.failing"), "danger");
+    const facts = [];
+    if (calls > 0 || failures > 0) facts.push(t("settings.providers.health.counts", { calls: formatNumber(calls), failures: formatNumber(failures) }));
+    if (status.last_call) facts.push(t("settings.providers.health.last_call", { when: formatRelative(status.last_call) }));
+    const lastError = status.last_error ? boundedReason(status.last_error) : "";
+    return [
+      h("div", { class: "chips" }, state),
+      facts.length ? h("p", { class: "fine", text: metaLine(facts) }) : null,
+      lastError ? h("p", { class: "field-error", lang: "en", text: t("settings.providers.health.last_error", { message: lastError }) }) : null,
+      calls > 0 && !healthy
+        ? h("div", { class: "button-row" }, navigateWith(t("logs.open"), "logs", { component: "engine" }, { small: true, icon: "arrow-right" }))
+        : null,
+    ].filter(Boolean);
+  }
+
   function providerCard(record, handlers) {
     const id = record.id || "";
     const keyPresent = record.key_present === true || !!(record.status && record.status.key_present === true);
@@ -16536,6 +16861,7 @@
         h("div", { class: "chips" },
           badge(record.protocol || t("common.dash")),
           keyPresent ? badge(t("settings.providers.key_present"), "ok") : badge(t("settings.providers.no_key"), "warn"))),
+      providerHealthNodes(record),
       h("div", { class: "provider-card-actions" },
         button(t("settings.providers.test"), (event) => handlers.test(record, resultHost, event.currentTarget), { small: true, kind: "primary" }),
         button(t("settings.providers.edit"), () => handlers.edit(record), { small: true }),
@@ -16558,23 +16884,40 @@
         saved += 1;
       } catch (error) {
         if (saved > 0) invalidateProviderChange();
+        const role = providerRoleLabel(entry.role);
+        const message = apiFailure(error).message;
         roleError.textContent = saved > 0
-          ? t("settings.providers.error.role_partial", {
-            saved,
-            count: saved,
-            role: providerRoleLabel(entry.role),
-            message: apiFailure(error).message,
-          })
-          : t("settings.providers.error.role", {
-            role: providerRoleLabel(entry.role),
-            message: apiFailure(error).message,
-          });
+          ? t("settings.providers.error.role_partial", { saved, count: saved, role, message })
+          : t("settings.providers.error.role", { role, message });
         roleError.hidden = false;
         return false;
       }
     }
     invalidateProviderChange();
     return true;
+  }
+
+  // providerRoleRows builds the role rows through the shared settings row
+  // builder and returns them with their selects, so the section saves the
+  // changed ones together. A role's allowed values are the configured records,
+  // so the select stays this tab's control, named by its short role label.
+  function providerRoleRows(settingsByKey, providers) {
+    const selects = [];
+    const rows = orderedProviderRoles().map((role) => {
+      const view = settingsByKey.get(role.setting);
+      if (!view) return null;
+      const select = providerRoleSelect(role, view.value || "", providers);
+      // An environment layer wins over settings.json: an editable select would
+      // save a value that never takes effect.
+      select.disabled = (view.layer || "default") === "env";
+      selects.push({ role, select, initial: select.value });
+      const control = () => ({
+        node: h("label", { class: "provider-role" }, h("span", { class: "field-label", text: providerRoleLabel(role) }), select),
+        value: () => select.value,
+      });
+      return settingRow(view, null, { tab: "providers", control, actions: false });
+    }).filter(Boolean);
+    return { rows, selects };
   }
 
   function providersPanel(settings, providers) {
@@ -16584,18 +16927,12 @@
     let editing = null;
     let activeForm = null;
 
-    const settingsByKey = new Map(
-      (settings && Array.isArray(settings.settings) ? settings.settings : [])
-        .map((view) => [view.key, view.value]));
+    const settingsByKey = new Map((settings && Array.isArray(settings.settings) ? settings.settings : [])
+      .map((view) => [view.key, view]));
     const roleError = h("div", { class: "field-error provider-role-error", role: "alert", hidden: true });
-    const roleSelects = [];
-    const roleGrid = h("div", { class: "provider-role-grid" }, orderedProviderRoles().map((role) => {
-      const select = providerRoleSelect(role, settingsByKey.get(role.setting) || "", providers);
-      roleSelects.push({ role, select, initial: select.value });
-      return h("label", { class: "provider-role" },
-        h("span", { class: "field-label", text: providerRoleLabel(role) }),
-        select);
-    }));
+    const roles = providerRoleRows(settingsByKey, providers);
+    const roleSelects = roles.selects;
+    const roleRows = roles.rows;
     const saveRoles = button(t("settings.providers.roles.save"), async (event) => {
       const changed = roleSelects.filter((entry) => entry.select.value !== entry.initial);
       if (!changed.length) {
@@ -16616,7 +16953,7 @@
         h("div", null,
           h("h2", { id: "provider-roles-title", text: t("settings.providers.roles.title") }),
           h("p", { class: "section-sub", text: t("settings.providers.roles.sub") }))),
-      roleGrid,
+      roleRows,
       h("div", { class: "provider-role-actions" }, saveRoles, roleError));
 
     const formHost = h("div", { class: "provider-form-host" });
@@ -16708,16 +17045,26 @@
           const passed = !result || result.ok !== false;
           const model = (result && result.model) || record.model || t("common.dash");
           const detail = providerTestDetail(result);
-          resultHost.append(h("div", { class: "provider-result" + (passed ? "" : " error") },
+          const outcome = h("div", { class: "provider-result" + (passed ? "" : " error") },
             h("div", null, badge(passed ? t("state.ok") : t("settings.providers.test_failed"), passed ? "ok" : "danger"),
               text(" " + t(passed ? "settings.providers.test_result_ok" : "settings.providers.test_result_fail", { duration }))),
-            h("div", { class: "fine", text: detail ? t("settings.providers.test_detail", { model, detail }) : t("settings.providers.test_detail_empty", { model }) })));
+            h("div", { class: "fine", text: detail ? t("settings.providers.test_detail", { model, detail }) : t("settings.providers.test_detail_empty", { model }) }));
+          // A failed test wrote a line in Logs. The link names the component
+          // that recorded it, so the owner reads the failure instead of only
+          // this sentence.
+          if (!passed) {
+            outcome.append(h("div", { class: "button-row" },
+              navigateWith(t("logs.open"), "logs", { component: "engine" }, { small: true, icon: "arrow-right" })));
+          }
+          resultHost.append(outcome);
         } catch (error) {
           const duration = formatDuration(Math.round(performance.now() - started) * 1e6);
           resultHost.append(h("div", { class: "provider-result error" },
             h("div", null, badge(t("settings.providers.test_failed"), "danger"),
               text(" " + t("settings.providers.test_result_fail", { duration }))),
-            h("div", { text: t("settings.providers.test_detail", { model: record.model || t("common.dash"), detail: apiFailure(error).message }) })));
+            h("div", { text: t("settings.providers.test_detail", { model: record.model || t("common.dash"), detail: apiFailure(error).message }) }),
+            h("div", { class: "button-row" },
+              navigateWith(t("logs.open"), "logs", { component: "engine" }, { small: true, icon: "arrow-right" }))));
         }
       });
     }
@@ -16769,6 +17116,23 @@
 
 
   // runtime-panel:start
+  // durationNanos is the one reader of a Go duration string: the schema states
+  // a default in its shortest form ("15m") while the effective value arrives
+  // canonical ("15m0s"), so 40-settings.js compares the two through it too.
+  const DURATION_UNITS = { ns: 1, us: 1e3, "µs": 1e3, ms: 1e6, s: 1e9, m: 60e9, h: 3600e9 };
+
+  function durationNanos(value) {
+    const raw = String(value === null || value === undefined ? "" : value).trim();
+    const segments = raw.match(/[0-9]+(?:\.[0-9]+)?(?:ns|us|µs|ms|s|m|h)/g);
+    if (!segments || segments.join("") !== raw) return null;
+    let nanos = 0;
+    for (const segment of segments) {
+      const match = segment.match(/^([0-9]+(?:\.[0-9]+)?)(ns|us|µs|ms|s|m|h)$/);
+      nanos += Number(match[1]) * DURATION_UNITS[match[2]];
+    }
+    return Number.isFinite(nanos) ? nanos : null;
+  }
+
   // The Windows product ships one local engine: the build the catalog starts
   // automatically (Vulkan). This panel renders that build only: no variant
   // picker, no CPU/CUDA rows, no manual install form. The engine downloads,
@@ -16905,19 +17269,6 @@
   // units: the settings projection returns sidecar.idle_timeout as a Go
   // duration string ("15m0s", "0s", "1h30m0s"), never a number of seconds.
   const RUNTIME_IDLE_KEY = "sidecar.idle_timeout";
-  const RUNTIME_DURATION_UNITS = { ns: 1, us: 1e3, "µs": 1e3, ms: 1e6, s: 1e9, m: 60e9, h: 3600e9 };
-
-  function runtimeIdleNanos(value) {
-    const raw = String(value === null || value === undefined ? "" : value).trim();
-    const segments = raw.match(/[0-9]+(?:\.[0-9]+)?(?:ns|us|µs|ms|s|m|h)/g);
-    if (!segments || segments.join("") !== raw) return null;
-    let nanos = 0;
-    for (const segment of segments) {
-      const match = segment.match(/^([0-9]+(?:\.[0-9]+)?)(ns|us|µs|ms|s|m|h)$/);
-      nanos += Number(match[1]) * RUNTIME_DURATION_UNITS[match[2]];
-    }
-    return Number.isFinite(nanos) ? nanos : null;
-  }
 
   // runtimeIdleNote is the one sentence that explains a stopped engine: it
   // stops after the configured idle window and starts again on the next use,
@@ -16927,7 +17278,7 @@
     const views = settings && Array.isArray(settings.settings) ? settings.settings : [];
     const view = views.find((item) => item && item.key === RUNTIME_IDLE_KEY);
     if (!view) return null;
-    const idle = runtimeIdleNanos(view.value);
+    const idle = durationNanos(view.value);
     if (idle === null) return null;
     return h("p", { class: "runtime-note" }, text(idle > 0
       ? t("settings.runtime.idle_stop", { duration: formatDuration(idle) })
@@ -17007,6 +17358,8 @@
           : choice
             ? t("settings.runtime.not_selected_provider", { provider: choice.label })
             : t("settings.runtime.not_selected")),
+        // The runtime harness runs this block alone, so it consumes the router's
+        // one hash builder directly instead of the link helper.
         h("a", { href: routeHash("settings", { tab: "providers" }), text: t("settings.runtime.not_selected_link") })));
     } else if (!build) {
       notices.push(h("p", { class: "runtime-note", text: t("settings.runtime.no_builds") }));
@@ -17062,11 +17415,12 @@
       return refreshActiveRoute();
     }, { icon: "refresh", small: true });
     // The engine's settings belong to the engine's tab: status and controls
-    // in one place, not split across General and a read-only card.
+    // in one place, not split across General and a read-only card. They render
+    // through the shared row builder like every other tab.
     const views = (settings && Array.isArray(settings.settings) ? settings.settings : [])
       .filter((view) => view && view.group === "Local runtime");
     const group = views.length
-      ? settingsGroupNode(t("settings.runtime.settings_title"), views, status, { count: false })
+      ? settingsGroupNode(t("settings.runtime.settings_title"), views, status, { count: false, tab: "runtime" })
       : null;
     return settingsList(section(t("settings.runtime.title"), t("settings.runtime.sub"), refresh, card, group));
   }
@@ -17077,6 +17431,10 @@
   async function renderLogs(route, seq) {
     if (route.params.has("component")) state.logFilters.component = route.params.get("component") || "";
     if (route.params.has("level")) state.logFilters.level = route.params.get("level") || "";
+    // A job filter is a route of its own: another screen links here with the
+    // job id, and a plain Logs visit must not keep it.
+    state.logFilters.job = route.params.get("job") || "";
+
     // The retained ring already holds the previous visit. Ask only for what
     // arrived since: a remount no longer re-reads 500 entries (~22 KB gzip).
     // When the ring rotated past the cursor, take the page once and resync.
@@ -17097,7 +17455,7 @@
     const datalist = h("datalist", { id: "log-components" }, components.map((value) => h("option", { value })));
     level.addEventListener("change", () => {
       state.logFilters.level = level.value;
-      replaceRoute("logs", { level: level.value, component: state.logFilters.component });
+      replaceRoute("logs", { level: level.value, component: state.logFilters.component, job: state.logFilters.job });
       renderLogRows(tableHost);
     });
     // A keystroke updates the filter state immediately; the table rebuild is
@@ -17115,7 +17473,7 @@
     };
     component.addEventListener("input", () => {
       state.logFilters.component = component.value;
-      replaceRoute("logs", { level: state.logFilters.level, component: component.value });
+      replaceRoute("logs", { level: state.logFilters.level, component: component.value, job: state.logFilters.job });
       scheduleFilteredRender();
     });
     const pause = button(state.logPaused ? t("logs.resume") : t("logs.pause"), () => {
@@ -17154,27 +17512,74 @@
       h("span", { class: "spacer" }),
       h("span", { class: "log-meta", id: "log-meta" }));
     const bannerHost = h("div", { id: "log-banners" });
+    const jobHost = h("div", { class: "chips", id: "log-job-filter" });
     const tableHost = h("div", { id: "log-rows" });
     const screen = h("div", { class: "screen logs-screen" },
-      section(t("logs.live_title"), t("logs.live_sub"), null, toolbar, bannerHost, tableHost));
+      section(t("logs.live_title"), t("logs.live_sub"), null, toolbar, jobHost, bannerHost, tableHost));
+    // A cached Logs screen keeps its rows, but the shared filter state may have
+    // moved on while another route was mounted. The route owns all three
+    // filters, so the attach restores them from the one hash parser.
+    screen.__routeAttach = () => {
+      const cached = parseRouteFromHash(location.hash).params;
+      state.logFilters.level = cached.get("level") || "";
+      state.logFilters.component = cached.get("component") || "";
+      state.logFilters.job = cached.get("job") || "";
+    };
     screen.append(component, datalist);
     setScopedSearch("logs", (value) => {
       component.value = value;
       component.dispatchEvent(new Event("input"));
     }, "logs.component_placeholder", "logs.component_aria", () => state.logFilters.component);
     renderLogBanners(bannerHost);
+    renderLogJobFilter(jobHost, tableHost);
     renderLogRows(tableHost);
     updateLogMeta();
     return screen;
   }
 
+  // renderLogJobFilter names the job a link filtered for and offers its clear
+  // action. The chip is a native button pair, so the filter stays keyboard
+  // reachable; clearing restores the unfiltered view and the plain Logs URL.
+  function renderLogJobFilter(host, tableHost) {
+    if (!host) return;
+    clear(host);
+    const job = String(state.logFilters.job || "").trim();
+    if (!job) {
+      host.hidden = true;
+      return;
+    }
+    host.hidden = false;
+    host.append(h("span", { class: "chip" },
+      h("span", { text: t("logs.filter.job", { job }) }),
+      iconButton("close", t("logs.job_clear"), () => {
+        state.logFilters.job = "";
+        replaceRoute("logs", { level: state.logFilters.level, component: state.logFilters.component });
+        renderLogJobFilter(host, tableHost);
+        renderLogRows(tableHost);
+        updateLogMeta();
+      }, { small: true })));
+  }
+
   // The page never carries attributes: each expanded row reads its own entry
   // through /api/logs/{seq}. Both the initial page and every tail read say so
-  // explicitly, so a large attribute set cannot come back by accident.
+  // explicitly, so a large attribute set cannot come back by accident. The
+  // one exception is a job filter: the job id is an attribute, so that view
+  // asks for the attributes it filters on.
   function logPagePath(since) {
+    if (state.logFilters.job) {
+      return "/api/logs?attrs=on" + (since > 0 ? "&since=" + String(since) : "");
+    }
     return since > 0
       ? "/api/logs?since=" + String(since) + "&attrs=off"
       : "/api/logs?attrs=off";
+  }
+
+  // logEntryJob is the job identity a retained entry carries. The job manager
+  // writes its id as the `job` attribute on every entry it logs; an entry
+  // written by another producer has none.
+  function logEntryJob(entry) {
+    const attrs = entry && entry.attrs && typeof entry.attrs === "object" ? entry.attrs : {};
+    return String(attrs.job || attrs.job_id || "");
   }
 
   // mergeLogEntry replaces one held entry without dropping attributes a row
@@ -17297,11 +17702,13 @@
   function filteredLogs() {
     const level = state.logFilters.level;
     const component = state.logFilters.component.trim().toLowerCase();
+    const job = String(state.logFilters.job || "").trim();
     return [...state.logEntries.values()]
       .sort((a, b) => a.seq - b.seq)
       .filter((entry) => {
         if (level && String(entry.level || "").toLowerCase() !== level) return false;
         if (component && !String(entry.component || "").toLowerCase().includes(component)) return false;
+        if (job && logEntryJob(entry) !== job) return false;
         return true;
       });
   }
@@ -17484,7 +17891,8 @@
   }
 
   function logFilterKey() {
-    return state.logFilters.level + "\u0000" + state.logFilters.component.trim().toLowerCase();
+    return state.logFilters.level + "\u0000" + state.logFilters.component.trim().toLowerCase() +
+      "\u0000" + String(state.logFilters.job || "").trim();
   }
 
   function renderLogRows(host) {
@@ -17494,7 +17902,11 @@
     const entries = filteredLogs();
     const shown = entries.slice(-1000);
     if (!shown.length) {
-      host.append(emptyState(t("logs.empty_title"), state.logFilters.level || state.logFilters.component ? t("logs.empty_filtered") : t("logs.empty_ring"), null, "logs"));
+      host.append(emptyState(t("logs.empty_title"),
+        state.logFilters.job
+          ? t("logs.empty_job")
+          : state.logFilters.level || state.logFilters.component ? t("logs.empty_filtered") : t("logs.empty_ring"),
+        null, "logs"));
       return;
     }
     const tbody = h("tbody", null, logRowsNodes(shown));

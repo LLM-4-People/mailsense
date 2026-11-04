@@ -55,6 +55,16 @@
       syncNowButton(discoverSelect, sources.length > 0), refreshButton,
       h("span", { class: "fine", text: t("sources.discovery_note") }));
 
+    const jobs = Array.isArray(jobsRead.value) ? jobsRead.value : [];
+    const htmlJobs = jobs.filter((job) => job.kind === "messages.html");
+    const htmlJob = htmlJobs.length ? htmlJobs[htmlJobs.length - 1] : null;
+    // The one job this screen can report: a sync or a display-HTML backfill
+    // that failed. Its detail is the job id in Logs, the only screen that
+    // holds the retained entries.
+    const failedJob = jobs
+      .filter((job) => job && job.status === "failed" && (job.kind === "sync" || job.kind === "messages.html"))
+      .sort((a, b) => String(b.finished_at || "").localeCompare(String(a.finished_at || "")))[0] || null;
+
     const mailboxTable = mailboxes.length
       ? sortableTable({
         caption: t("sources.mailboxes.caption"),
@@ -95,18 +105,36 @@
       }).node
       : emptyState(t("sources.registry.empty_title"), t("sources.registry.empty_body"), null, "sources");
 
-    const jobs = Array.isArray(jobsRead.value) ? jobsRead.value : [];
-    const htmlJobs = jobs.filter((job) => job.kind === "messages.html");
-    const htmlJob = htmlJobs.length ? htmlJobs[htmlJobs.length - 1] : null;
-
     const held = heldRead.value && Array.isArray(heldRead.value.folders) ? heldRead.value.folders : [];
     return h("div", { class: "screen sources-screen" },
       h("div", { class: "route-scroll section-scroll", dataset: { scrollKey: "sources-body" } },
-        section(t("sources.section.discover.title"), t("sources.section.discover.sub"), null, toolbar),
+        section(t("sources.section.discover.title"), t("sources.section.discover.sub"), null, toolbar, sourcesCrossLinks(failedJob)),
         section(t("sources.section.mailboxes.title"), t("sources.section.mailboxes.sub"), null, mailboxTable),
         heldRemovalsSection(held, heldRead.error),
         htmlBackfillSection(htmlJob, selectedSource, jobsRead.error),
         section(t("sources.registry.title"), t("sources.registry.sub"), null, registry)));
+  }
+
+  // sourcesCrossLinks is the one row of links out of Sources: the filters that
+  // decide what syncs, the failure that stopped it, and the learning it feeds.
+  // Each link carries the route parameters that land on the exact row or job.
+  function sourcesCrossLinks(failedJob) {
+    return fragment(
+      h("div", { class: "button-row" },
+        navigateWith(t("sources.link.sync_settings"), "settings", { tab: "general", q: "sync." }, { small: true }),
+        navigateWith(t("sources.link.outlook_filters"), "settings", { tab: "general", q: "outlook." }, { small: true }),
+        navigateWith(t("nav.learning"), "learning", {}, { small: true })),
+      failedJobNote(failedJob));
+  }
+
+  // failedJobNote names the failed sync or backfill and links to the job in
+  // Logs. The job screen does not exist yet, so the link filters the Logs
+  // screen by the job id the job manager writes on every entry.
+  function failedJobNote(job) {
+    if (!job || !job.id) return null;
+    return h("p", { class: "fine" },
+      text(jobSummaryName(job) + " "),
+      navigateWith(t("sources.link.failed_job"), "logs", { job: job.id }, { bare: true }));
   }
 
   // readHeldRemovals is intentionally uncached: the list is small, it is

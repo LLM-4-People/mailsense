@@ -312,7 +312,10 @@
         const value = previous[key];
         if (!value) continue;
         const attribute = "data-" + key.replace(/[A-Z]/g, (c) => "-" + c.toLowerCase());
-        node = dom.main.querySelector("[" + attribute + '="' + String(value).replace(/"/g, '\\"') + '"]');
+        // CSS.escape is the one escaping owner: a hand-rolled quote escape
+        // left the backslash unescaped, so a value carrying both characters
+        // built a selector that matched the wrong row (or threw).
+        node = dom.main.querySelector("[" + attribute + "=" + CSS.escape(String(value)) + "]");
         if (node) break;
       }
     }

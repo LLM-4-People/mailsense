@@ -3,6 +3,10 @@
   async function renderLogs(route, seq) {
     if (route.params.has("component")) state.logFilters.component = route.params.get("component") || "";
     if (route.params.has("level")) state.logFilters.level = route.params.get("level") || "";
+    // A job filter is a route of its own: another screen links here with the
+    // job id, and a plain Logs visit must not keep it.
+    state.logFilters.job = route.params.get("job") || "";
+
     // The retained ring already holds the previous visit. Ask only for what
     // arrived since: a remount no longer re-reads 500 entries (~22 KB gzip).
     // When the ring rotated past the cursor, take the page once and resync.
@@ -23,7 +27,7 @@
     const datalist = h("datalist", { id: "log-components" }, components.map((value) => h("option", { value })));
     level.addEventListener("change", () => {
       state.logFilters.level = level.value;
-      replaceRoute("logs", { level: level.value, component: state.logFilters.component });
+      replaceRoute("logs", { level: level.value, component: state.logFilters.component, job: state.logFilters.job });
       renderLogRows(tableHost);
     });
     // A keystroke updates the filter state immediately; the table rebuild is
@@ -41,7 +45,7 @@
     };
     component.addEventListener("input", () => {
       state.logFilters.component = component.value;
-      replaceRoute("logs", { level: state.logFilters.level, component: component.value });
+      replaceRoute("logs", { level: state.logFilters.level, component: component.value, job: state.logFilters.job });
       scheduleFilteredRender();
     });
     const pause = button(state.logPaused ? t("logs.resume") : t("logs.pause"), () => {
@@ -80,27 +84,74 @@
       h("span", { class: "spacer" }),
       h("span", { class: "log-meta", id: "log-meta" }));
     const bannerHost = h("div", { id: "log-banners" });
+    const jobHost = h("div", { class: "chips", id: "log-job-filter" });
     const tableHost = h("div", { id: "log-rows" });
     const screen = h("div", { class: "screen logs-screen" },
-      section(t("logs.live_title"), t("logs.live_sub"), null, toolbar, bannerHost, tableHost));
+      section(t("logs.live_title"), t("logs.live_sub"), null, toolbar, jobHost, bannerHost, tableHost));
+    // A cached Logs screen keeps its rows, but the shared filter state may have
+    // moved on while another route was mounted. The route owns all three
+    // filters, so the attach restores them from the one hash parser.
+    screen.__routeAttach = () => {
+      const cached = parseRouteFromHash(location.hash).params;
+      state.logFilters.level = cached.get("level") || "";
+      state.logFilters.component = cached.get("component") || "";
+      state.logFilters.job = cached.get("job") || "";
+    };
     screen.append(component, datalist);
     setScopedSearch("logs", (value) => {
       component.value = value;
       component.dispatchEvent(new Event("input"));
     }, "logs.component_placeholder", "logs.component_aria", () => state.logFilters.component);
     renderLogBanners(bannerHost);
+    renderLogJobFilter(jobHost, tableHost);
     renderLogRows(tableHost);
     updateLogMeta();
     return screen;
   }
 
+  // renderLogJobFilter names the job a link filtered for and offers its clear
+  // action. The chip is a native button pair, so the filter stays keyboard
+  // reachable; clearing restores the unfiltered view and the plain Logs URL.
+  function renderLogJobFilter(host, tableHost) {
+    if (!host) return;
+    clear(host);
+    const job = String(state.logFilters.job || "").trim();
+    if (!job) {
+      host.hidden = true;
+      return;
+    }
+    host.hidden = false;
+    host.append(h("span", { class: "chip" },
+      h("span", { text: t("logs.filter.job", { job }) }),
+      iconButton("close", t("logs.job_clear"), () => {
+        state.logFilters.job = "";
+        replaceRoute("logs", { level: state.logFilters.level, component: state.logFilters.component });
+        renderLogJobFilter(host, tableHost);
+        renderLogRows(tableHost);
+        updateLogMeta();
+      }, { small: true })));
+  }
+
   // The page never carries attributes: each expanded row reads its own entry
   // through /api/logs/{seq}. Both the initial page and every tail read say so
-  // explicitly, so a large attribute set cannot come back by accident.
+  // explicitly, so a large attribute set cannot come back by accident. The
+  // one exception is a job filter: the job id is an attribute, so that view
+  // asks for the attributes it filters on.
   function logPagePath(since) {
+    if (state.logFilters.job) {
+      return "/api/logs?attrs=on" + (since > 0 ? "&since=" + String(since) : "");
+    }
     return since > 0
       ? "/api/logs?since=" + String(since) + "&attrs=off"
       : "/api/logs?attrs=off";
+  }
+
+  // logEntryJob is the job identity a retained entry carries. The job manager
+  // writes its id as the `job` attribute on every entry it logs; an entry
+  // written by another producer has none.
+  function logEntryJob(entry) {
+    const attrs = entry && entry.attrs && typeof entry.attrs === "object" ? entry.attrs : {};
+    return String(attrs.job || attrs.job_id || "");
   }
 
   // mergeLogEntry replaces one held entry without dropping attributes a row
@@ -223,11 +274,13 @@
   function filteredLogs() {
     const level = state.logFilters.level;
     const component = state.logFilters.component.trim().toLowerCase();
+    const job = String(state.logFilters.job || "").trim();
     return [...state.logEntries.values()]
       .sort((a, b) => a.seq - b.seq)
       .filter((entry) => {
         if (level && String(entry.level || "").toLowerCase() !== level) return false;
         if (component && !String(entry.component || "").toLowerCase().includes(component)) return false;
+        if (job && logEntryJob(entry) !== job) return false;
         return true;
       });
   }
@@ -410,7 +463,8 @@
   }
 
   function logFilterKey() {
-    return state.logFilters.level + "\u0000" + state.logFilters.component.trim().toLowerCase();
+    return state.logFilters.level + "\u0000" + state.logFilters.component.trim().toLowerCase() +
+      "\u0000" + String(state.logFilters.job || "").trim();
   }
 
   function renderLogRows(host) {
@@ -420,7 +474,11 @@
     const entries = filteredLogs();
     const shown = entries.slice(-1000);
     if (!shown.length) {
-      host.append(emptyState(t("logs.empty_title"), state.logFilters.level || state.logFilters.component ? t("logs.empty_filtered") : t("logs.empty_ring"), null, "logs"));
+      host.append(emptyState(t("logs.empty_title"),
+        state.logFilters.job
+          ? t("logs.empty_job")
+          : state.logFilters.level || state.logFilters.component ? t("logs.empty_filtered") : t("logs.empty_ring"),
+        null, "logs"));
       return;
     }
     const tbody = h("tbody", null, logRowsNodes(shown));

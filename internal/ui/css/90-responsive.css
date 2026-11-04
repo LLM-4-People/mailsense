@@ -121,7 +121,6 @@
   .learning-next .button-row { justify-content: flex-start; }
   .labels-answer-pane::after { display: none; }
   .review-suggestion { flex-direction: column; }
-  .provider-role-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .provider-form-grid,
   .provider-field-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .subnav { position: static; display: flex; flex-wrap: wrap; border-bottom: 1px solid var(--line); padding-bottom: 8px; }
@@ -272,7 +271,6 @@
   .settings-actions .search-field { width: 100%; min-width: 0; }
   .settings-simple-note { align-items: flex-start; }
   .provider-roles { padding: 10px; }
-  .provider-role-grid,
   .provider-form-grid,
   .provider-field-grid { grid-template-columns: 1fr; }
   .provider-field.span-2 { grid-column: auto; }

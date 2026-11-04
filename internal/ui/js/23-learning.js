@@ -63,18 +63,7 @@
     const actions = learningActions(open, labelsDone, review, firstQuestion, reviewQuestion, runChoice);
 
     const stateKind = partial ? "warn" : stateValue === "blocked" ? "blocked" : stateValue === "learned" ? "done" : stateValue === "open" ? "done" : "running";
-    const questionLinks = !open && topQuestions.length
-      ? h("div", { class: "learning-questions" },
-          h("h3", { text: t("learning.questions.title") }),
-          h("p", { class: "fine", text: t("learning.questions.sub") }),
-          h("div", { class: "learning-question-links" }, topQuestions.map((name) =>
-            h("a", {
-              class: "learning-question-link",
-              href: routeHash("labels", { question: name }),
-            },
-            h("span", { text: questionTitle(name) }),
-            icon("arrow-right", "small")))))
-      : null;
+    const questionLinks = !open ? learningQuestionLinks(topQuestions) : null;
 
     const callout = h("section", { class: "learning-callout " + (stateValue === "blocked" ? "blocked" : "") },
       h("div", { class: "learning-callout-top" },
@@ -106,7 +95,10 @@
           : t("learning.stages.done", { done: formatNumber(done), total: formatNumber(stages.length) })],
         [t("learning.blockers"), blockers.length ? formatNumber(blockers.length) : t("common.none")],
         [t("learning.running_jobs"), runningJobs.length
-          ? runningJobs.map((job) => jobNameLabel(job.name)).join(", ") : t("learning.running_jobs_none")],
+          ? h("span", null,
+            text(runningJobs.map((job) => jobNameLabel(job.name)).join(", ") + " "),
+            navigateWith(t("logs.open"), "logs", runningJobs.length === 1 ? { job: runningJobs[0].id } : {}, { bare: true }))
+          : t("learning.running_jobs_none")],
         summaryRead.error ? [t("learning.label_progress"), labelSummaryUnavailable(summaryRead.error)] : null,
         [t("learning.scope"), scope.length ? formatNumber(scope.length) : t("learning.scope_none")],
         [t("learning.time_zone"), zoneText],
@@ -128,7 +120,45 @@
       h("div", { class: "learning-body route-scroll section-scroll", dataset: { scrollKey: "learning-body" } },
         section(t("learning.timeline.title"), t("learning.timeline.sub"), null, timeline),
         blockers.length ? section(t("learning.blockers.title"), t("learning.blockers.sub", { count: blockers.length }), null,
-          h("div", { class: "blocker-list" }, blockers.map((entry) => blockerNode(entry)))) : null));
+          h("div", { class: "blocker-list" }, blockers.map((entry) => learningBlockerNode(entry)))) : null));
+  }
+
+  // learningQuestionLinks is the one list of the questions that help most: a
+  // link to the label queue for each, in the callout and nowhere else.
+  function learningQuestionLinks(topQuestions) {
+    if (!topQuestions.length) return null;
+    return h("div", { class: "learning-questions" },
+      h("h3", { text: t("learning.questions.title") }),
+      h("p", { class: "fine", text: t("learning.questions.sub") }),
+      h("div", { class: "learning-question-links" }, topQuestions.map((name) =>
+        navigateWith(questionTitle(name), "labels", { question: name }, {
+          bare: true,
+          class: "learning-question-link",
+          icon: "arrow-right",
+          trailingIcon: true,
+        }))));
+  }
+
+  // A blocker names where its fix lives. A failed run is diagnosed in Logs; a
+  // configuration blocker in the settings it names. The link rides under the
+  // shared blocker card, so every screen keeps the same blocker wording.
+  const LEARNING_BLOCKER_LINKS = {
+    evidence_run_failed: { screen: "logs", label: "logs.open" },
+    layer1_run_failed: { screen: "logs", label: "logs.open" },
+    layer1_config_invalid: { screen: "settings", label: "learning.link.settings", params: { tab: "general", q: "layer1." } },
+    evidence_config_invalid: { screen: "settings", label: "learning.link.settings", params: { tab: "general", q: "evidence." } },
+    time_zone_unconfirmed: { screen: "settings", label: "learning.link.settings", params: { tab: "general", q: "time.zone" } },
+    no_embedder: { screen: "settings", label: "learning.link.settings", params: { tab: "runtime" } },
+  };
+
+  function learningBlockerNode(entry) {
+    const node = blockerNode(entry);
+    const code = String(entry && entry.blocker && entry.blocker.code ? entry.blocker.code : "");
+    const target = LEARNING_BLOCKER_LINKS[code];
+    if (!target) return node;
+    node.append(h("div", { class: "button-row" },
+      navigateWith(t(target.label), target.screen, target.params || {}, { small: true })));
+    return node;
   }
 
   // learningActions is the callout's next-step list. A review count that
@@ -140,13 +170,13 @@
       return actions;
     }
     if (!labelsDone) {
-      actions.push(link(t("learning.action.answer"), routeHash("labels", firstQuestion ? { question: firstQuestion } : {}), { kind: "primary", small: true }));
+      actions.push(navigateWith(t("learning.action.answer"), "labels", firstQuestion ? { question: firstQuestion } : {}, { kind: "primary", small: true }));
     }
     if (review > 0) {
-      actions.push(link(t("learning.action.review", { count: review }), routeHash("labels", {
+      actions.push(navigateWith(t("learning.action.review", { count: review }), "labels", {
         review: "1",
         question: reviewQuestion ? reviewQuestion.question : firstQuestion,
-      }), { small: true }));
+      }, { small: true }));
     }
     if (runChoice) {
       actions.push(button(actionLabel(runChoice.action), (event) => executeAction(

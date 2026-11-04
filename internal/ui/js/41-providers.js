@@ -692,6 +692,32 @@
       },
     };
   }
+  // providerHealthNodes renders the health the API already reports: whether the
+  // last call succeeded, the counts, the last call time and the last error. A
+  // failing provider links to the engine component in Logs.
+  function providerHealthNodes(record) {
+    const status = record && record.status && typeof record.status === "object" ? record.status : null;
+    if (!status) return [];
+    const calls = Number(status.calls) || 0;
+    const failures = Number(status.failures) || 0;
+    const healthy = status.healthy === true;
+    const state = calls === 0
+      ? badge(t("settings.providers.health.no_calls"), "plain")
+      : healthy ? badge(t("settings.providers.health.ok"), "ok") : badge(t("settings.providers.health.failing"), "danger");
+    const facts = [];
+    if (calls > 0 || failures > 0) facts.push(t("settings.providers.health.counts", { calls: formatNumber(calls), failures: formatNumber(failures) }));
+    if (status.last_call) facts.push(t("settings.providers.health.last_call", { when: formatRelative(status.last_call) }));
+    const lastError = status.last_error ? boundedReason(status.last_error) : "";
+    return [
+      h("div", { class: "chips" }, state),
+      facts.length ? h("p", { class: "fine", text: metaLine(facts) }) : null,
+      lastError ? h("p", { class: "field-error", lang: "en", text: t("settings.providers.health.last_error", { message: lastError }) }) : null,
+      calls > 0 && !healthy
+        ? h("div", { class: "button-row" }, navigateWith(t("logs.open"), "logs", { component: "engine" }, { small: true, icon: "arrow-right" }))
+        : null,
+    ].filter(Boolean);
+  }
+
   function providerCard(record, handlers) {
     const id = record.id || "";
     const keyPresent = record.key_present === true || !!(record.status && record.status.key_present === true);
@@ -705,6 +731,7 @@
         h("div", { class: "chips" },
           badge(record.protocol || t("common.dash")),
           keyPresent ? badge(t("settings.providers.key_present"), "ok") : badge(t("settings.providers.no_key"), "warn"))),
+      providerHealthNodes(record),
       h("div", { class: "provider-card-actions" },
         button(t("settings.providers.test"), (event) => handlers.test(record, resultHost, event.currentTarget), { small: true, kind: "primary" }),
         button(t("settings.providers.edit"), () => handlers.edit(record), { small: true }),
@@ -727,23 +754,40 @@
         saved += 1;
       } catch (error) {
         if (saved > 0) invalidateProviderChange();
+        const role = providerRoleLabel(entry.role);
+        const message = apiFailure(error).message;
         roleError.textContent = saved > 0
-          ? t("settings.providers.error.role_partial", {
-            saved,
-            count: saved,
-            role: providerRoleLabel(entry.role),
-            message: apiFailure(error).message,
-          })
-          : t("settings.providers.error.role", {
-            role: providerRoleLabel(entry.role),
-            message: apiFailure(error).message,
-          });
+          ? t("settings.providers.error.role_partial", { saved, count: saved, role, message })
+          : t("settings.providers.error.role", { role, message });
         roleError.hidden = false;
         return false;
       }
     }
     invalidateProviderChange();
     return true;
+  }
+
+  // providerRoleRows builds the role rows through the shared settings row
+  // builder and returns them with their selects, so the section saves the
+  // changed ones together. A role's allowed values are the configured records,
+  // so the select stays this tab's control, named by its short role label.
+  function providerRoleRows(settingsByKey, providers) {
+    const selects = [];
+    const rows = orderedProviderRoles().map((role) => {
+      const view = settingsByKey.get(role.setting);
+      if (!view) return null;
+      const select = providerRoleSelect(role, view.value || "", providers);
+      // An environment layer wins over settings.json: an editable select would
+      // save a value that never takes effect.
+      select.disabled = (view.layer || "default") === "env";
+      selects.push({ role, select, initial: select.value });
+      const control = () => ({
+        node: h("label", { class: "provider-role" }, h("span", { class: "field-label", text: providerRoleLabel(role) }), select),
+        value: () => select.value,
+      });
+      return settingRow(view, null, { tab: "providers", control, actions: false });
+    }).filter(Boolean);
+    return { rows, selects };
   }
 
   function providersPanel(settings, providers) {
@@ -753,18 +797,12 @@
     let editing = null;
     let activeForm = null;
 
-    const settingsByKey = new Map(
-      (settings && Array.isArray(settings.settings) ? settings.settings : [])
-        .map((view) => [view.key, view.value]));
+    const settingsByKey = new Map((settings && Array.isArray(settings.settings) ? settings.settings : [])
+      .map((view) => [view.key, view]));
     const roleError = h("div", { class: "field-error provider-role-error", role: "alert", hidden: true });
-    const roleSelects = [];
-    const roleGrid = h("div", { class: "provider-role-grid" }, orderedProviderRoles().map((role) => {
-      const select = providerRoleSelect(role, settingsByKey.get(role.setting) || "", providers);
-      roleSelects.push({ role, select, initial: select.value });
-      return h("label", { class: "provider-role" },
-        h("span", { class: "field-label", text: providerRoleLabel(role) }),
-        select);
-    }));
+    const roles = providerRoleRows(settingsByKey, providers);
+    const roleSelects = roles.selects;
+    const roleRows = roles.rows;
     const saveRoles = button(t("settings.providers.roles.save"), async (event) => {
       const changed = roleSelects.filter((entry) => entry.select.value !== entry.initial);
       if (!changed.length) {
@@ -785,7 +823,7 @@
         h("div", null,
           h("h2", { id: "provider-roles-title", text: t("settings.providers.roles.title") }),
           h("p", { class: "section-sub", text: t("settings.providers.roles.sub") }))),
-      roleGrid,
+      roleRows,
       h("div", { class: "provider-role-actions" }, saveRoles, roleError));
 
     const formHost = h("div", { class: "provider-form-host" });
@@ -877,16 +915,26 @@
           const passed = !result || result.ok !== false;
           const model = (result && result.model) || record.model || t("common.dash");
           const detail = providerTestDetail(result);
-          resultHost.append(h("div", { class: "provider-result" + (passed ? "" : " error") },
+          const outcome = h("div", { class: "provider-result" + (passed ? "" : " error") },
             h("div", null, badge(passed ? t("state.ok") : t("settings.providers.test_failed"), passed ? "ok" : "danger"),
               text(" " + t(passed ? "settings.providers.test_result_ok" : "settings.providers.test_result_fail", { duration }))),
-            h("div", { class: "fine", text: detail ? t("settings.providers.test_detail", { model, detail }) : t("settings.providers.test_detail_empty", { model }) })));
+            h("div", { class: "fine", text: detail ? t("settings.providers.test_detail", { model, detail }) : t("settings.providers.test_detail_empty", { model }) }));
+          // A failed test wrote a line in Logs. The link names the component
+          // that recorded it, so the owner reads the failure instead of only
+          // this sentence.
+          if (!passed) {
+            outcome.append(h("div", { class: "button-row" },
+              navigateWith(t("logs.open"), "logs", { component: "engine" }, { small: true, icon: "arrow-right" })));
+          }
+          resultHost.append(outcome);
         } catch (error) {
           const duration = formatDuration(Math.round(performance.now() - started) * 1e6);
           resultHost.append(h("div", { class: "provider-result error" },
             h("div", null, badge(t("settings.providers.test_failed"), "danger"),
               text(" " + t("settings.providers.test_result_fail", { duration }))),
-            h("div", { text: t("settings.providers.test_detail", { model: record.model || t("common.dash"), detail: apiFailure(error).message }) })));
+            h("div", { text: t("settings.providers.test_detail", { model: record.model || t("common.dash"), detail: apiFailure(error).message }) }),
+            h("div", { class: "button-row" },
+              navigateWith(t("logs.open"), "logs", { component: "engine" }, { small: true, icon: "arrow-right" }))));
         }
       });
     }
@@ -938,6 +986,23 @@
 
 
   // runtime-panel:start
+  // durationNanos is the one reader of a Go duration string: the schema states
+  // a default in its shortest form ("15m") while the effective value arrives
+  // canonical ("15m0s"), so 40-settings.js compares the two through it too.
+  const DURATION_UNITS = { ns: 1, us: 1e3, "µs": 1e3, ms: 1e6, s: 1e9, m: 60e9, h: 3600e9 };
+
+  function durationNanos(value) {
+    const raw = String(value === null || value === undefined ? "" : value).trim();
+    const segments = raw.match(/[0-9]+(?:\.[0-9]+)?(?:ns|us|µs|ms|s|m|h)/g);
+    if (!segments || segments.join("") !== raw) return null;
+    let nanos = 0;
+    for (const segment of segments) {
+      const match = segment.match(/^([0-9]+(?:\.[0-9]+)?)(ns|us|µs|ms|s|m|h)$/);
+      nanos += Number(match[1]) * DURATION_UNITS[match[2]];
+    }
+    return Number.isFinite(nanos) ? nanos : null;
+  }
+
   // The Windows product ships one local engine: the build the catalog starts
   // automatically (Vulkan). This panel renders that build only: no variant
   // picker, no CPU/CUDA rows, no manual install form. The engine downloads,
@@ -1074,19 +1139,6 @@
   // units: the settings projection returns sidecar.idle_timeout as a Go
   // duration string ("15m0s", "0s", "1h30m0s"), never a number of seconds.
   const RUNTIME_IDLE_KEY = "sidecar.idle_timeout";
-  const RUNTIME_DURATION_UNITS = { ns: 1, us: 1e3, "µs": 1e3, ms: 1e6, s: 1e9, m: 60e9, h: 3600e9 };
-
-  function runtimeIdleNanos(value) {
-    const raw = String(value === null || value === undefined ? "" : value).trim();
-    const segments = raw.match(/[0-9]+(?:\.[0-9]+)?(?:ns|us|µs|ms|s|m|h)/g);
-    if (!segments || segments.join("") !== raw) return null;
-    let nanos = 0;
-    for (const segment of segments) {
-      const match = segment.match(/^([0-9]+(?:\.[0-9]+)?)(ns|us|µs|ms|s|m|h)$/);
-      nanos += Number(match[1]) * RUNTIME_DURATION_UNITS[match[2]];
-    }
-    return Number.isFinite(nanos) ? nanos : null;
-  }
 
   // runtimeIdleNote is the one sentence that explains a stopped engine: it
   // stops after the configured idle window and starts again on the next use,
@@ -1096,7 +1148,7 @@
     const views = settings && Array.isArray(settings.settings) ? settings.settings : [];
     const view = views.find((item) => item && item.key === RUNTIME_IDLE_KEY);
     if (!view) return null;
-    const idle = runtimeIdleNanos(view.value);
+    const idle = durationNanos(view.value);
     if (idle === null) return null;
     return h("p", { class: "runtime-note" }, text(idle > 0
       ? t("settings.runtime.idle_stop", { duration: formatDuration(idle) })
@@ -1176,6 +1228,8 @@
           : choice
             ? t("settings.runtime.not_selected_provider", { provider: choice.label })
             : t("settings.runtime.not_selected")),
+        // The runtime harness runs this block alone, so it consumes the router's
+        // one hash builder directly instead of the link helper.
         h("a", { href: routeHash("settings", { tab: "providers" }), text: t("settings.runtime.not_selected_link") })));
     } else if (!build) {
       notices.push(h("p", { class: "runtime-note", text: t("settings.runtime.no_builds") }));
@@ -1231,11 +1285,12 @@
       return refreshActiveRoute();
     }, { icon: "refresh", small: true });
     // The engine's settings belong to the engine's tab: status and controls
-    // in one place, not split across General and a read-only card.
+    // in one place, not split across General and a read-only card. They render
+    // through the shared row builder like every other tab.
     const views = (settings && Array.isArray(settings.settings) ? settings.settings : [])
       .filter((view) => view && view.group === "Local runtime");
     const group = views.length
-      ? settingsGroupNode(t("settings.runtime.settings_title"), views, status, { count: false })
+      ? settingsGroupNode(t("settings.runtime.settings_title"), views, status, { count: false, tab: "runtime" })
       : null;
     return settingsList(section(t("settings.runtime.title"), t("settings.runtime.sub"), refresh, card, group));
   }

@@ -26,7 +26,11 @@
 .button.danger { color: var(--danger-ink); border-color: var(--danger-line); background: var(--danger-soft); }
 .button.quiet { background: transparent; border-color: transparent; box-shadow: none; color: var(--ink-soft); }
 .button.quiet:hover { background: rgba(30, 90, 70, 0.07); border-color: transparent; color: var(--accent-ink); }
-.button.small { min-height: 32px; padding: 4px 10px; font-size: 11.5px; border-radius: 8px; }
+/* A small button is the dense action on toolbars and inside cards. Its label
+   may be longer than the column (French is routinely a third longer), so it
+   grows to a second line instead of overflowing the row; min-height lets the
+   box grow and the centered text keeps both lines tidy. */
+.button.small { min-height: 32px; padding: 4px 10px; font-size: 11.5px; border-radius: 8px; white-space: normal; text-align: center; }
 .button.full { width: 100%; }
 .button.link { border-color: transparent; background: transparent; box-shadow: none; color: var(--accent-ink); padding-left: 2px; padding-right: 2px; min-height: 24px; }
 .button.link:hover { text-decoration: underline; }
@@ -300,11 +304,20 @@ progress.warn::-webkit-progress-value { background: var(--warn-ink); }
 progress.warn::-moz-progress-bar { background: var(--warn-ink); }
 
 /* The empty state is a core component: every screen shows one, so its
-   box, icon and copy hierarchy live here, not in the settings module. */
-.empty { display: grid; justify-items: center; gap: 8px; padding: 28px 20px; text-align: center; border: 1px dashed var(--line-strong); border-radius: var(--radius-sm); background: rgba(253, 251, 246, 0.6); }
+   box, icon and copy hierarchy live here, not in the settings module.
+   The Companies list pane is the one host that reuses the layout without
+   the dashed box, because the pane already draws the frame. Its host class
+   therefore joins the structural rules here and overrides only its own
+   deltas in the Companies sheet, so neither sheet keeps a second copy. */
+.empty,
+.companies-list-empty { display: grid; justify-items: center; text-align: center; }
+.empty { gap: 8px; padding: 28px 20px; border: 1px dashed var(--line-strong); border-radius: var(--radius-sm); background: rgba(253, 251, 246, 0.6); }
 .empty-icon { display: grid; place-items: center; width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 50%; color: var(--muted); background: var(--surface); }
-.empty h2 { font-family: var(--font-display); font-size: 22px; font-weight: 500; letter-spacing: -0.02em; }
-.empty p { max-width: 540px; color: var(--muted); font-size: 12.5px; }
+.empty h2,
+.companies-list-empty h3 { font-family: var(--font-display); font-weight: 500; }
+.empty h2 { font-size: 22px; letter-spacing: -0.02em; }
+.empty p,
+.companies-list-empty p { max-width: 540px; color: var(--muted); font-size: 12.5px; }
 .empty .button-row { margin-top: 4px; }
 
 /* One pager for every paged list: showing, load more, end and failed-page
@@ -444,3 +457,10 @@ progress.warn::-moz-progress-bar { background: var(--warn-ink); }
 .agenda-row-compact .agenda-title { font-size: 12.5px; }
 .agenda-row-compact .agenda-meta { margin-top: 1px; }
 .agenda-skeleton { padding: 10px 14px; display: grid; gap: 7px; }
+
+/* ---------- shared motion ---------- */
+
+/* One rotation for every spinner. The settings and companies sheets each
+   declared a byte-identical @keyframes spin, so the later copy silently owned
+   the global name; the shared component layer keeps the only declaration. */
+@keyframes spin { to { transform: rotate(360deg); } }

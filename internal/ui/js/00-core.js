@@ -117,7 +117,7 @@
     logLast: 0,
     logTruncated: false,
     logDropped: [],
-    logFilters: { level: "", component: "" },
+    logFilters: { level: "", component: "", job: "" },
     triageRouted: null,
     triagePreview: false,
     triagePage: null,
@@ -440,14 +440,18 @@
 
   // link is the anchor twin of button: it must honour the same options, or a
   // site that asks for a small quiet link silently gets a full-size primary
-  // one (34 call sites did).
+  // one (34 call sites did). A prose link inside a sentence sets bare: it
+  // keeps its own class and the surrounding text's look instead of becoming
+  // a button.
   function link(label, href, opts = {}) {
     return h("a", {
-      class: ("button " + (opts.kind || "") + " " + (opts.small ? "small" : "") + " " + (opts.class || "")).trim(),
+      class: ((opts.bare ? "" : "button ") + (opts.kind || "") + " " + (opts.small ? "small" : "") + " " + (opts.class || "")).trim(),
       href,
       title: opts.title || "",
       "aria-label": opts.aria || null,
-    }, opts.icon ? icon(opts.icon, opts.small ? "small" : "") : null, h("span", { text: label }));
+    }, opts.icon && !opts.trailingIcon ? icon(opts.icon, opts.small ? "small" : "") : null,
+    h("span", { text: label }),
+    opts.icon && opts.trailingIcon ? icon(opts.icon, opts.small ? "small" : "") : null);
   }
 
 

@@ -7,6 +7,99 @@
     SETTINGS_SIMPLE_KEY_LIST.map(encodeURIComponent).join(",");
   let settingsFullInflight = null;
 
+  // The two tabs that own settings rows of their own. General owns everything
+  // else, and its search hands a match on another tab to that tab with the
+  // key in the query, so the owner lands on the row that matched.
+  const SETTINGS_RUNTIME_GROUP = "Local runtime";
+  const SETTINGS_MAILBOX_SOURCE = "sources";
+  const SETTINGS_MAILBOX_KEYS = new Set(["mailboxes.selected", "mailboxes.declared_addresses"]);
+
+  // settingOwnerTab is the one answer to "which tab edits this setting". The
+  // owner renders the editable row; every other tab links to it.
+  function settingOwnerTab(view) {
+    const key = view && view.key ? view.key : "";
+    if (PROVIDER_ROLE_SETTINGS.has(key)) return "providers";
+    if (view && view.group === SETTINGS_RUNTIME_GROUP) return "runtime";
+    return "general";
+  }
+
+  // settingEnvName is the environment override the server reads for a key:
+  // dots become underscores and the name is upper-cased (config.EnvName).
+  function settingEnvName(key) {
+    return "MAILSENSE_" + String(key || "").split(".").join("_").toUpperCase();
+  }
+
+  // settingValueText is the one reading of a schema value in the owner's
+  // language: a list, a boolean, a number and an empty value each read the
+  // same way whether it is the effective value or the default.
+  function settingValueText(value) {
+    if (Array.isArray(value)) return value.length ? value.map(jsonValue).join(", ") : t("common.none");
+    if (typeof value === "boolean") return value ? t("settings.yes") : t("settings.no");
+    if (value === null || value === undefined) return t("common.dash");
+    const plain = String(value);
+    return plain === "" ? t("common.none") : plain;
+  }
+
+  // settingDefaultText is the schema default in the owner's language. The
+  // view carries it as the schema's own value, so a default list, boolean or
+  // number reads the same way the effective value does.
+  function settingDefaultText(view) {
+    return settingValueText(view ? view.default : undefined);
+  }
+
+  // settingValuesEqual compares the effective value with the schema default.
+  // A duration is compared in nanoseconds because the schema states its
+  // shortest form ("15m") while the effective value carries Go's canonical
+  // form ("15m0s"): the two name the same wait.
+  function settingValuesEqual(view, left, right) {
+    if (view && view.type === "duration") {
+      const leftNanos = durationNanos(left);
+      const rightNanos = durationNanos(right);
+      if (leftNanos !== null && rightNanos !== null) return leftNanos === rightNanos;
+    }
+    if (Array.isArray(left) && Array.isArray(right)) {
+      return left.length === right.length && left.every((item, index) => settingValuesEqual(view, item, right[index]));
+    }
+    if (left && right && typeof left === "object" && typeof right === "object") {
+      return jsonValue(left) === jsonValue(right);
+    }
+    return String(left) === String(right);
+  }
+
+  function settingIsDefault(view) {
+    return settingValuesEqual(view, view.value, view.default);
+  }
+
+  // settingsTabSearchNote is the deep-link note on the tab a search handed a
+  // match to. It names what is filtered, offers the whole tab, and offers the
+  // full search that reaches every setting.
+  function settingsTabSearchNote(query, matches, tab) {
+    const wanted = String(query || "").trim();
+    if (!wanted) return null;
+    return h("div", { class: "settings-simple-note" },
+      h("p", { class: "fine", text: t("settings.search.tab_shown", { count: matches, query: wanted }) }),
+      h("div", { class: "button-row" },
+        navigateWith(t("settings.search.show_tab"), "settings", { tab }, { small: true }),
+        navigateWith(t("settings.filter_placeholder"), "settings", { tab: "general", q: wanted }, { small: true, kind: "primary" })));
+  }
+
+  // applySettingsTabSearch filters a tab the search handed a match to. The
+  // rows keep their place; only the ones whose corpus matched stay visible,
+  // and the note in front says how many did and how to see the whole tab.
+  function applySettingsTabSearch(content, tab) {
+    const query = String(state.settingsQuery || "").trim();
+    if (!query) return content;
+    const rows = [...content.querySelectorAll(".setting-row")];
+    let matches = 0;
+    for (const row of rows) {
+      const match = row.dataset.match === "1";
+      row.hidden = !match;
+      if (match) matches++;
+    }
+    content.prepend(settingsTabSearchNote(query, matches, tab));
+    return content;
+  }
+
   // loadAllSettings is the one lazy full read. Show all, Advanced, search and
   // a cache hit share it, so the toggles never race a second request.
   function loadAllSettings() {
@@ -81,8 +174,32 @@
     const content = tab === "providers" ? providersPanel(settings, providers)
       : tab === "runtime" ? runtimePanel(sidecar, providers, settings, status)
         : generalSettingsPanel(settings, status);
-    return h("div", { class: "screen settings-screen" },
-      h("div", { class: "settings-layout" }, subnav, content));
+    // A search that handed a match to another tab filters that tab's rows and
+    // says how many matched.
+    const filtered = tab === "general" ? content : applySettingsTabSearch(content, tab);
+    if (tab !== "general") bindSettingsTabSearch(tab);
+    const screen = h("div", { class: "screen settings-screen" },
+      h("div", { class: "settings-layout" }, subnav, filtered));
+    revealSettingMatch(seq);
+    return screen;
+  }
+
+  // revealSettingMatch carries a deep-linked search to the row it names: the
+  // row builder marks the match, and this scrolls it into view with the
+  // keyboard on it. The row stays the same element, so the focus is a real
+  // tab stop for the next Tab.
+  function revealSettingMatch(seq) {
+    // While the owner types in the shell bar the list filters under the caret;
+    // moving the view on each keystroke would fight the typing.
+    if (document.activeElement === dom.globalSearchInput) return;
+    if (!state.settingsQuery.trim()) return;
+    window.requestAnimationFrame(() => {
+      if (seq !== state.renderSeq) return;
+      const row = dom.main.querySelector('.setting-row[data-match="1"]');
+      if (!row || !row.isConnected) return;
+      row.scrollIntoView({ block: "center" });
+      row.focus({ preventScroll: true });
+    });
   }
 
   function settingsList(...children) {
@@ -143,9 +260,12 @@
 
   // settingsGroupNode is the one look of a settings group: title, count,
   // the optional live readout and rows. corpus is the optional search text
-  // General filters on.
+  // General filters on. Every tab renders its rows through settingRow.
   function settingsGroupNode(title, views, status, opts = {}) {
-    const rows = views.map((view) => settingRow(view, status, { simple: !!opts.simple }));
+    const rows = views.map((view) => settingRow(view, status, {
+      simple: !!opts.simple,
+      tab: opts.tab,
+    }));
     const usage = opts.usage ? resourceUsageNode(status) : null;
     return h("section", { class: "setting-group", dataset: opts.corpus ? { search: opts.corpus } : null },
       h("div", { class: "setting-group-head" },
@@ -182,7 +302,7 @@
       .filter((item) => !PROVIDER_ROLE_SETTINGS.has(item.key))
       // The Local engine tab owns the engine's settings (status and controls
       // together); a second copy in General made two screens disagree.
-      .filter((item) => item.group !== "Local runtime");
+      .filter((item) => item.group !== SETTINGS_RUNTIME_GROUP);
   }
 
   function settingsSimpleCount(byKey) {
@@ -210,6 +330,10 @@
     return warningBanner(h("div", null,
       h("strong", { text: t("settings.restart_banner", { count: pending.length }) }),
       text(pending.join(", ")),
+      // Reload re-reads settings.json. It cannot apply a restart-required
+      // value: only quitting and reopening the app can. The copy says which
+      // action does what instead of letting the toast imply a restart.
+      h("p", { class: "field-hint", text: t("settings.restart_explain") }),
       h("div", { class: "button-row" },
         button(t("settings.reload"), async (event) => {
           await withBusy(event.currentTarget, t("settings.reloading"), async () => {
@@ -236,23 +360,24 @@
       pill(pendingCount ? t("settings.restart_pending", { count: pendingCount }) : t("settings.no_restart_pending"), pendingCount ? "warn" : "done"));
   }
 
-  function settingsGroupView(status, title, views, corpusGroup, simpleRows = false) {
+  function settingsGroupView(status, title, views, corpusGroup, simpleRows = false, opts = {}) {
     const searchCorpus = [
       corpusGroup, settingGroupLabel(corpusGroup),
       title,
       ...views.flatMap((v) => [v.key, v.description, settingDescription(v), simpleSettingDescription(v)]),
     ].filter(Boolean).join(" ").toLowerCase();
     return settingsGroupNode(title, views, status, { simple: simpleRows, corpus: searchCorpus, count: !!corpusGroup,
+      tab: opts.tab,
       usage: views.some((view) => String(view.key || "").startsWith("resource.")) });
   }
 
-  function settingsGroupNodes(status, list, byKey, advanced, searching) {
+  function settingsGroupNodes(status, list, byKey, advanced, searching, opts = {}) {
     const nodes = [];
     if (!advanced && !searching) {
       for (const group of SETTINGS_SIMPLE_GROUPS) {
         const views = group.keys.map((key) => byKey.get(key)).filter(Boolean);
         if (!views.length) continue;
-        nodes.push(settingsGroupView(status, simpleSettingGroup(group.id), views, "", true));
+        nodes.push(settingsGroupView(status, simpleSettingGroup(group.id), views, "", true, opts));
       }
       return nodes;
     }
@@ -263,9 +388,20 @@
       groups.get(group).push(view);
     }
     for (const [group, views] of [...groups.entries()].sort((a, b) => localeCompare(a[0], b[0]))) {
-      nodes.push(settingsGroupView(status, settingGroupLabel(group), views, group));
+      nodes.push(settingsGroupView(status, settingGroupLabel(group), views, group, false, opts));
     }
     return nodes;
+  }
+
+  // settingsListScopes is the two views of one full payload: every schema
+  // setting for search, and the General tab's own rows for Advanced.
+  function settingsListScopes(view) {
+    const all = Array.isArray(view.settings) ? view.settings : [];
+    const general = generalSettingsList(view);
+    return {
+      search: { list: all, byKey: new Map(all.map((item) => [item.key, item])) },
+      full: { list: general, byKey: new Map(general.map((item) => [item.key, item])) },
+    };
   }
 
   function generalSettingsPanel(settings, status) {
@@ -276,8 +412,10 @@
     const total = typeof settings.total === "number" ? settings.total : simpleList.length;
     const pending = Array.isArray(settings.restart_pending) ? settings.restart_pending : [];
     const simpleByKey = new Map(simpleList.map((view) => [view.key, view]));
-    let fullList = null;
-    let fullByKey = null;
+    // Search reads the whole schema, including the rows the Providers and
+    // Local runtime tabs own.
+    let searchScope = null;
+    let fullScope = null;
     const search = h("input", { class: "input", type: "search", hidden: true, value: state.settingsQuery, placeholder: t("settings.filter_placeholder") });
     const count = h("span", { class: "fine", "aria-live": "polite" });
     let advanced = settingsAdvanced();
@@ -312,21 +450,20 @@
       return Math.max(0, total - settingsSimpleCount(simpleByKey));
     }
 
-    // usingFull is true while Advanced or search renders the lazy full list;
-    // Simple always renders the projection it loaded.
-    function usingFull() {
-      return fullLoaded && (advanced || searching);
-    }
+    // scopeOf is the one answer to what the current mode renders: search
+    // covers every setting, Advanced the General tab's own rows.
+    const scopeOf = () => searching && fullLoaded ? searchScope
+      : advanced && fullLoaded ? fullScope : { list: simpleList, byKey: simpleByKey };
 
     async function ensureFull() {
       // A settings write invalidates the read cache; the full list is then
       // stale even though it is already in hand, so reload it before use.
       if (fullLoaded && state.settingsAll && cached(SETTINGS_FULL_PATH) === state.settingsAll) return;
       try {
-        const view = await loadAllSettings();
+        const scopes = settingsListScopes(await loadAllSettings());
         fullLoaded = true;
-        fullList = generalSettingsList(view);
-        fullByKey = new Map(fullList.map((item) => [item.key, item]));
+        searchScope = scopes.search;
+        fullScope = scopes.full;
       } catch (error) {
         reportActionError(error);
       }
@@ -344,14 +481,13 @@
       searching = !!q;
       state.settingsQuery = search.value;
       clear(body);
-      const all = usingFull();
-      const scope = all ? fullList : simpleList;
-      appendChildren(body, [settingsGroupNodes(status, scope, all ? fullByKey : simpleByKey, advanced, searching), empty]);
+      const scope = scopeOf();
+      appendChildren(body, [settingsGroupNodes(status, scope.list, scope.byKey, advanced, searching, { tab: "general" }), empty]);
       intro.hidden = advanced || searching;
       simpleNote.hidden = advanced || searching;
       advancedNote.hidden = !advanced || searching;
       searchNote.hidden = !searching;
-      searchNote.textContent = searching ? t("settings.search.all", { count: scope.length }) : "";
+      searchNote.textContent = searching ? t("settings.search.all", { count: scope.list.length }) : "";
       hiddenNote.textContent = t("settings.simple.hidden", { count: hiddenCount() });
       for (const node of toggle.querySelectorAll("button")) {
         node.setAttribute("aria-pressed", node === toggle.children[advanced ? 1 : 0] ? "true" : "false");
@@ -362,7 +498,7 @@
     function applyFilter() {
       state.settingsQuery = search.value;
       const q = search.value.trim().toLowerCase();
-      const scope = usingFull() ? fullList : simpleList;
+      const scope = scopeOf();
       let shown = 0;
       for (const group of body.querySelectorAll(".setting-group")) {
         let visible = 0;
@@ -428,26 +564,74 @@
     }, "settings.filter_placeholder", "settings.filter_aria", () => state.settingsQuery);
   }
 
+  // bindSettingsTabSearch keeps the same bar honest on the tabs that are not
+  // General. Their rows are grouped by owner, so the bar re-renders the tab
+  // with the new query instead of proxying a detached panel: Back returns to
+  // the filtered view and the row builder owns the match badge.
+  function bindSettingsTabSearch(tab) {
+    setScopedSearch("settings", (value) => {
+      state.settingsQuery = String(value || "");
+      replaceRoute("settings", { tab, q: state.settingsQuery });
+      renderRoute();
+    }, "settings.filter_placeholder", "settings.filter_aria", () => state.settingsQuery);
+  }
+
+  // settingRowBadges is the one badge row of a settings row: the active search
+  // match, the effective layer and the schema's flags. A restart badge carries
+  // what a restart means, because Reload cannot apply it.
+  function settingRowBadges(view, matched) {
+    const layer = view.layer || "default";
+    return h("div", { class: "setting-badges" },
+      matched ? badge(t("settings.search.match"), "accent") : null,
+      badge(tOr("settings.layer." + layer, t("settings.layer.unknown", { layer })), layer === "env" ? "danger" : layer === "file" ? "warn" : layer === "learned" ? "accent" : ""),
+      view.restart_required ? badge(t("settings.badge.restart_required"), "warn") : null,
+      view.restart_pending ? badge(t("settings.badge.restart_pending"), "warn", t("settings.restart_explain")) : null,
+      view.secret ? badge(t("settings.badge.secret"), "plain") : null,
+      view.data_file ? badge(t("settings.badge.data_file"), "plain") : null,
+      view.learnable ? badge(t("settings.badge.learnable"), "plain") : null);
+  }
+
+  // settingRow is the one settings row builder: General, Providers and the
+  // Local runtime tab all render through it, so the schema default, the reset
+  // state, the environment lock and the restart badge cannot drift. opts.tab
+  // names the tab rendering the row: a setting owned by another tab renders as
+  // a pointer there instead of a second editor.
   function settingRow(view, status, opts = {}) {
     const key = view.key || "";
     const group = view.group || "Other";
     const layer = view.layer || "default";
+    const tab = opts.tab || "general";
+    const owner = settingOwnerTab(view);
     const localizedGroup = settingGroupLabel(group);
     const localizedDescription = opts.simple ? simpleSettingDescription(view) : settingDescription(view);
-    const badges = h("div", { class: "setting-badges" },
-      badge(tOr("settings.layer." + layer, t("settings.layer.unknown", { layer })), layer === "env" ? "danger" : layer === "file" ? "warn" : layer === "learned" ? "accent" : ""),
-      view.restart_required ? badge(t("settings.badge.restart_required"), "warn") : null,
-      view.restart_pending ? badge(t("settings.badge.restart_pending"), "warn") : null,
-      view.secret ? badge(t("settings.badge.secret"), "plain") : null,
-      view.data_file ? badge(t("settings.badge.data_file"), "plain") : null,
-      view.learnable ? badge(t("settings.badge.learnable"), "plain") : null);
+    const corpus = [key, group, localizedGroup, view.description, settingDescription(view),
+      simpleSettingDescription(view), t("settings.tab." + owner)].filter(Boolean).join(" ").toLowerCase();
+    // The route owns the search; every row reads the one value so the match
+    // badge and the tab filter can never disagree.
+    const query = String(state.settingsQuery || "").trim().toLowerCase();
+    const matched = !!query && corpus.includes(query);
+    if (owner !== tab) return settingOwnerRow(view, owner, { corpus, simple: opts.simple });
+    const envLocked = layer === "env";
+    const envHint = envLocked ? t("settings.env_hint", { env: settingEnvName(key) }) : "";
+    const mailbox = SETTINGS_MAILBOX_KEYS.has(key);
+    const badges = settingRowBadges(view, matched);
     const description = h("div", { class: "setting-title", text: localizedDescription });
-    const control = settingControl(view, status, opts, localizedDescription || key);
+    // A mailbox setting is written by the mailbox endpoints, which refuse a
+    // settings write by design. It shows what it holds and where it is
+    // managed, never an Apply that the server answers with 409.
+    const control = mailbox
+      ? { node: h("p", { class: "field-hint", text: t("settings.mailbox_hint") }), value: () => view.value }
+      : opts.control ? opts.control(view, status) : settingControl(view, status, opts, localizedDescription || key);
     const left = h("div", { class: "setting-copy" },
       description,
       h("code", { class: "setting-key", text: key }),
       badges);
     const right = h("div", { class: "setting-control" }, control.node);
+    // Every row names the schema default, so a value can be judged against it.
+    right.append(h("div", { class: "setting-meta" },
+      h("span", { text: t("settings.default_label") }), text(" "),
+      h("code", { class: "mono", text: settingDefaultText(view) })));
+    if (envHint) right.append(h("div", { class: "field-hint", text: envHint }));
     if (view.data_file) {
       const path = joinPath(status && status.data_dir ? status.data_dir : "", view.value);
       right.append(h("div", { class: "setting-meta" },
@@ -502,18 +686,56 @@
         }
       });
     };
-    const actions = h("div", { class: "setting-actions" },
-      button(t("settings.apply"), (event) => commitSetting(event, {
-        method: "PUT", busy: t("settings.applying"), done: "settings.saved", failed: "settings.rejected_value",
-      }), { kind: "primary", small: true }),
-      button(t("settings.reset"), (event) => commitSetting(event, {
-        method: "DELETE", busy: t("settings.resetting"), done: "settings.reset_done", failed: "settings.reset_failed",
-      }), { small: true, kind: "quiet" }),
-      view.format ? badge(view.format, "plain") : null);
-    right.append(actions, error);
-    const searchCorpus = [key, group, localizedGroup, view.description, settingDescription(view), localizedDescription].filter(Boolean).join(" ").toLowerCase();
-    const row = h("div", { class: "setting-row", dataset: { search: searchCorpus, simple: opts.simple ? "1" : "0" } }, left, right);
+    // The two actions carry the row's own state: an environment layer wins
+    // over the file, and a value already at its default has nothing to
+    // reset. Both say so instead of offering a write that cannot show.
+    const atDefault = settingIsDefault(view);
+    const actions = mailbox
+      ? h("div", { class: "setting-actions" },
+        navigateWith(t("settings.managed_in_sources"), SETTINGS_MAILBOX_SOURCE, {}, { small: true, icon: "arrow-right" }))
+      : opts.actions === false ? null
+        : h("div", { class: "setting-actions" },
+          button(t("settings.apply"), (event) => commitSetting(event, {
+            method: "PUT", busy: t("settings.applying"), done: "settings.saved", failed: "settings.rejected_value",
+          }), { kind: "primary", small: true, disabled: envLocked, title: envHint }),
+          button(t("settings.reset"), (event) => commitSetting(event, {
+            method: "DELETE", busy: t("settings.resetting"), done: "settings.reset_done", failed: "settings.reset_failed",
+          }), { small: true, kind: "quiet", disabled: atDefault, title: atDefault ? t("settings.reset_at_default") : "" }),
+          key.startsWith("log.") ? navigateWith(t("logs.open"), "logs", {}, { small: true }) : null,
+          view.format ? badge(view.format, "plain") : null);
+    if (actions) right.append(actions);
+    right.append(error);
+    const row = h("div", {
+      class: "setting-row",
+      dataset: { search: corpus, simple: opts.simple ? "1" : "0", setting: key },
+      tabindex: matched ? "-1" : null,
+    }, left, right);
+    if (matched) row.dataset.match = "1";
     return row;
+  }
+
+  // settingOwnerRow is a search match that lives on another tab. It names the
+  // owning tab and links there with the key in the query, so the owner lands
+  // on the row itself. It never writes: the owning tab is the only editor.
+  function settingOwnerRow(view, owner, opts = {}) {
+    const key = view.key || "";
+    const label = t("settings.tab." + owner);
+    const left = h("div", { class: "setting-copy" },
+      h("div", { class: "setting-title", text: settingDescription(view) }),
+      h("code", { class: "setting-key", text: key }),
+      h("div", { class: "setting-badges" },
+        badge(label, "accent"),
+        badge(tOr("settings.layer." + (view.layer || "default"), t("settings.layer.unknown", { layer: view.layer || "default" })), "plain")));
+    const right = h("div", { class: "setting-control" },
+      h("div", { class: "setting-meta" },
+        h("span", { text: t("settings.current_value") }), text(" "),
+        h("code", { class: "mono", text: settingValueText(view.value) })),
+      h("div", { class: "setting-meta" },
+        h("span", { text: t("settings.default_label") }), text(" "),
+        h("code", { class: "mono", text: settingDefaultText(view) })),
+      navigateWith(t("settings.search.open_owned", { tab: label }), "settings", { tab: owner, q: key },
+        { small: true, icon: "arrow-right", class: "setting-open-owner" }));
+    return h("div", { class: "setting-row", dataset: { search: opts.corpus || "", simple: opts.simple ? "1" : "0" } }, left, right);
   }
 
   // settingControl builds one control; the caller names it with the setting's

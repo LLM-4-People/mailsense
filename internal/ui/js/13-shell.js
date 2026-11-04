@@ -1,5 +1,17 @@
   // ---------------------------------------------------------------- navigation
 
+  // navigateWith is the one cross-screen link of the interface. It is a real
+  // anchor, so it is keyboard reachable, opens in a new tab with the platform
+  // modifier, and Back returns to the route the owner left. A second ad hoc
+  // href is how a link forgets the router's interception and reloads the
+  // document. Callers name a SCREEN_ID and its route parameters, never a
+  // hand-built hash.
+  function navigateWith(label, name, params = {}, opts = {}) {
+    const anchor = link(label, routeHash(name, params), opts);
+    anchor.dataset.crosslink = name;
+    return anchor;
+  }
+
   let navInstalled = false;
 
   // navGroupState is the one stored disclosure state: a group id mapped to
