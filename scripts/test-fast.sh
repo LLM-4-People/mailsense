@@ -13,6 +13,9 @@
 # New packages land in shard C automatically, so nothing can be skipped.
 #
 # Environment:
+#   STAGES        all (default) | lint | tests | sidecar: CI runs the halves on
+#                 separate runners so a slow vet never delays the tests, and
+#                 the port-binding sidecar suite gets a runner of its own
 #   SHARD_P       packages built/tested concurrently per shard (default 4)
 #   RACE          auto (default: -race on qa and api when cgo works) | on | off
 #   SIDECAR       on (default) | off: the sidecar suite binds loopback ports
@@ -31,11 +34,16 @@ cd "$ROOT"
 TEST_TIMEOUT="${TEST_TIMEOUT:-300}"
 SHARD_P="${SHARD_P:-4}"
 SIDECAR="${SIDECAR:-on}"
+STAGES="${STAGES:-all}"
 [[ "$TEST_TIMEOUT" =~ ^[1-9][0-9]*$ ]] || die "TEST_TIMEOUT must be a positive whole number of seconds"
 [[ "$SHARD_P" =~ ^[1-9][0-9]*$ ]] || die "SHARD_P must be a positive whole number"
 case "$SIDECAR" in
 on | off) ;;
 *) die "SIDECAR must be on or off" ;;
+esac
+case "$STAGES" in
+all | lint | tests | sidecar) ;;
+*) die "STAGES must be all, lint, tests or sidecar" ;;
 esac
 for arg in "$@"; do
 	case "$arg" in
@@ -43,11 +51,17 @@ for arg in "$@"; do
 	esac
 done
 
-gate_gofmt
-gate_scripts
-"$ROOT/scripts/check-generated.sh"
-run_stage "PII residue check" "$ROOT/scripts/check-pii.sh"
-gate_vet
+if [[ "$STAGES" != "tests" ]]; then
+	gate_gofmt
+	gate_scripts
+	"$ROOT/scripts/check-generated.sh"
+	run_stage "PII residue check" "$ROOT/scripts/check-pii.sh"
+	gate_vet
+	say "lint and vet stages passed"
+fi
+if [[ "$STAGES" == "lint" ]]; then
+	exit 0
+fi
 gate_race_flags
 
 # The three test groups. A and B hold the packages whose tests are heavy or
@@ -121,6 +135,9 @@ if [[ "$SIDECAR" == on ]]; then
 else
 	say "sidecar suite skipped (SIDECAR=off)"
 fi
+if [[ "$STAGES" == "sidecar" ]]; then
+	exit 0
+fi
 
 tmp="$(mktemp -d "${TMPDIR:-/tmp}/mailsense-test-fast.XXXXXX")"
 failed=0
@@ -158,8 +175,11 @@ wait_shard() { # name package-count
 }
 
 if ((${#RACE_FLAGS[@]})); then
-	say "race shard (qa, api)"
-	start_shard RACE env CGO_ENABLED=1 "$GO" test "${RACE_FLAGS[@]}" -vet=off -count=1 -timeout "${TEST_TIMEOUT}s" "$@" ./internal/qa ./internal/api
+	# One shard each: the race build is the slowest single item, and two
+	# packages in one shard ran back to back instead of sharing the cores.
+	say "race shards (qa, api)"
+	start_shard RACE_QA env CGO_ENABLED=1 "$GO" test "${RACE_FLAGS[@]}" -vet=off -count=1 -timeout "${TEST_TIMEOUT}s" "$@" ./internal/qa
+	start_shard RACE_API env CGO_ENABLED=1 "$GO" test "${RACE_FLAGS[@]}" -vet=off -count=1 -timeout "${TEST_TIMEOUT}s" "$@" ./internal/api
 else
 	say "race check skipped (RACE=off, or no cgo/C compiler)"
 fi
@@ -174,7 +194,8 @@ wait_shard A "${#pkgs_a[@]}" || failed=1
 wait_shard B "${#pkgs_b[@]}" || failed=1
 wait_shard C "${#shard_c[@]}" || failed=1
 if ((${#RACE_FLAGS[@]})); then
-	wait_shard RACE 2 || failed=1
+	wait_shard RACE_QA 1 || failed=1
+	wait_shard RACE_API 1 || failed=1
 fi
 ((failed == 0)) || die "test shards failed; each FAIL above names the shard and the command that reruns it"
 

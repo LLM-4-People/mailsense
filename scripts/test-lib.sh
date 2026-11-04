@@ -56,14 +56,23 @@ gate_scripts() {
 	fi
 }
 
-# gate_vet: go vet on the host and every cross/tagged configuration the
-# shipped code uses. The configurations are independent builds, so they run
-# concurrently; each output is replayed only when it fails.
+# gate_vet: go vet on the host and every tagged configuration the shipped
+# code uses. One full-module pass covers every package, and each tag only owns
+# the packages that declare it, so a tag pass rebuilds that bounded set instead
+# of the whole module. The full windows pass belongs to the windows job, which
+# vets the tree natively; a GOOS build here would duplicate it and, on a
+# 4-core runner, three full module builds at once were the slowest stage of the
+# gate by a wide margin. The host pass runs alone for the same reason; the
+# small tag passes then run together.
 gate_vet() {
-	say "go vet (host, windows and tagged configurations; parallel)"
+	say "go vet (host pass, then the tagged packages in parallel)"
 	local tmp
 	tmp="$(mktemp -d "${TMPDIR:-/tmp}/mailsense-vet.XXXXXX")"
 	trap 'rm -rf "$tmp"' RETURN
+	if ! "$GO" vet ./... >"$tmp/host.log" 2>&1; then
+		cat "$tmp/host.log" >&2
+		gate_failed "go vet (host)" "$GO vet ./..."
+	fi
 	local -a labels=() pids=() cmds=()
 	local i=0
 	vet_bg() { # label command…
@@ -75,15 +84,18 @@ gate_vet() {
 		pids+=($!)
 		i=$((i + 1))
 	}
-	vet_bg "host" "$GO" vet ./...
-	vet_bg "windows" env GOOS=windows "$GO" vet ./...
 	vet_bg "windows, outlooklive tag" env GOOS=windows "$GO" vet -tags outlooklive ./internal/source/outlook
 	vet_bg "windows, evidencelive tag" env GOOS=windows "$GO" vet -tags evidencelive ./internal/evidence
-	vet_bg "fixture tag" "$GO" vet -tags fixture ./...
+	vet_bg "windows, embedlive tag" env GOOS=windows "$GO" vet -tags embedlive ./internal/search
+	# A fixture-only file lives in exactly these packages; the tag pass follows
+	# the files rather than the whole module.
+	vet_bg "fixture tag" "$GO" vet -tags fixture \
+		./internal/conversations ./internal/evidence ./internal/layer1 \
+		./internal/perfprepare ./internal/priority ./internal/search \
+		./internal/store ./internal/syncer ./internal/threads
 	vet_bg "triagelive tag" "$GO" vet -tags triagelive ./internal/triage
 	vet_bg "deciderbench tag" "$GO" vet -tags deciderbench ./internal/triage
 	vet_bg "judgegold tag" "$GO" vet -tags judgegold ./internal/judge
-	vet_bg "windows, embedlive tag" env GOOS=windows "$GO" vet -tags embedlive ./internal/search
 	vet_bg "embedlocal tag" "$GO" vet -tags embedlocal ./internal/search ./internal/layer1
 	local status=0 rerun=""
 	for i in "${!pids[@]}"; do
@@ -94,7 +106,7 @@ gate_vet() {
 			status=1
 		fi
 	done
-	((status == 0)) || gate_failed "go vet" "${rerun% }"
+	((status == 0)) || gate_failed "go vet (tagged)" "${rerun% }"
 }
 
 # gate_race_flags: fills RACE_FLAGS with (-race) when RACE allows it.

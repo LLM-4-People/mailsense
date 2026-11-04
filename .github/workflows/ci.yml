@@ -19,10 +19,13 @@ concurrency:
   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
-  fast:
-    name: fast gate
+  # The fast gate is one required check but two runners: the lint and vet
+  # half and the test half share no state, and running them in series made a
+  # 3m36s vet stage sit in front of a 2m07s test stage for no reason.
+  lint:
+    name: lint and vet
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
@@ -30,8 +33,11 @@ jobs:
           go-version-file: go.mod
           cache: true
       # scripts/test-fast.sh owns gofmt, script checks, the generated UI
-      # bundles, vet, and every fast suite. CI does not restate any of them.
+      # bundles, PII, vet and every fast suite. CI does not restate any of
+      # them; STAGES=lint runs the first half only.
       - run: scripts/test-fast.sh
+        env:
+          STAGES: lint
       # The public pages and brand assets are generated from docs/site.json.
       # scripts/test-fast.sh does not read them, so the site check runs here.
       - name: site check
@@ -40,11 +46,68 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: fast-gate-logs
+          name: lint-logs
+          path: |
+            /tmp/mailsense-vet.*/*.log
+            /tmp/*.log
+          if-no-files-found: ignore
+
+  tests:
+    name: tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - run: scripts/test-fast.sh
+        env:
+          STAGES: tests
+          # The sidecar suite binds loopback ports, so it owns a runner of
+          # its own instead of running before the shards.
+          SIDECAR: "off"
+      - name: upload logs
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: test-logs
           path: |
             /tmp/mailsense-test-fast.*/*.log
             /tmp/*.log
           if-no-files-found: ignore
+
+  sidecar:
+    name: sidecar suite
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version-file: go.mod
+          cache: true
+      - run: scripts/test-fast.sh
+        env:
+          STAGES: sidecar
+      - name: upload logs
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: sidecar-logs
+          path: /tmp/*.log
+          if-no-files-found: ignore
+
+  # The ruleset requires the "fast gate" context. This job joins the runners
+  # so the required check stays one name while the work runs in parallel.
+  fast:
+    name: fast gate
+    needs: [lint, tests, sidecar]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - run: echo "lint, vet and tests passed"
 
   exhaustive:
     name: exhaustive gate

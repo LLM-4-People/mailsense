@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
-# Run the exhaustive quality gate: gofmt, go vet (host and Windows tags),
-# the PII residue scan, and every package's tests in parallel.
+# Run the exhaustive quality gate: gofmt, go vet (host and every tagged
+# configuration), the PII residue scan, and every package's tests in parallel.
+# A full GOOS=windows vet belongs to the windows job, which vets the tree
+# natively.
 # The inner loop is scripts/test-fast.sh; this gate is the release check, and
 # scripts/test-race.sh is the exhaustive race check.
 #
