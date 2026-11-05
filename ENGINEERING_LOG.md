@@ -18,8 +18,11 @@ owns scope). Keep it current as work proceeds.
   `follow_up` with `due_source=stored`, so the ranked queue, commitments,
   agenda and brief agree on the same fact.
 - Cross-screen Ask handoff is a one-shot mount intent. The router consumes it
-  on both the fresh and cached Ask paths, so "Ask about this message" and the
-  company action survive a warm route.
+  on the cached Ask path; the fresh render consumes it with its own composer
+  and leaves focus pending until that composer is mounted. "Ask about this
+  message" and the company action therefore survive both a cold and a warm
+  route. The cold-path test caught the first version focusing a detached
+  field; the guard is now in the shared focus helper.
 - Home's Important sections link to `#/mail?mode=important`, which makes the
   destination independent of the last Mail tab.
 - Sync invalidation no longer kills paging on the mounted screen. Only cached,
@@ -43,10 +46,11 @@ owns scope). Keep it current as work proceeds.
   clearing the live screen's token on the sync invalidation. The fix skips
   connected nodes; the same test now passes.
 - Windows deployment (isolated data directory, no owner mailbox touched):
-  build `0.2.0-dev+20261105`, PID matched the runtime descriptor,
+  build `0.2.0-dev+20261105b`, PID matched the runtime descriptor,
   `/api/status` reported the same version, `/` and `/app.js` returned 200,
-  and the served bundle contained the prefill, mode and paging guards. The
-  app stopped through `POST /api/shutdown` (202), the process exited, and the
+  and the served bundle contained the prefill consumer, the cold-mount focus
+  guard, the Important mode and the connected-node paging guard. The app
+  stopped through `POST /api/shutdown` (202), the process exited, and the
   descriptor was removed. A fresh data directory reports `gate.allowed=false`
   until learning is opened, which is the expected first-run state.
 
