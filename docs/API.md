@@ -581,6 +581,24 @@ The profile also carries the evidence the Companies screen states:
 - `last_90_days` is `{messages, threads, active_days}` over the 90 days
   ending at the profile's build instant. Totals (`messages`, `sent`,
   `received`, `threads`) are all time.
+- `trend` is the organization's cadence evidence over two equal windows of
+  complete local calendar months, not trailing days: `trend.recent` is the
+  newest five complete months and `trend.baseline` the five complete months
+  before them; the build instant's partial month is never compared. With
+  less history both windows shrink together, down to one month each when two
+  complete months exist; fewer than two complete months form no window and
+  both `months` are `0`. `trend.recent` and `trend.baseline` each carry
+  `months`, `messages`, `sent`, `received` and `active_months`; a zero month
+  stays inside its window as an inactive month, never a missing one.
+  `trend.status` is `ok` only when both directions exchanged mail inside the
+  compared span (`trend.two_way`), at least six months of that span are
+  active and `trend.baseline.messages` is at least 12; otherwise it is
+  `insufficient_history` and still carries the counts it has.
+  `trend.days_since_inbound` and `trend.days_since_outbound` are whole days
+  from the build instant to the newest message of that direction, omitted
+  when that direction has no dated message. The field itself is omitted only
+  when the organization has no mail at all. These are evidence, never a
+  verdict about the organization.
 - `recent_total`, `open_threads_total`, `events_total` and `deadlines_total`
   are the full list sizes before the display caps. The arrays are capped at
   100 people, 20 recent messages, 20 open threads, 10 events and 20
