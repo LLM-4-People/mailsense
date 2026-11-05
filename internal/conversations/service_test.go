@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"reflect"
 	"runtime"
-	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -1083,7 +1082,7 @@ func TestPageRepeatedCallScansNothing(t *testing.T) {
 
 	// Facts shares that same snapshot generation and its company book, so it
 	// scans nothing either.
-	facts, err := svc.Facts(t.Context(), "", 12, 8)
+	facts, err := svc.Facts(t.Context(), "", 12)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1245,7 +1244,7 @@ func TestFactsRecentCutoffOrderAndCap(t *testing.T) {
 		m.ReceivedAt, m.SentOn = "", ""
 	})
 
-	facts, err := svc.Facts(t.Context(), "2026-11-03T00:00:00Z", 12, 8)
+	facts, err := svc.Facts(t.Context(), "2026-11-03T00:00:00Z", 12)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1262,7 +1261,7 @@ func TestFactsRecentCutoffOrderAndCap(t *testing.T) {
 		t.Fatalf("counts over the whole digest: %+v", facts.Counts)
 	}
 
-	facts, err = svc.Facts(t.Context(), "", 2, 8)
+	facts, err = svc.Facts(t.Context(), "", 2)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1270,7 +1269,7 @@ func TestFactsRecentCutoffOrderAndCap(t *testing.T) {
 		t.Fatalf("recent order/cap: total %d, %+v", facts.RecentTotal, facts.Recent)
 	}
 
-	facts, err = svc.Facts(t.Context(), "", 50, 8)
+	facts, err = svc.Facts(t.Context(), "", 50)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1282,7 +1281,7 @@ func TestFactsRecentCutoffOrderAndCap(t *testing.T) {
 func TestFactsInvalidSince(t *testing.T) {
 	svc, _, _, _ := newTestService(t, &fakePriority{})
 	for _, since := range []string{"yesterday", "2026-11-03", "2026-11-03T00:00:00", "soon"} {
-		if _, err := svc.Facts(t.Context(), since, 12, 8); !errors.Is(err, ErrInvalidSince) {
+		if _, err := svc.Facts(t.Context(), since, 12); !errors.Is(err, ErrInvalidSince) {
 			t.Fatalf("since %q: err %v, want ErrInvalidSince", since, err)
 		}
 	}
@@ -1290,12 +1289,11 @@ func TestFactsInvalidSince(t *testing.T) {
 
 func TestFactsEmptySnapshot(t *testing.T) {
 	svc, _, _, clk := newTestService(t, &fakePriority{})
-	facts, err := svc.Facts(t.Context(), "", 12, 8)
+	facts, err := svc.Facts(t.Context(), "", 12)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if facts.Total != 0 || facts.Recent == nil || len(facts.Recent) != 0 ||
-		facts.Organizations == nil || len(facts.Organizations) != 0 || facts.OrganizationsOpenTotal != 0 {
+	if facts.Total != 0 || facts.Recent == nil || len(facts.Recent) != 0 {
 		t.Fatalf("empty facts: %+v", facts)
 	}
 	if len(facts.Counts) != len(threadintel.States) {
@@ -1319,10 +1317,10 @@ func TestFactsReusesSnapshotWithinTTL(t *testing.T) {
 	svc, st, _, _ := newTestService(t, priority)
 	seedConversation(t, st, "c1", "C1", "Cached", "2026-11-05T09:00:00Z", nil)
 
-	if _, err := svc.Facts(t.Context(), "", 12, 8); err != nil {
+	if _, err := svc.Facts(t.Context(), "", 12); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := svc.Facts(t.Context(), "", 12, 8); err != nil {
+	if _, err := svc.Facts(t.Context(), "", 12); err != nil {
 		t.Fatal(err)
 	}
 	if calls := priority.callCount(); calls != 1 {
@@ -1349,102 +1347,17 @@ func TestFactsResolvesOrganizationWhenOwnerRepliedLast(t *testing.T) {
 		m.Recipients = []mail.Recipient{{Kind: mail.To, Name: "Client", Address: "client@client-exemple.test"}}
 	})
 
-	facts, err := svc.Facts(t.Context(), "", 12, 8)
+	facts, err := svc.Facts(t.Context(), "", 12)
 	if err != nil {
 		t.Fatal(err)
 	}
-	var found bool
-	for _, org := range facts.Organizations {
-		if org.Organization.Key == "d:client-exemple.test" {
-			found = true
-			if org.Conversations != 1 || org.AwaitingOwner != 0 {
-				t.Fatalf("sent-last rollup %+v", org)
-			}
-		}
+	if len(facts.Recent) != 1 {
+		t.Fatalf("recent %+v", facts.Recent)
 	}
-	if !found {
-		t.Fatalf("owner-last conversation lost its organization: %+v", facts.Organizations)
-	}
-}
-
-func TestFactsOrganizationRollupAndOrder(t *testing.T) {
-	states := map[string]threadintel.Assessment{
-		"C-beta":    stateFor("C-beta", threadintel.AwaitingOwner),
-		"C-alpha":   stateFor("C-alpha", threadintel.AwaitingOwner),
-		"C-delta":   stateFor("C-delta", threadintel.AwaitingOther),
-		"C-gamma":   stateFor("C-gamma", threadintel.AwaitingOther),
-		"C-epsilon": stateFor("C-epsilon", threadintel.NoAction),
-		"C-zeta":    stateFor("C-zeta", threadintel.NoAction),
-		"C-int":     stateFor("C-int", threadintel.AwaitingOwner),
-		"C-gmail":   stateFor("C-gmail", threadintel.AwaitingOwner),
-	}
-	svc, st, _, _ := newTestService(t, &fakePriority{states: states})
-	if err := st.SaveReported(t.Context(), store.StoreRef{SourceID: "src", StoreID: "store-1"},
-		[]string{"alex@acme.test"}); err != nil {
-		t.Fatal(err)
-	}
-	seedConversation(t, st, "b1", "C-beta", "Beta old", "2026-11-02T09:00:00Z", func(m *mail.Message) {
-		m.SenderName, m.SenderAddress = "Beta One", "one@beta.ca"
-	})
-	betaID := seedConversation(t, st, "b2", "C-beta", "Beta latest", "2026-11-03T09:00:00Z", func(m *mail.Message) {
-		m.SenderName, m.SenderAddress = "Beta Two", "two@beta.ca"
-	})
-	seedConversation(t, st, "a1", "C-alpha", "Alpha", "2026-11-01T09:00:00Z", func(m *mail.Message) {
-		m.SenderName, m.SenderAddress = "Alpha One", "one@alpha.ca"
-	})
-	seedConversation(t, st, "g1", "C-gamma", "Gamma", "2026-11-05T09:00:00Z", func(m *mail.Message) {
-		m.SenderName, m.SenderAddress = "Gamma One", "one@gamma.ca"
-	})
-	seedConversation(t, st, "d1", "C-delta", "Delta", "2026-11-06T09:00:00Z", func(m *mail.Message) {
-		m.SenderName, m.SenderAddress = "Delta One", "one@delta.ca"
-	})
-	seedConversation(t, st, "e1", "C-epsilon", "Epsilon", "2026-10-30T09:00:00Z", func(m *mail.Message) {
-		m.SenderName, m.SenderAddress = "Epsilon One", "one@epsilon.ca"
-	})
-	seedConversation(t, st, "z1", "C-zeta", "Zeta", "2026-10-30T09:00:00Z", func(m *mail.Message) {
-		m.SenderName, m.SenderAddress = "Zeta One", "one@zeta.ca"
-	})
-	seedConversation(t, st, "i1", "C-int", "Internal", "2026-11-07T09:00:00Z", func(m *mail.Message) {
-		m.SenderName, m.SenderAddress = "Colleague", "colleague@acme.test"
-	})
-	seedConversation(t, st, "u1", "C-gmail", "Unresolved", "2026-11-08T09:00:00Z", func(m *mail.Message) {
-		m.SenderName, m.SenderAddress = "Stranger", "stranger@gmail.com"
-	})
-
-	facts, err := svc.Facts(t.Context(), "", 12, 30)
-	if err != nil {
-		t.Fatal(err)
-	}
-	var keys []string
-	for _, org := range facts.Organizations {
-		keys = append(keys, org.Organization.Key)
-	}
-	want := []string{"d:beta.ca", "d:alpha.ca", "d:delta.ca", "d:gamma.ca", "d:epsilon.ca", "d:zeta.ca"}
-	if !slices.Equal(keys, want) {
-		t.Fatalf("organization order/cap %v, want %v", keys, want)
-	}
-	if facts.OrganizationsOpenTotal != 4 {
-		t.Fatalf("open organizations %d, want 4", facts.OrganizationsOpenTotal)
-	}
-	beta := facts.Organizations[0]
-	if beta.Conversations != 1 || beta.Messages != 2 || beta.AwaitingOwner != 1 || beta.AwaitingOther != 0 ||
-		beta.LastAt != "2026-11-03T09:00:00Z" || beta.LastMessageID != betaID || beta.LastSubject != "Beta latest" {
-		t.Fatalf("beta rollup: %+v (latest row %d)", beta, betaID)
-	}
-	for _, org := range facts.Organizations {
-		if org.Organization.Key == "d:acme.test" || org.Organization.Key == "d:gmail.com" {
-			t.Fatalf("an internal or unresolved sender became an organization: %+v", org)
-		}
-	}
-
-	capped, err := svc.Facts(t.Context(), "", 12, 2)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(capped.Organizations) != 2 ||
-		capped.Organizations[0].Organization.Key != "d:beta.ca" ||
-		capped.Organizations[1].Organization.Key != "d:alpha.ca" {
-		t.Fatalf("organization cap: %+v", capped.Organizations)
+	// The latest received sender still names the organization even though the
+	// owner sent the newest message; the Changed section links on it.
+	if org := facts.Recent[0].Organization; org == nil || org.Key != "d:client-exemple.test" {
+		t.Fatalf("owner-last conversation lost its organization: %+v", facts.Recent[0])
 	}
 }
 

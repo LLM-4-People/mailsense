@@ -134,13 +134,12 @@ func TestPageWireParityOnPackedFixture(t *testing.T) {
 	for _, tc := range []struct {
 		since  string
 		recent int
-		orgs   int
 	}{
-		{"", 5, 3},
-		{"2026-11-01T00:00:00Z", 5, 3},
-		{"2026-11-20T00:00:00Z", 5, 3},
+		{"", 5},
+		{"2026-11-01T00:00:00Z", 5},
+		{"2026-11-20T00:00:00Z", 5},
 	} {
-		facts, err := svc.Facts(t.Context(), tc.since, tc.recent, tc.orgs)
+		facts, err := svc.Facts(t.Context(), tc.since, tc.recent)
 		if err != nil {
 			t.Fatalf("facts %+v: %v", tc, err)
 		}

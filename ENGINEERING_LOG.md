@@ -5,6 +5,110 @@ changed, what was tried, what failed, and what comes next. It is not a changelog
 (the user-facing history lives in `CHANGELOG.md`) and not a plan (`docs/PLAN.md`
 owns scope). Keep it current as work proceeds.
 
+## Cycle: three-writer intelligence round (2026-11-04/05)
+
+### Shipped
+
+- PR #24 merges three isolated writer branches into `testing`: sync
+  invalidation coalescing (one pass per `sync.finished`, plus a preview flip
+  dropping the ranked, triage and conversation reads), topic-scoped local Ask
+  counts with classification coverage, and per-organization open loops from
+  the one deduped commitments build. The superseded conversations
+  organization rollup is deleted, so one obligation owner remains.
+- The generated UI bundle was regenerated from the merged sources; two
+  writers had touched `app.js` independently.
+
+### Verification
+
+- Each branch passed `make fast` in its own worktree; the integrated tree
+  passed `make fast` again (gofmt, scripts, generated bundles, PII, vet, 91
+  packages, sidecar, race).
+- Focused suites on the merged tree: `internal/subject`, `internal/priority`,
+  `internal/qa`, `internal/store`, `internal/ui`, `internal/conversations`,
+  `internal/brief`, `internal/commitments`, `internal/world`, `internal/api`,
+  `cmd/mailsense`.
+- Playwright on the affected flows: 51 tests across `ask`, `mail`, `hub` and
+  `completion-events` passed.
+- Baseline reproduction: reverting the shell sources to the merge base made
+  the new coalescing sandbox test fail; restoring the commit made it pass.
+
+### Deployment
+
+- Windows build `0.3.0-dev+20261105` on the isolated test host: PID matched
+  the runtime descriptor, `/api/status` reported the same version, `/` and
+  `/app.js` returned 200, and the bundle carried `syncFinishedTopics`, the
+  topic sentence, the coverage line and the topic intent branch.
+- The deployed binary answered `POST /api/ask "How many invoices?"` with
+  `mode=structured`, `intent=topic`, `topic=billing_account`,
+  `subtopic=invoice`, `count=0`, `classified=0`, `scanned=0`, no notice and no
+  citations: the new local path ran end to end on Windows with no generator.
+  The app then stopped through `POST /api/shutdown` (202) and its descriptor
+  was removed.
+
+### Next queue
+
+1. Uncertified-dimension notices for the remaining structured counts (a
+   priority category zero should disclose coverage like the topic count).
+2. Evidence-date deadlines: date pressure found in cited text must flow into
+   priority/commitments with its evidence.
+3. People profiles: one person view assembled from messages, commitments and
+   companies.
+4. Rendering the open-loops rollup in the Companies screen and Brief rows
+   (the server contract is in place; the UI still uses its local precedence).
+5. A memory byte budget for the shared view caches and the priority/semantic
+   path.
+
+## Cycle: topic-scoped local Ask counts (2026-11-04)
+
+### Shipped
+
+- Ask answers a plain count of one catalogue topic locally, with no model and
+  no second mailbox scan: "How many invoices?", "Combien de factures ?" and
+  "How many support requests?" read the topic census the priority ranking
+  already built. `internal/subject` owns the recognition table (whole topics
+  plus their main subtopics, EN and FR, longest alias wins, validated against
+  the catalogue) and `priority.TopicCensus` owns the counts.
+- The provider-less Auto gate and the Local route share one decision owner
+  (`providerlessCountIntent`), so the two cannot disagree about what a count
+  answers. Priority category counts keep their precedence: "How many
+  decisions?" and "How many urgent messages?" never become topic counts.
+- A zero topic count discloses its classification coverage (classified of
+  scanned): an empty topic is visibly different from a mailbox whose mail was
+  never classified, and a failed census read is an error, never a zero.
+- The answer is persisted with its path and coverage (migration 0038,
+  `qa_history.topic`), so a reopened or history-loaded answer states exactly
+  what it counted.
+- Two relation prepositions ("about", "sur") joined the plain-count filler
+  allowlist so "How many messages about invoices?" answers the topic count;
+  every scope noun after them still fails the allowlist.
+
+### Verification
+
+- `go test ./internal/subject/... ./internal/priority/... ./internal/qa/... ./internal/store/... -count=1`
+  and `go test ./internal/ui/... -count=1`.
+- `make fast`: gofmt, script syntax, generated UI bundles, PII scan, vet,
+  shards A/B/C, isolated sidecar suite, race shard.
+- New tests: EN/FR accept (invoices, factures, billing, projet, support
+  requests, about/sur), zero coverage with no citations, fail-closed controls
+  (this week, today, person frame, organization, reported action, repeated
+  alias, two categories, priority compound, unlisted scope, no count cue),
+  priority precedence, resolver-error deferral, census failure with no history
+  row, the alias boundary against priority and pinned scope words, the Local
+  route, and the persisted topic round trip (including strict decode).
+
+### Next queue
+
+1. Uncertified-dimension notices for the remaining structured counts: a
+   priority category zero should disclose its coverage like the topic count
+   now does.
+2. Evidence-date deadlines: date pressure found in cited text must flow into
+   priority/commitments with its evidence.
+3. Company open loops: unanswered owner obligations grouped by counterparty.
+4. People profiles: one person view assembled from messages, commitments and
+   companies.
+5. Performance: one invalidation fan-out owner and a memory budget for the
+   priority/semantic path.
+
 ## Cycle: public surface rebuild and intelligence hardening (2026-11-04/05)
 
 ### Shipped
@@ -53,6 +157,17 @@ owns scope). Keep it current as work proceeds.
   stopped through `POST /api/shutdown` (202), the process exited, and the
   descriptor was removed. A fresh data directory reports `gate.allowed=false`
   until learning is opened, which is the expected first-run state.
+
+### Merged and community state
+
+- PR #23 merged to `main` as `d90a35c`. Main `ci`, `actionlint`, `codeql` and
+  `scorecard` completed successfully; `pages` was not triggered because the
+  change touched no docs or site sources. `testing` is synced to `main`.
+- Three writer agents are working in isolated worktrees on non-overlapping
+  slices: sync invalidation coalescing (UI shell), topic-scoped local Ask
+  counts (subject/qa/store/Ask UI), and company open loops (commitments, brief,
+  world, API wire). Each must pass `make fast` in its worktree and is reviewed
+  and gated again during integration.
 
 ### Audits and their top findings
 

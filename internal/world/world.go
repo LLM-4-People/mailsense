@@ -19,6 +19,7 @@ import (
 	"github.com/LLM-4-People/mailsense/internal/agenda"
 	"github.com/LLM-4-People/mailsense/internal/calendar"
 	"github.com/LLM-4-People/mailsense/internal/clock"
+	"github.com/LLM-4-People/mailsense/internal/commitments"
 	"github.com/LLM-4-People/mailsense/internal/config"
 	"github.com/LLM-4-People/mailsense/internal/join"
 	"github.com/LLM-4-People/mailsense/internal/logx"
@@ -98,6 +99,11 @@ type (
 	CompanyActivity = store.CompanyActivity
 	CalendarEvent   = calendar.Event
 	Deadline        = agenda.Deadline
+	// OrganizationOpenLoops is the commitments service's per-counterparty
+	// open-loop rollup. It is an alias, not a copy: a company profile shows
+	// the commitment service's own row, so the company screen and the
+	// commitments screen can never disagree.
+	OrganizationOpenLoops = commitments.OrganizationOpenLoops
 )
 
 // Priority is the authoritative classifier-backed thread resolution. It is
@@ -106,22 +112,31 @@ type Priority interface {
 	ThreadStates(ctx context.Context) (map[string]threadintel.Assessment, error)
 }
 
+// OpenLoops is the commitments service's per-counterparty open-loop read. It
+// is optional: a nil provider, an empty result or a failed read leaves the
+// profile's open loops absent rather than failing the mail profile.
+type OpenLoops interface {
+	OpenLoops(ctx context.Context) (commitments.OrganizationOpenLoopsResult, error)
+}
+
 // Deps are the world service collaborators. Store and Config are required;
-// Priority and Clock are optional (the wall clock is the default).
+// Priority, OpenLoops and Clock are optional (the wall clock is the default).
 type Deps struct {
-	Store    *store.Store
-	Priority Priority
-	Config   *config.Config
-	Clock    clock.Clock
+	Store     *store.Store
+	Priority  Priority
+	OpenLoops OpenLoops
+	Config    *config.Config
+	Clock     clock.Clock
 }
 
 // Service composes the companies list and one company profile.
 type Service struct {
-	store    *store.Store
-	priority Priority
-	cfg      *config.Config
-	clock    clock.Clock
-	log      *slog.Logger
+	store     *store.Store
+	priority  Priority
+	openLoops OpenLoops
+	cfg       *config.Config
+	clock     clock.Clock
+	log       *slog.Logger
 
 	// mu guards the custom list cache only; profiles use their own viewcache
 	// lock. It is never held while a view is built, so a background refresh
@@ -173,7 +188,7 @@ func New(d Deps) (*Service, error) {
 	if d.Store == nil || d.Config == nil {
 		return nil, errors.New("world: a store and config are required")
 	}
-	s := &Service{store: d.Store, priority: d.Priority, cfg: d.Config, clock: clock.Or(d.Clock),
+	s := &Service{store: d.Store, priority: d.Priority, openLoops: d.OpenLoops, cfg: d.Config, clock: clock.Or(d.Clock),
 		log: logx.For("world")}
 	s.base, s.cancel = context.WithCancel(context.Background())
 	s.refreshes = join.New()
@@ -255,6 +270,12 @@ type ProfileView struct {
 
 	Events    []CalendarEvent `json:"events"`
 	Deadlines []Deadline      `json:"deadlines"`
+
+	// OpenLoops is the organization's open-loop rollup from the commitments
+	// service. A nil field means the source is not wired, the read failed or
+	// the organization has no open loop. The profile's one cache TTL means a
+	// stale profile can be one refresh behind the commitments view.
+	OpenLoops *OrganizationOpenLoops `json:"open_loops,omitempty"`
 
 	PeopleContacted int `json:"people_contacted"`
 	PeopleKnown     int `json:"people_known"`
@@ -477,6 +498,23 @@ func (s *Service) buildProfiles(ctx context.Context, keys []string, months, even
 		}
 		authoritative = states
 	}
+	// The commitments service owns the one open-loop read. It is an optional
+	// overlay: a missing source or a failed read leaves open_loops absent,
+	// never fails the mail profile. One read serves the whole batch; the
+	// profile's own stale-while-revalidate cache may serve a view one TTL
+	// behind the commitments service.
+	openLoops := map[string]OrganizationOpenLoops{}
+	if s.openLoops != nil {
+		loops, err := s.openLoops.OpenLoops(ctx)
+		if err != nil {
+			s.log.Warn("open loops unavailable for company profiles; leaving them out", "err", err)
+		} else {
+			openLoops = make(map[string]OrganizationOpenLoops, len(loops.Organizations))
+			for _, org := range loops.Organizations {
+				openLoops[org.Key] = org
+			}
+		}
+	}
 	read := store.CompanyProfileRead{}
 	if len(authoritative) > 0 {
 		read.SkipStates = func(conversationID string) bool {
@@ -514,7 +552,7 @@ func (s *Service) buildProfiles(ctx context.Context, keys []string, months, even
 		// the authoritative overlay it is stale, so recompute it from the
 		// counts this view actually serves.
 		openTotal := threadintel.OpenTotal(counts)
-		views[key] = ProfileView{
+		view := ProfileView{
 			GeneratedAt:      generatedAt,
 			Key:              profile.Key,
 			Label:            profile.Label,
@@ -545,6 +583,10 @@ func (s *Service) buildProfiles(ctx context.Context, keys []string, months, even
 			EventsTotal:      profile.EventsTotal,
 			DeadlinesTotal:   profile.DeadlinesTotal,
 		}
+		if loops, ok := openLoops[key]; ok {
+			view.OpenLoops = &loops
+		}
+		views[key] = view
 	}
 	return views, nil
 }

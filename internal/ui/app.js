@@ -4907,9 +4907,12 @@
       allRoutes: true,
     },
     // Turning the test preview on or off changes permission, the learning
-    // view and the gated screens. Nothing else about the data changed.
+    // view and every gated read whose snapshot is keyed by the preview rule:
+    // the ranked feed, the triage decisions, and the conversation states that
+    // feed resolves. Their reads and derived models drop with the mounted
+    // screens, so no screen paints a pre-flip snapshot.
     preview: {
-      reads: ["/api/learning", "/api/hub", "/api/gate"],
+      reads: ["/api/learning", "/api/hub", "/api/gate", "/api/priority", "/api/triage", "/api/conversations"],
       routes: ["hub", "brief", "learning", "mail", "companies", "labels", "answers"],
       refresh: ["hub", "brief", "learning", "mail", "companies", "labels", "answers"],
     },
@@ -5141,6 +5144,18 @@
       eventCount(details.completed) > 0;
   }
 
+  // syncFinishedTopics names every topic one finished sync changed. The hub's
+  // sync truth advances on every run, including one that wrote no mail, and a
+  // held removal can change without any other write. The mail topic only runs
+  // when the report says mail actually changed. The listener passes this union
+  // to invalidateTopics once, so a changed-mail run clears the shared
+  // /api/hub read in one cache and route pass instead of two.
+  function syncFinishedTopics(report) {
+    const topics = ["hub", "heldRemovals"];
+    if (syncChangedMail(report)) topics.push("mail");
+    return topics;
+  }
+
   // triageChangedMail reports whether a finished triage run stored a verdict.
   function triageChangedMail(report) {
     return eventCount(report && report.decided) + eventCount(report && report.partial) > 0;
@@ -5238,17 +5253,14 @@
     source.addEventListener("sync.finished", (event) => {
       let report = null;
       try { report = JSON.parse(event.data); } catch { report = null; }
-      // The hub's sync truth changes on every finished run, including a
-      // failed one that wrote no mail. Its topic owns that snapshot; the mail
-      // topic only runs when the report says mail actually changed.
-      invalidateTopics(["hub"]);
-      // A run that held a removal may have stored nothing else. Sources owns
-      // the confirmation card, so the list and its cached screen refresh even
-      // when the mail topic has no reason to run.
-      invalidateTopics(["heldRemovals"], { refresh: false });
+      // One finished run names every topic it changed in one pass: the hub's
+      // sync truth changes on every run, a held removal can change without a
+      // mail write, and the mail topic only runs when the report says mail
+      // actually changed. The union clears the shared /api/hub read once.
+      invalidateTopics(syncFinishedTopics(report));
+      // Sources owns the confirmation card, so its list still refreshes even
+      // when no other topic changed.
       scheduleSourcesRefresh();
-      if (!syncChangedMail(report)) return;
-      invalidateTopics(["mail"]);
     });
     source.addEventListener("triage.finished", (event) => {
       let report = null;
@@ -8041,6 +8053,14 @@
         ? t("ask.sentence.summary_today.none")
         : t("ask.sentence.summary_today", { count: total });
     }
+    if (intent === "topic") {
+      const topic = view.topic || {};
+      const label = subjectPathLabel(topic.topic, topic.subtopic);
+      const count = Number(topic.count) || 0;
+      return count === 0
+        ? t("ask.sentence.topic.none", { topic: label })
+        : t("ask.sentence.topic", { count, topic: label });
+    }
     const count = structuredCount(view);
     const key = "ask.sentence." + intent;
     if (intent === "sender" && count === 0) return t("ask.sentence.sender.none");
@@ -8693,12 +8713,6 @@
   // only it may link to provider settings; the other notices describe the
   // search index or the provider's response. Retry is an explicit click:
   // the composer never resubmits a question on its own.
-
-  // askNoticeCard renders the explicit retrieval fallback for one notice
-  // code. Only qa_unavailable means no answer provider is configured, so
-  // only it may link to provider settings; the other notices describe the
-  // search index or the provider's response. Retry is an explicit click:
-  // the composer never resubmits a question on its own.
   function askNoticeCard(view, options = {}) {
     const notice = String(view.notice || "");
     const identity = metaLine([String(view.provider || "").trim(), String(view.model || "").trim()]);
@@ -8814,6 +8828,13 @@
       if (view.notice === "answer_language") blocks.push(askNoticeCard(view, options));
     } else if (view.mode === "structured") {
       blocks.push(h("p", { class: "ask-sentence", dir: "auto", text: structuredSentence(view) }));
+      if (view.intent === "topic" && view.topic && Number(view.topic.scanned) > 0) {
+        blocks.push(h("p", { class: "fine ask-topic-coverage", text: t("ask.topic.coverage", {
+          count: Number(view.topic.classified) || 0,
+          classified: Number(view.topic.classified) || 0,
+          total: Number(view.topic.scanned),
+        }) }));
+      }
     } else {
       blocks.push(askNoticeCard(view, options));
     }

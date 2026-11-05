@@ -137,6 +137,43 @@ type Result struct {
 	GeneratedAt string         `json:"generated_at"`
 }
 
+// OrganizationItemCap bounds the Items list of one OrganizationOpenLoops row.
+// The organization's Total and partition counts stay uncapped so a consumer
+// can state "20 of 27 shown" honestly instead of presenting the cap as the
+// total.
+const OrganizationItemCap = 20
+
+// OrganizationOpenLoops is one counterparty's share of the deduped set:
+// every open loop whose evidence names that organization. Owner, Other,
+// Overdue and StoredDue partition Total; Kinds always carries every kind key
+// (zero when absent), and Items is never null.
+//
+// StoredDue counts items whose surviving evidence carries the stored
+// follow-up source, which is not the same set as Kinds["due"]: dedupe keeps
+// the strongest kind and can fold a stored due date into a reply, decision or
+// action row, and a due item may have the source without a date.
+type OrganizationOpenLoops struct {
+	Key       string         `json:"key"`
+	Label     string         `json:"label"`
+	Total     int            `json:"total"`
+	Owner     int            `json:"owner"`
+	Other     int            `json:"other"`
+	Overdue   int            `json:"overdue"`
+	StoredDue int            `json:"stored_due"`
+	Kinds     map[string]int `json:"kinds"`
+	Items     []Commitment   `json:"items"`
+}
+
+// OrganizationOpenLoopsResult is the whole deduped set grouped by
+// counterparty, in the deterministic order indexOpenLoops defines. Total is
+// the number of organizations with at least one open loop, not the number of
+// loops; each organization's own Total carries its loop count.
+type OrganizationOpenLoopsResult struct {
+	GeneratedAt   string                  `json:"generated_at"`
+	Total         int                     `json:"total"`
+	Organizations []OrganizationOpenLoops `json:"organizations"`
+}
+
 // Page bounds.
 const (
 	DefaultLimit = 100
@@ -248,6 +285,7 @@ type snapshot struct {
 	at       time.Time
 	items    []Commitment
 	counts   map[string]int
+	loops    []OrganizationOpenLoops
 }
 
 // New returns a commitments service. It does not read the store.
@@ -289,13 +327,7 @@ func (s *Service) List(ctx context.Context, f Filter) (Result, error) {
 	}
 	gen, routeGen := s.store.MailGeneration(), s.store.RouteGeneration()
 	now := s.clock.Now()
-	c, err := s.cache.Get(ctx, struct{}{}, func(ctx context.Context) (snapshot, error) {
-		built, err := s.build(ctx, gen, routeGen, now)
-		if err != nil {
-			return snapshot{}, err
-		}
-		return *built, nil
-	})
+	c, err := s.load(ctx, gen, routeGen, now)
 	if err != nil {
 		return Result{}, err
 	}
@@ -308,6 +340,40 @@ func (s *Service) List(ctx context.Context, f Filter) (Result, error) {
 		Counts:      maps.Clone(c.counts),
 		GeneratedAt: c.at.UTC().Format(time.RFC3339),
 	}, nil
+}
+
+// OpenLoops returns the same deduped set grouped by counterparty, in the
+// order indexOpenLoops defines. It reads the one cache List reads: one build
+// serves both, so a company's open loops and the commitment list can never
+// disagree about what the set holds.
+func (s *Service) OpenLoops(ctx context.Context) (OrganizationOpenLoopsResult, error) {
+	if s == nil || s.store == nil {
+		return OrganizationOpenLoopsResult{}, errors.New("commitments: a store is required")
+	}
+	gen, routeGen := s.store.MailGeneration(), s.store.RouteGeneration()
+	now := s.clock.Now()
+	c, err := s.load(ctx, gen, routeGen, now)
+	if err != nil {
+		return OrganizationOpenLoopsResult{}, err
+	}
+	return OrganizationOpenLoopsResult{
+		GeneratedAt:   c.at.UTC().Format(time.RFC3339),
+		Total:         len(c.loops),
+		Organizations: cloneOpenLoops(c.loops),
+	}, nil
+}
+
+// load reads or builds the one cached set. The build is pinned to the
+// generations and the instant the caller sampled before the read, so the
+// refreshed entry and the served-stale entry stay coherent.
+func (s *Service) load(ctx context.Context, gen, routeGen uint64, now time.Time) (snapshot, error) {
+	return s.cache.Get(ctx, struct{}{}, func(ctx context.Context) (snapshot, error) {
+		built, err := s.build(ctx, gen, routeGen, now)
+		if err != nil {
+			return snapshot{}, err
+		}
+		return *built, nil
+	})
 }
 
 // build computes one complete set without touching the cache or its lock.
@@ -343,7 +409,8 @@ func (s *Service) build(ctx context.Context, gen, routeGen uint64, now time.Time
 	items = append(items, actions...)
 	items = dedupe(items)
 	sortItems(items)
-	return &snapshot{gen: gen, routeGen: routeGen, at: now, items: items, counts: countItems(items)}, nil
+	return &snapshot{gen: gen, routeGen: routeGen, at: now, items: items,
+		counts: countItems(items), loops: indexOpenLoops(items)}, nil
 }
 
 // dueItems reads stored follow-up dates inside the v1 window. A due date
@@ -818,6 +885,100 @@ func countItems(items []Commitment) map[string]int {
 		counts[string(c.Status)]++
 	}
 	return counts
+}
+
+// indexOpenLoops groups the deduped, sorted set by counterparty. It is pure
+// and runs once per build, after sortItems, so every per-organization Items
+// list reuses that one ordering and OpenLoops can never disagree with List
+// about which loop is first. An item without an organization key is excluded:
+// a bare person is not a counterparty a company screen can open.
+//
+// Organizations are ordered overdue-first, then by their first loop's instant
+// ascending with missing instants last (the sortItems rule), then by key. An
+// organization's counts cover all its items; Items carries at most
+// OrganizationItemCap of them.
+func indexOpenLoops(items []Commitment) []OrganizationOpenLoops {
+	index := make(map[string]int, 8)
+	out := make([]OrganizationOpenLoops, 0, 8)
+	for _, c := range items {
+		if c.OrganizationKey == "" {
+			continue
+		}
+		i, ok := index[c.OrganizationKey]
+		if !ok {
+			i = len(out)
+			index[c.OrganizationKey] = i
+			kinds := make(map[string]int, len(Kinds))
+			for _, k := range Kinds {
+				kinds[string(k)] = 0
+			}
+			out = append(out, OrganizationOpenLoops{
+				Key:   c.OrganizationKey,
+				Label: c.OrganizationLabel,
+				Kinds: kinds,
+			})
+		}
+		org := &out[i]
+		if org.Label == "" {
+			org.Label = c.OrganizationLabel
+		}
+		org.Total++
+		switch c.Direction {
+		case DirectionOwner:
+			org.Owner++
+		case DirectionOther:
+			org.Other++
+		}
+		if c.Status == StatusOverdue {
+			org.Overdue++
+		}
+		if c.DueSource == string(action.DueStored) {
+			org.StoredDue++
+		}
+		org.Kinds[string(c.Kind)]++
+		if len(org.Items) < OrganizationItemCap {
+			org.Items = append(org.Items, c)
+		}
+	}
+	sort.SliceStable(out, func(i, j int) bool {
+		a, b := out[i], out[j]
+		if (a.Overdue > 0) != (b.Overdue > 0) {
+			return a.Overdue > 0
+		}
+		at, aok := orgInstant(a)
+		bt, bok := orgInstant(b)
+		if aok != bok {
+			return aok
+		}
+		if aok && !at.Equal(bt) {
+			return at.Before(bt)
+		}
+		return a.Key < b.Key
+	})
+	return out
+}
+
+// orgInstant is when an organization's first loop matters, using the same
+// instant rule as sortItems; an organization whose first loop has no instant
+// sorts after the dated ones.
+func orgInstant(org OrganizationOpenLoops) (time.Time, bool) {
+	if len(org.Items) == 0 {
+		return time.Time{}, false
+	}
+	return instant(org.Items[0])
+}
+
+// cloneOpenLoops copies the grouped set, including every item's evidence and
+// every kind map, so a caller cannot mutate the cached build. An empty set
+// stays an empty non-nil slice, never null.
+func cloneOpenLoops(orgs []OrganizationOpenLoops) []OrganizationOpenLoops {
+	out := make([]OrganizationOpenLoops, len(orgs))
+	for i, org := range orgs {
+		org.Items = cloneItems(org.Items)
+		org.Kinds = maps.Clone(org.Kinds)
+		out[i] = org
+	}
+	return out
 }
 
 func filterItems(items []Commitment, f Filter) []Commitment {

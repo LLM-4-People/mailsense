@@ -4765,51 +4765,6 @@
             "Declared": false
           }
         }
-      ],
-      "OrganizationsOpenTotal": 3,
-      "Organizations": [
-        {
-          "Organization": {
-            "Key": "c:atelier nord",
-            "Label": "Atelier Nord",
-            "Declared": true
-          },
-          "Conversations": 14,
-          "Messages": 14,
-          "AwaitingOwner": 7,
-          "AwaitingOther": 0,
-          "LastAt": "2026-11-28T04:00:00Z",
-          "LastMessageID": 28,
-          "LastSubject": "Invoice item 28"
-        },
-        {
-          "Organization": {
-            "Key": "d:example.org",
-            "Label": "example.org",
-            "Declared": false
-          },
-          "Conversations": 21,
-          "Messages": 21,
-          "AwaitingOwner": 0,
-          "AwaitingOther": 6,
-          "LastAt": "2026-11-27T03:00:00Z",
-          "LastMessageID": 27,
-          "LastSubject": "Budget item 27"
-        },
-        {
-          "Organization": {
-            "Key": "c:beta works",
-            "Label": "Beta Works",
-            "Declared": true
-          },
-          "Conversations": 5,
-          "Messages": 5,
-          "AwaitingOwner": 0,
-          "AwaitingOther": 1,
-          "LastAt": "2026-11-26T02:00:00Z",
-          "LastMessageID": 26,
-          "LastSubject": "Invoice item 26"
-        }
       ]
     },
     {
@@ -4941,51 +4896,6 @@
             "Declared": false
           }
         }
-      ],
-      "OrganizationsOpenTotal": 3,
-      "Organizations": [
-        {
-          "Organization": {
-            "Key": "c:atelier nord",
-            "Label": "Atelier Nord",
-            "Declared": true
-          },
-          "Conversations": 14,
-          "Messages": 14,
-          "AwaitingOwner": 7,
-          "AwaitingOther": 0,
-          "LastAt": "2026-11-28T04:00:00Z",
-          "LastMessageID": 28,
-          "LastSubject": "Invoice item 28"
-        },
-        {
-          "Organization": {
-            "Key": "d:example.org",
-            "Label": "example.org",
-            "Declared": false
-          },
-          "Conversations": 21,
-          "Messages": 21,
-          "AwaitingOwner": 0,
-          "AwaitingOther": 6,
-          "LastAt": "2026-11-27T03:00:00Z",
-          "LastMessageID": 27,
-          "LastSubject": "Budget item 27"
-        },
-        {
-          "Organization": {
-            "Key": "c:beta works",
-            "Label": "Beta Works",
-            "Declared": true
-          },
-          "Conversations": 5,
-          "Messages": 5,
-          "AwaitingOwner": 0,
-          "AwaitingOther": 1,
-          "LastAt": "2026-11-26T02:00:00Z",
-          "LastMessageID": 26,
-          "LastSubject": "Invoice item 26"
-        }
       ]
     },
     {
@@ -5116,51 +5026,6 @@
             "Label": "example.org",
             "Declared": false
           }
-        }
-      ],
-      "OrganizationsOpenTotal": 3,
-      "Organizations": [
-        {
-          "Organization": {
-            "Key": "c:atelier nord",
-            "Label": "Atelier Nord",
-            "Declared": true
-          },
-          "Conversations": 14,
-          "Messages": 14,
-          "AwaitingOwner": 7,
-          "AwaitingOther": 0,
-          "LastAt": "2026-11-28T04:00:00Z",
-          "LastMessageID": 28,
-          "LastSubject": "Invoice item 28"
-        },
-        {
-          "Organization": {
-            "Key": "d:example.org",
-            "Label": "example.org",
-            "Declared": false
-          },
-          "Conversations": 21,
-          "Messages": 21,
-          "AwaitingOwner": 0,
-          "AwaitingOther": 6,
-          "LastAt": "2026-11-27T03:00:00Z",
-          "LastMessageID": 27,
-          "LastSubject": "Budget item 27"
-        },
-        {
-          "Organization": {
-            "Key": "c:beta works",
-            "Label": "Beta Works",
-            "Declared": true
-          },
-          "Conversations": 5,
-          "Messages": 5,
-          "AwaitingOwner": 0,
-          "AwaitingOther": 1,
-          "LastAt": "2026-11-26T02:00:00Z",
-          "LastMessageID": 26,
-          "LastSubject": "Invoice item 26"
         }
       ]
     }

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/LLM-4-People/mailsense/internal/calendar"
+	"github.com/LLM-4-People/mailsense/internal/commitments"
 	"github.com/LLM-4-People/mailsense/internal/threadintel"
 	worldsvc "github.com/LLM-4-People/mailsense/internal/world"
 )
@@ -99,6 +100,17 @@ func profileWireFixture() worldsvc.ProfileView {
 			SenderName: "Ada Lovelace", Due: at.Add(48 * time.Hour),
 			Participants: []string{"ada@acme.test"},
 		}},
+		OpenLoops: &worldsvc.OrganizationOpenLoops{
+			Key: "c:acme", Label: "Acme", Total: 3, Owner: 2, Other: 1, Overdue: 1, StoredDue: 1,
+			Kinds: map[string]int{"due": 2, "reply": 1, "decision": 0, "action": 0},
+			Items: []commitments.Commitment{{
+				ID: "loop-1", Kind: commitments.KindDue, Direction: commitments.DirectionOwner,
+				Status: commitments.StatusOverdue, Title: "Synthetic renewal", Subject: "Synthetic renewal",
+				ConversationID: "conv-acme", MessageID: 42,
+				OrganizationKey: "c:acme", OrganizationLabel: "Acme", Person: "ada@acme.test",
+				Evidence: []int64{42}, DueSource: "stored",
+			}},
+		},
 		PeopleContacted: 2, PeopleKnown: 4,
 		AddressesTotal: 2, RecentTotal: 3, OpenThreadsTotal: 4, EventsTotal: 5, DeadlinesTotal: 6,
 	}
@@ -129,7 +141,12 @@ func TestCompanyProfileWireKeepsEveryReadField(t *testing.T) {
 		"events.0.attendee_count",
 		"deadlines.0.message_id", "deadlines.0.subject", "deadlines.0.sender_name",
 		"deadlines.0.due",
-		"people_contacted", "people_known", "recent_total", "events_total", "deadlines_total",
+		"open_loops.key", "open_loops.label", "open_loops.total", "open_loops.owner",
+		"open_loops.other", "open_loops.overdue", "open_loops.stored_due", "open_loops.kinds.due",
+		"open_loops.items.0.id", "open_loops.items.0.kind", "open_loops.items.0.status",
+		"open_loops.items.0.title", "open_loops.items.0.message_id", "open_loops.items.0.evidence.0",
+		"people_contacted", "people_known", "recent_total", "open_threads_total",
+		"events_total", "deadlines_total",
 	}
 	for _, path := range kept {
 		if _, ok := jsonAtPath(body, path); !ok {
@@ -139,6 +156,12 @@ func TestCompanyProfileWireKeepsEveryReadField(t *testing.T) {
 	if got, ok := jsonAtPath(body, "events.0.attendee_count"); !ok || got != float64(3) {
 		t.Fatalf("attendee_count = %v (present %v), want 3", got, ok)
 	}
+	if got, ok := jsonAtPath(body, "open_threads_total"); !ok || got != float64(4) {
+		t.Fatalf("open_threads_total = %v (present %v), want 4", got, ok)
+	}
+	if got, ok := jsonAtPath(body, "open_loops.total"); !ok || got != float64(3) {
+		t.Fatalf("open_loops.total = %v (present %v), want 3", got, ok)
+	}
 }
 
 // Fields the world service keeps for Q&A and the thread resolver must not
@@ -146,7 +169,7 @@ func TestCompanyProfileWireKeepsEveryReadField(t *testing.T) {
 func TestCompanyProfileWireDropsServiceOnlyFields(t *testing.T) {
 	body := wireObject(t, CompanyProfileViewOf(profileWireFixture()))
 	dropped := []string{
-		"key", "addresses", "addresses_total", "open_threads_total",
+		"key", "addresses", "addresses_total",
 		"people.0.company",
 		"last_90_days.sent", "last_90_days.received",
 		"recent.0.conversation_id", "open_threads.0.conversation_id",
@@ -184,6 +207,42 @@ func TestCompanyProfileWireZeroValueKeepsArrays(t *testing.T) {
 				t.Fatalf("%s = %#v, want an array", path, value)
 			}
 		}
+	}
+}
+
+// The open-loops rollup keeps the same contract: a present rollup always
+// carries an items array, an item always carries an evidence array and the
+// kind map is always an object, even for the zero value. A profile without a
+// rollup omits the field rather than sending null.
+func TestCompanyProfileWireOpenLoopsArraysAreNeverNull(t *testing.T) {
+	body := wireObject(t, CompanyProfileViewOf(worldsvc.ProfileView{OpenLoops: &worldsvc.OrganizationOpenLoops{
+		Items: []commitments.Commitment{{ID: "loop-1"}},
+	}}))
+	if items, ok := jsonAtPath(body, "open_loops.items"); !ok {
+		t.Fatal("open_loops dropped its items")
+	} else if _, ok := items.([]any); !ok {
+		t.Fatalf("open_loops.items = %#v, want an array", items)
+	}
+	if kinds, ok := jsonAtPath(body, "open_loops.kinds"); !ok {
+		t.Fatal("open_loops dropped its kinds")
+	} else if _, ok := kinds.(map[string]any); !ok {
+		t.Fatalf("open_loops.kinds = %#v, want an object", kinds)
+	}
+	if evidence, ok := jsonAtPath(body, "open_loops.items.0.evidence"); !ok {
+		t.Fatal("open_loops dropped an item's evidence")
+	} else if _, ok := evidence.([]any); !ok {
+		t.Fatalf("open_loops.items.0.evidence = %#v, want an array", evidence)
+	}
+
+	empty := wireObject(t, CompanyProfileViewOf(worldsvc.ProfileView{OpenLoops: &worldsvc.OrganizationOpenLoops{}}))
+	if items, ok := jsonAtPath(empty, "open_loops.items"); !ok {
+		t.Fatal("the zero rollup dropped its items")
+	} else if _, ok := items.([]any); !ok {
+		t.Fatalf("zero open_loops.items = %#v, want an array", items)
+	}
+	absent := wireObject(t, CompanyProfileViewOf(worldsvc.ProfileView{}))
+	if _, ok := jsonAtPath(absent, "open_loops"); ok {
+		t.Fatal("a profile without a rollup still carries open_loops")
 	}
 }
 
