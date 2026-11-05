@@ -28,9 +28,9 @@ title: Privacy
 
 Mailsense is local-first. The live source is the classic Outlook profile already
 open on your Windows machine. Mailsense does not ask for Microsoft credentials,
-does not create an account, and has no vendor backend. The local runtime
-computes embeddings on your machine; classification and routing are local Go
-code, not a cloud service.
+does not create an account, and has no vendor backend. The store, the index, the
+learned classifier and the routing run on your machine; the section below lists
+the only requests that can leave it.
 
 ## What stays on your machine
 
@@ -46,20 +46,31 @@ Mailsense makes four kinds of network request, and only for the reasons below:
 1. **Local runtime download.** When you start the local runtime for the first
    time, it downloads its artifacts and model from the pinned URLs recorded in
    the app, and verifies each SHA-256 before use.
-2. **A remote provider request.** Only when you configure a remote provider and
-   a call runs. The request contains the question when Ask writes an answer, and
-   the message fields that call needs. The provider's terms apply. Settings,
-   Providers names the endpoint and the model. Automatic triage can make this
-   call after a sync without a screen asking; a provider test makes one small
-   call when you press Test.
+2. **A provider request.** Only through a role you select. The app ships no
+   provider record: a role with no record makes no call and reports what is
+   missing. Settings, Providers names the four roles, the record each one uses
+   and the fields each call carries; [Ask](ask.md) lists what a written answer
+   sends. Automatic triage and the index pass that follows a sync can start a
+   call without a screen asking when their role is configured, and a provider
+   test makes one small fixed call when you press Test. The provider's terms
+   apply.
 3. **A provider model list.** Only when you ask the Providers screen to fetch the
    models a provider offers.
 4. **Nothing else.** No telemetry, no analytics, no update ping, no hidden
    request.
 
-The local runtime serves embeddings on your machine. Classification, evidence
-and routing run as local Go code. A remote provider does not keep a request
-local; its terms govern what it does with what you send.
+Embeddings have a default of their own. On first start the app selects the
+pinned local embedder, and the local runtime computes embeddings in a process on
+your machine: the subject and body of each message it indexes, and the text of
+each question or search it embeds, stay on the machine. If you point
+`embed.provider` at a remote service instead, those fields are sent to it, once
+per newly indexed message and once per search. The index pass follows a sync
+that stored new mail, by default (`index.after_sync`), so a remote embedder is
+called without a screen asking.
+
+The learned classifier, the evidence it reads and the routing run in the app. A
+remote provider does not keep a request local; its terms govern what it does
+with what you send.
 
 ## Learning
 

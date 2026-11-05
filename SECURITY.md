@@ -29,4 +29,6 @@ mitigation within thirty days for confirmed issues.
 - Logs are redacted before they are written. There is no diagnostics export
   bundle.
 - Remote model calls are opt-in. The provider record names the endpoint and the
-  model, and the request fields are documented on the privacy page.
+  model. The [privacy page](docs/privacy.md) lists the request fields and when a
+  call runs; the [security page](docs/security.md) states the mail-rendering
+  boundary and the limit of a model-written answer.

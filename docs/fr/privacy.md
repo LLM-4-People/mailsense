@@ -31,8 +31,8 @@ lang: fr
 Mailsense fonctionne d'abord en local. La source en direct est le profil Outlook
 classique déjà ouvert sur votre machine Windows. Mailsense ne demande pas
 d'identifiants Microsoft, ne crée pas de compte et n'a pas de service central.
-Le moteur local calcule les embeddings sur votre machine ; la classification et
-le routage sont du code Go local, pas un service infonuagique.
+Le stockage, les index, le classifieur appris et le routage restent sur votre
+machine ; la section suivante liste les seules requêtes qui peuvent en sortir.
 
 ## Ce qui reste sur votre machine
 
@@ -49,22 +49,33 @@ suivantes :
 1. **Téléchargement du moteur local.** Au premier lancement du moteur, ses
    fichiers et son modèle sont téléchargés depuis les adresses épinglées dans
    l'application, puis chaque empreinte SHA-256 est vérifiée.
-2. **Requête à un fournisseur distant.** Seulement si vous configurez un
-   fournisseur distant et qu'un appel s'exécute. La requête contient la question
-   quand Ask rédige une réponse, et les champs du message dont cet appel a
-   besoin. Les conditions du fournisseur s'appliquent. Réglages, Fournisseurs
-   indique l'adresse et le modèle. Le triage automatique peut faire cet appel
-   après une synchronisation sans qu'un écran le demande ; le test d'un
-   fournisseur fait un petit appel quand vous cliquez sur Tester.
+2. **Requête à un fournisseur.** Seulement par un rôle que vous avez choisi.
+   L'application ne livre aucun fournisseur : un rôle sans enregistrement ne
+   fait aucun appel et indique ce qui manque. Réglages, Fournisseurs nomme les
+   quatre rôles, la fiche de chacun et les champs que chaque appel porte ;
+   [Demander](ask.md) liste ce qu'envoie une réponse écrite. Le triage
+   automatique et la passe d'indexation qui suit une synchronisation peuvent
+   faire un appel sans qu'un écran le demande quand leur rôle est configuré, et
+   le test d'un fournisseur fait un petit appel fixe quand vous cliquez sur
+   Tester. Les conditions du fournisseur s'appliquent.
 3. **Liste de modèles d'un fournisseur.** Seulement quand vous demandez à
    l'écran Fournisseurs de récupérer les modèles offerts.
 4. **Rien d'autre.** Aucune télémétrie, aucune analyse, aucun appel de mise à
    jour, aucune requête cachée.
 
-Le moteur local calcule les embeddings sur votre machine. La classification, la
-preuve et le routage sont du code Go local. Un fournisseur distant ne garde pas
-la requête en local ; ses conditions régissent ce qu'il fait de ce que vous lui
-envoyez.
+Les embeddings ont leur propre défaut. Au premier démarrage, l'application
+sélectionne l'embeddeur local épinglé, et le moteur local calcule les embeddings
+dans un processus sur votre machine : l'objet et le corps de chaque message
+indexé, ainsi que le texte de chaque question ou recherche qu'il encode,
+restent sur la machine. Si vous pointez plutôt `embed.provider` vers un service
+distant, ces champs lui sont envoyés, une fois par message nouvellement indexé
+et une fois par recherche. La passe d'indexation suit une synchronisation qui a
+stocké du nouveau courrier, par défaut (`index.after_sync`) : un embeddeur
+distant est donc appelé sans qu'un écran le demande.
+
+Le classifieur appris, les preuves qu'il lit et le routage s'exécutent dans
+l'application. Un fournisseur distant ne garde pas la requête en local ; ses
+conditions régissent ce qu'il fait de ce que vous lui envoyez.
 
 ## Apprentissage
 
