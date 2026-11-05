@@ -5,8 +5,11 @@ package desktop
 import (
 	"errors"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
+	"time"
 )
 
 func TestOpenWithoutDisplayIsNotAnError(t *testing.T) {
@@ -76,5 +79,58 @@ func TestLauncherReceivesNoToken(t *testing.T) {
 	}
 	if !strings.Contains(string(body), target) {
 		t.Fatalf("bootstrap page does not redirect to the app: %s", body)
+	}
+}
+
+// TestLauncherEnvironmentStripsMailsense: the browser launcher inherits
+// only what a GUI tool needs. Its process tree must not carry the app's
+// MAILSENSE_* variables (secrets and credential-bearing overrides), while
+// PATH, the XDG session handles and the locale still arrive.
+func TestLauncherEnvironmentStripsMailsense(t *testing.T) {
+	if runtime.GOOS != "linux" {
+		t.Skip("the fake launcher replaces xdg-open on PATH")
+	}
+	dir := t.TempDir()
+	dump := filepath.Join(dir, "env.txt")
+	script := "#!/bin/sh\nenv > \"$(dirname \"$0\")/env.txt\"\n"
+	if err := os.WriteFile(filepath.Join(dir, "xdg-open"), []byte(script), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("PATH", dir+string(os.PathListSeparator)+os.Getenv("PATH"))
+	t.Setenv("MAILSENSE_SECRET_LEAK", "s3cret")
+	t.Setenv("MAILSENSE_URL", "https://example.invalid")
+	t.Setenv("XDG_DATA_DIRS", "/xdg/from/test")
+	t.Setenv("LANG", "C.UTF-8")
+	t.Setenv("HOME", "/home/test")
+
+	if err := launchBrowser("http://127.0.0.1:54321/#token=abc"); err != nil {
+		t.Fatal(err)
+	}
+	deadline := time.Now().Add(5 * time.Second)
+	var raw []byte
+	for {
+		var err error
+		if raw, err = os.ReadFile(dump); err == nil {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("the fake launcher captured no environment: %v", err)
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	env := map[string]string{}
+	for _, kv := range strings.Split(string(raw), "\n") {
+		if name, value, ok := strings.Cut(kv, "="); ok {
+			env[name] = value
+		}
+	}
+	for name := range env {
+		if strings.HasPrefix(strings.ToUpper(name), "MAILSENSE_") {
+			t.Errorf("%s reached the browser launcher", name)
+		}
+	}
+	if env["PATH"] == "" || env["XDG_DATA_DIRS"] != "/xdg/from/test" || env["LANG"] != "C.UTF-8" || env["HOME"] != "/home/test" {
+		t.Fatalf("the launcher lost a GUI variable: PATH=%q XDG_DATA_DIRS=%q LANG=%q HOME=%q",
+			env["PATH"], env["XDG_DATA_DIRS"], env["LANG"], env["HOME"])
 	}
 }

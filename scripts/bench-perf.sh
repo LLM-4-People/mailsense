@@ -94,6 +94,7 @@ MAILSENSE_DATA_DIR="$abs_store" GOMAXPROCS=4 DISPLAY= "$bin" >"$out/app.log" 2>&
 pid=$!
 desc="$abs_store/runtime/api.json"
 ready_ms=""
+cfg=""
 for _ in $(seq 1 1200); do
 	if ! kill -0 "$pid" 2>/dev/null; then die "the app exited before it was ready (see $out/app.log)"; fi
 	if [[ -f "$desc" ]]; then
@@ -103,7 +104,15 @@ d = json.load(open(sys.argv[1]))
 print(d["url"].rstrip("/"), d["token"])
 PY
 )
-		if curl -sS --max-time 2 -H "Authorization: Bearer $token" -o /dev/null "$base/api/status" 2>/dev/null; then
+		# The bearer header travels in a 0600 curl config, never an argv:
+		# the token is a secret and a process list must not carry it.
+		if [[ -z "$cfg" ]]; then
+			cfg="$work/curl.cfg"
+			if [[ -z "$work" ]]; then cfg="$(mktemp)"; tmp_files+=("$cfg"); fi
+			printf 'header = "Authorization: Bearer %s"\n' "$token" >"$cfg"
+			chmod 600 "$cfg"
+		fi
+		if curl -sS --config "$cfg" --max-time 2 -o /dev/null "$base/api/status" 2>/dev/null; then
 			ready_ms=$((( $(date +%s%N) - start_ns ) / 1000000))
 			break
 		fi
@@ -112,11 +121,6 @@ PY
 done
 [[ -n "$ready_ms" ]] || die "the app did not become ready (see $out/app.log)"
 [[ "$base" =~ ^http://127\.0\.0\.1:[0-9]+$ ]] || die "unexpected API URL"
-
-cfg="$work/curl.cfg"
-if [[ -z "$work" ]]; then cfg="$(mktemp)"; tmp_files+=("$cfg"); fi
-printf 'header = "Authorization: Bearer %s"\n' "$token" >"$cfg"
-chmod 600 "$cfg"
 
 tsv="$work/metrics.tsv"
 if [[ -z "$work" ]]; then tsv="$(mktemp)"; tmp_files+=("$tsv"); fi
@@ -148,17 +152,16 @@ warm "/api/status"
 warm "/api/status"
 warm "/api/learning"
 # The prepared route must be visible: a wrong storage key measures an empty
-# page and reports a meaningless budget. Ask once and require rows.
-python3 - "$base" "$token" <<'PY'
-import json, sys, urllib.request
-base, token = sys.argv[1], sys.argv[2]
-req = urllib.request.Request(base + "/api/triage?limit=50&offset=0",
-                             headers={"Authorization": "Bearer " + token})
-body = json.load(urllib.request.urlopen(req, timeout=30))
+# page and reports a meaningless budget. Ask once and require rows; the body
+# reaches python on stdin, so the token stays in the curl config alone.
+curl -sS --config "$cfg" --max-time 30 "$base/api/triage?limit=50&offset=0" |
+	python3 -c '
+import json, sys
+body = json.load(sys.stdin)
 if not body.get("total"):
     raise SystemExit("the prepared triage page is empty: the fixture route key does not match the app")
 print("triage rows visible:", body.get("total"))
-PY
+'
 warm "/api/triage?limit=50&offset=0"
 warm "/api/triage/summary"
 warm "/api/search?q=facture"
