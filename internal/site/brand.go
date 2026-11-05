@@ -8,6 +8,10 @@ import (
 
 // The brand palette. One declaration feeds every generated asset and the
 // stylesheet, so a colour cannot drift between the mark and the page.
+//
+// These are the light primitives: the assets draw with them and the semantic
+// token table below starts from them. The dark values live in the table only;
+// the mark and the banner keep their own ink surface in both themes.
 const (
 	ink   = "#0b191a"
 	ink2  = "#12282a"
@@ -23,11 +27,88 @@ const (
 	muted    = "#5f706c"
 	mist     = "#9db3ae"
 	rule     = "#ded4c3"
+	// mintWash is the guarantee panel and washRule is its border.
+	mintWash = "#e4f3ec"
+	washRule = "#c9e6d9"
+	// panelRule is a translucent paper hairline over a dark panel, so one
+	// rule serves the masthead, the menu and every panel.
+	panelRule     = "rgba(244, 239, 229, 0.16)"
+	panelRuleDark = "rgba(244, 239, 229, 0.22)"
+
+	// The two hero glows and the three surface shadows.
+	heroGlowMint  = "rgba(143, 227, 200, 0.17)"
+	heroGlowAmber = "rgba(217, 138, 74, 0.1)"
+	shadowSm      = "0 8px 24px rgba(3, 10, 10, 0.07)"
+	shadowMd      = "0 18px 50px rgba(3, 10, 10, 0.12)"
+	shadowLg      = "0 40px 100px rgba(3, 10, 10, 0.4)"
+
+	// The dark palette. The page is the darkest surface; panels and cards are
+	// raised above it, one step lighter each, so a surface reads without
+	// depending on a border.
+	darkPage        = "#0d1517"
+	darkPageInk     = "#ece7dd"
+	darkPanel       = "#16262a"
+	darkPanelRaised = "#1d3034"
+	darkCard        = "#1c2c2f"
+	darkMuted       = "#a7b7b2"
+	darkRule        = "#2e3e41"
+	darkTeal        = "#7ed9c1"
+	darkAmberInk    = "#e2a26d"
+	darkChip        = "#2e4043"
+	darkCode        = "#2a3b3e"
+	darkCodeInk     = "#f0ece2"
+	darkCodeBlock   = "#1b2b2e"
+	darkPanelCode   = "#0f1e21"
+	darkWash        = "#143431"
+	darkWashRule    = "#2a5a52"
 
 	serif = "Georgia, 'Times New Roman', serif"
 	sans  = "'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, 'Helvetica Neue', Arial, sans-serif"
 	mono  = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
 )
+
+// paletteToken is one semantic colour in both themes. The stylesheet renders
+// the table once per palette, and the contrast test reads the same table, so
+// a shipped value and its checked value cannot drift apart.
+type paletteToken struct {
+	Token string
+	Light string
+	Dark  string
+}
+
+// themeTokens is the one semantic palette. Surfaces and text are split by
+// role rather than by the primitive they started from: the light look is the
+// one that shipped, the dark look raises the page, the panels and the cards
+// on three steps of the same deep green.
+var themeTokens = []paletteToken{
+	{"page", paper, darkPage},
+	{"page-ink", ink, darkPageInk},
+	{"panel", ink, darkPanel},
+	{"panel-raised", ink2, darkPanelRaised},
+	{"panel-ink", paper, paper},
+	{"panel-muted", mist, mist},
+	{"panel-quiet", sand, sand},
+	{"panel-rule", panelRule, panelRuleDark},
+	{"card", card, darkCard},
+	{"muted", muted, darkMuted},
+	{"rule", rule, darkRule},
+	{"teal", teal, darkTeal},
+	{"teal-ink", paper, ink},
+	{"amber-ink", amberInk, darkAmberInk},
+	{"chip", ink, darkChip},
+	{"chip-ink", paper, paper},
+	{"code", sand, darkCode},
+	{"code-ink", ink, darkCodeInk},
+	{"code-block", ink, darkCodeBlock},
+	{"code-block-ink", paper, darkCodeInk},
+	{"panel-code", paper, darkPanelCode},
+	{"panel-code-ink", ink, darkCodeInk},
+	{"wash", mintWash, darkWash},
+	{"wash-rule", washRule, darkWashRule},
+	{"accent-ink", ink, ink},
+	{"mint", mint, mint},
+	{"amber", amber, amber},
+}
 
 // markShapes writes the 120 x 120 mark. The caller places it in a group.
 func markShapes(out *strings.Builder, indent string) {
@@ -55,19 +136,32 @@ func (s Site) Mark() []byte {
 }
 
 // Logo renders the horizontal lockup: mark and wordmark. It has no language,
-// so the same file serves both trees.
+// so the same file serves both trees. The wordmark follows the visitor's
+// colour scheme from the embedded style block, so the lockup stays legible on
+// a dark surface instead of vanishing into it; the mark keeps its own tile.
 func (s Site) Logo() []byte {
 	var out strings.Builder
 	out.WriteString(generatedHeader)
 	out.WriteString("\n")
-	out.WriteString("<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 400 120\" role=\"img\" aria-labelledby=\"mailsense-logo-title mailsense-logo-desc\">\n")
+	fmt.Fprintf(&out, "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 400 120\" role=\"img\" color=\"%s\" aria-labelledby=\"mailsense-logo-title mailsense-logo-desc\">\n", ink)
 	fmt.Fprintf(&out, "  <title id=\"mailsense-logo-title\">%s</title>\n", html.EscapeString(s.Product))
 	out.WriteString("  <desc id=\"mailsense-logo-desc\">The square mark beside the Mailsense wordmark.</desc>\n")
+	// The wordmark reads currentColor, so an inline copy follows the
+	// surrounding text; as an image it falls back to the ink above and
+	// switches to paper when the viewer prefers a dark scheme.
+	out.WriteString("  <style>\n")
+	out.WriteString("    .wordmark { fill: currentColor; }\n")
+	fmt.Fprintf(&out, "    .tagline { fill: %s; }\n", teal)
+	out.WriteString("    @media (prefers-color-scheme: dark) {\n")
+	fmt.Fprintf(&out, "      .wordmark { fill: %s; }\n", paper)
+	fmt.Fprintf(&out, "      .tagline { fill: %s; }\n", mint)
+	out.WriteString("    }\n")
+	out.WriteString("  </style>\n")
 	out.WriteString("  <g transform=\"translate(4 4) scale(0.92)\">\n")
 	markShapes(&out, "    ")
 	out.WriteString("  </g>\n")
-	fmt.Fprintf(&out, "  <text x=\"132\" y=\"66\" font-family=\"%s\" font-size=\"46\" letter-spacing=\"-1\" fill=\"%s\">%s</text>\n", serif, ink, html.EscapeString(s.Product))
-	fmt.Fprintf(&out, "  <text x=\"134\" y=\"92\" font-family=\"%s\" font-size=\"12\" letter-spacing=\"2.6\" fill=\"%s\">MAIL TRIAGE</text>\n", mono, teal)
+	fmt.Fprintf(&out, "  <text class=\"wordmark\" x=\"132\" y=\"66\" font-family=\"%s\" font-size=\"46\" letter-spacing=\"-1\">%s</text>\n", serif, html.EscapeString(s.Product))
+	fmt.Fprintf(&out, "  <text class=\"tagline\" x=\"134\" y=\"92\" font-family=\"%s\" font-size=\"12\" letter-spacing=\"2.6\">MAIL TRIAGE</text>\n", mono)
 	fmt.Fprintf(&out, "  <rect x=\"134\" y=\"100\" width=\"44\" height=\"3\" fill=\"%s\"/>\n", amber)
 	out.WriteString("</svg>\n")
 	return []byte(out.String())

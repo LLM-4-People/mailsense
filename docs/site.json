@@ -512,6 +512,22 @@
     "back_to_top": {
       "en": "Back to top",
       "fr": "Haut de page"
+    },
+    "theme": {
+      "en": "Theme",
+      "fr": "Thème"
+    },
+    "theme_system": {
+      "en": "System",
+      "fr": "Système"
+    },
+    "theme_light": {
+      "en": "Light",
+      "fr": "Clair"
+    },
+    "theme_dark": {
+      "en": "Dark",
+      "fr": "Sombre"
     }
   },
   "differences": {
