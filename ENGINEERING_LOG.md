@@ -102,6 +102,11 @@ Each was independently checked against source by the coordinator:
   string at its one owner (`13-jobs.js:311`). The live Playwright case asserts
   the visible text and fails on the old bundle; no new catalog key or budget
   change.
+- The dispatched exhaustive CI exposed a fixture race in
+  `TestLauncherEnvironmentStripsMailsense`: the fake launcher's `env.txt` was
+  polled while `env` was still writing it, so an empty read failed the
+  GUI-variable check. The fake now writes a temporary file and renames it,
+  publishing the dump atomically; 200 repeats pass.
 - Verification on the integrated tree: `make fast` green, the affected
   Playwright flows 56/56, the named regression suites for each feature green,
   the generated site current, and the PII gate clean.
