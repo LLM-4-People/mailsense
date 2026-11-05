@@ -498,42 +498,19 @@ func (s *Service) AskConversation(ctx context.Context, req AskRequest) (AskView,
 		turnKey = conversationTurnKey(conversation, turns)
 	}
 
-	switch route {
-	case RouteLocal:
+	// A recognized count cue runs the one scope decision on every route and
+	// with or without a configured generator. An accepted plain count is
+	// answered deterministically from the priority totals or the topic
+	// census; a rejected count follows its route's freeform path instead of
+	// letting a route-shaped structured branch answer a mailbox-wide total.
+	if aggregateCountRequest(mail.Fold(strings.TrimSpace(q))) {
+		view, err = s.answerCount(ctx, view, route, q, lang, preview, turns, turnKey, remoteGen)
+	} else if route == RouteLocal {
 		view, err = s.answerLocal(ctx, view, q, lang, intent, senderText)
-	case RouteRemote:
+	} else if route == RouteRemote {
 		view, err = s.answerRemote(ctx, view, q, lang, intent, senderText, turns, remoteGen)
-	default:
-		// The provider-less count gate is owned here, before parseIntent's
-		// category switch. A count cue can parse directly to a category
-		// ("Number of deadlines", "Total deadlines", "Combien d'échéances"),
-		// so gating only the IntentFreeform branch would let a scoped or
-		// person-framed count reach askStructured for a mailbox-wide total.
-		// One gate handles every count request; a matching plain count is
-		// answered structurally from the priority totals or the topic
-		// census, and every other count is forced onto the freeform path. A
-		// configured generator keeps the existing computed path and never
-		// enters this gate.
-		providerlessCount := false
-		folded := mail.Fold(strings.TrimSpace(q))
-		if aggregateCountRequest(folded) && !s.generatorAvailable() {
-			providerlessCount = true
-			intent, phrase, ok := s.providerlessCountIntent(ctx, q)
-			switch {
-			case ok && intent == IntentTopic:
-				view.Intent = IntentTopic
-				view, err = s.askTopic(ctx, view, phrase)
-			case ok:
-				view.Intent = intent
-				view, err = s.askStructured(ctx, view, intent)
-			default:
-				view.Intent = IntentFreeform
-				view, err = s.askFreeform(ctx, view, q, lang, preview, turns, turnKey)
-			}
-		}
-		if !providerlessCount {
-			view, err = s.answerAuto(ctx, view, q, lang, preview, intent, senderText, turns, turnKey)
-		}
+	} else {
+		view, err = s.answerAuto(ctx, view, q, lang, preview, intent, senderText, turns, turnKey)
 	}
 	if err != nil {
 		return AskView{}, err

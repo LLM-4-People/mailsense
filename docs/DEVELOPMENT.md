@@ -430,17 +430,24 @@ category noun before `has`/`have` is also a person frame ("Amount of
 deadlines Amount has?"); "deadlines have I got" keeps its first-person
 plain path. A bare repeated category noun without an auxiliary ("How many
 deadlines Deadline?") is kept free-form too. The gate runs in `qa.Ask` before
-the intent switch for every request with a recognized count cue, including
+the route is chosen, for every request with a recognized count cue and with
+or without a configured generator: an accepted plain count is answered
+deterministically (the priority totals or the topic census) and a rejected
+count follows the request's route as a free-form question. This includes
 "Number of…", "Total…", "Amount of…", "Quantity of…", "Quantité…" and
 French "Combien…", not only "how many" wording,
-so a recognized count cannot parse directly to a category and bypass it.
-The fail-closed scope and person checks apply to every recognized cue. The
-fallback is conservative and does not claim complete name or pronoun
-coverage.
-`Service.generatorAvailable` and `Service.providerlessCountScopeAllowed`
-(`internal/qa/ask.go`) keep the computed count when a generator exists and
-keep organization/person scopes on the free-form path; a failed
+so a recognized count cannot parse directly to a category and bypass the
+scope decision.
+The fail-closed scope and person checks apply to every recognized cue on
+every route. The fallback is conservative and does not claim complete name
+or pronoun coverage.
+`Service.providerlessCountScopeAllowed` (`internal/qa/ask.go`) keeps
+organization/person scopes on the free-form path; a failed
 company-book or person-candidate read also keeps the question free-form.
+`Service.answerCount` (`internal/qa/route.go`) is the one count owner for
+every route: it runs `Service.providerlessCountIntent` first, answers an
+accepted count with no provider call, and only a rejected count reaches the
+route's free-form path. Generator availability is not consulted.
 The strict person read resolves the plain-count wording through
 `aggregateCountEntityMentions`, which removes the count-cue terms before the
 bounded candidate query: a cue word is not a name, so "Amount of deadlines"
@@ -453,7 +460,9 @@ same filtered mentions for a recognized count, so "Amount of deadlines does
 Bob have?" considers Bob and not Mont Amount. Explicit emails/domains remain
 terms, so a real address still scopes the count.
 `askStructured` and `priorityCounts` produce the view from the existing
-structured priority counts. The fallback covers only security, decision,
+structured priority counts; `askTopic` answers a plain catalogue-topic count
+from the topic census with an empty `counts` and the coverage fields. The
+fallback covers only security, decision,
 deadline, urgent, reply and workload: there is no priority filter, so a
 "priority" count is not one of its categories. A count request that would
 otherwise parse directly as `priority` (for example "Combien de messages
@@ -483,6 +492,13 @@ its real-zero answer, its negative controls, the fail-closed scope and
 person-frame gates, the removed priority category, the scoped-name and
 resolver-error residuals (including the strict `peopleErr`/`listErr` gate
 logs), and the ranking/save/availability errors;
+`TestProviderlessCountIntentScopeRows`,
+`TestScopedCountWithAGeneratorNeverAnswersMailboxWide`,
+`TestAcceptedCountWithAGeneratorStaysStructured`,
+`TestLocalScopedCountStaysFreeformWithoutCounts`,
+`TestRemoteScopedCountFollowsTheFreeformPath` and
+`TestCountScopeDecisionFollowsWordingNotGeneratorAvailability` pin the
+route-wide gate itself;
 `e2e/specs/ask.spec.ts` checks the structured sentence and citation render.
 No setting, schema or API field was added. The
 factory (`internal/qa/source.go`) builds the catalog and the generator

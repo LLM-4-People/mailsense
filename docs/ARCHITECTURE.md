@@ -434,26 +434,33 @@ The intent parser folds case and accents and recognizes EN+FR keywords for
 reply, urgent, deadline, security, decision, workload, priority,
 summary_today, sender and freeform. Structured intents read the priority
 filters (counts plus the top five citations) and never call a provider.
-An explicit aggregate request ("Which emails did I approve?", "Combien
-d'échéances ai-je approuvées ?") keeps that deterministic answer, while a
-question about the act recorded in a message ("Which deadlines did I
-approve?") is freeform and reaches the planner. When `qa.provider` is
-empty, a plain count whose wording uses the declared count vocabulary
+An explicit aggregate list request ("Which emails did I approve?") keeps
+that deterministic answer, while a question about the act recorded in a
+message, count or not ("Which deadlines did I approve?", "Combien
+d'échéances ai-je approuvées ?"), is freeform and reaches the planner. A
+plain count whose wording uses the declared count vocabulary
 (`count`/`counts`/`nombre`/`total`/`combien`/`amount`/`quantity`/`quantité`,
 the phrases `how many`/`how much`/`number of`/`nombre de`/`amount of`/
 `quantity of`/`quantité de`, and bare `number` immediately before a
 category or mailbox noun) and contains exactly one fallback
-category (security, decision, deadline, urgent, reply or workload) falls
-back to the same structured priority totals instead of the unavailable
-planner ("How many deadlines do I have?"). The scope gate is fail-closed:
+category (security, decision, deadline, urgent, reply or workload) is
+answered from the same structured priority totals with no provider call
+("How many deadlines do I have?"), whether or not a generator is
+configured; a plain count of exactly one catalogue topic or subtopic
+("How many invoices?") is answered from the classified-topic census as a
+topic view instead, with an empty `counts` and its classification coverage.
+The scope gate is fail-closed:
 after the count cue and the one category word are removed, every residual
 token must be in a small explicit filler/question/mailbox-noun allowlist,
 so any unlisted scope, topic, status or date word keeps the question
-free-form. The gate runs before the intent switch for every request with a
-recognized count cue, not only "how many" wording, so "Number of…",
+free-form. The gate runs for every request with a recognized count cue,
+before the route is chosen and with or without a generator, not only "how
+many" wording, so "Number of…",
 "Total…", "Amount of…", "Quantity of…", "Quantité…" and French "Combien…"
-cannot parse directly to a category and bypass it. The fail-closed scope and
-person checks apply to every recognized cue. The allowlist has no
+cannot parse directly to a category and bypass it: an accepted count is
+answered deterministically and a rejected count follows the request's route
+as a free-form question. The fail-closed scope and person checks apply to
+every recognized cue on every route. The allowlist has no
 third-person pronouns or `an`, and a `does`/`did` subject is
 rejected unless it is first/second person or a mailbox noun; a category
 noun in the subject position is a person frame, so "How many deadlines does
