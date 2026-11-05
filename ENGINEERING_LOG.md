@@ -54,7 +54,7 @@ Each was independently checked against source by the coordinator:
 ### Next queue
 
 1. Integrate the five writer branches, run the full gate and the affected
-   Playwright flows, then deploy the build to `sbk-pc-jacobd` and verify it.
+   Playwright flows, then deploy the build to the Windows test machine and verify it.
 2. Validate the security candidates and fix confirmed findings at their owner.
 3. Implement the designs when the read-only audits return: evidence-date
    deadlines, people profiles, the remaining memory bounds.

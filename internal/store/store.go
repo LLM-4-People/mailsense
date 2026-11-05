@@ -73,6 +73,10 @@ type Store struct {
 	cands  map[personCandidatesKey][]PersonCandidate
 	// busy is the one SQLITE_BUSY/LOCKED retry of every bounded write.
 	busy BusyPolicy
+	// previousOpenVersion is meta.last_open_version as it was before this
+	// run's recordOpen: the one owner of "which version used this database
+	// last". It is captured inside Open and read-only afterwards.
+	previousOpenVersion string
 	// mailHoldMu guards the mail-write holds. A producer that writes a run
 	// of message/detail batches holds the mail generation so a 50k-message
 	// sync invalidates every derived view once per folder, not once per

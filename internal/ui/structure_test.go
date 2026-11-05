@@ -154,8 +154,10 @@ var sourceLineBudget = map[string]int{
 	// each catalog. The first-run round added the basic and advanced setup
 	// wording in both catalogs; the budget moved by the exact added lines.
 	// The topic-count round added the Ask topic sentence, its zero form and
-	// the coverage line in both catalogs: three lines each.
-	"internal/ui/i18n.fr.js": 2613,
+	// the coverage line in both catalogs: three lines each. The update round
+	// added the Updates group and its three setting descriptions in the
+	// French catalog: four lines.
+	"internal/ui/i18n.fr.js": 2617,
 	"internal/ui/i18n.en.js": 2226,
 	"internal/qa/qa_test.go": 4930,
 	// The three Node behavior harnesses each run the shared thread-state

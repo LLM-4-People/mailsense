@@ -45,6 +45,14 @@ func putMeta(ctx context.Context, ex execer, key, value string) error {
 func (s *Store) recordOpen(ctx context.Context) error {
 	ts := s.now()
 	return s.inTx(ctx, func(tx *sql.Tx) error {
+		// The previous value is captured before the overwrite: after Open it
+		// exists nowhere else, and the update check's What's New marker reads
+		// it (PreviousOpenVersion).
+		previous, _, err := readMeta(ctx, tx, metaLastOpenVersion)
+		if err != nil {
+			return err
+		}
+		s.previousOpenVersion = previous
 		for _, kv := range [][3]string{
 			{metaCreatedAt, ts, "keep"}, {metaCreatedVersion, buildinfo.Version, "keep"},
 			{metaLastOpenAt, ts, "replace"}, {metaLastOpenVersion, buildinfo.Version, "replace"},
@@ -62,6 +70,11 @@ func (s *Store) recordOpen(ctx context.Context) error {
 		return nil
 	})
 }
+
+// PreviousOpenVersion returns the version the database was last opened with
+// before this run ("" on a first open). Open captures it before recordOpen
+// overwrites the meta key; it is the one fact the What's New marker compares.
+func (s *Store) PreviousOpenVersion() string { return s.previousOpenVersion }
 
 // Meta returns the metadata table.
 func (s *Store) Meta(ctx context.Context) (map[string]string, error) {

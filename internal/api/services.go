@@ -37,6 +37,7 @@ import (
 	"github.com/LLM-4-People/mailsense/internal/store"
 	"github.com/LLM-4-People/mailsense/internal/threadintel"
 	"github.com/LLM-4-People/mailsense/internal/triage"
+	"github.com/LLM-4-People/mailsense/internal/update"
 	worldsvc "github.com/LLM-4-People/mailsense/internal/world"
 )
 
@@ -72,6 +73,7 @@ type Services struct {
 	Agenda        AgendaAPI
 	Ask           AskAPI
 	Companies     CompaniesAPI
+	Update        UpdateAPI
 	Shutdown      ShutdownAPI
 	Boot          BootAPI
 }
@@ -212,6 +214,16 @@ type CompaniesAPI interface {
 	// Profiles reads several profiles in one store batch. It is the warm
 	// path: five profiles must not scan the mailbox five times.
 	Profiles(ctx context.Context, keys []string, months, eventDays int) (map[string]worldsvc.ProfileView, error)
+}
+
+// UpdateAPI is the release-detection surface: a local status read, one
+// on-demand check and the What's New markers. No method downloads or
+// installs anything; the update service satisfies it directly.
+type UpdateAPI interface {
+	Status() update.Status
+	Check(ctx context.Context) (update.Status, error)
+	Skip(version string) (update.Status, error)
+	MarkSeen(version string) (update.Status, error)
 }
 
 // SettingsAPI is the configuration surface. Secret reports whether a
@@ -883,6 +895,7 @@ func (s Services) validate() error {
 		{"agenda", s.Agenda != nil},
 		{"ask", s.Ask != nil},
 		{"companies", s.Companies != nil},
+		{"update", s.Update != nil},
 		{"shutdown", s.Shutdown != nil},
 		{"boot", s.Boot != nil},
 	}

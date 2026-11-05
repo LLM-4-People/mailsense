@@ -87,8 +87,11 @@ L'application fait ces requêtes, et aucune autre :
    triage automatique après une synchronisation.
 3. Une liste de modèles d'un fournisseur, quand vous la demandez.
 4. Un test de fournisseur, quand vous cliquez sur Tester.
+5. Le contrôle des mises à jour : une requête non authentifiée vers le point
+   de publication de Mailsense sur GitHub, sans courrier, adresse, compte ni
+   identifiant d'installation.
 
-Il n'y a ni télémétrie, ni analyse, ni appel de mise à jour, ni compte central.
+Il n'y a ni télémétrie, ni analyse, ni compte central.
 [Confidentialité](privacy.md) liste les champs que chaque requête peut porter.
 
 ## Signaler une vulnérabilité

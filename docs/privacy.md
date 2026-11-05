@@ -41,7 +41,7 @@ code, not a cloud service.
 
 ## What leaves the machine
 
-Mailsense makes four kinds of network request, and only for the reasons below:
+Mailsense makes five kinds of network request, and only for the reasons below:
 
 1. **Local runtime download.** When you start the local runtime for the first
    time, it downloads its artifacts and model from the pinned URLs recorded in
@@ -50,12 +50,23 @@ Mailsense makes four kinds of network request, and only for the reasons below:
    a call runs. The request contains the question when Ask writes an answer, and
    the message fields that call needs. The provider's terms apply. Settings,
    Providers names the endpoint and the model. Automatic triage can make this
-   call after a sync without a screen asking; a provider test makes one small
-   call when you press Test.
+   call after a sync without a screen asking.
 3. **A provider model list.** Only when you ask the Providers screen to fetch the
    models a provider offers.
-4. **Nothing else.** No telemetry, no analytics, no update ping, no hidden
-   request.
+4. **A provider test.** Only when you press Test. It makes one small call, which
+   is billable and is not covered by a budget.
+5. **An update check.** After the startup warm, and at most once per
+   `update.check.interval` (24 hours by default), the app asks GitHub for the
+   latest published Mailsense release. It is one unauthenticated `GET` to
+   `api.github.com/repos/LLM-4-People/mailsense/releases/latest`, with an
+   `If-None-Match` header after the first answer. The request carries no mail,
+   no address, no account and no installation identifier; GitHub sees the
+   request's IP address and the standard HTTP headers. The release notes in
+   the answer are cached locally as plain text. When a newer release exists,
+   one more request lists the recent release tags so the app can count how far
+   behind it is. The check is on by default (`update.check.enabled`) and can
+   be turned off in Settings; a manual check runs only when you ask for it.
+6. **Nothing else.** No telemetry, no analytics, no hidden request.
 
 The local runtime serves embeddings on your machine. Classification, evidence
 and routing run as local Go code. A remote provider does not keep a request

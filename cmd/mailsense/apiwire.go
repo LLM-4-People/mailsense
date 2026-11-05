@@ -142,6 +142,7 @@ func servicesFor(a *app, shutdown *shutdownRequest, boot *bootState) api.Service
 		Agenda:        a.agenda,
 		Ask:           a.qa,
 		Companies:     companiesAPI{w},
+		Update:        a.update,
 		Shutdown:      shutdown,
 		Boot:          bootAPI{boot},
 	}
