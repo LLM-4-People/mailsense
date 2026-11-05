@@ -12,10 +12,6 @@ import (
 	"golang.org/x/sys/windows"
 )
 
-// outlookExe is classic Outlook's executable (its process name and App
-// Paths key).
-const outlookExe = "OUTLOOK.EXE"
-
 // Started is the start time of the OUTLOOK.EXE process of this Windows
 // session (the newest when several run): a Toolhelp process snapshot,
 // then GetProcessTimes on a limited-information handle. No COM call:
