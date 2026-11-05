@@ -14,11 +14,20 @@ import (
 )
 
 // coverageCache keeps the ids the index is meant to cover while neither
-// the mail (store generation) nor the settings moved; how many of them
-// have a vector is counted from the vector copy at every search.
+// the mail (store generation) nor the settings moved, and the count of those
+// ids that have a vector at the copy's write sequence. Counting every eligible
+// id against the copy is O(vectors) work a search would otherwise repeat; the
+// count is recomputed only when the eligible set or the copy's sequence moves.
 type coverageCache struct {
 	key      string
 	eligible map[int64]bool
+	// covered is how many eligible ids had a vector when the count was taken;
+	// seq is the copy's write sequence (vector.Set.Seq) at that count, so a
+	// count that raced a vector write is recognised and redone. counted
+	// distinguishes a counted zero from an entry that was never counted.
+	covered int
+	seq     int64
+	counted bool
 }
 
 // similar is the vector ranking: the query embedded with the model's
@@ -181,46 +190,84 @@ func (s *Searcher) degrade(sem Semantic, err error) ([]vector.Scored, Semantic) 
 
 // coverage is how many eligible messages have a vector of the space, of
 // how many. The eligible set is rebuilt outside the lock when the mail or
-// the settings changed; a failure shows the copy's size over 0.
+// the settings changed; the covered count is counted once per vector copy
+// sequence and reused until the copy moves, so a search serves the derived
+// count instead of rescanning every vector id at every query. A failure
+// shows the copy's size over 0.
 func (s *Searcher) coverage(ctx context.Context) (int, int) {
 	// The eligible set is mail (messages, folders, selection, scope), not
 	// labels: a label click must not rebuild it. MailGeneration is the owner
 	// of exactly that set; Generation also moves on label writes.
 	key := fmt.Sprintf("%d|%s", s.st.MailGeneration(), s.cfg.VersionKey())
+	if covered, eligible, ok := s.coverageHeld(key); ok {
+		return covered, eligible
+	}
+	return s.coverageRebuild(ctx, key)
+}
+
+// coverageHeld reports the held coverage when it belongs to key and was
+// counted at the vector copy's current write sequence. The cache field is
+// read under mu; the sequence is read from the copy, whose own lock makes
+// each read whole.
+func (s *Searcher) coverageHeld(key string) (int, int, bool) {
+	s.mu.Lock()
+	cache := s.cache
+	s.mu.Unlock()
+	if cache.key != key || !cache.counted || cache.seq != s.vectors.Seq() {
+		return 0, 0, false
+	}
+	return cache.covered, len(cache.eligible), true
+}
+
+// coverageRebuild is the slow path of coverage: it rebuilds the eligible set
+// when the mail or the settings moved and recounts the covered vectors when
+// the copy's sequence moved. covMu serializes both, so concurrent searches
+// share one rebuild and one count; the re-check inside the lock makes a
+// search that lost the race serve the winner's set and count.
+func (s *Searcher) coverageRebuild(ctx context.Context, key string) (int, int) {
+	s.covMu.Lock()
+	defer s.covMu.Unlock()
 	s.mu.Lock()
 	cache := s.cache
 	s.mu.Unlock()
 	if cache.key != key {
-		// One rebuild per generation: the re-check inside the lock makes a
-		// search that lost the race read the set the winner installed
-		// instead of scanning the mailbox again.
-		s.covMu.Lock()
-		s.mu.Lock()
-		cache = s.cache
-		s.mu.Unlock()
-		if cache.key != key {
-			ids, err := s.cov.Eligible(ctx)
-			if err != nil {
-				s.covMu.Unlock()
-				s.log.Warn("index coverage unknown", "err", err)
-				return s.vectors.Len(), 0
-			}
-			cache = coverageCache{key: key, eligible: make(map[int64]bool, len(ids))}
-			for _, id := range ids {
-				cache.eligible[id] = true
-			}
-			s.mu.Lock()
-			s.cache = cache
-			s.mu.Unlock()
+		ids, err := s.cov.Eligible(ctx)
+		if err != nil {
+			s.log.Warn("index coverage unknown", "err", err)
+			return s.vectors.Len(), 0
 		}
-		s.covMu.Unlock()
+		cache = coverageCache{key: key, eligible: make(map[int64]bool, len(ids))}
+		for _, id := range ids {
+			cache.eligible[id] = true
+		}
 	}
-	return s.vectors.Count(cache.eligible), len(cache.eligible)
+	if !cache.counted || cache.seq != s.vectors.Seq() {
+		// Read the sequence before counting: a vector write that lands
+		// between the two makes the next search recount instead of trusting
+		// a count of the older copy. The sequence never moves backwards for
+		// a space, and the space is part of the cache key.
+		seq := s.vectors.Seq()
+		cache.covered, cache.seq, cache.counted = s.countCovered(cache.eligible), seq, true
+	}
+	s.mu.Lock()
+	s.cache = cache
+	s.mu.Unlock()
+	return cache.covered, len(cache.eligible)
+}
+
+// countCovered is the one owner of the O(vectors) coverage count: it counts
+// how many eligible ids the copy holds and records the diagnostic scan count,
+// so every scan is observable and the count-once tests pin it.
+func (s *Searcher) countCovered(eligible map[int64]bool) int {
+	s.coverageScans.Add(1)
+	return s.vectors.Count(eligible)
 }
 
 // coverageSnapshot reports the coverage the cache already holds (the startup
-// warm-up computes it), so a timed-out search can still disclose how much of
-// the mailbox has vectors without paying for the scan on the request path.
+// warm-up computes it), so a search that timed out before the coverage read
+// can still disclose how much of the mailbox has vectors without paying for
+// the scan on the request path. The held count is served when it matches the
+// copy's sequence; otherwise the count is recomputed, as before the cache.
 func (s *Searcher) coverageSnapshot() (int, int, bool) {
 	s.mu.Lock()
 	cache := s.cache
@@ -228,7 +275,10 @@ func (s *Searcher) coverageSnapshot() (int, int, bool) {
 	if cache.key == "" || cache.eligible == nil {
 		return 0, 0, false
 	}
-	return s.vectors.Count(cache.eligible), len(cache.eligible), true
+	if cache.counted && cache.seq == s.vectors.Seq() {
+		return cache.covered, len(cache.eligible), true
+	}
+	return s.countCovered(cache.eligible), len(cache.eligible), true
 }
 
 // publishSemantic reports the outcome the request actually used. Only the
