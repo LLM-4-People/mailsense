@@ -141,7 +141,7 @@ func TestTriggerProbesOncePerGenerationAndDecides(t *testing.T) {
 	var scans, builds, plans atomic.Int64
 	w.tr.build = func(ctx context.Context) (*core, error) {
 		builds.Add(1)
-		return w.tr.buildCore(ctx)
+		return w.tr.buildMailCore(ctx)
 	}
 	countPlans(w, &plans)
 	tr := newSyncTrigger(w.tr, jm)
@@ -202,7 +202,7 @@ func TestNoWorkProbeBuildsNoCoreAndSkipsUnchangedGeneration(t *testing.T) {
 	var scans, builds, plans atomic.Int64
 	w.tr.build = func(ctx context.Context) (*core, error) {
 		builds.Add(1)
-		return w.tr.buildCore(ctx)
+		return w.tr.buildMailCore(ctx)
 	}
 	countPlans(w, &plans)
 	tr := newSyncTrigger(w.tr, jm)
@@ -255,7 +255,7 @@ func TestReportDuringRunIsOneFollowUp(t *testing.T) {
 	var scans, builds, plans atomic.Int64
 	w.tr.build = func(ctx context.Context) (*core, error) {
 		builds.Add(1)
-		return w.tr.buildCore(ctx)
+		return w.tr.buildMailCore(ctx)
 	}
 	countPlans(w, &plans)
 	entered := make(chan struct{}, 1)
