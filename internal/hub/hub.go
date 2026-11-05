@@ -25,6 +25,22 @@ const RecentAnswerCount = 6
 // BlockerLimit is how many learning blockers the hub mirror carries.
 const BlockerLimit = 3
 
+// Read-cache bounds. Each hub cache holds one generated screen value under a
+// store generation; the byte budgets bound what one store answer can pin.
+// The per-entry estimates are the Weigh basis: a label count is two short
+// strings and an int, an answer row's raw label value is measured exactly.
+const (
+	hubLabelCountsMaxBytes = 256 << 10
+	hubMailboxMaxBytes     = 4 << 10
+	hubRecentMaxBytes      = 64 << 10
+
+	hubLabelCountBytes       = 96
+	hubLabelReviewEntryBytes = 64
+	hubMailboxCountBytes     = 64
+	hubAnswerPageBytes       = 48
+	hubAnswerRowBytes        = 64
+)
+
 // storeReader is the hub's read side: the aggregates Home reads and the
 // generation each one follows.
 type storeReader interface {
@@ -83,6 +99,25 @@ type Service struct {
 	recent  *viewcache.Cache[uint64, AnswerPage]
 }
 
+// weighLabelCounts estimates one label-count aggregate: a count row carries
+// two short strings and an int, and the review map one entry per status.
+func weighLabelCounts(v labelCountsValue) int {
+	return len(v.counts)*hubLabelCountBytes + len(v.review)*hubLabelReviewEntryBytes
+}
+
+// weighMailboxCount estimates the mailbox scalar triple: no slices, no maps.
+func weighMailboxCount(mailboxCountValue) int { return hubMailboxCountBytes }
+
+// weighAnswerPage estimates one page: each answer row's fixed fields plus its
+// strings, with the raw label value measured exactly.
+func weighAnswerPage(p AnswerPage) int {
+	n := hubAnswerPageBytes
+	for _, a := range p.Items {
+		n += hubAnswerRowBytes + len(a.Question) + len(a.Source) + len(a.At) + len(a.Value)
+	}
+	return n
+}
+
 // New builds the read service.
 func New(d Deps) *Service {
 	s := &Service{store: d.Store, learning: d.Learning, sync: d.Sync, now: d.Now}
@@ -90,15 +125,18 @@ func New(d Deps) *Service {
 		s.now = time.Now
 	}
 	s.labels = viewcache.New[uint64, labelCountsValue](viewcache.Options[uint64, labelCountsValue]{
-		TTL: 10 * time.Second, Size: 2, Now: s.now, Component: "hub",
+		TTL: 10 * time.Second, Size: 2, MaxBytes: hubLabelCountsMaxBytes, Weigh: weighLabelCounts,
+		Now: s.now, Component: "hub",
 		Keep: func(gen uint64, _ labelCountsValue) bool { return gen == s.store.LabelGeneration() },
 	})
 	s.mailbox = viewcache.New[uint64, mailboxCountValue](viewcache.Options[uint64, mailboxCountValue]{
-		TTL: 10 * time.Second, Size: 2, Now: s.now, Component: "hub",
+		TTL: 10 * time.Second, Size: 2, MaxBytes: hubMailboxMaxBytes, Weigh: weighMailboxCount,
+		Now: s.now, Component: "hub",
 		Keep: func(gen uint64, _ mailboxCountValue) bool { return gen == s.store.MailGeneration() },
 	})
 	s.recent = viewcache.New[uint64, AnswerPage](viewcache.Options[uint64, AnswerPage]{
-		TTL: 10 * time.Second, Size: 2, Now: s.now, Component: "hub",
+		TTL: 10 * time.Second, Size: 2, MaxBytes: hubRecentMaxBytes, Weigh: weighAnswerPage,
+		Now: s.now, Component: "hub",
 		Keep: func(gen uint64, _ AnswerPage) bool { return gen == s.store.LabelGeneration() },
 	})
 	return s

@@ -69,6 +69,27 @@ const (
 	MaxHorizon = 7 * 24 * time.Hour
 )
 
+// cacheMaxBytes bounds the estimated retained bytes of the agenda cache: one
+// result carries at most MaxItems items, so 1 MiB is pure headroom over the
+// 8-entry bound while still capping a pathological result.
+const cacheMaxBytes = 1 << 20
+
+// The estimates behind weighResult: an item is a handful of short strings,
+// timestamps and a reasons slice; the result's own scalars are negligible.
+const (
+	agendaItemBytes   = 192
+	agendaReasonBytes = 16
+)
+
+// weighResult estimates one agenda from its items.
+func weighResult(r Result) int {
+	n := 256
+	for i := range r.Items {
+		n += agendaItemBytes + len(r.Items[i].Reasons)*agendaReasonBytes
+	}
+	return n
+}
+
 // New returns an agenda service.
 func New(d Deps) *Service {
 	def := d.DefaultHorizon
@@ -78,7 +99,8 @@ func New(d Deps) *Service {
 	def = clampHorizon(def)
 	s := &Service{store: d.Store, threads: d.Threads, clock: clock.Or(d.Clock), def: def}
 	s.cache = viewcache.New[agendaKey, Result](viewcache.Options[agendaKey, Result]{
-		TTL: 15 * time.Second, Size: 8, Now: s.clock.Now, Component: "agenda",
+		TTL: 15 * time.Second, Size: 8, MaxBytes: cacheMaxBytes, Weigh: weighResult,
+		Now: s.clock.Now, Component: "agenda",
 	})
 	return s
 }

@@ -50,6 +50,16 @@ const (
 	// pageCacheSize bounds the enriched pages kept in memory. Pages are at
 	// most MaxLimit rows with bounded participants and snippets.
 	pageCacheSize = 32
+	// pageCacheMaxBytes bounds the estimated retained bytes of the page
+	// cache: a page is at most MaxLimit rows, so 4 MiB holds the whole
+	// 32-entry window with the largest rows.
+	pageCacheMaxBytes = 4 << 20
+	// snapshotCacheMaxBytes bounds the estimated retained bytes of the two
+	// digest snapshots. The mailbox-wide digest list dominates: a digest row
+	// plus the two page-base Row copies it later retains is ~768 B, so
+	// 32 MiB covers a ~40k-conversation mailbox across both preview rules
+	// and caps a pathological one.
+	snapshotCacheMaxBytes = 32 << 20
 	// Both detached rebuilds use viewcache's default bound (two minutes), so a
 	// stuck store read cannot keep the refresh flag set forever.
 	// Fact capacities. The Brief reads a bounded working set, never the
@@ -332,6 +342,38 @@ func (s *snapshot) companyBook(ctx context.Context) (*store.CompanyBook, error) 
 	return book, nil
 }
 
+// The estimates behind weighSnapshot and weighPageValue: a digest row plus
+// the two page-base Row copies (all and byState) it later retains, an
+// enriched page row with its snippet and participants, and one map entry.
+const (
+	conversationDigestBytes   = 768
+	conversationRowBytes      = 400
+	conversationMapEntryBytes = 64
+)
+
+// weighSnapshot estimates one digest snapshot from its mailbox-wide digest
+// list, which dominates: each digest retains both itself and the two
+// page-base Row copies built from it later. The lazily built company book is
+// not counted here: it loads after this estimate and is already bounded by
+// the store.
+func weighSnapshot(s *snapshot) int {
+	n := len(s.digests) * conversationDigestBytes
+	n += len(s.states) * conversationMapEntryBytes
+	n += len(s.sources) * conversationMapEntryBytes
+	return n
+}
+
+// weighPageValue estimates one enriched page from its rows and counts.
+func weighPageValue(v pageValue) int {
+	n := 128
+	for i := range v.view.Conversations {
+		row := &v.view.Conversations[i]
+		n += conversationRowBytes + len(row.Snippet) + len(row.Participants)*conversationMapEntryBytes
+	}
+	n += len(v.view.Counts) * conversationMapEntryBytes
+	return n
+}
+
 // New returns a conversation mailbox service.
 func New(d Deps) (*Service, error) {
 	if d.Store == nil {
@@ -345,13 +387,15 @@ func New(d Deps) (*Service, error) {
 func newService(d Deps, read storeReader) *Service {
 	s := &Service{store: read, priority: d.Priority, gate: d.Gate, clock: clock.Or(d.Clock)}
 	s.snapshots = viewcache.New[snapshotKey, *snapshot](viewcache.Options[snapshotKey, *snapshot]{
-		TTL: SnapshotTTL, Size: 2, Now: s.clock.Now, Component: "conversations",
+		TTL: SnapshotTTL, Size: 2, MaxBytes: snapshotCacheMaxBytes, Weigh: weighSnapshot,
+		Now: s.clock.Now, Component: "conversations",
 		Keep: func(key snapshotKey, value *snapshot) bool {
 			return value.preview == key.preview && value.gen == s.store.MailGeneration()
 		},
 	})
 	s.pages = viewcache.New[pageKey, pageValue](viewcache.Options[pageKey, pageValue]{
-		TTL: PageCacheTTL, Size: pageCacheSize, Now: s.clock.Now,
+		TTL: PageCacheTTL, Size: pageCacheSize, MaxBytes: pageCacheMaxBytes, Weigh: weighPageValue,
+		Now:       s.clock.Now,
 		Component: "conversations",
 		// The key carries the snapshot generation the page was built from.
 		// A page built for the still-installed stale snapshot stays

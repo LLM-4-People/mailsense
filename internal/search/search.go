@@ -207,7 +207,8 @@ func New(cfg *config.Config, d Deps) (*Searcher, error) {
 	s := &Searcher{cfg: cfg, st: d.Store, src: d.Embedder, cov: d.Coverage, triage: d.Triage, gate: d.Gate, bus: d.Bus,
 		clock: clock.Or(d.Clock), log: logx.For("search"), ensure: d.Ensure}
 	s.queries = viewcache.New(viewcache.Options[string, []float32]{
-		NeverExpires: true, Size: queryCacheSize, Now: s.clock.Now, Component: "search",
+		NeverExpires: true, Size: queryCacheSize, MaxBytes: queryCacheMaxBytes, Weigh: weighQueryVector,
+		Now: s.clock.Now, Component: "search",
 	})
 	s.base, s.cancel = context.WithCancel(context.Background())
 	s.workers = join.New()
