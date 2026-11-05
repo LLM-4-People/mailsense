@@ -57,3 +57,6 @@ jobs:
             e2e/playwright-report/
             e2e/test-results/
           if-no-files-found: ignore
+          # Traces and videos are large; keep them a week, not the default
+          # 90 days.
+          retention-days: 7

@@ -54,6 +54,9 @@ jobs:
             /tmp/mailsense-vet.*/*.log
             /tmp/*.log
           if-no-files-found: ignore
+          # Failure logs are a debugging aid, not a record: keep a week, not
+          # the default 90 days.
+          retention-days: 7
 
   tests:
     name: tests (${{ matrix.shard }})
@@ -99,6 +102,7 @@ jobs:
             /tmp/mailsense-test-fast.*/*.log
             /tmp/*.log
           if-no-files-found: ignore
+          retention-days: 7
 
   sidecar:
     name: sidecar suite
@@ -123,6 +127,7 @@ jobs:
           name: sidecar-logs
           path: /tmp/*.log
           if-no-files-found: ignore
+          retention-days: 7
 
   # The ruleset requires the "fast gate" context. This job joins the runners
   # so the required check stays one name while the work runs in parallel.
@@ -208,7 +213,11 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: golang/govulncheck-action@032d45514ae346b1db93c04b0c90b841c370344f # v1
         with:
-          go-version-input: "1.27"
+          # go.mod owns the Go version. The input must be set to an explicit
+          # empty string: the action would otherwise pass its own "stable"
+          # default to setup-go, which out-ranks go-version-file.
+          go-version-input: ""
+          go-version-file: go.mod
           go-package: ./...
           repo-checkout: false
 
