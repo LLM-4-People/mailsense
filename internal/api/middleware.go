@@ -66,7 +66,12 @@ func (s *Server) middleware(next http.Handler) http.Handler {
 			s.forbid(rw, r, "forbidden_host", "the Host header is not this loopback address")
 			return
 		}
-		api := isAPIPath(r.URL.Path)
+		// ServeMux matches on the escaped path (r.URL.EscapedPath()): a
+		// request for /api/%2e%2e/status reaches the /api/ subtree even
+		// though the decoded path cleans to /status. The gate must decide
+		// on the same form the mux matches, so either form naming an API
+		// path is gated.
+		api := isAPIPath(r.URL.Path) || isAPIPath(r.URL.EscapedPath())
 		if api && !s.originAllowed(r) {
 			s.forbid(rw, r, "forbidden_origin", "the request origin is not this app")
 			return

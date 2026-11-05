@@ -196,13 +196,13 @@ func (in *instance) launchBuild(ctx context.Context, b Build) (*running, error) 
 // first attempt: once the child is gone nothing holds its port.
 const launchAttempts = 3
 
-// launchReady starts a build and waits for /health within
-// sidecar.start_timeout, then checks the child itself holds its port
-// (the process output is quoted when it fails). The child's WaitDelay is
-// the stop grace: after a stop it bounds the stdout/stderr copy wait when
-// a grandchild inherited the pipes. A restart still waits for the process
-// to die (child.stop's normal path), so the next runtime cannot race the
-// old one for its port.
+// launchReady starts a build and waits within sidecar.start_timeout for
+// the child to hold its own port and answer /health, then quotes the
+// process output when it fails. The child's WaitDelay is the stop grace:
+// after a stop it bounds the stdout/stderr copy wait when a grandchild
+// inherited the pipes. A restart still waits for the process to die
+// (child.stop's normal path), so the next runtime cannot race the old one
+// for its port.
 func (m *Manager) launchReady(ctx context.Context, b Build, threads int) (*child, error) {
 	rt := b.RuntimeSpec
 	stopGrace := m.cfg.Duration("sidecar.stop_timeout")
@@ -243,20 +243,48 @@ func (m *Manager) launchReady(ctx context.Context, b Build, threads int) (*child
 	return nil, fmt.Errorf("sidecar: %s %s did not start: %w; output: %s", b.Runtime, b.Variant, lastErr, last.out.last(5))
 }
 
+// waitReady waits for the child to answer /health within
+// sidecar.start_timeout. The probe carries the per-launch bearer key, so
+// it runs only once ownership confirms the child itself holds its port:
+// between freePort and the child's bind another local program could take
+// the port and answer instead. The child may legitimately not have bound
+// yet, so an ownership check that fails (or cannot run) retries within the
+// deadline, after the exit check; a port demonstrably held by another
+// process ends the attempt at once so launchReady can retry on a fresh
+// one. On a platform where ownsPort is the stub of port_other.go ownership
+// cannot be verified: the check passes and the key goes to whoever answers
+// /health, exactly as before ownership checking existed.
 func (m *Manager) waitReady(ctx context.Context, c *child, b Build) error {
 	deadline := m.clock.Now().Add(m.cfg.Duration("sidecar.start_timeout"))
+	foreign := 0
 	for {
 		if c.exited() {
 			return fmt.Errorf("the process exited (%v)", c.err)
 		}
-		if m.healthy(ctx, c, b) == nil {
-			if err := c.owned(); err != nil {
-				return err
+		owned, verified := c.ownership()
+		switch {
+		case owned:
+			foreign = 0
+			if m.healthy(ctx, c, b) == nil {
+				if c.exited() {
+					return fmt.Errorf("the process exited right after answering (%v)", c.err)
+				}
+				return nil
 			}
-			if c.exited() {
-				return fmt.Errorf("the process exited right after answering (%v)", c.err)
+		case verified:
+			// Not the child's socket: another process holds the port. Two
+			// consecutive observations are required before giving up on this
+			// port, because the child may have bound between the ownership
+			// and the listener checks.
+			if held, err := portHeld(c.port); err == nil && held {
+				if foreign++; foreign >= 2 {
+					return fmt.Errorf("sidecar: port %d is held by another process", c.port)
+				}
+			} else {
+				foreign = 0
 			}
-			return nil
+		default:
+			foreign = 0 // the ownership check itself failed: retry, never probe with the key
 		}
 		if !m.clock.Now().Before(deadline) {
 			return fmt.Errorf("no healthy answer within sidecar.start_timeout (%s)", m.cfg.Duration("sidecar.start_timeout"))

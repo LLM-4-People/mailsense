@@ -74,12 +74,14 @@ log="$store/logs/mailsense.log"
 [[ -f "$log" ]] && before="$(wc -l <"$log")"
 
 pid=""
+cfg=""
 cleanup() {
 	if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
 		kill -TERM "$pid" 2>/dev/null || true
 		for _ in $(seq 1 100); do kill -0 "$pid" 2>/dev/null || break; sleep 0.1; done
 		kill -KILL "$pid" 2>/dev/null || true
 	fi
+	if [[ -n "$cfg" ]]; then rm -f "$cfg"; fi
 }
 trap cleanup EXIT
 
@@ -99,9 +101,15 @@ token="$(jq -r '.token' "$store/runtime/api.json")"
 [[ -n "$base" && -n "$token" && "$token" != "null" ]] || { echo "error: the API descriptor is incomplete" >&2; exit 1; }
 
 printf 'ready_ms=%s\n' "$ready_ms"
-python3 - "$base" "$token" "$samples" "$encoding" "$out/samples.json" "${endpoints[@]}" <<'PY'
+# The bearer header travels in a 0600 curl config: the token is a secret,
+# and an argv value is visible in the process list. The python script only
+# receives the config's path.
+cfg="$(mktemp)"
+chmod 600 "$cfg"
+printf 'header = "Authorization: Bearer %s"\n' "$token" >"$cfg"
+python3 - "$base" "$cfg" "$samples" "$encoding" "$out/samples.json" "${endpoints[@]}" <<'PY'
 import json, subprocess, sys, time
-base, token, samples, encoding = sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4]
+base, cfg, samples, encoding = sys.argv[1], sys.argv[2], int(sys.argv[3]), sys.argv[4]
 out = sys.argv[5]
 endpoints = sys.argv[6:]
 encodings = ["identity", "gzip"] if encoding == "both" else [encoding]
@@ -112,9 +120,8 @@ for path in endpoints:
         times, sizes, status = [], [], 0
         for _ in range(samples):
             t0 = time.perf_counter()
-            args = ["curl", "-sS", "--max-time", "120", "-o", "/dev/null",
-                    "-w", "%{http_code} %{size_download} %header{content-encoding}",
-                    "-H", f"Authorization: Bearer {token}"]
+            args = ["curl", "-sS", "--config", cfg, "--max-time", "120", "-o", "/dev/null",
+                    "-w", "%{http_code} %{size_download} %header{content-encoding}"]
             if enc == "gzip":
                 args += ["-H", "Accept-Encoding: gzip"]
             p = subprocess.run(args + [base + path], capture_output=True, text=True)

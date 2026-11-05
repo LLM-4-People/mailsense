@@ -127,18 +127,13 @@ func (c *child) exited() bool {
 	}
 }
 
-// owned checks that the child itself listens on its port: between
-// freePort and the child's bind another local program could take the
-// port and receive the key and the mail text.
-func (c *child) owned() error {
+// ownership reports whether the child itself holds its port, and whether
+// that could be verified. Between freePort and the child's bind another
+// local program could take the port and then answer for the child, so the
+// per-launch key is sent only after ownership is confirmed.
+func (c *child) ownership() (owned, verified bool) {
 	ok, err := ownsPort(c.pid, c.port)
-	switch {
-	case err != nil:
-		return fmt.Errorf("sidecar: who listens on port %d: %w", c.port, err)
-	case !ok:
-		return fmt.Errorf("sidecar: port %d is not held by the runtime (pid %d)", c.port, c.pid)
-	}
-	return nil
+	return ok, err == nil
 }
 
 // expand fills the {placeholders} of the runtime args.
