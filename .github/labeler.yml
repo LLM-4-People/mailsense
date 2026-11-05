@@ -24,6 +24,7 @@
 "area: ci":
   - changed-files:
       - any-glob-to-any-file:
+          - ".nvmrc"
           - ".github/actions/**"
           - ".github/workflows/**"
           - ".github/actionlint.yaml"

@@ -129,8 +129,8 @@ requires a migration.
 
 ## Build from source
 
-Go (the version in `go.mod`), Node 22 for the UI test harnesses, and optionally
-Playwright for the browser suite.
+Go (the version in `go.mod`), Node (the version in `.nvmrc`) for the UI test
+harnesses, and optionally Playwright for the browser suite.
 
 ```bash
 scripts/build.sh all        # dist/mailsense and dist/mailsense.exe

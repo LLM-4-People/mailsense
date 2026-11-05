@@ -141,8 +141,8 @@ de version signalent tout ce qui demande une migration.
 
 ## Construire depuis les sources
 
-Go (la version de `go.mod`), Node 22 pour les harnais d'interface, et Playwright
-pour la suite navigateur, en option.
+Go (la version de `go.mod`), Node (la version de `.nvmrc`) pour les harnais
+d'interface, et Playwright pour la suite navigateur, en option.
 
 ```bash
 scripts/build.sh all        # dist/mailsense and dist/mailsense.exe

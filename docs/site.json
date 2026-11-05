@@ -833,8 +833,8 @@
       "fr": "Construire depuis les sources"
     },
     "requirements": {
-      "en": "Go (the version in `go.mod`), Node 22 for the UI test harnesses, and optionally Playwright for the browser suite.",
-      "fr": "Go (la version de `go.mod`), Node 22 pour les harnais d'interface, et Playwright pour la suite navigateur, en option."
+      "en": "Go (the version in `go.mod`), Node (the version in `.nvmrc`) for the UI test harnesses, and optionally Playwright for the browser suite.",
+      "fr": "Go (la version de `go.mod`), Node (la version de `.nvmrc`) pour les harnais d'interface, et Playwright pour la suite navigateur, en option."
     },
     "commands": "scripts/build.sh all        # dist/mailsense and dist/mailsense.exe\nscripts/test-fast.sh        # gofmt, vet, script checks, unit and contract suites\nscripts/test.sh             # exhaustive release gate",
     "note": {
