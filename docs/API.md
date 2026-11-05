@@ -581,10 +581,11 @@ The profile also carries the evidence the Companies screen states:
 - `last_90_days` is `{messages, threads, active_days}` over the 90 days
   ending at the profile's build instant. Totals (`messages`, `sent`,
   `received`, `threads`) are all time.
-- `recent_total`, `events_total` and `deadlines_total` are the full list
-  sizes before the display caps. The arrays are capped at 100 people, 20
-  recent messages, 20 open threads, 10 events and 20 deadlines, so a
-  consumer must state truncation instead of implying the list is complete.
+- `recent_total`, `open_threads_total`, `events_total` and `deadlines_total`
+  are the full list sizes before the display caps. The arrays are capped at
+  100 people, 20 recent messages, 20 open threads, 10 events and 20
+  deadlines, so a consumer must state truncation instead of implying the
+  list is complete.
 - `thread_states` always carries all six states. `open_threads` includes
   `reason`, the resolver's evidence, `messages`, the conversation's visible
   message count, and `actor` only when the other side moved last; an
@@ -597,6 +598,14 @@ The profile also carries the evidence the Companies screen states:
   to another declared company never matches by domain. `event_days` bounds
   the forward window (1..365, default 30).
 - `deadlines` carries `message_id`, `subject`, `sender_name` and `due`.
+- `open_loops` is the organization's rollup of the same deduped commitment
+  set `/api/commitments` serves: `total`, `owner`, `other`, `overdue`,
+  `stored_due`, every kind key in `kinds`, and at most 20 `items` in the
+  commitment order. It is omitted when no commitments source is wired or its
+  read failed; a stale profile can be one refresh window behind the
+  commitments view. `stored_due` counts items whose surviving evidence
+  carries the stored follow-up source, so it can differ from `kinds.due`:
+  dedupe keeps the strongest kind and folds the other evidence in.
 - Book-wide address-book coverage is not repeated in the profile; the list
   endpoint carries it once.
 
@@ -610,7 +619,7 @@ minimal `De:` + `Envoyé:` quote is cut before extraction. It never returns
 the evidence text.
 
 The response is a wire projection, not the world service value: `key`,
-`addresses`, `addresses_total`, `open_threads_total`, conversation ids,
+`addresses`, `addresses_total`, conversation ids,
 deadline participants and the calendar resolution metadata (`source_id`,
 `store_key`, `entry_id`, global ids, busy/meeting status, series fields,
 `body_preview`, `last_modified`) are omitted. The service keeps them for
@@ -689,7 +698,9 @@ before filtering, with every kind, direction and status key present.
 an array and `counts` always an object. `limit` is 1…500 (default 100); an
 unknown filter value is `400 invalid_kind`, `invalid_direction` or
 `invalid_status`, and an out-of-range or non-numeric page size is
-`400 invalid_limit`.
+`400 invalid_limit`. The same deduped set is what the Brief's `relationships`
+section and a company profile's `open_loops` regroup by counterparty; neither
+re-derives an obligation of its own.
 
 ### Brief
 
@@ -706,13 +717,17 @@ models the app already built:
   boundary. Undated conversations are excluded while a boundary is set and
   sort last without one. Each item carries the resolved
   `state`/`state_reason` and the latest message id as its evidence.
-- `relationships` reads the same digest and the one CompanyBook resolver.
-  It counts conversations, messages and open threads per external
-  organization, tracks the latest received counterparty even when the
-  owner replied last, and keeps only organizations with at least one open
-  conversation. It returns at most 8 rows; `count` is every open
-  organization before the cap. Internal colleagues and unresolved
-  shared-domain senders are never organizations.
+- `relationships` reads the commitments service's per-organization open
+  loops: the same deduped set the commitment sections read, grouped through
+  the one CompanyBook resolver a company screen opens. Every row is an
+  external organization with at least one open loop, in the service's own
+  order (organizations with an overdue loop first, then by their first
+  loop's instant and key). `count` is every organization with an open loop;
+  each row's `count` is that organization's loop total, and `overdue` and
+  `stored_due` partition it. The organization's bounded item list stays in
+  the commitments read model; the row links to the company screen for the
+  full ledger. An item without a counterparty is never an organization, and
+  an organization with nothing owed no longer appears.
 - `topics` is a whole-mailbox census of the classifier's `topic` answer,
   not a sample of the ranked list. `count` is every owner-facing message
   carrying a topic; `total` is the owner-facing message count of the
@@ -754,10 +769,9 @@ background composition refreshes it.
    "last_at":"2026-10-27T10:00:00Z","state":"awaiting_owner",
    "state_reason":"inbound_last"}],"since":"2026-10-20T12:00:00Z","suggested":false},
  "relationships":{"count":1,"items":[{"id":"organization:c:atelier nord",
-   "kind":"organization","title":"Atelier Nord","subject":"Latest",
-   "organization":{"key":"c:atelier nord","label":"Atelier Nord"},"message_id":13,
-   "evidence":[13],"last_at":"2026-10-27T10:00:00Z","conversations":3,
-   "messages":12,"awaiting_owner":2,"awaiting_other":1,"count":3}],
+   "kind":"organization","title":"Atelier Nord",
+   "organization":{"key":"c:atelier nord","label":"Atelier Nord"},
+   "count":3,"overdue":1,"stored_due":1}],
    "suggested":false},
  "topics":{"count":87,"total":120,"items":[{"id":"topic:project_work","kind":"topic",
    "title":"project_work","evidence":[13,12,11],"count":54,"suggested":true,
@@ -776,12 +790,12 @@ background composition refreshes it.
 ```
 
 This is an honest working set, not a mailbox census: the changed window is
-bounded by `since`, relationships show only the top organizations, and the
-commitment sections read the service's 500-item scan. The topics section is
-the exception: it counts every owner-facing message that carries a topic,
-and `topics.total` discloses the whole owner-facing mailbox so the UI can
-show coverage. `items` is always an array, every section is always present,
-and `topics.count` exceeds `len(topics.items)` when the display cap
+bounded by `since`, relationships show only organizations with an open loop,
+and the commitment sections read the service's 500-item scan. The topics
+section is the exception: it counts every owner-facing message that carries a
+topic, and `topics.total` discloses the whole owner-facing mailbox so the UI
+can show coverage. `items` is always an array, every section is always
+present, and `topics.count` exceeds `len(topics.items)` when the display cap
 applies. A message without a usable topic answer (unjudged, missing or
 abstained) is not assigned to a topic.
 

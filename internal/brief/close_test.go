@@ -27,6 +27,10 @@ func (s *stubbornCommitments) List(context.Context, commitments.Filter) (commitm
 	return commitments.Result{}, nil
 }
 
+func (s *stubbornCommitments) OpenLoops(context.Context) (commitments.OrganizationOpenLoopsResult, error) {
+	return commitments.OrganizationOpenLoopsResult{}, nil
+}
+
 // Close joins a Brief rebuild that is still composing its sections, then keeps
 // serving the installed Brief. It is idempotent.
 func TestCloseJoinsTheBriefRefreshAndIsIdempotent(t *testing.T) {

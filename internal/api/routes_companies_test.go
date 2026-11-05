@@ -120,17 +120,21 @@ func TestCompaniesListAndProfileShape(t *testing.T) {
 		profile.GeneratedAt != "2026-10-26T12:00:00Z" ||
 		profile.LastInboundAt != "2026-10-20T09:00:00Z" || profile.LastOutboundAt != "2026-10-18T09:00:00Z" ||
 		profile.Activity90.Messages != 3 || profile.Activity90.ActiveDays != 2 ||
-		profile.RecentTotal != 1 || profile.EventsTotal != 1 || profile.DeadlinesTotal != 1 {
+		profile.RecentTotal != 1 || profile.OpenThreadsTotal != 1 ||
+		profile.EventsTotal != 1 || profile.DeadlinesTotal != 1 {
 		t.Fatalf("profile %+v", profile)
 	}
 	var raw map[string]json.RawMessage
 	if err := json.Unmarshal(data, &raw); err != nil {
 		t.Fatal(err)
 	}
-	for _, key := range []string{"coverage", "key", "addresses", "addresses_total", "open_threads_total"} {
+	for _, key := range []string{"coverage", "key", "addresses", "addresses_total"} {
 		if _, ok := raw[key]; ok {
 			t.Fatalf("the profile still carries the service-only field %q", key)
 		}
+	}
+	if _, ok := raw["open_threads_total"]; !ok {
+		t.Fatal("the profile dropped open_threads_total")
 	}
 	if len(profile.Months) != 1 || profile.Months[0].Month != "2026-10" ||
 		len(profile.People) != 1 || profile.People[0].Phone != "+1 555 010 0100" ||
@@ -262,12 +266,14 @@ func TestCompanyProfileHandlersUseTheWireProjection(t *testing.T) {
 	check := func(t *testing.T, body map[string]any) {
 		t.Helper()
 		for _, path := range []string{"label", "people.0.phone", "recent.0.message_id",
-			"open_threads.0.state", "events.0.attendee_count", "deadlines.0.due"} {
+			"open_threads.0.state", "open_threads_total", "open_loops.total",
+			"open_loops.kinds.due", "open_loops.items.0.evidence.0",
+			"events.0.attendee_count", "deadlines.0.due"} {
 			if _, ok := jsonAtPath(body, path); !ok {
 				t.Errorf("profile handler dropped %s", path)
 			}
 		}
-		for _, path := range []string{"key", "addresses", "addresses_total", "open_threads_total",
+		for _, path := range []string{"key", "addresses", "addresses_total",
 			"people.0.company", "recent.0.conversation_id", "open_threads.0.conversation_id",
 			"deadlines.0.participants", "events.0.attendees", "events.0.body_preview"} {
 			if _, ok := jsonAtPath(body, path); ok {

@@ -18,9 +18,8 @@ func TestEverySectionCountsAtLeastWhatItShows(t *testing.T) {
 		return commitments.Commitment{ID: id, Kind: commitments.KindDue, Direction: commitments.DirectionOwner,
 			Status: commitments.StatusOpen, Title: id, Subject: id, Evidence: []int64{1}}
 	}
-	org := func(key string) conversations.OrganizationFact {
-		return conversations.OrganizationFact{Organization: conversations.Organization{Key: key, Label: key},
-			AwaitingOwner: 1, LastMessageID: 1}
+	loopsOrg := func(key string) commitments.OrganizationOpenLoops {
+		return commitments.OrganizationOpenLoops{Key: key, Label: key, Total: 1, Owner: 1}
 	}
 	fact := func(id string) conversations.Fact {
 		return conversations.Fact{ConversationID: id, LastMessageID: 1}
@@ -40,7 +39,8 @@ func TestEverySectionCountsAtLeastWhatItShows(t *testing.T) {
 		{name: "recent without a total",
 			section: changedSection(conversations.Facts{Recent: []conversations.Fact{fact("C1"), fact("C2")}}, ""), want: -1},
 		{name: "relationships without a total",
-			section: relationshipSection([]conversations.OrganizationFact{org("acme"), org("beta")}, 0), want: -1},
+			section: relationshipSection(commitments.OrganizationOpenLoopsResult{
+				Organizations: []commitments.OrganizationOpenLoops{loopsOrg("acme"), loopsOrg("beta")}}), want: -1},
 		{name: "topics without a classified count",
 			section: svc.topicSection(t.Context(), 0), want: -1},
 		{name: "commitments with an honest total",
@@ -49,7 +49,9 @@ func TestEverySectionCountsAtLeastWhatItShows(t *testing.T) {
 		{name: "recent with an honest total",
 			section: changedSection(conversations.Facts{Recent: []conversations.Fact{fact("C1")}, RecentTotal: 4}, ""), want: 4},
 		{name: "relationships with an honest total",
-			section: relationshipSection([]conversations.OrganizationFact{org("acme")}, 7), want: 7},
+			section: relationshipSection(commitments.OrganizationOpenLoopsResult{
+				Total:         7,
+				Organizations: []commitments.OrganizationOpenLoops{loopsOrg("acme")}}), want: 7},
 		{name: "topics with an honest count",
 			section: (&Service{priority: &fakePriority{census: priority.TopicCensus{
 				Classified: 9, Topics: []priority.TopicCount{{Topic: "invoices", Count: 3}}}}}).topicSection(t.Context(), 9), want: 9},

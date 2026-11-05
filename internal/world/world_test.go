@@ -15,6 +15,7 @@ import (
 	"github.com/LLM-4-People/mailsense/internal/agenda"
 	"github.com/LLM-4-People/mailsense/internal/calendar"
 	"github.com/LLM-4-People/mailsense/internal/clock/clocktest"
+	"github.com/LLM-4-People/mailsense/internal/commitments"
 	"github.com/LLM-4-People/mailsense/internal/config"
 	"github.com/LLM-4-People/mailsense/internal/contacts"
 	"github.com/LLM-4-People/mailsense/internal/fixturetest"
@@ -222,6 +223,28 @@ func (f *fakePriority) set(states map[string]threadintel.Assessment, err error) 
 	f.mu.Lock()
 	f.states, f.err = states, err
 	f.mu.Unlock()
+}
+
+// fakeOpenLoops is the commitments service's per-counterparty read. It counts
+// the calls so a test can prove one read serves a whole Profiles batch.
+type fakeOpenLoops struct {
+	mu     sync.Mutex
+	result commitments.OrganizationOpenLoopsResult
+	err    error
+	calls  int
+}
+
+func (f *fakeOpenLoops) OpenLoops(context.Context) (commitments.OrganizationOpenLoopsResult, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	f.calls++
+	return f.result, f.err
+}
+
+func (f *fakeOpenLoops) callCount() int {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	return f.calls
 }
 
 func TestListRanksExternalCompanies(t *testing.T) {
@@ -563,6 +586,114 @@ func TestProfilesBatchMatchesSingleProfiles(t *testing.T) {
 	}
 	if priorityCalls := batchPriority.callCount(); priorityCalls != 1 {
 		t.Fatalf("a fresh batch re-read priority states (%d calls)", priorityCalls)
+	}
+}
+
+// TestProfileOpenLoopsComeFromTheBatchRead: the optional commitments source
+// is read once for a whole Profiles batch and each profile carries its own
+// organization's rollup; an organization without one keeps the field absent.
+func TestProfileOpenLoopsComeFromTheBatchRead(t *testing.T) {
+	st, cfg := openWorldStore(t)
+	seedWorldMail(t, st)
+	now := worldTime(t, "2026-10-26T12:00:00Z")
+	loops := &fakeOpenLoops{result: commitments.OrganizationOpenLoopsResult{
+		GeneratedAt: "2026-10-26T12:00:00Z",
+		Total:       2,
+		Organizations: []commitments.OrganizationOpenLoops{
+			{
+				Key: "c:atelier nord", Label: "Atelier Nord", Total: 3, Owner: 2, Other: 1,
+				Overdue: 1, StoredDue: 1,
+				Kinds: map[string]int{"due": 2, "reply": 1, "decision": 0, "action": 0},
+				Items: []commitments.Commitment{{
+					ID: "loop-1", Kind: commitments.KindDue, Direction: commitments.DirectionOwner,
+					Status: commitments.StatusOverdue, Title: "Invoice", Subject: "Invoice",
+					OrganizationKey: "c:atelier nord", OrganizationLabel: "Atelier Nord",
+					MessageID: 11, Evidence: []int64{11},
+				}},
+			},
+			{
+				Key: "d:delta.co", Label: "delta.co", Total: 1, Owner: 1, StoredDue: 1,
+				Kinds: map[string]int{"due": 1, "reply": 0, "decision": 0, "action": 0},
+				Items: []commitments.Commitment{{
+					ID: "loop-2", Kind: commitments.KindDue, Direction: commitments.DirectionOwner,
+					Status: commitments.StatusOpen, Title: "Quote", Subject: "Quote",
+					OrganizationKey: "d:delta.co", OrganizationLabel: "delta.co",
+					MessageID: 12, Evidence: []int64{12},
+				}},
+			},
+		},
+	}}
+	svc, err := New(Deps{Store: st, OpenLoops: loops, Config: cfg, Clock: clocktest.New(now)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	views, err := svc.Profiles(t.Context(), []string{"c:atelier nord", "d:delta.co", "c:solo llc"}, 12, 30)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := loops.callCount(); got != 1 {
+		t.Fatalf("the batch read open loops %d times, want one", got)
+	}
+	atelier := views["c:atelier nord"]
+	if atelier.OpenLoops == nil || atelier.OpenLoops.Key != "c:atelier nord" ||
+		atelier.OpenLoops.Total != 3 || atelier.OpenLoops.Owner != 2 || atelier.OpenLoops.Other != 1 ||
+		atelier.OpenLoops.Overdue != 1 || atelier.OpenLoops.StoredDue != 1 ||
+		len(atelier.OpenLoops.Items) != 1 || atelier.OpenLoops.Items[0].ID != "loop-1" {
+		t.Fatalf("atelier open loops %+v", atelier.OpenLoops)
+	}
+	delta := views["d:delta.co"]
+	if delta.OpenLoops == nil || delta.OpenLoops.Key != "d:delta.co" || delta.OpenLoops.Total != 1 {
+		t.Fatalf("delta open loops %+v", delta.OpenLoops)
+	}
+	if solo := views["c:solo llc"]; solo.OpenLoops != nil {
+		t.Fatalf("an organization without an open loop carries one: %+v", solo.OpenLoops)
+	}
+	// The fresh batch is cached: a later single read reuses it instead of
+	// reaching the source again.
+	if _, err := svc.Profile(t.Context(), "c:atelier nord", 12, 30); err != nil {
+		t.Fatal(err)
+	}
+	if got := loops.callCount(); got != 1 {
+		t.Fatalf("a cached profile re-read open loops (%d calls)", got)
+	}
+}
+
+// A missing source leaves open_loops absent; it must never fail the profile.
+func TestProfileWithoutAnOpenLoopsSourceLeavesTheFieldAbsent(t *testing.T) {
+	st, cfg := openWorldStore(t)
+	seedWorldMail(t, st)
+	svc, err := New(Deps{Store: st, Config: cfg, Clock: clocktest.New(worldTime(t, "2026-10-26T12:00:00Z"))})
+	if err != nil {
+		t.Fatal(err)
+	}
+	view, err := svc.Profile(t.Context(), "c:atelier nord", 12, 30)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if view.OpenLoops != nil {
+		t.Fatalf("a profile without a commitments source carries open loops: %+v", view.OpenLoops)
+	}
+}
+
+// A failed open-loop read is an absent overlay, not a failed profile.
+func TestProfileOpenLoopsFailureLeavesTheFieldAbsent(t *testing.T) {
+	st, cfg := openWorldStore(t)
+	seedWorldMail(t, st)
+	loops := &fakeOpenLoops{err: errors.New("loops unavailable")}
+	svc, err := New(Deps{Store: st, OpenLoops: loops, Config: cfg,
+		Clock: clocktest.New(worldTime(t, "2026-10-26T12:00:00Z"))})
+	if err != nil {
+		t.Fatal(err)
+	}
+	view, err := svc.Profile(t.Context(), "c:atelier nord", 12, 30)
+	if err != nil {
+		t.Fatalf("an open-loop failure failed the profile: %v", err)
+	}
+	if view.OpenLoops != nil || view.Label != "Atelier Nord" {
+		t.Fatalf("failed open loops %+v", view)
+	}
+	if got := loops.callCount(); got != 1 {
+		t.Fatalf("open loops read %d times, want one", got)
 	}
 }
 
