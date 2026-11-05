@@ -124,12 +124,6 @@ type AskSection struct {
 	Guide     Localized    `json:"guide"`
 }
 
-// SectionLabel is one numbered chapter signpost on the landing.
-type SectionLabel struct {
-	Key   string    `json:"key"`
-	Label Localized `json:"label"`
-}
-
 // Chrome owns the labels shared by the masthead, the documentation frame and
 // the footer sitemap. The generator writes both languages into one Liquid file.
 type Chrome struct {
@@ -202,19 +196,19 @@ type Site struct {
 	DocsSite   string `json:"docs_site"`
 	BaseURL    string `json:"baseurl"`
 	Hero       struct {
-		Eyebrow Localized  `json:"eyebrow"`
-		Title   Localized  `json:"title"`
-		Promise Localized  `json:"promise"`
-		Lede    Localized  `json:"lede"`
-		Banner  Localized  `json:"banner"`
-		Note    Localized  `json:"note"`
-		Answer  HeroAnswer `json:"answer"`
+		Eyebrow     Localized  `json:"eyebrow"`
+		Title       Localized  `json:"title"`
+		Promise     Localized  `json:"promise"`
+		Lede        Localized  `json:"lede"`
+		Banner      Localized  `json:"banner"`
+		Note        Localized  `json:"note"`
+		WindowBadge Localized  `json:"window_badge"`
+		Answer      HeroAnswer `json:"answer"`
 	} `json:"hero"`
-	Media       Media          `json:"media"`
-	Ask         AskSection     `json:"ask"`
-	Nav         []NavItem      `json:"nav"`
-	Sections    []SectionLabel `json:"sections"`
-	Chrome      Chrome         `json:"chrome"`
+	Media       Media      `json:"media"`
+	Ask         AskSection `json:"ask"`
+	Nav         []NavItem  `json:"nav"`
+	Chrome      Chrome     `json:"chrome"`
 	Differences struct {
 		Title Localized    `json:"title"`
 		Lead  Localized    `json:"lead"`
@@ -397,6 +391,7 @@ func (s Site) Validate() error {
 		problems = append(problems, "the two landing pages share a path")
 	}
 	require("hero.eyebrow", s.Hero.Eyebrow)
+	require("hero.window_badge", s.Hero.WindowBadge)
 	require("hero.title", s.Hero.Title)
 	require("hero.promise", s.Hero.Promise)
 	require("hero.lede", s.Hero.Lede)
@@ -555,20 +550,6 @@ func (s Site) Validate() error {
 			problems = append(problems, fmt.Sprintf("nav[%d].key %q is not a lower_snake name", index, item.Key))
 		}
 		require(fmt.Sprintf("nav[%d].label", index), item.Label)
-	}
-	if len(s.Sections) != 6 {
-		problems = append(problems, fmt.Sprintf("sections has %d rows, want six", len(s.Sections)))
-	}
-	sectionKeys := map[string]bool{}
-	for index, section := range s.Sections {
-		name := fmt.Sprintf("sections[%d]", index)
-		if strings.TrimSpace(section.Key) == "" || !pageKeyRE.MatchString(section.Key) {
-			problems = append(problems, name+".key is not a lower_snake name")
-		} else if sectionKeys[section.Key] {
-			problems = append(problems, name+".key "+section.Key+" is declared twice")
-		}
-		sectionKeys[section.Key] = true
-		require(name+".label", section.Label)
 	}
 	for name, value := range map[string]Localized{
 		"chrome.docs":           s.Chrome.Docs,
@@ -777,9 +758,6 @@ func (s Site) localizedText() map[string]string {
 	}
 	for index, item := range s.Nav {
 		add(fmt.Sprintf("nav[%d].label", index), item.Label)
-	}
-	for index, section := range s.Sections {
-		add(fmt.Sprintf("sections[%d].label", index), section.Label)
 	}
 	add("chrome.docs", s.Chrome.Docs)
 	add("chrome.github", s.Chrome.GitHub)

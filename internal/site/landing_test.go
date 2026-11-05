@@ -33,8 +33,9 @@ func TestAnswerSlipCitesTheCaptureFixture(t *testing.T) {
 }
 
 // TestLandingScreenIndexIsCSSOnly guards the signature interaction: one radio,
-// one label and one figure per media row, exactly one eager image, no script,
-// and one stage rule per screen in the one stylesheet.
+// one label and one figure per media row, two eager images (the hero window and
+// the first stage capture), no script, and one stage rule per screen in the one
+// stylesheet.
 func TestLandingScreenIndexIsCSSOnly(t *testing.T) {
 	value, err := Load(root(t))
 	if err != nil {
@@ -54,8 +55,8 @@ func TestLandingScreenIndexIsCSSOnly(t *testing.T) {
 		if got, want := strings.Count(landing, `<figure class="shot"`), len(value.Media.Screenshots); got != want {
 			t.Errorf("%s landing has %d figures, want %d", lang, got, want)
 		}
-		if got := strings.Count(landing, `loading="eager"`); got != 1 {
-			t.Errorf("%s landing has %d eager images, want one", lang, got)
+		if got := strings.Count(landing, `loading="eager"`); got != 2 {
+			t.Errorf("%s landing has %d eager images, want two", lang, got)
 		}
 		if got, want := strings.Count(landing, `loading="lazy"`), len(value.Media.Screenshots)-1; got != want {
 			t.Errorf("%s landing has %d lazy images, want %d", lang, got, want)
@@ -188,7 +189,7 @@ func TestLandingQueueIsRankedAndInvented(t *testing.T) {
 			for _, want := range []string{
 				item.Subject.For(lang),
 				item.Sender,
-				fmt.Sprintf(`<td class="queue-action">%s</td>`, item.Action.For(lang)),
+				fmt.Sprintf(`<td class="queue-action"><span>%s</span></td>`, item.Action.For(lang)),
 				fmt.Sprintf(`class="queue-rank">%02d<`, index+1),
 			} {
 				if !strings.Contains(landing, want) {

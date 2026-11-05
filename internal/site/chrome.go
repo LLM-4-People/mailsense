@@ -186,9 +186,9 @@ func (s Site) headerLinks(lang, indent string) string {
 		other = "en"
 		switchHref = `{{ page.url | remove_first: '/fr' | relative_url }}`
 	}
-	out.WriteString(s.headerLink(lang, indent, ask, s.navLabelFor(lang, "ask")))
-	out.WriteString(s.headerLink(lang, indent, docs, s.Chrome.Docs.For(lang)))
-	out.WriteString(s.headerLink(lang, indent, install, s.navLabelFor(lang, "install")))
+	out.WriteString(s.headerLink(lang, indent, ask, s.navLabelFor(lang, "ask"), ""))
+	out.WriteString(s.headerLink(lang, indent, docs, s.Chrome.Docs.For(lang), ""))
+	out.WriteString(s.headerLink(lang, indent, install, s.navLabelFor(lang, "install"), "masthead-cta"))
 	fmt.Fprintf(&out, `%s<a class="masthead-link" href="%s">%s</a>`+"\n", indent, html.EscapeString(s.Repository), html.EscapeString(s.Chrome.GitHub.For(lang)))
 	fmt.Fprintf(&out, `%s<a class="masthead-link masthead-switch" href="%s" hreflang="%s" lang="%s" data-lang-switch="%s">%s</a>`+"\n",
 		indent, switchHref, other, other, other, html.EscapeString(s.Chrome.Language.For(lang)))
@@ -196,9 +196,13 @@ func (s Site) headerLinks(lang, indent string) string {
 }
 
 // headerLink writes one link with a Liquid current-page state.
-func (s Site) headerLink(lang, indent, path, label string) string {
+func (s Site) headerLink(lang, indent, path, label, extra string) string {
 	condition := "{% if page.url == '" + path + "' %}"
-	return indent + `<a class="masthead-link` + condition + ` is-current{% endif %}" href="{{ '` + path + `' | relative_url }}"` + condition + ` aria-current="page"{% endif %}>` + html.EscapeString(label) + `</a>` + "\n"
+	class := "masthead-link"
+	if extra != "" {
+		class += " " + extra
+	}
+	return indent + `<a class="` + class + condition + ` is-current{% endif %}" href="{{ '` + path + `' | relative_url }}"` + condition + ` aria-current="page"{% endif %}>` + html.EscapeString(label) + `</a>` + "\n"
 }
 
 // navLabelFor returns one nav label for the masthead.

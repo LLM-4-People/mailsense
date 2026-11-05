@@ -11,83 +11,122 @@ image:
   alt: "Mailsense: Ask your mail. Every citation opens the message."
 ---
 
-<section class="thesis">
-  <div class="shell thesis-grid">
-    <div class="thesis-copy">
-      <p class="eyebrow">Ask and local triage for Windows</p>
+<header class="hero">
+  <div class="shell hero-grid">
+    <div class="hero-copy">
       <h1 class="promise" id="thesis-title">Ask your mail a question. It answers with a count, a list, or a written answer that cites the messages it used.</h1>
       <p class="lede">It reads the classic Outlook profile already open on your PC. Ask answers from the local index; a written answer comes only from a model you configured and the messages it can cite. The store, the classifier and the learned profile stay on your disk.</p>
-      <p class="actions"><a class="button button-ink" href="install.html">Install</a><a class="quiet-link" href="first-run.html">Read the first-run guide</a></p>
+      <p class="actions"><a class="button" href="install.html">Install</a><a class="quiet-link" href="first-run.html">Read the first-run guide</a></p>
       <p class="hero-note">Windows installer. No account, no telemetry.</p>
     </div>
-    <aside class="answer-slip" aria-labelledby="slip-label">
-      <div class="slip-head">
-        <p class="slip-label" id="slip-label">ASK / GROUNDED ANSWER</p>
-        <span class="slip-meta">
-          <span class="slip-sample">Sample answer</span>
-          <span class="chip">Auto</span>
-        </span>
-      </div>
-      <p class="slip-question">Who is waiting on the Northwind proposal?</p>
-      <p class="slip-answer">Three threads still need you. Atelier Nord is holding the Thursday delivery window until you confirm the signed proposal. Harbor Logistics asked which pickup window works, and Studio Lumen sent an invoice whose payment link points somewhere unexpected. The first two are ordinary replies. The invoice is the one to check before you pay.</p>
-      <ol class="citations">
-        <li>
-          <span class="citation-mark" aria-hidden="true">01</span>
-          <span class="citation-main">
-            <span class="citation-subject">Signed proposal for the Northwind launch</span>
-            <span class="citation-meta">Atelier Nord · 3 Nov 2026</span>
+    <div class="hero-stage">
+      <figure class="app-window">
+        <div class="app-bar">
+          <img src="assets/mark.svg" width="20" height="20" alt="">
+          <span class="app-name">Mailsense</span>
+          <span class="app-badge">Preview</span>
+        </div>
+        <img class="app-shot" src="assets/screenshots/en/home.png" width="1440" height="900" loading="eager" decoding="async" alt="Mailsense: Home">
+      </figure>
+      <aside class="answer-slip" aria-labelledby="slip-label">
+        <div class="slip-head">
+          <p class="slip-label" id="slip-label">ASK / GROUNDED ANSWER</p>
+          <span class="slip-meta">
+            <span class="slip-sample">Sample answer</span>
+            <span class="chip">Auto</span>
           </span>
-        </li>
-        <li>
-          <span class="citation-mark" aria-hidden="true">02</span>
-          <span class="citation-main">
-            <span class="citation-subject">Thursday pickup window</span>
-            <span class="citation-meta">Harbor Logistics · 2 Nov 2026</span>
-          </span>
-        </li>
-        <li>
-          <span class="citation-mark" aria-hidden="true">03</span>
-          <span class="citation-main">
-            <span class="citation-subject">Invoice 1042 needs a second look</span>
-            <span class="citation-meta">Studio Lumen · 3 Nov 2026</span>
-          </span>
-        </li>
-      </ol>
-      <p class="slip-caption">In the app, every citation opens the message it names.</p>
-    </aside>
-  </div>
-</section>
-
-<section class="chapter chapter-ask" id="ask" aria-labelledby="ask-title">
-  <div class="shell chapter-grid">
-    <div class="chapter-spine">
-      <p class="chapter-number" aria-hidden="true">01</p>
-      <p class="chapter-label">Ask first</p>
+        </div>
+        <p class="slip-question">Who is waiting on the Northwind proposal?</p>
+        <p class="slip-answer">Three threads still need you. Atelier Nord is holding the Thursday delivery window until you confirm the signed proposal. Harbor Logistics asked which pickup window works, and Studio Lumen sent an invoice whose payment link points somewhere unexpected. The first two are ordinary replies. The invoice is the one to check before you pay.</p>
+        <ol class="citations">
+          <li>
+            <span class="citation-mark" aria-hidden="true">01</span>
+            <span class="citation-main">
+              <span class="citation-subject">Signed proposal for the Northwind launch</span>
+              <span class="citation-meta">Atelier Nord · 3 Nov 2026</span>
+            </span>
+          </li>
+          <li>
+            <span class="citation-mark" aria-hidden="true">02</span>
+            <span class="citation-main">
+              <span class="citation-subject">Thursday pickup window</span>
+              <span class="citation-meta">Harbor Logistics · 2 Nov 2026</span>
+            </span>
+          </li>
+          <li>
+            <span class="citation-mark" aria-hidden="true">03</span>
+            <span class="citation-main">
+              <span class="citation-subject">Invoice 1042 needs a second look</span>
+              <span class="citation-meta">Studio Lumen · 3 Nov 2026</span>
+            </span>
+          </li>
+        </ol>
+        <p class="slip-caption">In the app, every citation opens the message it names.</p>
+      </aside>
     </div>
-    <div class="chapter-body">
+  </div>
+</header>
+
+<section class="section section-ask" aria-labelledby="ask-title">
+  <div class="shell">
+    <div class="section-head">
       <h2 id="ask-title">Ask first</h2>
       <p class="section-lead">Ask answers a question about your mail in plain language. The screen names which mechanism answered it: a typed query, a search, or a model you configured.</p>
-      <ol class="mechanisms">
-        <li>
-          <span class="mechanism-number" aria-hidden="true">01</span>
-          <p class="mechanism-tag">Grounded</p>
-          <h3>A written answer cites every message it uses.</h3>
-          <p>The model is asked to write at most 120 words and marks each claim with a message number. The server checks every marker against the retrieved set, refuses an answer whose marker points outside it, renumbers the markers to citation positions and keeps a citation only when it names a real message. When no citation survives, the matching messages stay on screen with a notice that names the cause.</p>
-        </li>
-        <li>
-          <span class="mechanism-number" aria-hidden="true">02</span>
-          <p class="mechanism-tag">Local</p>
-          <h3>A count or a ranking is computed, not written.</h3>
-          <p>A count, a ranking and a company profile are read from the local index and the stored facts. The number and the rows come from a typed query, never from model text. Local mode never calls a model: the same count still answers, and a free-form question returns the matching messages with a notice that says Local never calls a model.</p>
-        </li>
-        <li>
-          <span class="mechanism-number" aria-hidden="true">03</span>
-          <p class="mechanism-tag">Trace</p>
-          <h3>A citation opens the message, and the answer is kept.</h3>
-          <p>Each citation row carries the subject, the sender and the date, and links to the message it names. Each answer is stored with its question, its route, its mode, its citations and, when a model was used, its provider and model. The history rail reopens it, and Clear history removes every stored answer.</p>
-        </li>
-      </ol>
-      <div class="mode-block">
+    </div>
+    <div class="ask-bento">
+      <article class="ask-card ask-card-grounding">
+        <div class="card-top">
+          <span class="card-number">01</span>
+          <span class="card-tag">Grounded</span>
+        </div>
+        <h3>A written answer cites every message it uses.</h3>
+        <p>The model is asked to write at most 120 words and marks each claim with a message number. The server checks every marker against the retrieved set, refuses an answer whose marker points outside it, renumbers the markers to citation positions and keeps a citation only when it names a real message. When no citation survives, the matching messages stay on screen with a notice that names the cause.</p>
+        <ul class="mini-cites">
+          <li>
+            <span class="mini-dot" aria-hidden="true"></span>
+            <span class="mini-subject">Signed proposal for the Northwind launch</span>
+            <span class="mini-sender">Atelier Nord</span>
+          </li>
+          <li>
+            <span class="mini-dot" aria-hidden="true"></span>
+            <span class="mini-subject">Thursday pickup window</span>
+            <span class="mini-sender">Harbor Logistics</span>
+          </li>
+          <li>
+            <span class="mini-dot" aria-hidden="true"></span>
+            <span class="mini-subject">Invoice 1042 needs a second look</span>
+            <span class="mini-sender">Studio Lumen</span>
+          </li>
+        </ul>
+      </article>
+      <article class="ask-card ask-card-local">
+        <div class="card-top">
+          <span class="card-number">02</span>
+          <span class="card-tag">Local</span>
+        </div>
+        <h3>A count or a ranking is computed, not written.</h3>
+        <p>A count, a ranking and a company profile are read from the local index and the stored facts. The number and the rows come from a typed query, never from model text. Local mode never calls a model: the same count still answers, and a free-form question returns the matching messages with a notice that says Local never calls a model.</p>
+        <div class="mode-chips" aria-hidden="true">
+          <span class="mode-chip">Auto</span>
+          <span class="mode-chip is-on">Local</span>
+          <span class="mode-chip">Remote</span>
+        </div>
+      </article>
+      <article class="ask-card ask-card-trace">
+        <div class="card-top">
+          <span class="card-number">03</span>
+          <span class="card-tag">Trace</span>
+        </div>
+        <h3>A citation opens the message, and the answer is kept.</h3>
+        <p>Each citation row carries the subject, the sender and the date, and links to the message it names. Each answer is stored with its question, its route, its mode, its citations and, when a model was used, its provider and model. The history rail reopens it, and Clear history removes every stored answer.</p>
+        <div class="mini-history">
+          <span class="mini-history-dot" aria-hidden="true"></span>
+          <span>Who is waiting on the Northwind proposal?</span>
+        </div>
+      </article>
+    </div>
+    <div class="ask-lower">
+      <div class="mode-panel">
         <h3 id="modes-title">Three modes, one rule</h3>
         <table class="mode-table" aria-labelledby="modes-title">
           <thead><tr><th scope="col">Mode</th><th scope="col">What answers</th><th scope="col">When a model runs</th></tr></thead>
@@ -110,23 +149,23 @@ image:
           </tbody>
         </table>
       </div>
-      <p class="pull">Every citation opens the message it names, and every answer is stored with its question so you can reopen it.</p>
-      <p class="note">Ask is bounded by <code>qa.max_messages</code>, <code>qa.retrieval_timeout</code>, <code>qa.call_timeout</code> and the two budget settings. A warming index keeps the question and offers Try again.</p>
-      <p class="chapter-link"><a class="text-link" href="ask.html">Read the Ask guide</a></p>
+      <div class="guarantee-panel">
+        <p class="pull">Every citation opens the message it names, and every answer is stored with its question so you can reopen it.</p>
+        <p class="note">Ask is bounded by <code>qa.max_messages</code>, <code>qa.retrieval_timeout</code>, <code>qa.call_timeout</code> and the two budget settings. A warming index keeps the question and offers Try again.</p>
+        <p class="chapter-link"><a href="ask.html">Read the Ask guide</a></p>
+      </div>
     </div>
   </div>
 </section>
 
-<section class="chapter chapter-queue" id="queue" aria-labelledby="queue-title">
-  <div class="shell chapter-grid">
-    <div class="chapter-spine">
-      <p class="chapter-number" aria-hidden="true">02</p>
-      <p class="chapter-label">The queue</p>
-    </div>
-    <div class="chapter-body">
+<section class="section section-queue" aria-labelledby="queue-title">
+  <div class="shell">
+    <div class="section-head">
       <h2 id="queue-title">Three things it does differently</h2>
       <p class="section-lead">The queue, the evidence and the gate. Each one is a mechanism you can inspect.</p>
-      <div class="queue-proof">
+    </div>
+    <div class="queue-layout">
+      <div class="queue-panel">
         <p class="queue-label">An invented queue. The score is local policy, not a model call.</p>
         <table class="queue-table">
           <thead><tr><th scope="col">Rank</th><th scope="col">Subject</th><th scope="col">Sender</th><th scope="col">Action</th></tr></thead>
@@ -135,62 +174,62 @@ image:
               <th scope="row" class="queue-rank">01</th>
               <td class="queue-subject">Signed proposal for the Northwind launch</td>
               <td class="queue-sender">Atelier Nord</td>
-              <td class="queue-action">Decide</td>
+              <td class="queue-action"><span>Decide</span></td>
             </tr>
             <tr>
               <th scope="row" class="queue-rank">02</th>
               <td class="queue-subject">Invoice 1042 needs a second look</td>
               <td class="queue-sender">Studio Lumen</td>
-              <td class="queue-action">Verify</td>
+              <td class="queue-action"><span>Verify</span></td>
             </tr>
             <tr>
               <th scope="row" class="queue-rank">03</th>
               <td class="queue-subject">Thursday pickup window</td>
               <td class="queue-sender">Harbor Logistics</td>
-              <td class="queue-action">Reply</td>
+              <td class="queue-action"><span>Reply</span></td>
             </tr>
             <tr>
               <th scope="row" class="queue-rank">04</th>
               <td class="queue-subject">Workshop notes and the two open questions</td>
               <td class="queue-sender">Morgan Ellis</td>
-              <td class="queue-action">Read</td>
+              <td class="queue-action"><span>Read</span></td>
             </tr>
           </tbody>
         </table>
       </div>
-      <div class="queue-band">
-        <article class="queue-item">
-          <span class="band-number" aria-hidden="true">01</span>
-          <p class="card-tag">Queue</p>
-          <h3>The queue is scored by a fixed local policy.</h3>
-          <p>A local Go scorer ranks each message from stored signals: a suspicious message adds 100, a decision 45, a reply 30, urgency and deadline levels add fixed weights, and recency adds at most 12. A score of 20 is the floor, and a suspicious, decision, reply, urgent or deadline signal always enters. Bulk automated mail never enters, however urgent its text.</p>
-        </article>
-        <article class="queue-item">
-          <span class="band-number" aria-hidden="true">02</span>
-          <p class="card-tag">Evidence</p>
-          <h3>Every label names its source.</h3>
-          <p>A decision is stored as answers to named questions, with the confidence each answer carries where the question type has one and the evidence behind it. The message detail shows the fields the model read. When an index is partial, the screen names the missing part.</p>
-        </article>
-        <article class="queue-item">
-          <span class="band-number" aria-hidden="true">03</span>
-          <p class="card-tag">Learning</p>
-          <h3>It abstains until your own labels certify it.</h3>
-          <p>The local classifier trains one head per question on your corrections. A question is certified only when the Wilson lower bound of its answered precision reaches 0.99 on a held-out split, with at least 200 training labels, 50 evaluation labels and 0.5 coverage. Below that threshold it abstains, and the Learning screen names the stage that blocks it.</p>
-        </article>
+      <div class="queue-notes">
+        <div class="queue-band">
+          <article class="queue-item">
+            <span class="band-number" aria-hidden="true">01</span>
+            <p class="card-tag">Queue</p>
+            <h3>The queue is scored by a fixed local policy.</h3>
+            <p>A local Go scorer ranks each message from stored signals: a suspicious message adds 100, a decision 45, a reply 30, urgency and deadline levels add fixed weights, and recency adds at most 12. A score of 20 is the floor, and a suspicious, decision, reply, urgent or deadline signal always enters. Bulk automated mail never enters, however urgent its text.</p>
+          </article>
+          <article class="queue-item">
+            <span class="band-number" aria-hidden="true">02</span>
+            <p class="card-tag">Evidence</p>
+            <h3>Every label names its source.</h3>
+            <p>A decision is stored as answers to named questions, with the confidence each answer carries where the question type has one and the evidence behind it. The message detail shows the fields the model read. When an index is partial, the screen names the missing part.</p>
+          </article>
+          <article class="queue-item">
+            <span class="band-number" aria-hidden="true">03</span>
+            <p class="card-tag">Learning</p>
+            <h3>It abstains until your own labels certify it.</h3>
+            <p>The local classifier trains one head per question on your corrections. A question is certified only when the Wilson lower bound of its answered precision reaches 0.99 on a held-out split, with at least 200 training labels, 50 evaluation labels and 0.5 coverage. Below that threshold it abstains, and the Learning screen names the stage that blocks it.</p>
+          </article>
+        </div>
       </div>
     </div>
   </div>
 </section>
 
-<section class="chapter chapter-screens" id="screens" aria-labelledby="screens-title">
-  <div class="shell chapter-grid">
-    <div class="chapter-spine">
-      <p class="chapter-number" aria-hidden="true">03</p>
-      <p class="chapter-label">The screens</p>
-    </div>
-    <div class="chapter-body">
+<section class="section section-screens" aria-labelledby="screens-title">
+  <div class="shell">
+    <div class="section-head">
       <h2 id="screens-title">The screens, starting with Ask</h2>
       <p class="section-lead">Captured from the Linux preview with an invented mailbox. No real mail appears here.</p>
+    </div>
+    <div class="screens-panel">
       <fieldset class="screen-index" aria-describedby="screen-hint">
         <legend class="visually-hidden">Screen index</legend>
         <div class="screen-index-head">
@@ -302,16 +341,14 @@ image:
   </div>
 </section>
 
-<section class="chapter chapter-boundary" id="boundary" aria-labelledby="boundary-title">
-  <div class="shell chapter-grid">
-    <div class="chapter-spine">
-      <p class="chapter-number" aria-hidden="true">04</p>
-      <p class="chapter-label">What leaves the machine</p>
-    </div>
-    <div class="chapter-body">
+<section class="section section-privacy" aria-labelledby="boundary-title">
+  <div class="shell">
+    <div class="privacy-panel">
+    <div class="section-head section-head-dark">
       <h2 id="boundary-title">What leaves the machine</h2>
       <p class="section-lead">Mailsense makes four kinds of network request. Each one has a reason you can see.</p>
-      <div class="boundary-ledger">
+    </div>
+      <div class="privacy-grid">
         <div class="boundary-col boundary-leaves">
           <h3>Leaves, only when it runs</h3>
           <ol>
@@ -335,15 +372,13 @@ image:
   </div>
 </section>
 
-<section class="chapter chapter-limits" id="limits" aria-labelledby="limits-title">
-  <div class="shell chapter-grid">
-    <div class="chapter-spine">
-      <p class="chapter-number" aria-hidden="true">05</p>
-      <p class="chapter-label">What it cannot do yet</p>
-    </div>
-    <div class="chapter-body">
+<section class="section section-limits" aria-labelledby="limits-title">
+  <div class="shell">
+    <div class="section-head">
       <h2 id="limits-title">What it cannot do yet</h2>
       <p class="section-lead">These limits are part of the current build.</p>
+    </div>
+    <div class="limits-panel">
       <ol class="limits-list">
         <li>
           <div class="limit-text">
@@ -386,15 +421,13 @@ image:
   </div>
 </section>
 
-<section class="chapter chapter-install" id="install" aria-labelledby="install-title">
-  <div class="shell chapter-grid">
-    <div class="chapter-spine">
-      <p class="chapter-number" aria-hidden="true">06</p>
-      <p class="chapter-label">Install</p>
-    </div>
-    <div class="chapter-body">
+<section class="section section-install" aria-labelledby="install-title">
+  <div class="shell">
+    <div class="install-panel">
+    <div class="section-head section-head-dark">
       <h2 id="install-title">Install</h2>
       <p class="section-lead">The release ships a Windows installer; the source also builds on Linux as a preview with an empty inbox, and that build is not a release download.</p>
+    </div>
       <div class="install-grid">
         <div class="install-file-block">
           <p class="install-label">Windows installer</p>

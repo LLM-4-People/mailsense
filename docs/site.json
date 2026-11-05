@@ -28,6 +28,10 @@
       "en": "Windows installer. No account, no telemetry.",
       "fr": "Installateur Windows. Sans compte, sans télémétrie."
     },
+    "window_badge": {
+      "en": "Preview",
+      "fr": "Aperçu"
+    },
     "answer": {
       "label": {
         "en": "ASK / GROUNDED ANSWER",
@@ -453,50 +457,6 @@
       "label": {
         "en": "Contributing",
         "fr": "Contribuer"
-      }
-    }
-  ],
-  "sections": [
-    {
-      "key": "ask",
-      "label": {
-        "en": "Ask first",
-        "fr": "Commencez par une question"
-      }
-    },
-    {
-      "key": "queue",
-      "label": {
-        "en": "The queue",
-        "fr": "La file"
-      }
-    },
-    {
-      "key": "screens",
-      "label": {
-        "en": "The screens",
-        "fr": "Les écrans"
-      }
-    },
-    {
-      "key": "boundary",
-      "label": {
-        "en": "What leaves the machine",
-        "fr": "Ce qui quitte la machine"
-      }
-    },
-    {
-      "key": "limits",
-      "label": {
-        "en": "What it cannot do yet",
-        "fr": "Ce qu'il ne fait pas encore"
-      }
-    },
-    {
-      "key": "install",
-      "label": {
-        "en": "Install",
-        "fr": "Installer"
       }
     }
   ],

@@ -341,7 +341,7 @@ async function captureSocialPreview(browser: Browser): Promise<void> {
   const svgMarkup = readFileSync(source, "utf8");
   await page.setContent(
     `<!doctype html><html><head><meta charset="utf-8"><style>
-      html, body { margin: 0; padding: 0; background: #f7f3ea; }
+      html, body { margin: 0; padding: 0; background: #f4efe5; }
       svg { display: block; width: ${media.social_width}px; height: ${media.social_height}px; }
     </style></head><body>${svgMarkup}</body></html>`,
     { waitUntil: "load" },
