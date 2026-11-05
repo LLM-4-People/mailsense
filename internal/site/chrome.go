@@ -169,9 +169,9 @@ func (s Site) headerLanguageBranch() string {
 	return out.String()
 }
 
-// headerLinks writes the five primary links for one language. The path is also
-// the page URL the current-page condition compares, so the active state cannot
-// drift from the destination.
+// headerLinks writes the five primary links for one language, the language
+// switch and the theme control. The path is also the page URL the current-page
+// condition compares, so the active state cannot drift from the destination.
 func (s Site) headerLinks(lang, indent string) string {
 	var out strings.Builder
 	ask := "/ask.html"
@@ -192,6 +192,26 @@ func (s Site) headerLinks(lang, indent string) string {
 	fmt.Fprintf(&out, `%s<a class="masthead-link" href="%s">%s</a>`+"\n", indent, html.EscapeString(s.Repository), html.EscapeString(s.Chrome.GitHub.For(lang)))
 	fmt.Fprintf(&out, `%s<a class="masthead-link masthead-switch" href="%s" hreflang="%s" lang="%s" data-lang-switch="%s">%s</a>`+"\n",
 		indent, switchHref, other, other, other, html.EscapeString(s.Chrome.Language.For(lang)))
+	out.WriteString(s.themeGroup(indent))
+	return out.String()
+}
+
+// themeGroup writes the three-way theme control. The system choice is the
+// pressed default; the head script rewrites the pressed state from the stored
+// choice on click and after parse, so a stored choice is shown on the buttons.
+// The labels are localized facts like every other chrome label.
+func (s Site) themeGroup(indent string) string {
+	var out strings.Builder
+	fmt.Fprintf(&out, `%s<span class="masthead-theme" role="group" aria-label="%s">`+"\n", indent, liquidText(s.Chrome.Theme))
+	for _, choice := range s.themeChoices() {
+		pressed := "false"
+		if choice.Value == themeSystem {
+			pressed = "true"
+		}
+		fmt.Fprintf(&out, `%s  <button type="button" class="masthead-theme-button" data-theme-choice="%s" aria-pressed="%s">%s</button>`+"\n",
+			indent, choice.Value, pressed, liquidText(choice.Label))
+	}
+	out.WriteString(indent + "</span>\n")
 	return out.String()
 }
 

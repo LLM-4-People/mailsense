@@ -78,8 +78,8 @@ func TestLandingPagesCarryTheLanguageMetadata(t *testing.T) {
 	}
 }
 
-// TestLanguageScriptMakesNoRequest proves the script is self-contained: no
-// external URL, no external script, no fetch and no import.
+// TestLanguageScriptMakesNoRequest proves the shared head script is
+// self-contained: no external URL, no external script, no fetch and no import.
 func TestLanguageScriptMakesNoRequest(t *testing.T) {
 	value, err := Load(root(t))
 	if err != nil {
@@ -158,8 +158,10 @@ func TestLanguageRedirectTargetComesFromThePageTable(t *testing.T) {
 	}
 }
 
-// TestLanguageStorageKeyHasOneWriterAndOneReader proves the preference key has
-// a single literal and one owner, and that the guard is a separate session key.
+// TestLanguageStorageKeyHasOneWriterAndOneReader proves the language
+// preference key has a single literal and one owner, that the guard is a
+// separate session key, and that the shared script keeps every localStorage
+// entry behind a named constant (the theme key included).
 func TestLanguageStorageKeyHasOneWriterAndOneReader(t *testing.T) {
 	value, err := Load(root(t))
 	if err != nil {
@@ -178,10 +180,10 @@ func TestLanguageStorageKeyHasOneWriterAndOneReader(t *testing.T) {
 	if got := strings.Count(script, "localStorage.setItem(KEY, value)"); got != 1 {
 		t.Errorf("the preference has %d writers, want one", got)
 	}
-	storeCall := regexp.MustCompile(`localStorage\.(?:getItem|setItem)\(([^)]*)`)
+	storeCall := regexp.MustCompile(`localStorage\.(?:getItem|setItem|removeItem)\(([^)]*)`)
 	for _, match := range storeCall.FindAllStringSubmatch(script, -1) {
-		if !strings.HasPrefix(match[1], "KEY") {
-			t.Errorf("localStorage is used with a second key: %s", match[0])
+		if !strings.HasPrefix(match[1], "KEY") && !strings.HasPrefix(match[1], "THEME") {
+			t.Errorf("localStorage is used with a key that is not a named constant: %s", match[0])
 		}
 	}
 	if !strings.Contains(script, fmt.Sprintf("var GUARD = %q;", LangGuardKey)) {

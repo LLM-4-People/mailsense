@@ -12,12 +12,22 @@
       <a class="masthead-link masthead-cta{% if page.url == '/fr/install.html' %} is-current{% endif %}" href="{{ '/fr/install.html' | relative_url }}"{% if page.url == '/fr/install.html' %} aria-current="page"{% endif %}>Installation</a>
       <a class="masthead-link" href="https://github.com/LLM-4-People/mailsense">GitHub</a>
       <a class="masthead-link masthead-switch" href="{{ page.url | remove_first: '/fr' | relative_url }}" hreflang="en" lang="en" data-lang-switch="en">English</a>
+      <span class="masthead-theme" role="group" aria-label="{% if page.lang == "fr" %}Thème{% else %}Theme{% endif %}">
+        <button type="button" class="masthead-theme-button" data-theme-choice="system" aria-pressed="true">{% if page.lang == "fr" %}Système{% else %}System{% endif %}</button>
+        <button type="button" class="masthead-theme-button" data-theme-choice="light" aria-pressed="false">{% if page.lang == "fr" %}Clair{% else %}Light{% endif %}</button>
+        <button type="button" class="masthead-theme-button" data-theme-choice="dark" aria-pressed="false">{% if page.lang == "fr" %}Sombre{% else %}Dark{% endif %}</button>
+      </span>
 {% else %}
       <a class="masthead-link{% if page.url == '/ask.html' %} is-current{% endif %}" href="{{ '/ask.html' | relative_url }}"{% if page.url == '/ask.html' %} aria-current="page"{% endif %}>Ask</a>
       <a class="masthead-link{% if page.url == '/' %} is-current{% endif %}" href="{{ '/' | relative_url }}"{% if page.url == '/' %} aria-current="page"{% endif %}>Docs</a>
       <a class="masthead-link masthead-cta{% if page.url == '/install.html' %} is-current{% endif %}" href="{{ '/install.html' | relative_url }}"{% if page.url == '/install.html' %} aria-current="page"{% endif %}>Install</a>
       <a class="masthead-link" href="https://github.com/LLM-4-People/mailsense">GitHub</a>
       <a class="masthead-link masthead-switch" href="{{ '/fr' | append: page.url | relative_url }}" hreflang="fr" lang="fr" data-lang-switch="fr">Français</a>
+      <span class="masthead-theme" role="group" aria-label="{% if page.lang == "fr" %}Thème{% else %}Theme{% endif %}">
+        <button type="button" class="masthead-theme-button" data-theme-choice="system" aria-pressed="true">{% if page.lang == "fr" %}Système{% else %}System{% endif %}</button>
+        <button type="button" class="masthead-theme-button" data-theme-choice="light" aria-pressed="false">{% if page.lang == "fr" %}Clair{% else %}Light{% endif %}</button>
+        <button type="button" class="masthead-theme-button" data-theme-choice="dark" aria-pressed="false">{% if page.lang == "fr" %}Sombre{% else %}Dark{% endif %}</button>
+      </span>
 {% endif %}
     </nav>
     <details class="masthead-menu">
@@ -29,12 +39,22 @@
       <a class="masthead-link masthead-cta{% if page.url == '/fr/install.html' %} is-current{% endif %}" href="{{ '/fr/install.html' | relative_url }}"{% if page.url == '/fr/install.html' %} aria-current="page"{% endif %}>Installation</a>
       <a class="masthead-link" href="https://github.com/LLM-4-People/mailsense">GitHub</a>
       <a class="masthead-link masthead-switch" href="{{ page.url | remove_first: '/fr' | relative_url }}" hreflang="en" lang="en" data-lang-switch="en">English</a>
+      <span class="masthead-theme" role="group" aria-label="{% if page.lang == "fr" %}Thème{% else %}Theme{% endif %}">
+        <button type="button" class="masthead-theme-button" data-theme-choice="system" aria-pressed="true">{% if page.lang == "fr" %}Système{% else %}System{% endif %}</button>
+        <button type="button" class="masthead-theme-button" data-theme-choice="light" aria-pressed="false">{% if page.lang == "fr" %}Clair{% else %}Light{% endif %}</button>
+        <button type="button" class="masthead-theme-button" data-theme-choice="dark" aria-pressed="false">{% if page.lang == "fr" %}Sombre{% else %}Dark{% endif %}</button>
+      </span>
 {% else %}
       <a class="masthead-link{% if page.url == '/ask.html' %} is-current{% endif %}" href="{{ '/ask.html' | relative_url }}"{% if page.url == '/ask.html' %} aria-current="page"{% endif %}>Ask</a>
       <a class="masthead-link{% if page.url == '/' %} is-current{% endif %}" href="{{ '/' | relative_url }}"{% if page.url == '/' %} aria-current="page"{% endif %}>Docs</a>
       <a class="masthead-link masthead-cta{% if page.url == '/install.html' %} is-current{% endif %}" href="{{ '/install.html' | relative_url }}"{% if page.url == '/install.html' %} aria-current="page"{% endif %}>Install</a>
       <a class="masthead-link" href="https://github.com/LLM-4-People/mailsense">GitHub</a>
       <a class="masthead-link masthead-switch" href="{{ '/fr' | append: page.url | relative_url }}" hreflang="fr" lang="fr" data-lang-switch="fr">Français</a>
+      <span class="masthead-theme" role="group" aria-label="{% if page.lang == "fr" %}Thème{% else %}Theme{% endif %}">
+        <button type="button" class="masthead-theme-button" data-theme-choice="system" aria-pressed="true">{% if page.lang == "fr" %}Système{% else %}System{% endif %}</button>
+        <button type="button" class="masthead-theme-button" data-theme-choice="light" aria-pressed="false">{% if page.lang == "fr" %}Clair{% else %}Light{% endif %}</button>
+        <button type="button" class="masthead-theme-button" data-theme-choice="dark" aria-pressed="false">{% if page.lang == "fr" %}Sombre{% else %}Dark{% endif %}</button>
+      </span>
 {% endif %}
       </nav>
     </details>

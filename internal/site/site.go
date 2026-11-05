@@ -140,6 +140,10 @@ type Chrome struct {
 	Releases      Localized `json:"releases"`
 	OnThisPage    Localized `json:"on_this_page"`
 	BackToTop     Localized `json:"back_to_top"`
+	Theme         Localized `json:"theme"`
+	ThemeSystem   Localized `json:"theme_system"`
+	ThemeLight    Localized `json:"theme_light"`
+	ThemeDark     Localized `json:"theme_dark"`
 }
 
 // Limit is one honest current limitation.
@@ -565,6 +569,10 @@ func (s Site) Validate() error {
 		"chrome.releases":       s.Chrome.Releases,
 		"chrome.on_this_page":   s.Chrome.OnThisPage,
 		"chrome.back_to_top":    s.Chrome.BackToTop,
+		"chrome.theme":          s.Chrome.Theme,
+		"chrome.theme_system":   s.Chrome.ThemeSystem,
+		"chrome.theme_light":    s.Chrome.ThemeLight,
+		"chrome.theme_dark":     s.Chrome.ThemeDark,
 	} {
 		require(name, value)
 	}
@@ -772,6 +780,10 @@ func (s Site) localizedText() map[string]string {
 	add("chrome.releases", s.Chrome.Releases)
 	add("chrome.on_this_page", s.Chrome.OnThisPage)
 	add("chrome.back_to_top", s.Chrome.BackToTop)
+	add("chrome.theme", s.Chrome.Theme)
+	add("chrome.theme_system", s.Chrome.ThemeSystem)
+	add("chrome.theme_light", s.Chrome.ThemeLight)
+	add("chrome.theme_dark", s.Chrome.ThemeDark)
 	return out
 }
 
