@@ -195,9 +195,14 @@ if [[ -n "${shard_wanted[RACE]:-}" ]]; then
 	if ((${#RACE_FLAGS[@]})); then
 		say "race shard (qa, api)"
 		start_shard RACE env CGO_ENABLED=1 "$GO" test "${RACE_FLAGS[@]}" -vet=off -count=1 -timeout "${TEST_TIMEOUT}s" "$@" ./internal/qa ./internal/api
-	else
-		say "race check skipped (RACE=off, or no cgo/C compiler)"
+	elif [[ "${RACE:-auto}" == "off" ]]; then
+		say "race check skipped (RACE=off)"
 		unset 'shard_wanted[RACE]'
+	else
+		# A requested shard that cannot run is not a pass: a missing C
+		# compiler would otherwise turn the race check green while testing
+		# nothing. RACE=off is the one explicit opt-out.
+		die "RACE shard requested but -race is unavailable (no cgo or C compiler); install one or set RACE=off"
 	fi
 fi
 if [[ -n "${shard_wanted[A]:-}" ]]; then
