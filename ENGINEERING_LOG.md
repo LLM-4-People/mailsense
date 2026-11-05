@@ -81,7 +81,7 @@ Each was independently checked against source by the coordinator:
 1. Integrate the writer branches as they land (UI/brief, count scope,
    viewcache budget, e2e coverage, security docs, security fixes, update
    detection, site theme), run the full gate and the affected Playwright
-   flows, then deploy the build to `sbk-pc-jacobd` and verify it.
+   flows, then deploy the build to the Windows test host and verify it.
 2. Security fixes are in flight; the proxy-URL secret-at-rest medium needs the
    owner's decision (secret store vs refusing credentials from the file).
 3. Implement the returned designs: evidence-date deadlines (a pure `datecue`
