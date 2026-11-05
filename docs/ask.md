@@ -34,6 +34,8 @@ messages, or a written answer with citations.
 
 - A count or a ranking over mail metadata: how many messages are urgent, which
   senders wrote the most, which month was busiest.
+- A count of one recognized topic, such as invoices or support requests, with
+  the topic named and the classification coverage behind the number.
 - A list of matching messages: which messages talk about the invoice.
 - A fact from the mail: what the signed proposal asks you to confirm.
 - A summary of one thread or one day.
@@ -54,6 +56,26 @@ The model selector sits beside the question field.
 Remote is offered only when a provider record is configured and usable. When it
 is not, the selector says why and links to provider settings, and Auto and Local
 stay available.
+
+## Counts from the local index
+
+Ask can answer a plain count of one recognized topic or priority category
+from the local index without calling a model. "How many invoices?", "How many
+support requests?" and "Combien de factures ?" count one topic; "How many
+urgent messages?" counts one priority category. Local answers these counts
+directly, and Auto answers them the same way when no model is configured.
+
+The topic answer names the topic or subtopic it counted and reports the
+classification coverage behind it, for example "2 messages are classified as
+Billing or account › Invoice" and "9 of 12 messages have a topic". The
+coverage line states how many of the mailbox's messages carry a topic at all,
+so a low or zero count can be read against what was classified. A zero count
+says that no message is classified as that topic and cites nothing.
+
+The local count applies only to a plain mailbox-wide wording. When the
+wording names a person, a company, a date or another scope, the local count
+does not answer it: "How many invoices this week?" and "How many invoices
+does Bob have?" ask about a smaller set.
 
 ## How a written answer is grounded
 
@@ -86,9 +108,10 @@ answer, and Clear history removes every stored answer.
 
 ## When there is no model
 
-Local never calls a model. A structured count, a ranking and a company profile
-still answer. A free-form question returns the matching messages and a notice
-that says Local never calls a model, with the offer to switch to Auto or Remote.
+Local never calls a model. A count of a recognized topic or priority category,
+a ranking and a company profile still answer. A free-form question returns the
+matching messages and a notice that says Local never calls a model, with the
+offer to switch to Auto or Remote.
 
 A failed provider call and an answer that could not be grounded keep the
 matching messages on screen. A warming index or a retrieval timeout keeps the
