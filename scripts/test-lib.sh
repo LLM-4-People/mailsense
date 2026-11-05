@@ -27,6 +27,21 @@ run_stage() {
 	fi
 }
 
+# gate_log_dir <prefix>: a fresh private directory for one stage's failure
+# logs. With MAILSENSE_LOG_DIR set (an absolute directory) the directory lives
+# below it, so CI uploads one known root instead of globbing the random
+# ${TMPDIR:-/tmp} names; unset, the historical location is kept unchanged. The
+# caller owns cleanup: it removes the directory on success and keeps it when
+# the stage fails, which is what the failure-log upload reads.
+gate_log_dir() {
+	local prefix="$1"
+	if [[ -n "${MAILSENSE_LOG_DIR:-}" ]]; then
+		[[ "$MAILSENSE_LOG_DIR" == /* ]] || die "MAILSENSE_LOG_DIR must be an absolute path: $MAILSENSE_LOG_DIR"
+		mkdir -p "$MAILSENSE_LOG_DIR"
+	fi
+	mktemp -d "${MAILSENSE_LOG_DIR:-${TMPDIR:-/tmp}}/$prefix.XXXXXX"
+}
+
 # gate_gofmt: every Go source under cmd/, internal/ and scripts/ is formatted.
 gate_gofmt() {
 	say "gofmt"
@@ -67,7 +82,7 @@ gate_scripts() {
 gate_vet() {
 	say "go vet (host pass, then the tagged packages in parallel)"
 	local tmp
-	tmp="$(mktemp -d "${TMPDIR:-/tmp}/mailsense-vet.XXXXXX")"
+	tmp="$(gate_log_dir mailsense-vet)"
 	trap 'rm -rf "$tmp"' RETURN
 	if ! "$GO" vet ./... >"$tmp/host.log" 2>&1; then
 		cat "$tmp/host.log" >&2

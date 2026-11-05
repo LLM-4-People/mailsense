@@ -1,8 +1,9 @@
 name: scorecard
 
 on:
-  push:
-    branches: [main]
+  # No ruleset requires a scorecard check and no code scanning rule reads it,
+  # so a push run only repeats the analysis the weekly schedule already
+  # refreshes. Dispatch covers an audit between runs.
   schedule:
     - cron: "31 6 * * 1"
   workflow_dispatch:

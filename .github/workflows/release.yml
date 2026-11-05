@@ -73,6 +73,10 @@ jobs:
     needs: verify
     runs-on: windows-latest
     timeout-minutes: 30
+    outputs:
+      # packaging/windows/compile.sh owns the asset path; the publish job
+      # reads it here instead of restating the name.
+      setup: ${{ steps.compile.outputs.setup }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
@@ -95,15 +99,17 @@ jobs:
       # compile.sh owns the ISCC invocation and reads dist/VERSION, so the
       # release and the pull-request check compile the same script.
       - name: compile the installer
+        id: compile
         shell: bash
         run: packaging/windows/compile.sh
       - name: verify the installer
         shell: bash
         env:
+          SETUP: ${{ steps.compile.outputs.setup }}
           VERSION: ${{ steps.version.outputs.value }}
         run: |
           set -euo pipefail
-          setup="dist/mailsense-${VERSION}-setup.exe"
+          setup="$SETUP"
           if [[ ! -s "$setup" ]]; then
             echo "error: $setup is missing or empty" >&2
             exit 1
@@ -149,7 +155,7 @@ jobs:
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: installer
-          path: dist/*setup.exe
+          path: ${{ steps.compile.outputs.setup }}
           if-no-files-found: error
           # The publish job consumes this in the same run; a week covers a
           # rerun, and the asset itself lives on the release.
@@ -182,17 +188,18 @@ jobs:
         shell: bash
         run: echo "value=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
       # A missing, renamed or stale asset fails here, before anything is
-      # published. The expected set is derived from the tag, and the tarball
-      # is checked against the generated public page list and the stamp.
+      # published. The expected name is the installer job's own output, which
+      # packaging/windows/compile.sh derived from the tag-derived dist/VERSION.
       # The release ships one file. Anything else in dist means a job uploaded
       # something it should not, so publishing stops here.
       - name: verify the downloaded artifact set
         shell: bash
         env:
+          SETUP: ${{ needs.installer.outputs.setup }}
           VERSION: ${{ steps.version.outputs.value }}
         run: |
           set -euo pipefail
-          installer="mailsense-${VERSION}-setup.exe"
+          installer="${SETUP##*/}"
           actual="$(find dist -maxdepth 1 -type f -printf '%f\n' | LC_ALL=C sort)"
           if [[ "$actual" != "$installer" ]]; then
             echo "error: the release asset set does not match the tag ${VERSION}" >&2
