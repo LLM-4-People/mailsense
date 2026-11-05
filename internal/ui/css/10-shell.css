@@ -107,6 +107,16 @@
   display: grid;
   place-items: center;
 }
+.nav-dot {
+  margin-left: auto;
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.nav-dot[hidden] { display: none; }
 .nav-kbd {
   flex: none;
   margin-left: auto;

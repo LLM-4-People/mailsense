@@ -168,6 +168,7 @@
       gateBootSnapshot = null;
     }
     updateLearningChrome();
+    loadUpdateStatus().then(() => maybeOpenWhatsNew()).catch(() => null);
     // The zone auto-confirm needs the learning status and a POST, so it runs
     // after the content paint; a cold learning read never holds the screen.
     learningReady.then(() => {

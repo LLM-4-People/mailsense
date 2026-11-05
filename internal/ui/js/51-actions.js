@@ -334,6 +334,7 @@
       dom.modal.removeEventListener("cancel", onCancel);
       dom.modal.close();
       resolve(value);
+      scheduleWhatsNewAfterDialog();
     };
     state.modalCloseFn = () => { if (!busy) close(false); };
     const cancel = button(options.cancel || t("common.cancel"), () => { if (!busy) close(false); }, { kind: "quiet" });

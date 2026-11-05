@@ -7,6 +7,10 @@ exists.
 ## Unreleased
 
 ### Added
+- A Settings → Updates tab shows the installed and latest versions, the last
+  check, the release notes, **Check now** and **Skip this version**; the
+  first open that detects a release opens one What's New dialog and marks the
+  notes seen, and a small dot on Settings keeps the offer discoverable.
 - Ask leads the public surface: both landings, both READMEs and the selling
   guide open with a question answered from local mail, the screen table leads
   with the Ask capture, and a new bilingual guide covers the three modes,

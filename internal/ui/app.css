@@ -729,6 +729,16 @@ code {
   display: grid;
   place-items: center;
 }
+.nav-dot {
+  margin-left: auto;
+  width: 8px;
+  height: 8px;
+  flex: none;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.nav-dot[hidden] { display: none; }
 .nav-kbd {
   flex: none;
   margin-left: auto;
@@ -3339,6 +3349,21 @@ a.brief-org:hover { color: var(--accent-ink); text-decoration: underline; }
 /* A rejected provider file lists every broken record/field: the owner must
    know what to fix, because a retry cannot repair a hand-edited file. */
 .provider-load-problems { margin: 2px 0 0; padding-left: 18px; display: grid; gap: 2px; font-size: 11.5px; overflow-wrap: anywhere; }
+
+/* The Updates tab keeps its facts, markers and notes in one quiet card. */
+.update-status { display: grid; gap: 10px; padding: 12px; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.update-status .kv { margin: 0; }
+.update-headline { color: var(--ink); font-size: 14.5px; font-weight: 600; line-height: 1.35; }
+.update-headline.warn-text { color: var(--warn-ink); }
+.update-notes summary { cursor: pointer; color: var(--accent-ink); font-size: 12px; font-weight: 600; }
+.update-notes-body { display: grid; gap: 7px; margin-top: 10px; color: var(--ink-soft); font-size: 12.5px; line-height: 1.5; }
+.update-notes-body h3,
+.update-notes-body h4 { margin: 4px 0 0; color: var(--ink); font-size: 12.5px; font-weight: 600; }
+.update-notes-body p,
+.update-notes-body ul { margin: 0; white-space: pre-wrap; }
+.update-notes-body ul { display: grid; gap: 3px; padding-left: 18px; }
+.update-notes-body code { font-size: 11.5px; }
+.update-current { padding-top: 8px; border-top: 1px solid var(--line); }
 /* ---------- companies explorer ---------- */
 
 .companies-screen { gap: 0; }
