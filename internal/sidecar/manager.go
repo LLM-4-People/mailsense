@@ -156,7 +156,8 @@ func (m *Manager) ValidateVariant(value string) error {
 
 func (m *Manager) downloader() (*downloader, error) {
 	s := m.cfg.Snapshot()
-	client, err := httpx.New(m.cfg, m.bus, "sidecar.download", httpx.WithClock(m.clock), httpx.WithTotalTimeout(s.Duration("sidecar.download.timeout")))
+	client, err := httpx.New(m.cfg, m.bus, "sidecar.download", httpx.WithClock(m.clock), httpx.WithTotalTimeout(s.Duration("sidecar.download.timeout")),
+		httpx.WithCrossOriginRedirects())
 	if err != nil {
 		return nil, err
 	}

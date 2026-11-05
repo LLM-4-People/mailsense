@@ -369,6 +369,40 @@ func TestRedirectsStayOnTheSameOrigin(t *testing.T) {
 	}
 }
 
+// A pinned artifact download may follow the CDN's cross-origin redirect: it
+// sends no credential and verifies the bytes it receives. A write (a
+// provider call) is still refused, even with the option.
+func TestCrossOriginRedirectIsAllowedOnlyForReads(t *testing.T) {
+	var targetHits atomic.Int32
+	target := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		targetHits.Add(1)
+		_, _ = w.Write([]byte("artifact"))
+	}))
+	t.Cleanup(target.Close)
+	first := httptest.NewServer(http.RedirectHandler(target.URL, http.StatusTemporaryRedirect))
+	t.Cleanup(first.Close)
+
+	c, _ := newClient(t, configtest.New(t, nil), WithCrossOriginRedirects())
+	req, _ := http.NewRequest(http.MethodGet, first.URL, nil)
+	resp, err := c.Do(req)
+	if err != nil {
+		t.Fatalf("a read did not follow the artifact redirect: %v", err)
+	}
+	resp.Body.Close()
+	if targetHits.Load() != 1 {
+		t.Fatalf("the redirect reached the second origin %d times, want 1", targetHits.Load())
+	}
+
+	targetHits.Store(0)
+	req, _ = http.NewRequest(http.MethodPost, first.URL, strings.NewReader(`{"q":1}`))
+	if _, err := c.Do(req); err == nil {
+		t.Fatal("a write followed a cross-origin redirect")
+	}
+	if targetHits.Load() != 0 {
+		t.Fatalf("a write reached the second origin %d times", targetHits.Load())
+	}
+}
+
 // A same-origin redirect is ordinary endpoint behaviour and must still work.
 func TestSameOriginRedirectIsFollowed(t *testing.T) {
 	mux := http.NewServeMux()
