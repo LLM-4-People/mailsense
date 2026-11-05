@@ -77,10 +77,6 @@ type Item struct {
 	LastAt         string  `json:"last_at,omitempty"`
 	State          string  `json:"state,omitempty"`
 	StateReason    string  `json:"state_reason,omitempty"`
-	Conversations  int     `json:"conversations,omitempty"`
-	Messages       int     `json:"messages,omitempty"`
-	AwaitingOwner  int     `json:"awaiting_owner,omitempty"`
-	AwaitingOther  int     `json:"awaiting_other,omitempty"`
 	Count          int     `json:"count,omitempty"`
 	// Overdue and StoredDue are the relationship row's open-loop partition:
 	// how many of the organization's loops are overdue and how many carry the

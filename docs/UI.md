@@ -384,8 +384,9 @@ A **Recent questions** rail stays on the right.
 waiting, changed, relationships) and a two-column grid: **Must** carries an
 accent edge and lists what the owner owes, **Waiting** lists what others
 owe, **Changed** lists new conversation activity since the stored
-boundary, **Relationships** lists organizations with open conversations,
-and **Topics** is a whole-mailbox census of the classifier's topic answer,
+boundary, **Relationships** lists organizations with open loops and their
+overdue and stored follow-up partitions, and **Topics** is a whole-mailbox
+census of the classifier's topic answer,
 localized in both languages, with a nested subtopic breakdown (count and
 evidence) under each topic. Each row shows its state/status in friendly
 words, its concrete action, its subject path, its organization, person,

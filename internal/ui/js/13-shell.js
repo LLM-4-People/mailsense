@@ -274,11 +274,11 @@
     },
     // Turning the test preview on or off changes permission, the learning
     // view and every gated read whose snapshot is keyed by the preview rule:
-    // the ranked feed, the triage decisions, and the conversation states that
-    // feed resolves. Their reads and derived models drop with the mounted
-    // screens, so no screen paints a pre-flip snapshot.
+    // the ranked feed, the triage decisions, the Brief snapshot and the
+    // conversation states that feed resolves. Their reads and derived models
+    // drop with the mounted screens, so no screen paints a pre-flip snapshot.
     preview: {
-      reads: ["/api/learning", "/api/hub", "/api/gate", "/api/priority", "/api/triage", "/api/conversations"],
+      reads: ["/api/learning", "/api/hub", "/api/gate", "/api/priority", "/api/triage", "/api/conversations", "/api/brief"],
       routes: ["hub", "brief", "learning", "mail", "companies", "labels", "answers"],
       refresh: ["hub", "brief", "learning", "mail", "companies", "labels", "answers"],
     },
