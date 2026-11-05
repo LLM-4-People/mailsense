@@ -148,6 +148,9 @@ jobs:
           name: installer
           path: dist/*setup.exe
           if-no-files-found: error
+          # The publish job consumes this in the same run; a week covers a
+          # rerun, and the asset itself lives on the release.
+          retention-days: 7
 
   publish:
     name: publish

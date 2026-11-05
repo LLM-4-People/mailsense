@@ -3,12 +3,15 @@ name: actionlint
 on:
   pull_request:
     paths:
+      # A local action edit is checked through the workflows that use it.
+      - ".github/actions/**"
       - ".github/workflows/**"
       - ".github/actionlint.yaml"
       - ".github/actionlint.yml"
   push:
     branches: [main]
     paths:
+      - ".github/actions/**"
       - ".github/workflows/**"
       - ".github/actionlint.yaml"
       - ".github/actionlint.yml"
