@@ -72,6 +72,11 @@ const (
 	cacheTTL            = 30 * time.Second
 	cacheRefreshTimeout = 2 * time.Minute
 	profileCacheSize    = 16
+	// profileCacheMaxBytes bounds the estimated retained bytes of the cached
+	// profiles: the open-thread list dominates (the store caps it at 2000
+	// rows), so 8 MiB fits several large profiles while still capping a
+	// pathological one.
+	profileCacheMaxBytes = 8 << 20
 )
 
 // MaxProfileBatch is the largest profile prefetch one request may ask for,
@@ -183,6 +188,36 @@ type profileValue struct {
 	routeGen uint64 // store.RouteGeneration: the thread overlay
 }
 
+// Per-row estimates behind weighProfile: a view, thread, message, event or
+// deadline row is a handful of short strings and ints; a month, person,
+// address or map entry is smaller.
+const (
+	profileViewBytes  = 512
+	profileRowBytes   = 256
+	profileSmallBytes = 64
+)
+
+// weighProfile estimates one profile view from its bounded lists. Every list
+// has a store cap (the open-thread list dominates at 2000 rows); OpenLoops is
+// the other service's rollup, counted coarsely from its item count.
+func weighProfile(v profileValue) int {
+	view := v.view
+	n := profileViewBytes
+	n += len(view.Months) * profileSmallBytes
+	n += len(view.People) * profileSmallBytes
+	n += len(view.Addresses) * profileSmallBytes
+	n += len(view.Domains) * profileSmallBytes
+	n += len(view.ThreadStates) * profileSmallBytes
+	n += len(view.Recent) * profileRowBytes
+	n += len(view.OpenThreads) * profileRowBytes
+	n += len(view.Events) * profileRowBytes
+	n += len(view.Deadlines) * profileRowBytes
+	if view.OpenLoops != nil {
+		n += profileRowBytes + len(view.OpenLoops.Items)*profileRowBytes + len(view.OpenLoops.Kinds)*profileSmallBytes
+	}
+	return n
+}
+
 // New returns a world service.
 func New(d Deps) (*Service, error) {
 	if d.Store == nil || d.Config == nil {
@@ -193,7 +228,8 @@ func New(d Deps) (*Service, error) {
 	s.base, s.cancel = context.WithCancel(context.Background())
 	s.refreshes = join.New()
 	s.profiles = viewcache.New[string, profileValue](viewcache.Options[string, profileValue]{
-		TTL: cacheTTL, Size: profileCacheSize, Now: s.clock.Now,
+		TTL: cacheTTL, Size: profileCacheSize, MaxBytes: profileCacheMaxBytes, Weigh: weighProfile,
+		Now:       s.clock.Now,
 		Component: "world",
 		Keep: func(_ string, value profileValue) bool {
 			return value.gen == s.store.MailGeneration() && value.routeGen == s.store.RouteGeneration()

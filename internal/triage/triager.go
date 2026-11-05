@@ -164,6 +164,28 @@ func (t *Triager) UseEvidence(f EvidenceFacts) {
 	t.modelMu.Unlock()
 }
 
+// Read-model cache bounds. Pages and summaries are keyed by the full answer
+// identity, so the TTL only bounds staleness a generation cannot see; the
+// byte budgets bound what those views may pin. A page holds at most
+// TriagePageMax rows, and its Profile pointer is shared with the triager, so
+// it is never counted per entry.
+const (
+	pageCacheMaxBytes    = 4 << 20
+	summaryCacheMaxBytes = 256 << 10
+)
+
+// pageRowBytes is weighPage's basis: a row is a few ints, a taxonomy value
+// and a handful of short strings.
+const pageRowBytes = 256
+
+// weighPage estimates one page from its row map and id order.
+func weighPage(p *Page) int {
+	return len(p.Results)*pageRowBytes + len(p.IDs)*8
+}
+
+// weighSummary estimates one summary: a key and a handful of coverage counts.
+func weighSummary(*Summary) int { return 256 }
+
 // New returns a Triager; bus and clk may be nil.
 func New(cfg *config.Config, st *store.Store, bus *events.Bus, src DeciderSource, gate learning.Gate, clk clock.Clock) (*Triager, error) {
 	if src == nil || gate == nil {
@@ -175,10 +197,12 @@ func New(cfg *config.Config, st *store.Store, bus *events.Bus, src DeciderSource
 		holder: fmt.Sprintf("%d-%s", os.Getpid(), hex.EncodeToString(id)), coverage: st.RouteCoverage,
 		pending: st.HasPendingDecisions, candidates: st.DecisionCandidates, loadDecisions: st.LoadDecisionsFor}
 	t.pages = viewcache.New[viewKey, *Page](viewcache.Options[viewKey, *Page]{
-		TTL: 30 * time.Second, Size: 16, Now: t.clock.Now, Component: "triage",
+		TTL: 30 * time.Second, Size: 16, MaxBytes: pageCacheMaxBytes, Weigh: weighPage,
+		Now: t.clock.Now, Component: "triage",
 	})
 	t.summaries = viewcache.New[viewKey, *Summary](viewcache.Options[viewKey, *Summary]{
-		TTL: 30 * time.Second, Size: 16, Now: t.clock.Now, Component: "triage",
+		TTL: 30 * time.Second, Size: 16, MaxBytes: summaryCacheMaxBytes, Weigh: weighSummary,
+		Now: t.clock.Now, Component: "triage",
 	})
 	return t, nil
 }

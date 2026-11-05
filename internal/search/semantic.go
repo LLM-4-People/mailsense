@@ -31,6 +31,15 @@ type coverageCache struct {
 // repeats.
 const queryCacheSize = 64
 
+// queryCacheMaxBytes bounds the retained query vectors: a vector is
+// Dimensions() float32s at 4 bytes each, so 1 MiB covers the 64-entry window
+// of even a 4096-dimension model.
+const queryCacheMaxBytes = 1 << 20
+
+// weighQueryVector is the query cache's exact estimate: a vector retains one
+// float32 per dimension.
+func weighQueryVector(v []float32) int { return len(v) * 4 }
+
 // queryCacheKey is (space, normalized query text). mail.Fold is the same
 // normalization the full-text query parser applies, so case and diacritic
 // variants share one embedding; internal spacing is kept exact.
