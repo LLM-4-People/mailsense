@@ -122,12 +122,14 @@ func (s *Server) buildHandler() http.Handler {
 	s.get("/api/commitments", false, s.gated(s.handleCommitments))
 	s.get("/api/brief", false, s.gated(s.handleBrief))
 
-	// The update surface is owner-only like every other data route. The GET
-	// reads state only; the POSTs record a marker or run one check.
-	s.get("/api/update", false, s.gated(s.handleUpdate))
-	s.post("/api/update/check", false, s.gated(s.handleUpdateCheck))
-	s.post("/api/update/skip", false, s.gated(s.handleUpdateSkip))
-	s.post("/api/update/seen", false, s.gated(s.handleUpdateSeen))
+	// The update surface is owner-only (bearer auth) but not learning-gated:
+	// a fresh install must be able to read its update status and answer the
+	// What's New markers before learning completes. The GET reads state only;
+	// the POSTs record a marker or run one check.
+	s.get("/api/update", false, s.handleUpdate)
+	s.post("/api/update/check", false, s.handleUpdateCheck)
+	s.post("/api/update/skip", false, s.handleUpdateSkip)
+	s.post("/api/update/seen", false, s.handleUpdateSeen)
 
 	s.post("/api/shutdown", false, s.handleShutdown)
 

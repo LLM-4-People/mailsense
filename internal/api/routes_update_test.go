@@ -112,9 +112,11 @@ func TestUpdateFailedCheckIsAQuietStatus(t *testing.T) {
 	}
 }
 
-// TestUpdateRoutesAreGated: every update route is owner-only like the other
-// data reads; a closed gate answers 423 before any service call.
-func TestUpdateRoutesAreGated(t *testing.T) {
+// TestUpdateRoutesIgnoreTheLearningGate: the update surface is not a data
+// read. A fresh install must be able to read its status and answer the
+// What's New markers before learning completes, so the gate is never
+// consulted; bearer auth still protects every route.
+func TestUpdateRoutesIgnoreTheLearningGate(t *testing.T) {
 	srv, ts, w := newTestServer(t)
 	w.learning.allowErr = lockedGate()
 	for _, tc := range []request{
@@ -125,14 +127,31 @@ func TestUpdateRoutesAreGated(t *testing.T) {
 	} {
 		t.Run(tc.method+" "+tc.path, func(t *testing.T) {
 			status, _, data := do(t, ts, srv, tc)
-			mustStatus(t, status, 423, data)
-			if got := errorCode(t, data); got != "learning_locked" {
-				t.Fatalf("code = %q, want learning_locked", got)
-			}
+			mustStatus(t, status, 200, data)
 		})
 	}
-	if w.update.statusCalls != 0 || w.update.checkCalls != 0 || w.update.skipCalls != 0 || w.update.seenCalls != 0 {
-		t.Fatalf("a locked gate reached update: status %d check %d skip %d seen %d",
+	if w.learning.calls != 0 {
+		t.Fatalf("the learning gate was consulted %d times", w.learning.calls)
+	}
+	if w.update.statusCalls != 1 || w.update.checkCalls != 1 || w.update.skipCalls != 1 || w.update.seenCalls != 1 {
+		t.Fatalf("update calls: status %d check %d skip %d seen %d",
 			w.update.statusCalls, w.update.checkCalls, w.update.skipCalls, w.update.seenCalls)
+	}
+
+	// Bearer auth is the whole protection for this surface; a missing bearer
+	// answers 401 even with the gate closed.
+	for _, tc := range []request{
+		{method: "GET", path: "/api/update"},
+		{method: "POST", path: "/api/update/check", body: "{}"},
+		{method: "POST", path: "/api/update/skip", body: `{"version":"0.2.0"}`},
+		{method: "POST", path: "/api/update/seen", body: `{"version":"0.2.0"}`},
+	} {
+		t.Run("no auth "+tc.method+" "+tc.path, func(t *testing.T) {
+			status, _, data := do(t, ts, srv, noAuth(tc))
+			mustStatus(t, status, 401, data)
+			if got := errorCode(t, data); got != "unauthorized" {
+				t.Fatalf("code = %q, want unauthorized", got)
+			}
+		})
 	}
 }

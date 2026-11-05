@@ -79,8 +79,13 @@ Each was independently checked against source by the coordinator:
   not running (six exit paths exercised against a fake API).
 - `feat-update-detect` (`249f169`): slice 1 of the update feature (semver
   comparison, GitHub release checker with ETag and rate-limit handling, atomic
-  state, gated API, startup check, settings) and the privacy pages now list
+  state, API, startup check, settings) and the privacy pages now list
   the update check as the fifth request kind.
+- `fix(update-gate)`: the live Windows verification showed `GET /api/update`
+  answering 423 on a fresh data dir because the four update routes were
+  wrapped in the learning gate. The routes are now bearer-only and reachable
+  before learning; the test asserts 200 with a closed gate, that the gate is
+  never consulted, and that a missing bearer still answers 401.
 - Verification on the integrated tree: `make fast` green, the affected
   Playwright flows 56/56, the named regression suites for each feature green,
   the generated site current, and the PII gate clean.
@@ -176,7 +181,8 @@ shipped; remaining work, in priority order:
    `RankPage`, persisted `qa_history.coverage`, and the shared Ask coverage
    line.
 4. Update feature: slice 1 shipped (semver detection, GitHub checker, atomic
-   state, gated API, startup check, settings). Remaining: the Settings tab and
+   state, API available before learning completes, startup check, settings).
+   Remaining: the Settings tab and
    the first-open What's New overlay, then slice 2 (download and install: the
    `httpx` asset-host allowlist, a shared fetch package, the Windows
    relauncher helper). The privacy pages now list the update check as the

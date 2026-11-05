@@ -144,10 +144,10 @@ An action has one spelling: a name the dispatcher does not know answers `404 not
 | `POST /api/ask` | `{"question":"…","language":"en"\|"fr","conversation_id":"…","route":"auto\|local\|remote"}` | `200` `AskView` | **gated**, long timeout; question 3…500 characters; optional `conversation_id` is 1…64 ASCII letters, digits, `_` or `-`; an omitted id starts a thread and returns a generated 16-hex id; optional `route` defaults to `auto` and is returned on the view; `400 invalid_question`/`invalid_language`/`invalid_conversation_id`/`invalid_route`; `503 qa_disabled` |
 | `GET /api/ask/history` | `?limit=<n>` | `200` `{"items":[AskView]}` | **gated**; `limit` 1…100 (default 20), newest first |
 | `DELETE /api/ask/history` | — | `204` | **gated**; removes the local history |
-| `GET /api/update` | — | `200` `update.Status` | **gated**; local status read only, never a release check or a network request; see [Update detection](#update-detection) |
-| `POST /api/update/check` | empty or `{}` | `200` `update.Status` | **gated**; one conditional `GET` of the latest published release, plus one release-list page only when that release is newer; a failed upstream answer is a quiet `200` with `error_code`/`last_error`, never an API error |
-| `POST /api/update/skip` | `{"version":"…"}` | `200` `update.Status` | **gated**; the version is required, 1…128 bytes of UTF-8; mutes the offer until `update.remind.after` has elapsed |
-| `POST /api/update/seen` | `{"version":"…"}` | `200` `update.Status` | **gated**; records the What's New marker for that version |
+| `GET /api/update` | — | `200` `update.Status` | owner-only; local status read only, never a release check or a network request; available before learning completes; see [Update detection](#update-detection) |
+| `POST /api/update/check` | empty or `{}` | `200` `update.Status` | owner-only; one conditional `GET` of the latest published release, plus one release-list page only when that release is newer; a failed upstream answer is a quiet `200` with `error_code`/`last_error`, never an API error; available before learning completes |
+| `POST /api/update/skip` | `{"version":"…"}` | `200` `update.Status` | owner-only; the version is required, 1…128 bytes of UTF-8; mutes the offer until `update.remind.after` has elapsed; available before learning completes |
+| `POST /api/update/seen` | `{"version":"…"}` | `200` `update.Status` | owner-only; records the What's New marker for that version; available before learning completes |
 | `POST /api/shutdown` | empty or `{}` | `202` `{"ok":true}` | second call `503 shutting_down` |
 | `GET /` | — | `200` HTML | embedded desktop shell |
 | `GET /index.html` | — | `308` `/` | |
@@ -1598,7 +1598,8 @@ or route answer. A second explicit surface is
 that has a stored answer while the gate is closed, and an unanswered
 message gets the same `423`. Everything that opens or configures learning (status,
 learning, settings, secrets, mailboxes, jobs, learning actions, the
-display backfill, logs, providers, sidecar, labels, events, shutdown)
+display backfill, logs, providers, sidecar, labels, events, the update
+status and its markers, shutdown)
 works while the gate is closed. The service remains authoritative: a
 service that returns `*LockedError` is answered `423` even if the
 middleware's check just passed.
