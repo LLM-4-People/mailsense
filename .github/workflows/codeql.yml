@@ -38,14 +38,18 @@ jobs:
         if: matrix.language == 'go'
         with:
           suffix: codeql-go
-      - uses: github/codeql-action/init@a3d1b77a1ba1550fbb5c74db1dc3a11f4a481126 # v3
+      # One pinned release across every CodeQL step, the same v4.39.1 that
+      # scorecard.yml uploads its SARIF with: the action refuses to mix
+      # versions inside one workflow, and one version keeps both workflows on
+      # one analysis engine.
+      - uses: github/codeql-action/init@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
         with:
           languages: ${{ matrix.language }}
       # Only Go needs a build. The JavaScript and TypeScript extractor reads
       # the sources directly.
-      - uses: github/codeql-action/autobuild@a3d1b77a1ba1550fbb5c74db1dc3a11f4a481126 # v3
+      - uses: github/codeql-action/autobuild@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
         if: matrix.language == 'go'
-      - uses: github/codeql-action/analyze@a3d1b77a1ba1550fbb5c74db1dc3a11f4a481126 # v3
+      - uses: github/codeql-action/analyze@9b3254085494b55a0f7c4c2b3d2d52cc712ce370 # v4.39.1
 
   # The ruleset requires the "analyze" context. This job keeps that one name
   # while each language analysis runs in parallel.

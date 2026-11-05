@@ -12,6 +12,8 @@
 #   PARALLEL   test binaries run at once (default 8; the host has 12 cores)
 #   RACE       off (default: the exhaustive correctness gate) | on | auto
 #              scripts/test-race.sh is the same gate with RACE=on
+#   MAILSENSE_LOG_DIR
+#              root for the vet failure logs (default: the system temp directory)
 #   GO         Go toolchain to use
 set -euo pipefail
 # shellcheck disable=SC1091 # lib.sh is resolved from this file's own directory

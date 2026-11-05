@@ -24,8 +24,8 @@ cookie: the only client is the embedded same-origin shell.
 
 `scripts/run-windows.sh` starts the app and waits for the descriptor;
 `scripts/stop-windows.sh` reads it, posts `/api/shutdown` with the token in
-curl's stdin config, and waits for the process and descriptor to disappear.
-Neither prints the token.
+curl's stdin config, and waits for the descriptor to disappear. Neither prints
+the token.
 
 ## Errors
 
