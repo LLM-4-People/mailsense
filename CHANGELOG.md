@@ -25,6 +25,9 @@ exists.
 - Bilingual documentation site (English and French) deployed from `docs/`.
 - GitHub automation: CI, race matrix, UI suite, CodeQL, releases with checksums,
   Pages, dependabot, issue and pull-request templates.
+- Ask answers a count of one topic from local classified mail, names the topic
+  and subtopic it counted, and discloses the classification coverage behind a
+  zero.
 
 ### Changed
 - The release ships the Windows installer only. The source still builds on

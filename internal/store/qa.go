@@ -54,6 +54,18 @@ type QACitation struct {
 	Reason    string `json:"reason,omitempty"`
 }
 
+// QATopicAnswer is the persisted topic count: the catalogue path, the count
+// the census reported, and the classification coverage behind it. It mirrors
+// the Q&A service's TopicAnswer; internal/store cannot import internal/qa
+// (qa imports store), so the two share the wire shape instead of a type.
+type QATopicAnswer struct {
+	Topic      string `json:"topic"`
+	Subtopic   string `json:"subtopic"`
+	Count      int    `json:"count"`
+	Classified int    `json:"classified"`
+	Scanned    int    `json:"scanned"`
+}
+
 // QAHistory is one persisted question and its answer. ConversationID groups
 // the turns of one short chat thread; an empty id is a standalone turn.
 // Counts, Citations, Plan, Result and Clarify are typed in Go and stored as
@@ -91,6 +103,9 @@ type QAHistory struct {
 	Agenda    *agenda.Result
 	Clarify   *mailquery.Clarification
 	Notice    string
+	// Topic is the structured topic-count answer: the catalogue path, the
+	// count and the classification coverage the answer disclosed.
+	Topic *QATopicAnswer
 }
 
 // SaveQA writes one history row and prunes every row older than the newest
@@ -184,6 +199,11 @@ func (s *Store) SaveQA(ctx context.Context, rec QAHistory) (QAHistory, error) {
 			}
 		}
 	}
+	if rec.Topic != nil {
+		if err := validateQATopic(rec.Topic); err != nil {
+			return QAHistory{}, err
+		}
+	}
 	counts, err := json.Marshal(rec.Counts)
 	if err != nil {
 		return QAHistory{}, fmt.Errorf("store: qa counts: %w", err)
@@ -208,6 +228,10 @@ func (s *Store) SaveQA(ctx context.Context, rec QAHistory) (QAHistory, error) {
 	if err != nil {
 		return QAHistory{}, fmt.Errorf("store: qa agenda: %w", err)
 	}
+	topicJSON, err := marshalOptional(rec.Topic)
+	if err != nil {
+		return QAHistory{}, fmt.Errorf("store: qa topic: %w", err)
+	}
 	ts := ""
 	var id int64
 	err = s.busy.WithBusyRetry(ctx, "save qa history", func() error {
@@ -218,11 +242,11 @@ func (s *Store) SaveQA(ctx context.Context, rec QAHistory) (QAHistory, error) {
 		return s.inTx(ctx, func(tx *sql.Tx) error {
 			res, err := tx.ExecContext(ctx, `INSERT INTO qa_history
 			(conversation_id, route, question, answer, mode, intent, counts, citations, provider, model, language, preview, created_at,
-			 plan, result, clarify, notice, agenda)
-			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			 plan, result, clarify, notice, agenda, topic)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
 				rec.ConversationID, rec.Route, rec.Question, rec.Answer, rec.Mode, rec.Intent, string(counts), string(citations),
 				rec.Provider, rec.Model, rec.Language, boolInt(rec.Preview), ts,
-				planJSON, resultJSON, clarifyJSON, rec.Notice, agendaJSON)
+				planJSON, resultJSON, clarifyJSON, rec.Notice, agendaJSON, topicJSON)
 			if err != nil {
 				return err
 			}
@@ -244,7 +268,7 @@ func (s *Store) SaveQA(ctx context.Context, rec QAHistory) (QAHistory, error) {
 // scanner below is its only consumer; a new persisted field is added here
 // and scanned in the same position.
 const qaHistoryColumns = `id, conversation_id, route, question, answer, mode, intent, counts, citations,
-	provider, model, language, preview, created_at, plan, result, clarify, notice, agenda`
+	provider, model, language, preview, created_at, plan, result, clarify, notice, agenda, topic`
 
 // ListQA returns the newest history rows, newest first, at most limit.
 func (s *Store) ListQA(ctx context.Context, limit int) ([]QAHistory, error) {
@@ -307,11 +331,11 @@ func (s *Store) ListQATurns(ctx context.Context, conversationID string, limit in
 }
 
 func scanQAHistory(r *sql.Rows, h *QAHistory) error {
-	var counts, citations, planJSON, resultJSON, clarifyJSON, agendaJSON string
+	var counts, citations, planJSON, resultJSON, clarifyJSON, agendaJSON, topicJSON string
 	var preview int
 	if err := r.Scan(&h.ID, &h.ConversationID, &h.Route, &h.Question, &h.Answer, &h.Mode, &h.Intent, &counts, &citations,
 		&h.Provider, &h.Model, &h.Language, &preview, &h.CreatedAt,
-		&planJSON, &resultJSON, &clarifyJSON, &h.Notice, &agendaJSON); err != nil {
+		&planJSON, &resultJSON, &clarifyJSON, &h.Notice, &agendaJSON, &topicJSON); err != nil {
 		return err
 	}
 	if err := jsonx.DecodeStrict([]byte(counts), &h.Counts); err != nil {
@@ -361,7 +385,30 @@ func scanQAHistory(r *sql.Rows, h *QAHistory) error {
 		return fmt.Errorf("store: qa history %d agenda: %w", h.ID, err)
 	}
 	h.Agenda = agenda
+	topic, err := decodeOptional[QATopicAnswer](topicJSON)
+	if err != nil {
+		return fmt.Errorf("store: qa history %d topic: %w", h.ID, err)
+	}
+	if topic != nil {
+		if err := validateQATopic(topic); err != nil {
+			return fmt.Errorf("store: qa history %d topic: %w", h.ID, err)
+		}
+	}
+	h.Topic = topic
 	h.Preview = preview != 0
+	return nil
+}
+
+// validateQATopic is the one validator of a persisted topic answer. It keeps
+// the store a persistence layer: the catalogue owns which topic ids exist, so
+// the store only refuses an empty path and a negative count.
+func validateQATopic(topic *QATopicAnswer) error {
+	if topic == nil {
+		return nil
+	}
+	if strings.TrimSpace(topic.Topic) == "" || topic.Count < 0 || topic.Classified < 0 || topic.Scanned < 0 {
+		return fmt.Errorf("store: qa history topic is invalid")
+	}
 	return nil
 }
 

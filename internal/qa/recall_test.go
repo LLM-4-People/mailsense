@@ -34,6 +34,10 @@ func (recallPriority) Rank(context.Context, priority.Filter, int) ([]priority.It
 
 func (recallPriority) Top(context.Context, int) ([]priority.Item, error) { return nil, nil }
 
+func (recallPriority) Topics(context.Context) (priority.TopicCensus, error) {
+	return priority.TopicCensus{}, nil
+}
+
 func (recallPriority) ThreadStates(context.Context) (map[string]threadintel.Assessment, error) {
 	return nil, nil
 }

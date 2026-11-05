@@ -5,6 +5,57 @@ changed, what was tried, what failed, and what comes next. It is not a changelog
 (the user-facing history lives in `CHANGELOG.md`) and not a plan (`docs/PLAN.md`
 owns scope). Keep it current as work proceeds.
 
+## Cycle: topic-scoped local Ask counts (2026-11-04)
+
+### Shipped
+
+- Ask answers a plain count of one catalogue topic locally, with no model and
+  no second mailbox scan: "How many invoices?", "Combien de factures ?" and
+  "How many support requests?" read the topic census the priority ranking
+  already built. `internal/subject` owns the recognition table (whole topics
+  plus their main subtopics, EN and FR, longest alias wins, validated against
+  the catalogue) and `priority.TopicCensus` owns the counts.
+- The provider-less Auto gate and the Local route share one decision owner
+  (`providerlessCountIntent`), so the two cannot disagree about what a count
+  answers. Priority category counts keep their precedence: "How many
+  decisions?" and "How many urgent messages?" never become topic counts.
+- A zero topic count discloses its classification coverage (classified of
+  scanned): an empty topic is visibly different from a mailbox whose mail was
+  never classified, and a failed census read is an error, never a zero.
+- The answer is persisted with its path and coverage (migration 0038,
+  `qa_history.topic`), so a reopened or history-loaded answer states exactly
+  what it counted.
+- Two relation prepositions ("about", "sur") joined the plain-count filler
+  allowlist so "How many messages about invoices?" answers the topic count;
+  every scope noun after them still fails the allowlist.
+
+### Verification
+
+- `go test ./internal/subject/... ./internal/priority/... ./internal/qa/... ./internal/store/... -count=1`
+  and `go test ./internal/ui/... -count=1`.
+- `make fast`: gofmt, script syntax, generated UI bundles, PII scan, vet,
+  shards A/B/C, isolated sidecar suite, race shard.
+- New tests: EN/FR accept (invoices, factures, billing, projet, support
+  requests, about/sur), zero coverage with no citations, fail-closed controls
+  (this week, today, person frame, organization, reported action, repeated
+  alias, two categories, priority compound, unlisted scope, no count cue),
+  priority precedence, resolver-error deferral, census failure with no history
+  row, the alias boundary against priority and pinned scope words, the Local
+  route, and the persisted topic round trip (including strict decode).
+
+### Next queue
+
+1. Uncertified-dimension notices for the remaining structured counts: a
+   priority category zero should disclose its coverage like the topic count
+   now does.
+2. Evidence-date deadlines: date pressure found in cited text must flow into
+   priority/commitments with its evidence.
+3. Company open loops: unanswered owner obligations grouped by counterparty.
+4. People profiles: one person view assembled from messages, commitments and
+   companies.
+5. Performance: one invalidation fan-out owner and a memory budget for the
+   priority/semantic path.
+
 ## Cycle: public surface rebuild and intelligence hardening (2026-11-04/05)
 
 ### Shipped

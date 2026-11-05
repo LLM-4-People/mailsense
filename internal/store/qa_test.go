@@ -61,6 +61,66 @@ func TestQAHistoryRoundTripPruneAndClear(t *testing.T) {
 	}
 }
 
+// TestQAHistoryTopicAnswerRoundTrip proves the topic count answer survives a
+// real SQLite write and read, decodes strictly, and is absent (never a
+// fabricated zero) in a row written before the column existed.
+func TestQAHistoryTopicAnswerRoundTrip(t *testing.T) {
+	s, _ := open(t, nil)
+	ctx := t.Context()
+	want := QATopicAnswer{Topic: "billing_account", Subtopic: "invoice", Count: 3, Classified: 40, Scanned: 52}
+	saved, err := s.SaveQA(ctx, QAHistory{
+		Question: "Combien de factures ?", Mode: "structured", Intent: "topic", Language: "fr",
+		Counts: map[string]int{}, Citations: []QACitation{}, Topic: &want,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	rows, err := s.ListQA(ctx, 10)
+	if err != nil || len(rows) != 1 || rows[0].ID != saved.ID {
+		t.Fatalf("list: %d rows, %v", len(rows), err)
+	}
+	got := rows[0].Topic
+	if got == nil || *got != want {
+		t.Fatalf("topic round trip = %+v, want %+v", got, want)
+	}
+	if rows[0].Mode != "structured" || rows[0].Intent != "topic" {
+		t.Fatalf("row = %+v", rows[0])
+	}
+
+	legacy, err := s.SaveQA(ctx, QAHistory{Question: "How many urgent messages?",
+		Mode: "structured", Intent: "urgent", Language: "en", Counts: map[string]int{}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	rows, err = s.ListQA(ctx, 10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, row := range rows {
+		if row.ID == legacy.ID && row.Topic != nil {
+			t.Fatalf("legacy row fabricated a topic answer: %+v", row.Topic)
+		}
+	}
+
+	if _, err := s.SaveQA(ctx, QAHistory{Mode: "structured", Intent: "topic", Language: "fr",
+		Topic: &QATopicAnswer{Topic: "", Count: 1}}); err == nil {
+		t.Fatal("a topic answer without a topic was accepted")
+	}
+	if _, err := s.SaveQA(ctx, QAHistory{Mode: "structured", Intent: "topic", Language: "fr",
+		Topic: &QATopicAnswer{Topic: "billing_account", Count: -1}}); err == nil {
+		t.Fatal("a negative topic count was accepted")
+	}
+
+	if _, err := s.db.ExecContext(ctx, `INSERT INTO qa_history
+		(question, answer, mode, intent, counts, citations, language, preview, created_at, topic)
+		VALUES ('q', 'a', 'structured', 'topic', '{}', '[]', 'fr', 0, 'x', '{')`); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.ListQA(ctx, 10); err == nil {
+		t.Fatal("malformed topic JSON must fail the read")
+	}
+}
+
 // TestQAHistoryPersistsAnswerLanguageNotice proves the language notice survives
 // a real SQLite write and read. internal/store cannot import
 // mailsense/internal/qa: qa imports store, so the internal test package would
