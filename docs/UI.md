@@ -926,8 +926,8 @@ replaced by a fake list, zero count or "no mail".
 
 `jobs.update` feeds the one global job strip between the topbar and
 `#main`: each running job shows its name, live `done / total`, percent,
-progress bar, message and a cancel action; a failure stays until dismissed
-and a finished job lingers four seconds. A job that reports a stage (the
+progress bar, message and a cancel action that names its job; a failure
+stays until dismissed and a finished job lingers four seconds. A job that reports a stage (the
 local classifier does) also shows the translated phase, the item it is on
 (a question name) and its position within the phase (`step 2 / 5`), plus
 an ETA measured from the job's own average rate. Every string the chip

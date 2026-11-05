@@ -93,6 +93,15 @@ Each was independently checked against source by the coordinator:
 - Promotion: `testing` merges to `main` through PR #25 with every required
   check green. The owner's explicit instruction authorizes the admin merge
   because the ruleset demands an extra approval for unattributed commits.
+
+### Post-promotion fix (2026-11-05)
+
+- The job strip's per-job cancel button showed a bare "Cancel". The action
+  already built `Cancel <task>` for the accessible name and title but forced
+  the visible span to `common.cancel`; the visible label now uses the same
+  string at its one owner (`13-jobs.js:311`). The live Playwright case asserts
+  the visible text and fails on the old bundle; no new catalog key or budget
+  change.
 - Verification on the integrated tree: `make fast` green, the affected
   Playwright flows 56/56, the named regression suites for each feature green,
   the generated site current, and the PII gate clean.

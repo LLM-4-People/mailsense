@@ -6146,18 +6146,18 @@
     action.setAttribute("aria-label", label);
     action.title = label;
     const textNode = action.querySelector("span");
-    // The visible control is one verb. The job name lives in the accessible
-    // label and the title, so the strip never shows "Fermer Outlook" (which
-    // read as an instruction to close Outlook itself).
-    // withBusy owns the label while a cancel is in flight.
+    // The visible label owns the task name. Two jobs can run at once, so a
+    // bare "Cancel" never said which task it would stop; the label and the
+    // accessible name are the same string. withBusy still owns the label
+    // while a cancel is in flight.
     if (textNode && !action.disabled) {
-      textNode.textContent = kind === "cancel" ? t("common.cancel") : t("shell.job.dismiss_short");
+      textNode.textContent = kind === "cancel" ? label : t("shell.job.dismiss_short");
     }
   }
 
   function jobActionButton(info, kind, key, ids) {
     const action = kind === "cancel"
-      ? button(t("common.cancel"), (event) => cancelJob(key, event.currentTarget), { small: true, kind: "quiet" })
+      ? button(jobActionLabel(info, kind), (event) => cancelJob(key, event.currentTarget), { small: true, kind: "quiet" })
       : button(t("shell.job.dismiss_short"), () => {
         for (const id of ids) forgetJob(id);
         scheduleJobPaint();

@@ -201,6 +201,14 @@ test.describe("global job strip", () => {
     await expect(
       strip.getByRole("button", { name: /^Cancel / }),
     ).toHaveCount(2);
+    // The visible label names the task, not a bare "Cancel": two jobs can run
+    // at once, and the accessible name alone did not help a sighted user.
+    await expect(
+      strip.getByRole("button", { name: "Cancel Mail sync" }),
+    ).toHaveText("Cancel Mail sync");
+    await expect(
+      strip.getByRole("button", { name: "Cancel Semantic index" }),
+    ).toHaveText("Cancel Semantic index");
     await strip.getByRole("button", { name: "Cancel Mail sync" }).click();
 
     await expect(summary).toContainText("Mail sync (cancelled)");
