@@ -845,12 +845,13 @@
       if (view.notice === "answer_language") blocks.push(askNoticeCard(view, options));
     } else if (view.mode === "structured") {
       blocks.push(h("p", { class: "ask-sentence", dir: "auto", text: structuredSentence(view) }));
-      if (view.intent === "topic" && view.topic && Number(view.topic.scanned) > 0) {
-        blocks.push(h("p", { class: "fine ask-topic-coverage", text: t("ask.topic.coverage", {
-          count: Number(view.topic.classified) || 0,
-          classified: Number(view.topic.classified) || 0,
-          total: Number(view.topic.scanned),
-        }) }));
+      if (view.intent === "topic" && view.topic) {
+        // The 0/0 census renders coverage too: the zero is disclosed, never hidden.
+        const scanned = Number(view.topic.scanned) || 0;
+        const classified = Number(view.topic.classified) || 0;
+        const coverage = scanned > 0 ? t("ask.topic.coverage", { count: classified, classified, total: scanned })
+          : t("ask.topic.coverage.none");
+        blocks.push(h("p", { class: "fine ask-topic-coverage", text: coverage }));
       }
     } else {
       blocks.push(askNoticeCard(view, options));

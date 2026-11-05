@@ -74,8 +74,8 @@ func TestActionCallSitesNameTheirTopics(t *testing.T) {
 // The graph entries name the reads and surfaces each action changes. A
 // selection moves visible mail; discovery only the mailbox list; a job and a
 // zone only the shell snapshots; a preview flips the gated reads whose
-// snapshots are keyed by the preview rule: the ranked feed, the triage page
-// and the conversation states derived from that feed.
+// snapshots are keyed by the preview rule: the ranked feed, the triage page,
+// the Brief snapshot and the conversation states derived from that feed.
 func TestActionInvalidationTopicsAreScoped(t *testing.T) {
 	shell := readUIModule(t, "13-shell.js")
 	discovery := topicBody(t, shell, "discovery")
@@ -150,6 +150,10 @@ func TestActionInvalidationTopicsAreScoped(t *testing.T) {
 	preview := topicBody(t, shell, "preview")
 	for _, want := range []string{
 		`"/api/learning"`, `"/api/hub"`, `"/api/gate"`, `"/api/priority"`, `"/api/triage"`, `"/api/conversations"`,
+		// The Brief snapshot is preview-keyed: the gate answer and the
+		// ranked read behind it change with the preview rule, so the cached
+		// /api/brief payload must drop with the flip.
+		`"/api/brief"`,
 	} {
 		if !strings.Contains(preview, want) {
 			t.Errorf("preview reads lack %q", want)
@@ -258,6 +262,7 @@ assert.ok(calls.cache[0].includes("/api/gate"), "a preview toggle lost the gate 
 assert.ok(calls.cache[0].includes("/api/priority"), "a preview toggle kept the ranked snapshot");
 assert.ok(calls.cache[0].includes("/api/triage"), "a preview toggle kept the triage page");
 assert.ok(calls.cache[0].includes("/api/conversations"), "a preview toggle kept the pre-flip conversation states");
+assert.ok(calls.cache[0].includes("/api/brief"), "a preview toggle kept the pre-flip Brief snapshot");
 
 console.log("action topics: ok");
 `
