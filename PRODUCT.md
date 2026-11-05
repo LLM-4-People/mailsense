@@ -65,8 +65,9 @@ citation opens the message it names.
 - Name: Mailsense.
 - Voice: plain, sentence case, no em dash, no spaced en dash, no double hyphen
   punctuation, no stock phrases.
-- Palette: paper `#f7f3ea`, ink `#141b1f`, teal `#1d5c58`, amber `#a9641f`,
-  sand `#e6d9c2`, muted `#5c6a6d`, rule `#d8cdb9`.
+- Palette: ink `#0b191a`, ink-2 `#12282a`, paper `#f4efe5`, card `#fffdf7`,
+  teal `#0f6b5f`, mint `#8fe3c8`, amber `#d98a4a`, sand `#cfc4ae`,
+  muted `#5f706c`, mist `#9db3ae`, rule `#ded4c3`.
 - Type: Georgia for display, the system UI stack for body, the system mono stack
   for labels. No external font request.
 - Mark: a dark rounded square holding a paper envelope, three ranked lines in

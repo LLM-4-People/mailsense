@@ -184,63 +184,117 @@ func (s Site) Landing(lang string) []byte {
 	fmt.Fprintf(&out, "  alt: %s\n", yamlQuote(s.Product+": "+s.Hero.Banner.For(lang)))
 	out.WriteString("---\n\n")
 
-	// First viewport: the promise and the grounded answer slip.
-	out.WriteString(`<section class="thesis">` + "\n")
-	out.WriteString(`  <div class="shell thesis-grid">` + "\n")
-	out.WriteString(`    <div class="thesis-copy">` + "\n")
-	fmt.Fprintf(&out, `      <p class="eyebrow">%s</p>`+"\n", html.EscapeString(s.Hero.Eyebrow.For(lang)))
+	// First viewport: the ask and the working app.
+	out.WriteString(`<header class="hero">` + "\n")
+	out.WriteString(`  <div class="shell hero-grid">` + "\n")
+	out.WriteString(`    <div class="hero-copy">` + "\n")
 	fmt.Fprintf(&out, `      <h1 class="promise" id="thesis-title">%s</h1>`+"\n", s.inlineHTML(s.Hero.Promise.For(lang), lang))
 	fmt.Fprintf(&out, `      <p class="lede">%s</p>`+"\n", s.inlineHTML(s.Hero.Lede.For(lang), lang))
-	fmt.Fprintf(&out, `      <p class="actions"><a class="button button-ink" href="%s">%s</a><a class="quiet-link" href="%s">%s</a></p>`+"\n",
+	fmt.Fprintf(&out, `      <p class="actions"><a class="button" href="%s">%s</a><a class="quiet-link" href="%s">%s</a></p>`+"\n",
 		htmlHref(links["install"]), html.EscapeString(s.Install.Title.For(lang)),
 		htmlHref(links["first_run"]), html.EscapeString(s.Install.FirstRun.For(lang)))
 	fmt.Fprintf(&out, `      <p class="hero-note">%s</p>`+"\n", s.inlineHTML(s.Hero.Note.For(lang), lang))
 	out.WriteString("    </div>\n")
 
-	out.WriteString(`    <aside class="answer-slip" aria-labelledby="slip-label">` + "\n")
-	out.WriteString(`      <div class="slip-head">` + "\n")
-	fmt.Fprintf(&out, `        <p class="slip-label" id="slip-label">%s</p>`+"\n", html.EscapeString(s.Hero.Answer.Label.For(lang)))
-	out.WriteString(`        <span class="slip-meta">` + "\n")
-	fmt.Fprintf(&out, `          <span class="slip-sample">%s</span>`+"\n", html.EscapeString(s.Hero.Answer.Sample.For(lang)))
-	fmt.Fprintf(&out, `          <span class="chip">%s</span>`+"\n", html.EscapeString(s.Hero.Answer.Mode.For(lang)))
-	out.WriteString("        </span>\n")
-	out.WriteString("      </div>\n")
-	fmt.Fprintf(&out, `      <p class="slip-question">%s</p>`+"\n", s.inlineHTML(s.Hero.Answer.Question.For(lang), lang))
-	fmt.Fprintf(&out, `      <p class="slip-answer">%s</p>`+"\n", s.inlineHTML(s.Hero.Answer.Body.For(lang), lang))
-	out.WriteString(`      <ol class="citations">` + "\n")
+	out.WriteString(`    <div class="hero-stage">` + "\n")
+	out.WriteString(`      <figure class="app-window">` + "\n")
+	out.WriteString(`        <div class="app-bar">` + "\n")
+	fmt.Fprintf(&out, `          <img src="%s" width="20" height="20" alt="">`+"\n", html.EscapeString(s.docAsset("mark", lang)))
+	fmt.Fprintf(&out, `          <span class="app-name">%s</span>`+"\n", html.EscapeString(s.Product))
+	fmt.Fprintf(&out, `          <span class="app-badge">%s</span>`+"\n", html.EscapeString(s.Hero.WindowBadge.For(lang)))
+	out.WriteString("        </div>\n")
+	home := s.screenshotFor("home")
+	fmt.Fprintf(&out, `        <img class="app-shot" src="%s" width="%d" height="%d" loading="eager" decoding="async" alt="%s">`+"\n",
+		html.EscapeString(s.mediaAsset(lang, s.ScreenshotPath("home", lang))),
+		s.Media.ScreenshotWidth, s.Media.ScreenshotHeight,
+		html.EscapeString(s.Product+": "+home.Title.For(lang)))
+	out.WriteString("      </figure>\n")
+
+	out.WriteString(`      <aside class="answer-slip" aria-labelledby="slip-label">` + "\n")
+	out.WriteString(`        <div class="slip-head">` + "\n")
+	fmt.Fprintf(&out, `          <p class="slip-label" id="slip-label">%s</p>`+"\n", html.EscapeString(s.Hero.Answer.Label.For(lang)))
+	out.WriteString(`          <span class="slip-meta">` + "\n")
+	fmt.Fprintf(&out, `            <span class="slip-sample">%s</span>`+"\n", html.EscapeString(s.Hero.Answer.Sample.For(lang)))
+	fmt.Fprintf(&out, `            <span class="chip">%s</span>`+"\n", html.EscapeString(s.Hero.Answer.Mode.For(lang)))
+	out.WriteString("          </span>\n")
+	out.WriteString("        </div>\n")
+	fmt.Fprintf(&out, `        <p class="slip-question">%s</p>`+"\n", s.inlineHTML(s.Hero.Answer.Question.For(lang), lang))
+	fmt.Fprintf(&out, `        <p class="slip-answer">%s</p>`+"\n", s.inlineHTML(s.Hero.Answer.Body.For(lang), lang))
+	out.WriteString(`        <ol class="citations">` + "\n")
 	for index, citation := range s.Hero.Answer.Citations {
 		date := citation.Date.For(lang)
-		out.WriteString("        <li>\n")
-		fmt.Fprintf(&out, `          <span class="citation-mark" aria-hidden="true">%02d</span>`+"\n", index+1)
-		out.WriteString(`          <span class="citation-main">` + "\n")
-		fmt.Fprintf(&out, `            <span class="citation-subject">%s</span>`+"\n", html.EscapeString(citation.Subject.For(lang)))
-		fmt.Fprintf(&out, `            <span class="citation-meta">%s · %s</span>`+"\n", html.EscapeString(citation.Sender), html.EscapeString(date))
-		out.WriteString("          </span>\n")
-		out.WriteString("        </li>\n")
+		out.WriteString("          <li>\n")
+		fmt.Fprintf(&out, `            <span class="citation-mark" aria-hidden="true">%02d</span>`+"\n", index+1)
+		out.WriteString(`            <span class="citation-main">` + "\n")
+		fmt.Fprintf(&out, `              <span class="citation-subject">%s</span>`+"\n", html.EscapeString(citation.Subject.For(lang)))
+		fmt.Fprintf(&out, `              <span class="citation-meta">%s · %s</span>`+"\n", html.EscapeString(citation.Sender), html.EscapeString(date))
+		out.WriteString("            </span>\n")
+		out.WriteString("          </li>\n")
 	}
-	out.WriteString("      </ol>\n")
-	fmt.Fprintf(&out, `      <p class="slip-caption">%s</p>`+"\n", s.inlineHTML(s.Hero.Answer.Caption.For(lang), lang))
-	out.WriteString("    </aside>\n")
+	out.WriteString("        </ol>\n")
+	fmt.Fprintf(&out, `        <p class="slip-caption">%s</p>`+"\n", s.inlineHTML(s.Hero.Answer.Caption.For(lang), lang))
+	out.WriteString("      </aside>\n")
+	out.WriteString("    </div>\n")
 	out.WriteString("  </div>\n")
-	out.WriteString("</section>\n\n")
+	out.WriteString("</header>\n\n")
 
-	// 01 Ask first: three mechanisms, the mode table and the guarantee.
-	s.chapterOpen(&out, lang, 1, "ask", s.Ask.Title.For(lang))
-	fmt.Fprintf(&out, `      <p class="section-lead">%s</p>`+"\n", s.inlineHTML(s.Ask.Lead.For(lang), lang))
-	out.WriteString(`      <ol class="mechanisms">` + "\n")
+	// 01 Ask first: three mechanism panels, the mode table and the guarantee.
+	out.WriteString(`<section class="section section-ask" aria-labelledby="ask-title">` + "\n")
+	out.WriteString(`  <div class="shell">` + "\n")
+	s.sectionHead(&out, lang, "ask-title", s.Ask.Title.For(lang), s.Ask.Lead.For(lang), false)
+	out.WriteString(`    <div class="ask-bento">` + "\n")
 	for index, mechanism := range s.Ask.Items {
-		out.WriteString("        <li>\n")
-		fmt.Fprintf(&out, `          <span class="mechanism-number" aria-hidden="true">%02d</span>`+"\n", index+1)
-		fmt.Fprintf(&out, `          <p class="mechanism-tag">%s</p>`+"\n", html.EscapeString(mechanism.Tag.For(lang)))
-		fmt.Fprintf(&out, `          <h3>%s</h3>`+"\n", html.EscapeString(mechanism.Title.For(lang)))
-		fmt.Fprintf(&out, `          <p>%s</p>`+"\n", s.inlineHTML(mechanism.Body.For(lang), lang))
-		out.WriteString("        </li>\n")
+		class := "ask-card"
+		switch index {
+		case 0:
+			class += " ask-card-grounding"
+		case 1:
+			class += " ask-card-local"
+		case 2:
+			class += " ask-card-trace"
+		}
+		fmt.Fprintf(&out, `      <article class="%s">`+"\n", class)
+		out.WriteString(`        <div class="card-top">` + "\n")
+		fmt.Fprintf(&out, `          <span class="card-number">%02d</span>`+"\n", index+1)
+		fmt.Fprintf(&out, `          <span class="card-tag">%s</span>`+"\n", html.EscapeString(mechanism.Tag.For(lang)))
+		out.WriteString("        </div>\n")
+		fmt.Fprintf(&out, `        <h3>%s</h3>`+"\n", html.EscapeString(mechanism.Title.For(lang)))
+		fmt.Fprintf(&out, `        <p>%s</p>`+"\n", s.inlineHTML(mechanism.Body.For(lang), lang))
+		switch index {
+		case 0:
+			out.WriteString(`        <ul class="mini-cites">` + "\n")
+			for _, citation := range s.Hero.Answer.Citations {
+				out.WriteString(`          <li>` + "\n")
+				out.WriteString(`            <span class="mini-dot" aria-hidden="true"></span>` + "\n")
+				fmt.Fprintf(&out, `            <span class="mini-subject">%s</span>`+"\n", html.EscapeString(citation.Subject.For(lang)))
+				fmt.Fprintf(&out, `            <span class="mini-sender">%s</span>`+"\n", html.EscapeString(citation.Sender))
+				out.WriteString("          </li>\n")
+			}
+			out.WriteString("        </ul>\n")
+		case 1:
+			out.WriteString(`        <div class="mode-chips" aria-hidden="true">` + "\n")
+			for modeIndex, mode := range s.Ask.Modes.Items {
+				modeClass := "mode-chip"
+				if modeIndex == 1 {
+					modeClass += " is-on"
+				}
+				fmt.Fprintf(&out, `          <span class="%s">%s</span>`+"\n", modeClass, html.EscapeString(mode.Name.For(lang)))
+			}
+			out.WriteString("        </div>\n")
+		case 2:
+			out.WriteString(`        <div class="mini-history">` + "\n")
+			out.WriteString(`          <span class="mini-history-dot" aria-hidden="true"></span>` + "\n")
+			fmt.Fprintf(&out, `          <span>%s</span>`+"\n", html.EscapeString(s.Hero.Answer.Question.For(lang)))
+			out.WriteString("        </div>\n")
+		}
+		out.WriteString("      </article>\n")
 	}
-	out.WriteString("      </ol>\n")
+	out.WriteString("    </div>\n")
 
-	out.WriteString(`      <div class="mode-block">` + "\n")
+	out.WriteString(`    <div class="ask-lower">` + "\n")
+	out.WriteString(`      <div class="mode-panel">` + "\n")
 	fmt.Fprintf(&out, `        <h3 id="modes-title">%s</h3>`+"\n", html.EscapeString(s.Ask.Modes.Title.For(lang)))
-	fmt.Fprintf(&out, `        <table class="mode-table" aria-labelledby="modes-title">`+"\n")
+	out.WriteString(`        <table class="mode-table" aria-labelledby="modes-title">` + "\n")
 	out.WriteString(`          <thead><tr>`)
 	for _, column := range s.Ask.Modes.Columns {
 		fmt.Fprintf(&out, `<th scope="col">%s</th>`, html.EscapeString(column.For(lang)))
@@ -259,31 +313,43 @@ func (s Site) Landing(lang string) []byte {
 	}
 	out.WriteString("          </tbody>\n        </table>\n")
 	out.WriteString("      </div>\n")
-	fmt.Fprintf(&out, `      <p class="pull">%s</p>`+"\n", s.inlineHTML(s.Ask.Guarantee.For(lang), lang))
-	fmt.Fprintf(&out, `      <p class="note">%s</p>`+"\n", s.inlineHTML(s.Ask.Note.For(lang), lang))
-	fmt.Fprintf(&out, `      <p class="chapter-link"><a class="text-link" href="%s">%s</a></p>`+"\n",
+	out.WriteString(`      <div class="guarantee-panel">` + "\n")
+	fmt.Fprintf(&out, `        <p class="pull">%s</p>`+"\n", s.inlineHTML(s.Ask.Guarantee.For(lang), lang))
+	fmt.Fprintf(&out, `        <p class="note">%s</p>`+"\n", s.inlineHTML(s.Ask.Note.For(lang), lang))
+	fmt.Fprintf(&out, `        <p class="chapter-link"><a href="%s">%s</a></p>`+"\n",
 		htmlHref(links["ask"]), html.EscapeString(s.Ask.Guide.For(lang)))
-	s.chapterClose(&out)
-
-	// 02 The queue: a ranked invented mail table, then the three mechanisms.
-	s.chapterOpen(&out, lang, 2, "queue", s.Differences.Title.For(lang))
-	fmt.Fprintf(&out, `      <p class="section-lead">%s</p>`+"\n", s.inlineHTML(s.Differences.Lead.For(lang), lang))
-	s.queueTable(&out, lang)
-	out.WriteString(`      <div class="queue-band">` + "\n")
-	for index, difference := range s.Differences.Items {
-		out.WriteString(`        <article class="queue-item">` + "\n")
-		fmt.Fprintf(&out, `          <span class="band-number" aria-hidden="true">%02d</span>`+"\n", index+1)
-		fmt.Fprintf(&out, `          <p class="card-tag">%s</p>`+"\n", html.EscapeString(difference.Tag.For(lang)))
-		fmt.Fprintf(&out, `          <h3>%s</h3>`+"\n", html.EscapeString(difference.Title.For(lang)))
-		fmt.Fprintf(&out, `          <p>%s</p>`+"\n", s.inlineHTML(difference.Body.For(lang), lang))
-		out.WriteString("        </article>\n")
-	}
 	out.WriteString("      </div>\n")
-	s.chapterClose(&out)
+	out.WriteString("    </div>\n")
+	out.WriteString("  </div>\n")
+	out.WriteString("</section>\n\n")
 
-	// 03 The screens: a radio-driven index and one stage.
-	s.chapterOpen(&out, lang, 3, "screens", s.Media.Title.For(lang))
-	fmt.Fprintf(&out, `      <p class="section-lead">%s</p>`+"\n", s.inlineHTML(s.Media.Lead.For(lang), lang))
+	// 02 The queue: a ranked invented mail table and the three mechanisms.
+	out.WriteString(`<section class="section section-queue" aria-labelledby="queue-title">` + "\n")
+	out.WriteString(`  <div class="shell">` + "\n")
+	s.sectionHead(&out, lang, "queue-title", s.Differences.Title.For(lang), s.Differences.Lead.For(lang), false)
+	out.WriteString(`    <div class="queue-layout">` + "\n")
+	s.queueTable(&out, lang)
+	out.WriteString(`      <div class="queue-notes">` + "\n")
+	out.WriteString(`        <div class="queue-band">` + "\n")
+	for index, difference := range s.Differences.Items {
+		out.WriteString(`          <article class="queue-item">` + "\n")
+		fmt.Fprintf(&out, `            <span class="band-number" aria-hidden="true">%02d</span>`+"\n", index+1)
+		fmt.Fprintf(&out, `            <p class="card-tag">%s</p>`+"\n", html.EscapeString(difference.Tag.For(lang)))
+		fmt.Fprintf(&out, `            <h3>%s</h3>`+"\n", html.EscapeString(difference.Title.For(lang)))
+		fmt.Fprintf(&out, `            <p>%s</p>`+"\n", s.inlineHTML(difference.Body.For(lang), lang))
+		out.WriteString("          </article>\n")
+	}
+	out.WriteString("        </div>\n")
+	out.WriteString("      </div>\n")
+	out.WriteString("    </div>\n")
+	out.WriteString("  </div>\n")
+	out.WriteString("</section>\n\n")
+
+	// 03 The screens: a pill index and one large stage.
+	out.WriteString(`<section class="section section-screens" aria-labelledby="screens-title">` + "\n")
+	out.WriteString(`  <div class="shell">` + "\n")
+	s.sectionHead(&out, lang, "screens-title", s.Media.Title.For(lang), s.Media.Lead.For(lang), false)
+	out.WriteString(`    <div class="screens-panel">` + "\n")
 	out.WriteString(`      <fieldset class="screen-index" aria-describedby="screen-hint">` + "\n")
 	fmt.Fprintf(&out, `        <legend class="visually-hidden">%s</legend>`+"\n", html.EscapeString(s.Media.IndexLabel.For(lang)))
 	out.WriteString(`        <div class="screen-index-head">` + "\n")
@@ -306,11 +372,11 @@ func (s Site) Landing(lang string) []byte {
 	out.WriteString("        </div>\n")
 	out.WriteString(`        <div class="screen-stage">` + "\n")
 	for index, shot := range s.Media.Screenshots {
+		asset := s.mediaAsset(lang, s.ScreenshotPath(shot.Key, lang))
 		loading := "lazy"
 		if index == 0 {
 			loading = "eager"
 		}
-		asset := s.mediaAsset(lang, s.ScreenshotPath(shot.Key, lang))
 		fmt.Fprintf(&out, `          <figure class="shot" id="shot-%s">`+"\n", shot.Key)
 		out.WriteString(`            <div class="screen-frame">` + "\n")
 		fmt.Fprintf(&out, `              <img src="%s" width="%d" height="%d" loading="%s" decoding="async" alt="%s">`+"\n",
@@ -326,12 +392,16 @@ func (s Site) Landing(lang string) []byte {
 	}
 	out.WriteString("        </div>\n")
 	out.WriteString("      </fieldset>\n")
-	s.chapterClose(&out)
+	out.WriteString("    </div>\n")
+	out.WriteString("  </div>\n")
+	out.WriteString("</section>\n\n")
 
-	// 04 Boundary: a two-column ledger, not a pair of cards.
-	s.chapterOpen(&out, lang, 4, "boundary", s.Boundary.Title.For(lang))
-	fmt.Fprintf(&out, `      <p class="section-lead">%s</p>`+"\n", s.inlineHTML(s.Boundary.Lead.For(lang), lang))
-	out.WriteString(`      <div class="boundary-ledger">` + "\n")
+	// 04 What leaves the machine.
+	out.WriteString(`<section class="section section-privacy" aria-labelledby="boundary-title">` + "\n")
+	out.WriteString(`  <div class="shell">` + "\n")
+	out.WriteString(`    <div class="privacy-panel">` + "\n")
+	s.sectionHead(&out, lang, "boundary-title", s.Boundary.Title.For(lang), s.Boundary.Lead.For(lang), true)
+	out.WriteString(`      <div class="privacy-grid">` + "\n")
 	for _, side := range []struct {
 		title Localized
 		items []Localized
@@ -351,11 +421,15 @@ func (s Site) Landing(lang string) []byte {
 	}
 	out.WriteString("      </div>\n")
 	fmt.Fprintf(&out, `      <p class="note">%s</p>`+"\n", s.inlineHTML(s.Boundary.Note.For(lang), lang))
-	s.chapterClose(&out)
+	out.WriteString("    </div>\n")
+	out.WriteString("  </div>\n")
+	out.WriteString("</section>\n\n")
 
-	// 05 Limits: a numbered two-column list.
-	s.chapterOpen(&out, lang, 5, "limits", s.Limits.Title.For(lang))
-	fmt.Fprintf(&out, `      <p class="section-lead">%s</p>`+"\n", s.inlineHTML(s.Limits.Lead.For(lang), lang))
+	// 05 What it cannot do yet.
+	out.WriteString(`<section class="section section-limits" aria-labelledby="limits-title">` + "\n")
+	out.WriteString(`  <div class="shell">` + "\n")
+	s.sectionHead(&out, lang, "limits-title", s.Limits.Title.For(lang), s.Limits.Lead.For(lang), false)
+	out.WriteString(`    <div class="limits-panel">` + "\n")
 	out.WriteString(`      <ol class="limits-list">` + "\n")
 	for _, limit := range s.Limits.Items {
 		out.WriteString("        <li>\n")
@@ -366,11 +440,15 @@ func (s Site) Landing(lang string) []byte {
 		out.WriteString("        </li>\n")
 	}
 	out.WriteString("      </ol>\n")
-	s.chapterClose(&out)
+	out.WriteString("    </div>\n")
+	out.WriteString("  </div>\n")
+	out.WriteString("</section>\n\n")
 
-	// 06 Install: the full-bleed dark close.
-	s.chapterOpen(&out, lang, 6, "install", s.Install.Title.For(lang))
-	fmt.Fprintf(&out, `      <p class="section-lead">%s</p>`+"\n", s.inlineHTML(s.Install.Lead.For(lang), lang))
+	// 06 Install: the working close.
+	out.WriteString(`<section class="section section-install" aria-labelledby="install-title">` + "\n")
+	out.WriteString(`  <div class="shell">` + "\n")
+	out.WriteString(`    <div class="install-panel">` + "\n")
+	s.sectionHead(&out, lang, "install-title", s.Install.Title.For(lang), s.Install.Lead.For(lang), true)
 	out.WriteString(`      <div class="install-grid">` + "\n")
 	out.WriteString(`        <div class="install-file-block">` + "\n")
 	fmt.Fprintf(&out, `          <p class="install-label">%s</p>`+"\n", html.EscapeString(s.Install.Panel.For(lang)))
@@ -391,7 +469,9 @@ func (s Site) Landing(lang string) []byte {
 	fmt.Fprintf(&out, `          <p class="install-note">%s</p>`+"\n", s.inlineHTML(s.Install.Note.For(lang), lang))
 	out.WriteString("        </div>\n")
 	out.WriteString("      </div>\n")
-	s.chapterClose(&out)
+	out.WriteString("    </div>\n")
+	out.WriteString("  </div>\n")
+	out.WriteString("</section>\n\n")
 
 	// The status is a slim line. The sitemap footer belongs to the layout.
 	out.WriteString(`<section class="status" aria-labelledby="status-title">` + "\n")
@@ -400,35 +480,34 @@ func (s Site) Landing(lang string) []byte {
 	fmt.Fprintf(&out, `    <p>%s</p>`+"\n", s.inlineHTML(s.Status.Body.For(lang), lang))
 	out.WriteString("  </div>\n")
 	out.WriteString("</section>\n")
+
 	return []byte(out.String())
 }
 
-// sectionLabel returns the signpost for one numbered chapter.
-func (s Site) sectionLabel(key string) Localized {
-	for _, section := range s.Sections {
-		if section.Key == key {
-			return section.Label
+// sectionHead writes the paired title and lead that opens every section.
+func (s Site) sectionHead(out *strings.Builder, lang, id, title, lead string, dark bool) {
+	class := "section-head"
+	if dark {
+		class += " section-head-dark"
+	}
+	fmt.Fprintf(out, `    <div class="%s">`+"\n", class)
+	fmt.Fprintf(out, `      <h2 id="%s">%s</h2>`+"\n", id, html.EscapeString(title))
+	fmt.Fprintf(out, `      <p class="section-lead">%s</p>`+"\n", s.inlineHTML(lead, lang))
+	out.WriteString("    </div>\n")
+}
+
+// screenshotFor returns one media row by key. The hero uses the queue capture
+// while the screen index keeps the one media order.
+func (s Site) screenshotFor(key string) Screenshot {
+	for _, shot := range s.Media.Screenshots {
+		if shot.Key == key {
+			return shot
 		}
 	}
-	return Localized{}
-}
-
-// chapterOpen writes the shared twelve-column chapter header and spine.
-func (s Site) chapterOpen(out *strings.Builder, lang string, number int, key, title string) {
-	label := s.sectionLabel(key).For(lang)
-	fmt.Fprintf(out, `<section class="chapter chapter-%s" id="%s" aria-labelledby="%s-title">`+"\n", key, key, key)
-	out.WriteString(`  <div class="shell chapter-grid">` + "\n")
-	out.WriteString(`    <div class="chapter-spine">` + "\n")
-	fmt.Fprintf(out, `      <p class="chapter-number" aria-hidden="true">%02d</p>`+"\n", number)
-	fmt.Fprintf(out, `      <p class="chapter-label">%s</p>`+"\n", html.EscapeString(label))
-	out.WriteString("    </div>\n")
-	out.WriteString(`    <div class="chapter-body">` + "\n")
-	fmt.Fprintf(out, `      <h2 id="%s-title">%s</h2>`+"\n", key, html.EscapeString(title))
-}
-
-// chapterClose closes one chapter opened by chapterOpen.
-func (s Site) chapterClose(out *strings.Builder) {
-	out.WriteString("    </div>\n  </div>\n</section>\n\n")
+	if len(s.Media.Screenshots) > 0 {
+		return s.Media.Screenshots[0]
+	}
+	return Screenshot{}
 }
 
 // queueTable renders the invented ranked queue. It sits before the three
@@ -436,7 +515,7 @@ func (s Site) chapterClose(out *strings.Builder) {
 // show, with one action value per row in a mono cell.
 func (s Site) queueTable(out *strings.Builder, lang string) {
 	queue := s.Differences.Queue
-	out.WriteString(`      <div class="queue-proof">` + "\n")
+	out.WriteString(`      <div class="queue-panel">` + "\n")
 	fmt.Fprintf(out, `        <p class="queue-label">%s</p>`+"\n", html.EscapeString(queue.Label.For(lang)))
 	out.WriteString(`        <table class="queue-table">` + "\n")
 	out.WriteString(`          <thead><tr>`)
@@ -450,7 +529,7 @@ func (s Site) queueTable(out *strings.Builder, lang string) {
 		fmt.Fprintf(out, `              <th scope="row" class="queue-rank">%02d</th>`+"\n", index+1)
 		fmt.Fprintf(out, `              <td class="queue-subject">%s</td>`+"\n", html.EscapeString(item.Subject.For(lang)))
 		fmt.Fprintf(out, `              <td class="queue-sender">%s</td>`+"\n", html.EscapeString(item.Sender))
-		fmt.Fprintf(out, `              <td class="queue-action">%s</td>`+"\n",
+		fmt.Fprintf(out, `              <td class="queue-action"><span>%s</span></td>`+"\n",
 			html.EscapeString(item.Action.For(lang)))
 		out.WriteString("            </tr>\n")
 	}
