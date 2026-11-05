@@ -546,6 +546,55 @@ test.describe("Ask conversation", () => {
     );
   });
 
+  // The 0/0 census is disclosed, never hidden: the coverage line says the
+  // count was read from a mailbox whose mail was never scanned, so an empty
+  // topic cannot look like an empty mailbox. Assert the visible wording, not
+  // the catalogue key that owns it.
+  test("a zero topic count discloses that nothing was scanned", async ({
+    app,
+  }) => {
+    await mockApi(app.page, [
+      { method: "GET", path: "/api/ask/history", body: { items: [] } },
+      {
+        method: "POST",
+        path: "/api/ask",
+        handler: async ({ route }) => {
+          await fulfillJson(
+            route,
+            askView({
+              id: 14,
+              question: "How many invoices are there?",
+              answer: "",
+              mode: "structured",
+              intent: "topic",
+              topic: {
+                topic: "billing_account",
+                subtopic: "invoice",
+                count: 0,
+                classified: 0,
+                scanned: 0,
+              },
+              citations: [],
+              provider: "",
+              model: "",
+            }),
+          );
+        },
+      },
+    ]);
+
+    await app.goto("/ask");
+    await app.page.fill("#ask-input", "How many invoices are there?");
+    await app.page.press("#ask-input", "Enter");
+
+    await expect(app.page.locator(".ask-sentence")).toHaveText(
+      "No message is classified as “Billing or account › Invoice”.",
+    );
+    await expect(app.page.locator(".ask-topic-coverage")).toHaveText(
+      "No message was scanned yet, so this count is not certified.",
+    );
+  });
+
   test("a no-match notice is a notice, not a fabricated answer", async ({ app }) => {
     await mockApi(app.page, [
       { method: "GET", path: "/api/ask/history", body: { items: [] } },
