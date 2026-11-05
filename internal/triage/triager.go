@@ -77,6 +77,10 @@ type Triager struct {
 	// route supplies the certified route's stored answers (UseRoute); nil
 	// keeps the paid decider's cache (tests only; the app always wires it).
 	route RouteReader
+	// rules supplies deterministic evidence-rule answers for questions the
+	// route abstained on as not certified (UseRuleAnswers). It is optional:
+	// nil serves the route abstentions unchanged.
+	rules RuleReader
 	// coverage is the summary's one store read: the route-coverage
 	// aggregate. New wires the store; the call is a field so the single
 	// read can be observed without reaching into the store.
@@ -96,6 +100,13 @@ type Triager struct {
 	// under (layer1.RouteKey in the app). It is injected because layer1
 	// imports triage's finished topic, so triage cannot import layer1.
 	routeKey RouteKeyer
+}
+
+// RuleReader supplies the deterministic rule answers of stored evidence. A
+// rule answer is read-time only: it never becomes a label, a route row, a
+// coverage count or a gate permission.
+type RuleReader interface {
+	RuleAnswers(ctx context.Context, ids []int64) (map[int64]map[string]engine.Answer, error)
 }
 
 // RouteKeyer is the configuration identity of the route rows. The app
@@ -161,6 +172,15 @@ func (t *Triager) UseRoute(r RouteReader, keys RouteKeyer) {
 	t.cacheMu.Lock()
 	defer t.cacheMu.Unlock()
 	t.route, t.routeKey = r, keys
+}
+
+// UseRuleAnswers wires the deterministic rule reader (call before the first
+// read). It only fills a question whose route answer abstained not_certified;
+// a certified, below-coverage, below-target or no-answer result is untouched.
+func (t *Triager) UseRuleAnswers(r RuleReader) {
+	t.cacheMu.Lock()
+	defer t.cacheMu.Unlock()
+	t.rules = r
 }
 
 // UseEvidence wires the evidence engine whose facts join the observed

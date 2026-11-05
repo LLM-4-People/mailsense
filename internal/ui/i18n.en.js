@@ -645,6 +645,7 @@ window.MailsenseI18nCatalogs.en = {
   "triage.message_section_sub": "Select a triage row to load its message and stored answers.",
   "triage.row.answers": { "one": "{count} answered", "other": "{count} answered" },
   "triage.row.abstained_suffix": { "one": " · {count} abstained", "other": " · {count} abstained" },
+  "triage.row.automatic_suffix": { "one": " · {count} automatic, uncertified", "other": " · {count} automatic, uncertified" },
   "triage.row.missing_suffix": { "one": " · {count} missing", "other": " · {count} missing" },
   "triage.summary.no_value": "No stored value",
   "triage.summary.foot": "{answered} answered · {abstained} abstained · {refused} refused · {missing} missing",
@@ -734,6 +735,7 @@ window.MailsenseI18nCatalogs.en = {
   "detail.no_values_body": "This message is eligible but has no stored answer for the current profile. The next route pass will decide it.",
   "detail.answer.refused": "Refused",
   "detail.answer.abstained": "No usable answer",
+  "detail.answer.not_certified": "Not certified yet",
   "detail.answer.abstained_with": "Abstained: {reason}",
   "detail.answer.yes_probability": "{percent} probability of yes",
   "detail.answer.model_blend": "model {model} · blended {blended}",
@@ -742,6 +744,8 @@ window.MailsenseI18nCatalogs.en = {
   "detail.answer.distribution": "Distribution",
   "detail.answer.no_usable": "No usable answer",
   "detail.answer.abstained_short": "abstained",
+  "detail.answer.rule_uncertified": "automatic rule · uncertified",
+  "detail.answer.uncertified_suffix": " (uncertified)",
   "detail.answer.refused_short": "refused",
   "detail.mail_body": "Message body",
 
@@ -785,6 +789,10 @@ window.MailsenseI18nCatalogs.en = {
   "detail.summary.uncertain": "Not clear enough",
   "detail.summary.uncertain_suffix": " (uncertain)",
   "detail.summary.model_details": "Model details",
+  "detail.summary.automatic": {
+    "one": "{count} answer comes from an automatic rule; the route has not certified it.",
+    "other": "{count} answers come from automatic rules; the route has not certified them."
+  },
   "detail.summary.suspicious": "Possibly suspicious",
   "detail.summary.sufficient": "Yes, enough to act",
   "detail.summary.insufficient": "No, something is missing",

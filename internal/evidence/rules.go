@@ -87,6 +87,19 @@ func (r RuleAnswer) Classes(q *engine.Question) (lo, hi int) {
 type RuleSet struct {
 	Digest string
 	Rules  []Rule
+
+	// profile is the typed question catalogue the rules were checked
+	// against. A rule answer is built from it, so a rule can never be served
+	// with a type or option from another profile.
+	profile *taxonomy.Profile
+}
+
+// Question returns the typed question a rule names.
+func (s *RuleSet) Question(name string) (*engine.Question, bool) {
+	if s == nil || s.profile == nil {
+		return nil, false
+	}
+	return s.profile.Question(name)
 }
 
 // RulesDigest is the identity of the merged evidence-rules document. It is
@@ -114,7 +127,11 @@ func LoadRules(cfg *config.Config, signals []Signal) (*RuleSet, error) {
 	if err != nil {
 		return nil, err
 	}
-	return set, set.checkTaxonomy(profile)
+	if err := set.checkTaxonomy(profile); err != nil {
+		return nil, err
+	}
+	set.profile = profile
+	return set, nil
 }
 
 func readRules(cfg *config.Config, signals []Signal) (*RuleSet, error) {

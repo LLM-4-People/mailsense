@@ -34,6 +34,17 @@ direction fails; Nocedal & Wright 2006), deterministic: gradients are
 summed per shard of `layer1.shard_rows` rows in a fixed order, so a fit
 is bitwise the same whatever `layer1.workers`.
 
+## First run without a decider
+
+`NewPlan` reads the route key's unconfigured decider identity when
+`triage.decider` is empty. A first-run install can therefore train, report
+status and choose a non-decider teacher before any provider exists; the
+decider is still selected strictly when an id is configured. The plan's
+decider key and tolerance are the same values `routekey.go` hashes, and the
+`decider` teacher source has no answers under the unconfigured key (a stale
+row is dropped by the zero tolerance). The paid decider remains optional:
+nothing local ever calls it.
+
 ## Teachers (data: `teachers.json`, `layer1.teachers.file`)
 
 Each message's training target for a question comes from the first source
@@ -281,6 +292,16 @@ selective); `internal/layer1/route.go` feeds it and stores the result;
   (answered/eligible, every labelled certification message in the
   denominator) are what the `questions` stage judges. A route's
   `Certification.Threshold` is 0: it has no single cut.
+- **Read-time rule fallback:** when the route stores `not_certified` for a
+  question, `internal/triage` may fill it from the evidence rules
+  (`evidence.Engine.RuleAnswers`). The answer is deterministic, carries the
+  rule id in `rule`, and is never written back: it is not a label, a route
+  answer, a coverage count or a gate permission. Firing rules must agree; for
+  a score only the narrowest exact level counts, so a range or a conflict
+  answers nothing. A `below_coverage`, `below_target`, `no_answer`, refused
+  or certified answer is never replaced. The detail and list say
+  "automatic rule · uncertified" and count those answers apart from the
+  certified total.
 - **Storage:** `route_answers`, one row per message and route key, every
   question present (abstentions included), written in the layer-1
   commit's transaction. The route key is `rk1-` + a digest of every

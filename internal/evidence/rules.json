@@ -649,6 +649,77 @@
         }
       ],
       "doc": "A meeting request, cancellation or response."
+    },
+    "request_one": {
+      "question": "request_count",
+      "answer": {
+        "min": 1,
+        "max": 1
+      },
+      "when": [
+        {
+          "signal": "question_marks",
+          "min": 1,
+          "max": 1
+        }
+      ],
+      "doc": "One question mark: one request stated."
+    },
+    "request_two": {
+      "question": "request_count",
+      "answer": {
+        "min": 2,
+        "max": 2
+      },
+      "when": [
+        {
+          "signal": "question_marks",
+          "min": 2,
+          "max": 2
+        }
+      ],
+      "doc": "Two question marks: two requests stated."
+    },
+    "request_three": {
+      "question": "request_count",
+      "answer": {
+        "min": 3,
+        "max": 3
+      },
+      "when": [
+        {
+          "signal": "question_marks",
+          "min": 3
+        }
+      ],
+      "doc": "Three or more question marks: three or more requests stated."
+    },
+    "cta_meeting_request": {
+      "question": "call_to_action",
+      "answer": true,
+      "when": [
+        {
+          "signal": "message_kind",
+          "in": [
+            "meeting_request"
+          ]
+        }
+      ],
+      "doc": "A meeting request asks the owner to attend."
+    },
+    "cta_nothing_auto": {
+      "question": "call_to_action",
+      "answer": false,
+      "when": [
+        {
+          "signal": "auto_submitted",
+          "in": [
+            "auto-generated",
+            "auto-notified"
+          ]
+        }
+      ],
+      "doc": "Machine-written mail asks nothing of the owner."
     }
   }
 }

@@ -150,6 +150,30 @@ Each was independently checked against source by the coordinator:
   shell read across the navigation and fails on the old unconditional
   refresh (reproduced: `Expected: 1, Received: 0`).
 
+### No-teaching answer layer (2026-11-05)
+
+- First run had a real coupling defect: `NewPlan` selected `triage.decider`
+  unconditionally, so a missing provider failed training, status and teacher
+  choice even though none of them calls a provider. `NewPlan` now reads the
+  route key's unconfigured decider identity and selects strictly only when an
+  id is configured. `TestPlanWithoutDeciderKeepsLocalTrainingUsable` pins the
+  empty-decider plan, its route key and a local teacher choice.
+- The 17-question detail was reading route abstentions only: the route cannot
+  certify a question without labels, so every value said **No usable
+  answer**. `evidence.Engine.RuleAnswers` now applies the shipped rules to
+  stored evidence at read time. It fills only `not_certified`; a conflict, a
+  score range or two exact levels answers nothing. The answer carries its rule
+  id, is never stored, never counted as coverage and never opens the gate.
+  The detail and list name it **automatic rule · uncertified** and count it
+  apart from certified answers (`TestRuleAnswersFillOnlyUncertifiedAbstentions`,
+  `TestRuleAnswersPageCountsSeparately`, plus the triage browser cases).
+- Two dimensions gained deterministic coverage without a model: `request_count`
+  from `question_marks` (0, 1, 2, 3+ as separate rules) and `call_to_action`
+  from a meeting request (true) or machine-written mail (false). Existing
+  evidence already carries sender relation, reply rate, auth results, thread
+  gap and deadline cues; the remaining semantic questions still need a model,
+  and the UI says so instead of printing a bare zero.
+
 ### Security (guidance mode) — results so far
 
 - **Loopback API hunt:** four low candidates, each source-verified with a

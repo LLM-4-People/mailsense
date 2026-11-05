@@ -2664,6 +2664,8 @@ a.brief-org:hover { color: var(--accent-ink); text-decoration: underline; }
 .triage-model-q { color: var(--ink-soft); font-size: 11.5px; font-weight: 620; overflow-wrap: anywhere; }
 .triage-model-v { display: grid; gap: 1px; color: var(--ink); font-size: 11.5px; overflow-wrap: anywhere; }
 .triage-model-level { color: var(--muted); font-size: 10.5px; }
+.triage-model-note { margin-top: 8px; }
+.triage-model-rule { color: var(--muted); font-size: 10.5px; }
 .detail-actions { display: flex; flex-wrap: wrap; gap: 7px; border-top: 1px solid var(--line); padding-top: 13px; }
 .mail-detail-skeleton { padding: 16px; display: grid; gap: 10px; }
 .mail-detail-skeleton .detail-head { padding: 0 0 12px; }

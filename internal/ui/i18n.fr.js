@@ -645,6 +645,7 @@ window.MailsenseI18nCatalogs.fr = {
   "triage.message_section_sub": "Sélectionnez une ligne de triage pour charger son message et les réponses enregistrées.",
   "triage.row.answers": { "one": "{count} répondue", "other": "{count} répondues" },
   "triage.row.abstained_suffix": { "one": " · {count} en abstention", "other": " · {count} en abstention" },
+  "triage.row.automatic_suffix": { "one": " · {count} automatique, non certifiée", "other": " · {count} automatiques, non certifiées" },
   "triage.row.missing_suffix": { "one": " · {count} manquante", "other": " · {count} manquantes" },
   "triage.summary.no_value": "Aucune valeur enregistrée",
   "triage.summary.foot": "{answered} réponses · {abstained} abstentions · {refused} refus · {missing} manquantes",
@@ -734,6 +735,7 @@ window.MailsenseI18nCatalogs.fr = {
   "detail.no_values_body": "Ce message est éligible mais n’a aucune réponse enregistrée pour le profil actuel. Le prochain passage de route le décidera.",
   "detail.answer.refused": "Refusé",
   "detail.answer.abstained": "Aucune réponse utilisable",
+  "detail.answer.not_certified": "Pas encore certifiée",
   "detail.answer.abstained_with": "Abstention\u00a0: {reason}",
   "detail.answer.yes_probability": "{percent} de probabilité de oui",
   "detail.answer.model_blend": "modèle {model} · combiné {blended}",
@@ -742,6 +744,8 @@ window.MailsenseI18nCatalogs.fr = {
   "detail.answer.distribution": "Distribution",
   "detail.answer.no_usable": "Aucune réponse utilisable",
   "detail.answer.abstained_short": "abstention",
+  "detail.answer.rule_uncertified": "règle automatique · non certifiée",
+  "detail.answer.uncertified_suffix": " (non certifiée)",
   "detail.answer.refused_short": "refusé",
   "detail.mail_body": "Corps du message",
 
@@ -785,6 +789,10 @@ window.MailsenseI18nCatalogs.fr = {
   "detail.summary.uncertain": "Pas assez clair",
   "detail.summary.uncertain_suffix": " (incertain)",
   "detail.summary.model_details": "Détails du modèle",
+  "detail.summary.automatic": {
+    "one": "{count} réponse vient d’une règle automatique\u00a0; la route ne l’a pas certifiée.",
+    "other": "{count} réponses viennent de règles automatiques\u00a0; la route ne les a pas certifiées."
+  },
   "detail.summary.suspicious": "Possiblement suspect",
   "detail.summary.sufficient": "Oui, assez pour agir",
   "detail.summary.insufficient": "Non, il manque quelque chose",

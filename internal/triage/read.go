@@ -181,9 +181,13 @@ func (t *Triager) readRoute(ctx context.Context, s *session, routeKey string, ro
 	if err != nil {
 		return nil, err
 	}
+	rules, err := t.loadRuleAnswers(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
 	v.Routed = true
 	err = s.eachEligible(ctx, t.st, nil, rows, func(r *store.MessageRow) error {
-		a, err := routeMessageAnswers(s.profile, r, records, previews)
+		a, err := routeMessageAnswers(s.profile, r, records, previews, rules)
 		if err != nil {
 			return err
 		}
@@ -247,11 +251,22 @@ func previewAnswers(p *taxonomy.Profile, have map[string]engine.Answer, preview 
 }
 
 // checkPreviewAnswer validates one stored preview answer at the trust
-// boundary: the question's type, a usable Given value (never refused or
-// abstained), finite numbers and the question's own distribution keys.
+// boundary. A model answer carries its confidence; a deterministic rule
+// answer does not, so the two entry points share one shape check.
 func checkPreviewAnswer(q *engine.Question, a engine.Answer) error {
+	return checkGivenAnswer(q, a, "preview", true)
+}
+
+// checkRuleAnswer validates one deterministic rule answer. It has the same
+// type, value and distribution contract as a preview answer, without the
+// model's confidence.
+func checkRuleAnswer(q *engine.Question, a engine.Answer) error {
+	return checkGivenAnswer(q, a, "rule", false)
+}
+
+func checkGivenAnswer(q *engine.Question, a engine.Answer, kind string, requireConfidence bool) error {
 	bad := func(format string, args ...any) error {
-		return fmt.Errorf("triage: preview answer of %s: "+format, append([]any{q.Name}, args...)...)
+		return fmt.Errorf("triage: %s answer of %s: "+format, append([]any{kind, q.Name}, args...)...)
 	}
 	if a.Type != q.Type {
 		return bad("type %q, want %q", a.Type, q.Type)
@@ -284,7 +299,7 @@ func checkPreviewAnswer(q *engine.Question, a engine.Answer) error {
 		if !q.HasOption(a.Choice) {
 			return bad("choice %q is not an option", a.Choice)
 		}
-		if a.Confidence == nil {
+		if requireConfidence && a.Confidence == nil {
 			return bad("missing confidence")
 		}
 		if len(a.Probabilities) != len(q.Options) {
@@ -302,7 +317,7 @@ func checkPreviewAnswer(q *engine.Question, a engine.Answer) error {
 		if a.Value < 0 || a.Value > float64(q.Top()) {
 			return bad("value outside [0, %d]", q.Top())
 		}
-		if a.Confidence == nil {
+		if requireConfidence && a.Confidence == nil {
 			return bad("missing confidence")
 		}
 		if len(a.Probabilities) != len(q.Levels) {
@@ -355,11 +370,13 @@ func routeAnswers(p *taxonomy.Profile, stored map[string]route.Answer) (map[stri
 
 // routeMessageAnswers is the one route-record read behind a served message:
 // the record's answers and staleness when it has one, then the preview
-// substitution of the answers the uncertified route abstained on. The record
-// and preview maps are already loaded; it adds no read and keeps the preview
-// gate exactly where the caller put it.
+// substitution and the deterministic rule fallback of the answers the
+// uncertified route abstained on. The record, preview and rule maps are
+// already loaded; it adds no read and keeps both gates exactly where the
+// caller put them.
 func routeMessageAnswers(p *taxonomy.Profile, r *store.MessageRow,
-	records map[int64]store.RouteRecord, previews map[int64]store.PreviewRecord) (messageAnswers, error) {
+	records map[int64]store.RouteRecord, previews map[int64]store.PreviewRecord,
+	rules map[int64]map[string]engine.Answer) (messageAnswers, error) {
 	a := messageAnswers{}
 	if rec, ok := records[r.RowID]; ok {
 		a.Answers, a.Missing = routeAnswers(p, rec.Answers)
@@ -372,7 +389,45 @@ func routeMessageAnswers(p *taxonomy.Profile, r *store.MessageRow,
 		}
 		a.Preview = changed
 	}
+	if stored, ok := rules[r.RowID]; ok {
+		if err := automaticAnswers(p, a.Answers, stored); err != nil {
+			return messageAnswers{}, err
+		}
+	}
 	return a, nil
+}
+
+// loadRuleAnswers reads the deterministic rule answers of one id set. It is
+// the optional fallback layer: no reader means no substitution, never an
+// error and never a second answer source.
+func (t *Triager) loadRuleAnswers(ctx context.Context, ids []int64) (map[int64]map[string]engine.Answer, error) {
+	if t.rules == nil || len(ids) == 0 {
+		return nil, nil
+	}
+	return t.rules.RuleAnswers(ctx, ids)
+}
+
+// automaticAnswers fills a question only when the route abstained because it
+// is uncertified. A certified answer, a below-coverage or below-target
+// abstention, a refused answer, a question absent from the route record and
+// an answered question are never replaced.
+func automaticAnswers(p *taxonomy.Profile, have map[string]engine.Answer, rules map[string]engine.Answer) error {
+	for i := range p.Questions {
+		q := &p.Questions[i]
+		cur, ok := have[q.Name]
+		if !ok || cur.Abstain != route.AbstainNotCertified {
+			continue
+		}
+		a, ok := rules[q.Name]
+		if !ok || a.AutoRule == "" {
+			continue
+		}
+		if err := checkRuleAnswer(q, a); err != nil {
+			return err
+		}
+		have[q.Name] = a
+	}
+	return nil
 }
 
 // decidedValue records the certified class of a noul or score answer. The
@@ -438,6 +493,15 @@ func (s *session) result(r *store.MessageRow, a messageAnswers, c *Coverage) (Re
 	}
 	values := s.priors.annotate(s.profile, a.Answers, r.RowID, &r.Message)
 	s.decideValues(values)
+	// A deterministic rule answer is exact: the prior blend would turn it
+	// into a probability the rule never claimed. Keep the rule's own class
+	// and its provenance beside the answer.
+	for name, answer := range a.Answers {
+		if answer.AutoRule == "" {
+			continue
+		}
+		values[name] = decidedValue(s.profile, name, taxonomy.FromAnswer(answer))
+	}
 	res := assembleResult(s.profile, r, a, values)
 	// The route answers are the certified classification; the blended values
 	// are the display smoothing. The subject is derived from the same raw

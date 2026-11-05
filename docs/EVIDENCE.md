@@ -199,6 +199,13 @@ of ints is its length (the one accessor of rules, features and
 coverage). No two shipped rules answer one question differently on the
 same conditions.
 It fires when every condition holds on a value that is there.
+`Engine.RuleAnswers` is the read-time fallback behind the triage rule
+layer: it applies the same rules to one message's stored record and returns
+an answer only when the firing rules agree. For a score the narrowest firing
+range wins and only an exact level is served; a range or two different exact
+levels answer nothing. The answer carries the rule id and is never stored,
+counted as coverage or used to open the gate.
+
 `RuleSet.Measure` counts, per rule, the labelled messages, how many it
 fires on and how many of those agree with the label: precision,
 coverage, Wilson interval at `evidence.rules.z`; a rule is a key when
@@ -365,6 +372,8 @@ the numbers.
 | `cat_report_notifications` | category | `"notifications"` | message_kind ∈ {delivery_report, read_receipt, auto_reply} |
 | `cat_scl_spam` | category | `"spam"` | spam_scl ≥ 5 |
 | `cat_unsubscribe_marketing` | category | `"marketing"` | list_unsubscribe ∈ {present, one_click} |
+| `cta_meeting_request` | call_to_action | `true` | message_kind ∈ {meeting_request} |
+| `cta_nothing_auto` | call_to_action | `false` | auto_submitted ∈ {auto-generated, auto-notified} |
 | `deadline_24h` | deadline | `{"min":4,"max":4}` | date_next_days ≥ 1 ≤ 1 |
 | `deadline_any` | deadline | `{"min":1,"max":5}` | date_count ≥ 1 |
 | `deadline_month` | deadline | `{"min":2,"max":2}` | date_next_days ≥ 8 ≤ 31 |
@@ -394,6 +403,9 @@ the numbers.
 | `reply_not_kind` | reply_needed | `false` | message_kind ∈ {delivery_report, read_receipt, auto_reply, meeting_response, meeting_cancel} |
 | `reply_reminder` | reply_needed | `true` | sender_reminders ≥ 1 and addressed_to_me ∈ {to} |
 | `reply_sole_question` | reply_needed | `true` | sole_to = true and question_marks ≥ 1 |
+| `request_one` | request_count | `{"min":1,"max":1}` | question_marks ≥ 1 ≤ 1 |
+| `request_three` | request_count | `{"min":3,"max":3}` | question_marks ≥ 3 |
+| `request_two` | request_count | `{"min":2,"max":2}` | question_marks ≥ 2 ≤ 2 |
 | `signature_found` | has_signature | `true` | signature ∈ {delimiter, contact_block} |
 | `signature_none` | has_signature | `false` | signature ∈ {none} |
 | `susp_dmarc_fail` | suspicious | `true` | auth_dmarc ∈ {fail} |
