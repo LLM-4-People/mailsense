@@ -150,6 +150,18 @@ Each was independently checked against source by the coordinator:
   shell read across the navigation and fails on the old unconditional
   refresh (reproduced: `Expected: 1, Received: 0`).
 
+### Job strip names (2026-11-05)
+
+- The owner's strip said `Outlook · En cours…` because the job name is the
+  connector id and the sync never reported a phase. A job now composes its
+  translated kind and subject (`Mail sync · Outlook`) and a running sync
+  reports a stable stage (`folders`, `details`); the UI translates it and
+  suppresses the generic `Working…` when the phase is already named. The
+  producer's English message stays a Logs diagnostic.
+- The Sources backfill cancel names its source (`Stop the backfill · Outlook`)
+  instead of the generic **Cancel**. The job tests cover both stages, the
+  composed name and the cancel label.
+
 ### No-teaching answer layer (2026-11-05)
 
 - First run had a real coupling defect: `NewPlan` selected `triage.decider`

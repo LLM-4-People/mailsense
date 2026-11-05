@@ -7,6 +7,9 @@ exists.
 ## Unreleased
 
 ### Added
+- The job strip names the source and phase of a sync (`Mail sync · Outlook`,
+  `Reading folders`), and its cancel action names the task it stops. The
+  Sources backfill cancel says which source it stops too.
 - Mailsense answers from deterministic evidence rules when the learned route
   has not certified a question. The answer names its rule, says it is
   uncertified, and is never written as a label, counted as coverage or used

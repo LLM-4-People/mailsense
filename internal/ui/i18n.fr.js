@@ -354,6 +354,7 @@ window.MailsenseI18nCatalogs.fr = {
   "sources.backfill.title": "Affichage des messages",
   "sources.backfill.sub": "Le nouveau courrier conserve automatiquement son HTML et ses images intégrées. Les messages stockés avant cette version nécessitent une relecture unique de la source\u00a0: elle n’enregistre que le HTML d’affichage et les images intégrées, et laisse intact le corps texte utilisé pour l’apprentissage et la recherche. La tâche s’exécute en arrière-plan, signale les messages ignorés et peut être annulée.",
   "sources.backfill.start": "Récupérer l’affichage manquant",
+  "sources.backfill.cancel": "Arrêter le rattrapage · {source}",
   "sources.backfill.starting": "Démarrage…",
   "sources.backfill.started": "Relecture d’affichage lancée",
   "sources.backfill.started_body": "Elle s’exécute en arrière-plan. La progression s’affiche ici et dans Apprentissage.",
@@ -1883,6 +1884,9 @@ window.MailsenseI18nCatalogs.fr = {
   "jobs.stage.certify": "Certification des réponses",
   "jobs.stage.settle": "Stabilisation des modèles",
   "jobs.stage.answer": "Réponse à la boîte aux lettres",
+  "jobs.stage.backfill": "Lecture des corps de message",
+  "jobs.stage.details": "Mise à jour des détails",
+  "jobs.stage.folders": "Lecture des dossiers",
 
   "reason.security": "Sécurité",
   "reason.urgent": "Urgent",

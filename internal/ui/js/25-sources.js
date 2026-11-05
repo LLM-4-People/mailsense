@@ -305,7 +305,7 @@
         } catch (error) { reportActionError(error); }
       });
     }, { icon: "refresh", kind: "primary", disabled: running || !sourceID });
-    const cancel = running ? button(t("common.cancel"), async (event) => {
+    const cancel = running ? button(t("sources.backfill.cancel", { source: jobNameLabel(job.name || job.kind || job.id) }), async (event) => {
       await cancelJob(job.id, event.currentTarget);
       await afterBackgroundAction(["job"]);
     }, { small: true, kind: "quiet" }) : null;

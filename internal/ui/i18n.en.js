@@ -354,6 +354,7 @@ window.MailsenseI18nCatalogs.en = {
   "sources.backfill.title": "Message display",
   "sources.backfill.sub": "New mail keeps its HTML and inline images automatically. Messages stored before this build need a one-time re-read of the source: it stores display HTML and inline images only and leaves the plain learning and search body untouched. The job runs in the background, reports skipped messages, and can be cancelled.",
   "sources.backfill.start": "Fetch missing display data",
+  "sources.backfill.cancel": "Stop the backfill · {source}",
   "sources.backfill.starting": "Starting…",
   "sources.backfill.started": "Display backfill started",
   "sources.backfill.started_body": "It runs in the background. Progress is shown here and on Learning.",
@@ -1495,6 +1496,9 @@ window.MailsenseI18nCatalogs.en = {
   "jobs.stage.certify": "Certifying the answers",
   "jobs.stage.settle": "Settling the models",
   "jobs.stage.answer": "Answering the mailbox",
+  "jobs.stage.backfill": "Reading message bodies",
+  "jobs.stage.details": "Updating message details",
+  "jobs.stage.folders": "Reading folders",
 
   "reason.security": "Security",
   "reason.urgent": "Urgent",

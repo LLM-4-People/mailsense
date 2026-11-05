@@ -140,5 +140,6 @@ func (s *Syncer) backfillBodies(ctx context.Context, c source.Connector, report 
 }
 
 func reportBackfill(report func(jobs.Progress), done, total int, message string) {
-	report(jobs.Progress{Done: int64(done), Total: int64(total), Unit: learning.UnitMessages, Message: message})
+	report(jobs.Progress{Done: int64(done), Total: int64(total), Unit: learning.UnitMessages,
+		Stage: "backfill", Message: message})
 }

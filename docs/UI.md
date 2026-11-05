@@ -942,10 +942,15 @@ replaced by a fake list, zero count or "no mail".
 `jobs.update` feeds the one global job strip between the topbar and
 `#main`: each running job shows its name, live `done / total`, percent,
 progress bar, message and a cancel action that names its job; a failure
-stays until dismissed and a finished job lingers four seconds. A job that reports a stage (the
-local classifier does) also shows the translated phase, the item it is on
-(a question name) and its position within the phase (`step 2 / 5`), plus
-an ETA measured from the job's own average rate. Every string the chip
+stays until dismissed and a finished job lingers four seconds. A
+source-scoped job composes its kind and subject (`Mail sync · Outlook`,
+`Message backfill · Outlook`), and a running sync names its phase
+(`Reading folders`, `Updating message details`) instead of a bare
+`Working…`; the producer's English diagnostic stays in Logs. A job that
+reports a stage (the local classifier does) also shows the translated
+phase, the item it is on (a question name) and its position within the
+phase (`step 2 / 5`), plus an ETA measured from the job's own average
+rate. Every string the chip
 adds is a catalog key (`jobs.stage.*`, `shell.job.step`), never a raw
 sentence; only the question name is data and stays untranslated. The
 payload is a complete `jobs.Info`
@@ -1338,9 +1343,9 @@ by that attribute, never by a media query.
      Remove or hide the message and confirm the quiet unavailable state.
      Confirm `#/ask` is the Ask screen, not a redirect.
   6. Sources: **Fetch missing display data** disables while the job runs,
-     progress advances over SSE, **Cancel** stops it, and the job appears on
-     Learning. A source that cannot re-read messages ends with skipped
-     counts, not an error.
+     progress advances over SSE, **Stop the backfill · Outlook** stops it,
+     and the job appears on Learning. A source that cannot re-read messages
+     ends with skipped counts, not an error.
   7. Language: Settings → **Interface language** → **Français**. Nav,
      screens, help, buttons, dialogs, dates and numbers switch without a
      reload; `<html lang>` becomes `fr-FR`; reloading the page and
