@@ -52,9 +52,12 @@ jobs:
         with:
           go-version-file: go.mod
           cache: true
+      # .nvmrc owns the Node version. The step matters: internal/ui's i18n
+      # and companies behavior tests run under Node when it is on PATH
+      # (through scripts/test.sh) and skip otherwise.
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
-          node-version: 22
+          node-version-file: .nvmrc
       # A tag must never publish a commit that is not on main.
       - name: the tag is on main
         run: |
