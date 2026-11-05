@@ -20,6 +20,7 @@ import (
 	"github.com/LLM-4-People/mailsense/internal/priority"
 	"github.com/LLM-4-People/mailsense/internal/search"
 	"github.com/LLM-4-People/mailsense/internal/store"
+	"github.com/LLM-4-People/mailsense/internal/subject"
 	"github.com/LLM-4-People/mailsense/internal/threadintel"
 	"github.com/LLM-4-People/mailsense/internal/world"
 )
@@ -39,6 +40,65 @@ func (s *Service) askStructured(ctx context.Context, view AskView, intent string
 	view.Mode, view.Intent, view.Answer = ModeStructured, intent, ""
 	view.Counts = counts
 	view.Citations = citationsFor(items, filter)
+	return view, nil
+}
+
+// TopicAnswer is the structured topic-count answer: the catalogue path, the
+// count the census reported, and the classification coverage behind it. The
+// UI composes the localized sentence from these fields; Go owns no display
+// copy.
+type TopicAnswer struct {
+	Topic      string `json:"topic"`
+	Subtopic   string `json:"subtopic"`
+	Count      int    `json:"count"`
+	Classified int    `json:"classified"`
+	Scanned    int    `json:"scanned"`
+}
+
+// askTopic answers one catalogue topic or subtopic count from the census the
+// priority ranking already built during its read. A failed census read is
+// returned as an error: the answer must never turn an unread mailbox into a
+// zero. A real zero carries the classification coverage so the owner can tell
+// an empty topic from a mailbox whose mail was never classified, and carries
+// no citations.
+func (s *Service) askTopic(ctx context.Context, view AskView, phrase subject.Phrase) (AskView, error) {
+	census, err := s.prio.Topics(ctx)
+	if err != nil {
+		return AskView{}, err
+	}
+	answer := TopicAnswer{Topic: phrase.Topic, Subtopic: phrase.Subtopic,
+		Classified: census.Classified, Scanned: census.Scanned}
+	var evidence []int64
+	if row, ok := census.Topic(phrase.Topic); ok {
+		answer.Count, evidence = row.Count, row.Evidence
+		if phrase.Subtopic != "" {
+			if sub, ok := row.Subtopic(phrase.Subtopic); ok {
+				answer.Count, evidence = sub.Count, sub.Evidence
+			} else {
+				answer.Count, evidence = 0, nil
+			}
+		}
+	}
+	view.Mode, view.Intent, view.Answer = ModeStructured, IntentTopic, ""
+	view.Topic = &answer
+	if answer.Count == 0 {
+		return view, nil
+	}
+	if len(evidence) > priority.TopicEvidence {
+		evidence = evidence[:priority.TopicEvidence]
+	}
+	sums, err := s.store.SummariesOwner(ctx, evidence)
+	if err != nil {
+		// The count is the answer; the owner-summary read only enriches its
+		// citations. A failed read keeps the evidence ids with their reason
+		// instead of discarding the count.
+		s.log.Warn("qa topic citation metadata unavailable", "reason", errorClass(err))
+		sums = nil
+	}
+	view.Citations = make([]Citation, 0, len(evidence))
+	for _, id := range evidence {
+		view.Citations = append(view.Citations, citationFor(id, "topic", sums))
+	}
 	return view, nil
 }
 

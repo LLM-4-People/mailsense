@@ -180,6 +180,9 @@ type AskView struct {
 	Result         *mailquery.Result        `json:"result,omitempty"`
 	Agenda         *agenda.Result           `json:"agenda,omitempty"`
 	Clarify        *mailquery.Clarification `json:"clarify,omitempty"`
+	// Topic is the structured topic-count answer: the catalogue path it
+	// counted, the count and the classification coverage behind it.
+	Topic *TopicAnswer `json:"topic,omitempty"`
 }
 
 // HistoryRow is one rail row of the stored Q&A history: exactly the fields
@@ -212,6 +215,10 @@ type Priority interface {
 	// priority, agenda and company screens show. Ask must not re-resolve a
 	// thread with a nil message signal and then contradict those screens.
 	ThreadStates(ctx context.Context) (map[string]threadintel.Assessment, error)
+	// Topics is the whole-mailbox classified-topic census, built during the
+	// same read as the ranking. A topic count is answered from it, never
+	// from a second mailbox scan; a failed read is an error, never a zero.
+	Topics(ctx context.Context) (priority.TopicCensus, error)
 }
 
 // Searcher is owner-only retrieval (search.Searcher).
@@ -503,18 +510,23 @@ func (s *Service) AskConversation(ctx context.Context, req AskRequest) (AskView,
 		// so gating only the IntentFreeform branch would let a scoped or
 		// person-framed count reach askStructured for a mailbox-wide total.
 		// One gate handles every count request; a matching plain count is
-		// answered structurally, and every other count is forced onto the
-		// freeform path. A configured generator keeps the existing computed
-		// path and never enters this gate.
+		// answered structurally from the priority totals or the topic
+		// census, and every other count is forced onto the freeform path. A
+		// configured generator keeps the existing computed path and never
+		// enters this gate.
 		providerlessCount := false
 		folded := mail.Fold(strings.TrimSpace(q))
 		if aggregateCountRequest(folded) && !s.generatorAvailable() {
 			providerlessCount = true
-			if structured, ok := aggregateStructuredIntent(q); ok &&
-				s.providerlessCountScopeAllowed(ctx, q) {
-				view.Intent = structured
-				view, err = s.askStructured(ctx, view, structured)
-			} else {
+			intent, phrase, ok := s.providerlessCountIntent(ctx, q)
+			switch {
+			case ok && intent == IntentTopic:
+				view.Intent = IntentTopic
+				view, err = s.askTopic(ctx, view, phrase)
+			case ok:
+				view.Intent = intent
+				view, err = s.askStructured(ctx, view, intent)
+			default:
 				view.Intent = IntentFreeform
 				view, err = s.askFreeform(ctx, view, q, lang, preview, turns, turnKey)
 			}
@@ -550,7 +562,7 @@ func (s *Service) AskConversation(ctx context.Context, req AskRequest) (AskView,
 			Question: q, Answer: view.Answer, Mode: view.Mode, Intent: view.Intent, Counts: view.Counts,
 			Citations: qaCitations(view.Citations), Provider: view.Provider, Model: view.Model,
 			Language: lang, Preview: view.Preview, Plan: view.Plan, Result: view.Result,
-			Agenda: view.Agenda, Clarify: view.Clarify, Notice: view.Notice,
+			Agenda: view.Agenda, Clarify: view.Clarify, Notice: view.Notice, Topic: qaTopicAnswer(view.Topic),
 		})
 	})
 	if err != nil {
@@ -735,6 +747,10 @@ func cloneAskView(view AskView) AskView {
 		}
 		out.Clarify = &clarify
 	}
+	if view.Topic != nil {
+		topic := *view.Topic
+		out.Topic = &topic
+	}
 	return out
 }
 
@@ -798,7 +814,8 @@ func (s *Service) historyView(ctx context.Context, row store.QAHistory) (AskView
 		Route: route, Mode: row.Mode, Intent: row.Intent,
 		Counts: nonNilCounts(row.Counts), Citations: make([]Citation, 0, len(row.Citations)),
 		Provider: row.Provider, Model: row.Model, Preview: row.Preview, CreatedAt: row.CreatedAt,
-		Plan: row.Plan, Result: row.Result, Agenda: row.Agenda, Clarify: row.Clarify, Notice: row.Notice}
+		Plan: row.Plan, Result: row.Result, Agenda: row.Agenda, Clarify: row.Clarify, Notice: row.Notice,
+		Topic: topicAnswerFromStore(row.Topic)}
 	if row.Mode == ModeGenerated {
 		if text, ok := unwrapAnswerEnvelope(row.Answer); ok {
 			view.Answer = text
@@ -863,6 +880,26 @@ func qaCitations(in []Citation) []store.QACitation {
 		out = append(out, store.QACitation{MessageID: c.MessageID, Reason: c.Reason})
 	}
 	return out
+}
+
+// qaTopicAnswer projects the topic-count answer to its persisted shape. The
+// store keeps the same field set under its own type: internal/store cannot
+// import internal/qa, and neither owns a second fact.
+func qaTopicAnswer(in *TopicAnswer) *store.QATopicAnswer {
+	if in == nil {
+		return nil
+	}
+	return &store.QATopicAnswer{Topic: in.Topic, Subtopic: in.Subtopic, Count: in.Count,
+		Classified: in.Classified, Scanned: in.Scanned}
+}
+
+// topicAnswerFromStore rehydrates the persisted topic-count answer.
+func topicAnswerFromStore(in *store.QATopicAnswer) *TopicAnswer {
+	if in == nil {
+		return nil
+	}
+	return &TopicAnswer{Topic: in.Topic, Subtopic: in.Subtopic, Count: in.Count,
+		Classified: in.Classified, Scanned: in.Scanned}
 }
 
 func nonNilCounts(in map[string]int) map[string]int {

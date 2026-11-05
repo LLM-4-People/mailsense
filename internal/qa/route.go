@@ -11,6 +11,7 @@ import (
 	"github.com/LLM-4-People/mailsense/internal/mailquery"
 	"github.com/LLM-4-People/mailsense/internal/priority"
 	"github.com/LLM-4-People/mailsense/internal/store"
+	"github.com/LLM-4-People/mailsense/internal/subject"
 	"github.com/LLM-4-People/mailsense/internal/world"
 )
 
@@ -140,8 +141,10 @@ func (s *Service) companyScope(ctx context.Context, question, language string) (
 
 // answerLocal answers without any provider call. Every deterministic owner
 // keeps its existing behavior (sender lookup, structured ranking, company
-// profile, clarification); a free-form question that would need a written
-// answer returns the retrieved sources with an explicit local notice.
+// profile, clarification); a plain count of a priority category or a
+// catalogue topic is answered locally from the priority/topic census, and a
+// free-form question that would need a written answer returns the retrieved
+// sources with an explicit local notice.
 func (s *Service) answerLocal(ctx context.Context, view AskView, question, language, intent, senderText string) (AskView, error) {
 	view.Route = RouteLocal
 	switch intent {
@@ -154,12 +157,45 @@ func (s *Service) answerLocal(ctx context.Context, view AskView, question, langu
 		view.Route = RouteLocal
 		return view, err
 	case IntentFreeform:
+		if countIntent, phrase, ok := s.providerlessCountIntent(ctx, question); ok {
+			var err error
+			if countIntent == IntentTopic {
+				view, err = s.askTopic(ctx, view, phrase)
+			} else {
+				view, err = s.askStructured(ctx, view, countIntent)
+			}
+			view.Route = RouteLocal
+			return view, err
+		}
 		view, err := s.answerLocalFreeform(ctx, view, question, language)
 		view.Route = RouteLocal
 		return view, err
 	default:
 		return s.answerLocalStructured(ctx, view, question, language, intent)
 	}
+}
+
+// providerlessCountIntent returns the local, generator-free owner of a plain
+// count question: the priority category total or the catalogue topic count
+// its wording names, with the strict mailbox-scope gate already passed. ok is
+// false when the question keeps its freeform path: no count cue, no accepted
+// owner, a named organization or person, or a failed scope read. Priority
+// intents are tried before the topic table, so a topic can never shadow a
+// reply, urgent, deadline, security, decision or workload count.
+func (s *Service) providerlessCountIntent(ctx context.Context, question string) (string, subject.Phrase, bool) {
+	if !aggregateCountRequest(mail.Fold(strings.TrimSpace(question))) {
+		return "", subject.Phrase{}, false
+	}
+	if structured, ok := aggregateStructuredIntent(question); ok {
+		if s.providerlessCountScopeAllowed(ctx, question) {
+			return structured, subject.Phrase{}, true
+		}
+		return "", subject.Phrase{}, false
+	}
+	if phrase, _, ok := aggregateTopicIntent(question); ok && s.providerlessCountScopeAllowed(ctx, question) {
+		return IntentTopic, phrase, true
+	}
+	return "", subject.Phrase{}, false
 }
 
 // answerLocalStructured keeps the company scope rule: one named organization

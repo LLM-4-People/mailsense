@@ -70,6 +70,14 @@
         ? t("ask.sentence.summary_today.none")
         : t("ask.sentence.summary_today", { count: total });
     }
+    if (intent === "topic") {
+      const topic = view.topic || {};
+      const label = subjectPathLabel(topic.topic, topic.subtopic);
+      const count = Number(topic.count) || 0;
+      return count === 0
+        ? t("ask.sentence.topic.none", { topic: label })
+        : t("ask.sentence.topic", { count, topic: label });
+    }
     const count = structuredCount(view);
     const key = "ask.sentence." + intent;
     if (intent === "sender" && count === 0) return t("ask.sentence.sender.none");
@@ -722,12 +730,6 @@
   // only it may link to provider settings; the other notices describe the
   // search index or the provider's response. Retry is an explicit click:
   // the composer never resubmits a question on its own.
-
-  // askNoticeCard renders the explicit retrieval fallback for one notice
-  // code. Only qa_unavailable means no answer provider is configured, so
-  // only it may link to provider settings; the other notices describe the
-  // search index or the provider's response. Retry is an explicit click:
-  // the composer never resubmits a question on its own.
   function askNoticeCard(view, options = {}) {
     const notice = String(view.notice || "");
     const identity = metaLine([String(view.provider || "").trim(), String(view.model || "").trim()]);
@@ -843,6 +845,13 @@
       if (view.notice === "answer_language") blocks.push(askNoticeCard(view, options));
     } else if (view.mode === "structured") {
       blocks.push(h("p", { class: "ask-sentence", dir: "auto", text: structuredSentence(view) }));
+      if (view.intent === "topic" && view.topic && Number(view.topic.scanned) > 0) {
+        blocks.push(h("p", { class: "fine ask-topic-coverage", text: t("ask.topic.coverage", {
+          count: Number(view.topic.classified) || 0,
+          classified: Number(view.topic.classified) || 0,
+          total: Number(view.topic.scanned),
+        }) }));
+      }
     } else {
       blocks.push(askNoticeCard(view, options));
     }

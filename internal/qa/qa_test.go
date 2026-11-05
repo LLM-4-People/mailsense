@@ -61,13 +61,24 @@ type fakePriority struct {
 	byFilter     map[priority.Filter][]priority.Item
 	totals       map[priority.Filter]int
 	top          []priority.Item
+	topics       priority.TopicCensus
+	topicsErr    error
 	threadStates map[string]threadintel.Assessment
 	threadErr    error
 	preview      bool
 	err          error
 	calls        int
 	topCalls     int
+	topicsCalls  int
 	filters      []priority.Filter
+}
+
+func (p *fakePriority) Topics(context.Context) (priority.TopicCensus, error) {
+	p.topicsCalls++
+	if p.topicsErr != nil {
+		return priority.TopicCensus{}, p.topicsErr
+	}
+	return p.topics, nil
 }
 
 func (p *fakePriority) ThreadStates(context.Context) (map[string]threadintel.Assessment, error) {

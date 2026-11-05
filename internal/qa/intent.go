@@ -5,13 +5,15 @@ import (
 
 	"github.com/LLM-4-People/mailsense/internal/mail"
 	"github.com/LLM-4-People/mailsense/internal/priority"
+	"github.com/LLM-4-People/mailsense/internal/subject"
 )
 
 // The deterministic intents. Structured intents map to a priority filter;
 // sender and freeform have their own paths. IntentCompany is not produced by
 // parseIntent: it is the freeform question that entity linking resolves to
 // exactly one known organization and that asks about that organization
-// itself, answered from its profile.
+// itself, answered from its profile. IntentTopic is the catalogue topic count
+// the provider-less gate answers from the topic census.
 const (
 	IntentReply        = "reply"
 	IntentUrgent       = "urgent"
@@ -24,6 +26,7 @@ const (
 	IntentSender       = "sender"
 	IntentFreeform     = "freeform"
 	IntentCompany      = "company"
+	IntentTopic        = "topic"
 )
 
 // intentWords are the EN+FR keywords, already accent/case folded. A token
@@ -345,6 +348,11 @@ var aggregateCountFillers = []string{
 	"suis", "es", "est", "sommes", "etes", "sont",
 	"y", "en", "svp", "stp", "merci", "plait",
 	"courriel", "courriels", "courrier", "courriers",
+	// Relation prepositions frame a question without scoping it: "How many
+	// messages about invoices?" and "Combien de messages sur les factures ?"
+	// name one topic and one relation. A scope noun after them still fails
+	// the allowlist ("How many messages about budget invoices?").
+	"about", "sur",
 }
 
 var (
@@ -536,6 +544,61 @@ func aggregateStructuredIntent(question string) (string, bool) {
 		}
 	}
 	return matched, true
+}
+
+// aggregateTopicIntent returns the one catalogue topic a plain provider-less
+// count asks about. It mirrors aggregateStructuredIntent's gate exactly: a
+// count cue is required; a person frame, latest/today wording, a content verb
+// or a reported action is rejected; one catalogue path must match (the
+// longest alias wins, so "status updates" is the project status subtopic and
+// not the news topic); the same alias word repeated is a person name or a
+// stutter, not one topic total; and after removing the count cue and the
+// matched alias words every residual token must be in the same filler
+// allowlist. Any unlisted scope, date or status word — or a second category —
+// keeps the question freeform. The caller checks the priority intents first,
+// so topic never shadows a reply/urgent/deadline/security/decision/workload
+// count.
+func aggregateTopicIntent(question string) (subject.Phrase, []string, bool) {
+	folded := mail.Fold(strings.TrimSpace(question))
+	tokens := wordSet(folded)
+	if !aggregateCountRequest(folded) {
+		return subject.Phrase{}, nil, false
+	}
+	if aggregatePersonFrame(folded) {
+		return subject.Phrase{}, nil, false
+	}
+	if containsAny(personWords, tokens) || containsAny(latestWords, tokens) ||
+		containsAny(todayWords, tokens) || containsAny(contentVerbs, tokens) ||
+		contentActionReported(question, folded) {
+		return subject.Phrase{}, nil, false
+	}
+	phrase, alias, ok := subject.Match(wordList(folded))
+	if !ok {
+		return subject.Phrase{}, nil, false
+	}
+	aliasWords := wordSet(strings.Join(alias, " "))
+	if aggregateRepeatedCategoryWord(folded, aliasWords) {
+		// A repeated topic noun is a person name or a stutter ("How many
+		// invoices Invoice?"), never one topic total. The residual scan would
+		// otherwise skip every occurrence of the alias word.
+		return subject.Phrase{}, nil, false
+	}
+	residual := folded
+	for _, idiom := range aggregateCountIdioms {
+		residual = strings.ReplaceAll(residual, idiom, " ")
+	}
+	for _, word := range wordList(residual) {
+		if aggregateCountCueSet[word] || aliasWords[word] {
+			continue
+		}
+		if !aggregateCountFillerSet[word] {
+			// Any unlisted word — a scope, a date, a status, a second
+			// category — keeps its freeform path; the allowlist is the only
+			// thing standing between a topic count and a mailbox-wide total.
+			return subject.Phrase{}, nil, false
+		}
+	}
+	return phrase, alias, true
 }
 
 // priorityPhrases are the "what should I read first" cue. The bare token
