@@ -13,15 +13,17 @@ func TestCompletionEventsShareOneReaction(t *testing.T) {
 	for _, want := range []string{
 		`source.addEventListener("sync.finished"`,
 		`source.addEventListener("triage.finished"`,
-		`if (!syncChangedMail(report)) return;`,
-		`invalidateTopics(["hub"])`,
-		`invalidateTopics(["mail"])`,
+		`invalidateTopics(syncFinishedTopics(report))`,
 		`if (!triageChangedMail(report)) return;`,
 		`invalidateTopics(["triage"])`,
 	} {
 		if !strings.Contains(shell, want) {
 			t.Errorf("13-shell.js lacks %q", want)
 		}
+	}
+	sync := handlerBody(t, shell, `source.addEventListener("sync.finished"`)
+	if got := strings.Count(sync, "invalidateTopics("); got != 1 {
+		t.Errorf("the sync.finished listener performs %d invalidation passes, want 1", got)
 	}
 
 	reaction := functionBody(t, shell, "function invalidateTopics(")
@@ -112,8 +114,8 @@ func TestCompletionInvalidationTablesAreSplitByWhatChanged(t *testing.T) {
 			t.Errorf("the triage surface set lacks %q", want)
 		}
 	}
-	if !strings.Contains(handlerBody(t, shell, `source.addEventListener("sync.finished"`), `invalidateTopics(["mail"])`) {
-		t.Error("the sync listener does not use the mail topic")
+	if !strings.Contains(handlerBody(t, shell, `source.addEventListener("sync.finished"`), `invalidateTopics(syncFinishedTopics(report))`) {
+		t.Error("the sync listener does not route through syncFinishedTopics")
 	}
 	if !strings.Contains(handlerBody(t, shell, `source.addEventListener("triage.finished"`), `invalidateTopics(["triage"])`) {
 		t.Error("the triage listener does not use the triage topic")
@@ -170,6 +172,105 @@ func TestBroadReadInvalidationForgetsAllMail(t *testing.T) {
 		t.Error("invalidateLearningReads forgets list membership on a label write")
 	}
 }
+
+// One sync.finished event performs one invalidation pass. The listener names
+// every topic the run changed through syncFinishedTopics and hands the union
+// to invalidateTopics once: a changed-mail run must clear the shared
+// /api/hub read and schedule its refresh once, not twice, and a run that
+// wrote nothing must still advance the hub and held-removal snapshots.
+func TestSyncFinishedCoalescesIntoOneInvalidationPass(t *testing.T) {
+	runUISandbox(t, "sync_finished_invalidation", syncFinishedInvalidationHarness, "sync finished invalidation: ok")
+}
+
+const syncFinishedInvalidationHarness = `"use strict";
+
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
+const vm = require("node:vm");
+
+const dir = process.env.UI_DIR;
+if (!dir) throw new Error("UI_DIR is required");
+const app = fs.readFileSync(path.join(dir, "app.js"), "utf8");
+
+function block(signature) {
+  const start = app.indexOf(signature);
+  assert.ok(start >= 0, signature + " not found");
+  const end = app.indexOf("\n  }", start);
+  assert.ok(end > start, signature + " has no end");
+  return app.slice(start, end + 4);
+}
+
+const calls = { topics: [], sources: 0 };
+const listeners = new Map();
+const sandbox = {
+  invalidateTopics: (topics) => calls.topics.push(Array.from(topics)),
+  scheduleSourcesRefresh: () => { calls.sources += 1; },
+};
+vm.createContext(sandbox);
+const script = [
+  block("function eventCount("),
+  block("function syncChangedMail("),
+  block("function triageChangedMail("),
+  block("function syncFinishedTopics("),
+  block("function listenMailCompletion("),
+  "listenMailCompletion;",
+].join("\n");
+const listenMailCompletion = vm.runInContext(script, sandbox, { filename: "app.js#sync-finished" });
+
+listenMailCompletion({ addEventListener: (name, handler) => listeners.set(name, handler) });
+
+function dispatch(name, data) {
+  const handler = listeners.get(name);
+  assert.ok(handler, name + " listener missing");
+  handler({ data });
+}
+
+function sorted(values) {
+  return Array.from(values).sort();
+}
+
+function reset() {
+  calls.topics = [];
+  calls.sources = 0;
+}
+
+// A run that wrote mail: exactly one pass whose union names each topic once.
+reset();
+dispatch("sync.finished", JSON.stringify({
+  totals: { written: 3 }, removed: { deleted: 0, moved: 0 }, scope: { judged: 0 }, details: { completed: 0 },
+}));
+assert.equal(calls.topics.length, 1, "a changed-mail sync ran " + calls.topics.length + " invalidation passes");
+assert.deepEqual(sorted(calls.topics[0]), sorted(["hub", "heldRemovals", "mail"]));
+assert.equal(calls.topics[0].length, 3, "the union repeats a mounted topic");
+assert.equal(calls.sources, 1, "the changed-mail sync did not refresh Sources exactly once");
+
+// A run that wrote nothing: one pass, no mail topic, Sources still
+// refreshed.
+reset();
+dispatch("sync.finished", JSON.stringify({ totals: { written: 0 }, removed: {}, scope: {}, details: {} }));
+assert.equal(calls.topics.length, 1, "an empty sync ran " + calls.topics.length + " invalidation passes");
+assert.deepEqual(sorted(calls.topics[0]), sorted(["hub", "heldRemovals"]));
+assert.equal(calls.topics[0].length, 2, "the union repeats a mounted topic");
+assert.equal(calls.sources, 1, "the empty sync did not refresh Sources");
+
+// A run that only removed mail still changed mail: the union gains the mail
+// topic exactly once.
+reset();
+dispatch("sync.finished", JSON.stringify({ totals: { written: 0 }, removed: { deleted: 1, moved: 0 } }));
+assert.equal(calls.topics.length, 1, "a removal-only sync ran " + calls.topics.length + " invalidation passes");
+assert.deepEqual(sorted(calls.topics[0]), sorted(["hub", "heldRemovals", "mail"]));
+assert.equal(calls.topics[0].length, 3, "the union repeats a mounted topic");
+
+// A malformed report cannot claim a mail change, but the run still happened.
+reset();
+dispatch("sync.finished", "not json");
+assert.equal(calls.topics.length, 1, "a malformed report ran " + calls.topics.length + " invalidation passes");
+assert.deepEqual(sorted(calls.topics[0]), sorted(["hub", "heldRemovals"]));
+assert.equal(calls.sources, 1, "a malformed report dropped the Sources refresh");
+
+console.log("sync finished invalidation: ok");
+`
 
 func containsString(values []string, want string) bool {
 	for _, value := range values {

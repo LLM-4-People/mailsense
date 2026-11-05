@@ -73,7 +73,9 @@ func TestActionCallSitesNameTheirTopics(t *testing.T) {
 
 // The graph entries name the reads and surfaces each action changes. A
 // selection moves visible mail; discovery only the mailbox list; a job and a
-// zone only the shell snapshots; the preview only permission.
+// zone only the shell snapshots; a preview flips the gated reads whose
+// snapshots are keyed by the preview rule: the ranked feed, the triage page
+// and the conversation states derived from that feed.
 func TestActionInvalidationTopicsAreScoped(t *testing.T) {
 	shell := readUIModule(t, "13-shell.js")
 	discovery := topicBody(t, shell, "discovery")
@@ -146,13 +148,15 @@ func TestActionInvalidationTopicsAreScoped(t *testing.T) {
 	}
 
 	preview := topicBody(t, shell, "preview")
-	for _, want := range []string{`"/api/learning"`, `"/api/hub"`, `"/api/gate"`} {
+	for _, want := range []string{
+		`"/api/learning"`, `"/api/hub"`, `"/api/gate"`, `"/api/priority"`, `"/api/triage"`, `"/api/conversations"`,
+	} {
 		if !strings.Contains(preview, want) {
 			t.Errorf("preview reads lack %q", want)
 		}
 	}
-	if strings.Contains(preview, `"/api/priority"`) || strings.Contains(preview, `"/api/companies/"`) {
-		t.Error("toggling the preview drops unrelated content reads")
+	if strings.Contains(preview, `"/api/companies/"`) {
+		t.Error("toggling the preview drops unrelated company reads")
 	}
 }
 
@@ -251,6 +255,9 @@ assert.ok(calls.drop[0].includes("hub"), "a preview toggle kept Home");
 assert.ok(calls.drop[0].includes("mail"), "a preview toggle kept Mail");
 assert.ok(!calls.drop[0].includes("settings"), "a preview toggle dropped Settings");
 assert.ok(calls.cache[0].includes("/api/gate"), "a preview toggle lost the gate read");
+assert.ok(calls.cache[0].includes("/api/priority"), "a preview toggle kept the ranked snapshot");
+assert.ok(calls.cache[0].includes("/api/triage"), "a preview toggle kept the triage page");
+assert.ok(calls.cache[0].includes("/api/conversations"), "a preview toggle kept the pre-flip conversation states");
 
 console.log("action topics: ok");
 `

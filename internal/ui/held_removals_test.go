@@ -150,7 +150,7 @@ func TestHeldRemovalConfirmationUsesTheMailInvalidation(t *testing.T) {
 	if routes := jsStringArrayField(t, body, "routes"); !sameStrings(routes, []string{"sources"}) {
 		t.Errorf("heldRemovals routes = %v, want Sources only", routes)
 	}
-	if !strings.Contains(shell, `invalidateTopics(["heldRemovals"], { refresh: false });`) {
+	if !strings.Contains(functionBody(t, shell, "function syncFinishedTopics("), `const topics = ["hub", "heldRemovals"];`) {
 		t.Error("13-shell.js does not refresh the held list after a sync")
 	}
 	if !strings.Contains(shell, `scheduleSourcesRefresh();`) {
