@@ -2,7 +2,7 @@ import type { Route } from "@playwright/test";
 import { learningView } from "../fixtures/data";
 import { fulfillJson, mockApi, type Mock } from "../fixtures/mock";
 import { emitSse, installFakeEventSource } from "../fixtures/sse";
-import { expect, test } from "../fixtures/test";
+import { deferred, expect, test } from "../fixtures/test";
 
 function sourcesMocks(learning: (call: number, route: Route) => Promise<void>): Mock[] {
   let calls = 0;
@@ -175,6 +175,11 @@ test("pick, unpick and discover keep an unrelated cached route", async ({
 }) => {
   await installFakeEventSource(app.page);
   let selected = false;
+  // Discovery settles its shell reads after the toast. Hold one read so the
+  // owner can navigate back while the action is still finishing.
+  let holdHub = false;
+  const hubHeld = deferred();
+  const hubRelease = deferred();
   const mailbox = () => ({
     key: "store-e2e",
     name: "Demo mailbox",
@@ -201,7 +206,17 @@ test("pick, unpick and discover keep an unrelated cached route", async ({
     },
     { method: "GET", path: "/api/mailboxes", handler: async ({ route }) => fulfillJson(route, mailboxList()) },
     { method: "GET", path: "/api/jobs", body: { jobs: [] } },
-    { method: "GET", path: "/api/hub", body: { generated_at: "2026-11-03T10:00:00Z" } },
+    {
+      method: "GET",
+      path: "/api/hub",
+      handler: async ({ route }) => {
+        if (holdHub) {
+          hubHeld.resolve();
+          await hubRelease.promise;
+        }
+        await fulfillJson(route, { generated_at: "2026-11-03T10:00:00Z" });
+      },
+    },
     { method: "GET", path: "/api/learning", body: learningView({ open: true }) },
     {
       method: "POST",
@@ -222,7 +237,10 @@ test("pick, unpick and discover keep an unrelated cached route", async ({
     {
       method: "POST",
       path: "/api/mailboxes/discover",
-      handler: async ({ route }) => fulfillJson(route, mailboxList()),
+      handler: async ({ route }) => {
+        holdHub = true;
+        await fulfillJson(route, mailboxList());
+      },
     },
     {
       method: "GET",
@@ -269,8 +287,15 @@ test("pick, unpick and discover keep an unrelated cached route", async ({
     app.page.locator("#toasts .toast").filter({ hasText: "Discovery finished" }),
   ).toHaveCount(1);
 
+  await hubHeld.promise;
   await app.page.goBack();
   await app.expectRoute("logs");
+  await expect(app.page.locator('.logs-screen[data-e2e-stable="logs"]')).toHaveCount(1);
+
+  // Releasing the held read completes the action while Logs is on top. An
+  // unrelated route is not rebuilt: the same cached node stays mounted.
+  hubRelease.resolve();
+  await app.page.waitForTimeout(250);
   await expect(app.page.locator('.logs-screen[data-e2e-stable="logs"]')).toHaveCount(1);
   await expect(app.page.locator(".logs-screen")).toBeVisible();
 });

@@ -400,6 +400,9 @@
       }
     }
     if (refresh && targets.size) scheduleDataRefresh(...targets);
+    // The resolved sets are returned so a caller that awaited a write can
+    // decide whether the screen now on top is one the write can change.
+    return { reads, routes, targets, allRoutes };
   }
 
   // invalidateLearningReads drops every cached read a write can stale. It is

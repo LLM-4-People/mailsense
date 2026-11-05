@@ -138,6 +138,18 @@ Each was independently checked against source by the coordinator:
   Playwright flows 56/56, the named regression suites for each feature green,
   the generated site current, and the PII gate clean.
 
+### Background-action refresh scope (2026-11-05)
+
+- PR #26's Playwright run failed with Logs routed but zero `.logs-screen`
+  nodes. The discovery action settles its shell reads after its toast; the
+  test navigated back to Logs in that window, and `afterBackgroundAction`
+  unconditionally refreshed whichever screen was then active, replacing the
+  cached Logs DOM. The owner now asks the invalidation graph which routes the
+  write can change and rebuilds only a matching active screen; an unrelated
+  cached route keeps its DOM, scroll and focus. The Sources case holds one
+  shell read across the navigation and fails on the old unconditional
+  refresh (reproduced: `Expected: 1, Received: 0`).
+
 ### Security (guidance mode) — results so far
 
 - **Loopback API hunt:** four low candidates, each source-verified with a

@@ -51,13 +51,19 @@
     if (!Array.isArray(topics) || !topics.length) {
       throw new Error("afterBackgroundAction requires at least one invalidation topic");
     }
-    invalidateTopics(topics, Object.assign({}, options, { refresh: false }));
+    const affected = invalidateTopics(topics, Object.assign({}, options, { refresh: false }));
     await Promise.all([
       loadLearning(true),
       loadHub(true).catch(() => null),
       loadStatus(true).catch(() => null),
     ]);
-    await refreshActiveRoute();
+    // The write can finish after the owner has moved on. Only the screen the
+    // topics can change is rebuilt then; an unrelated cached route keeps its
+    // DOM, scroll and focus for its next visit.
+    const active = routeCache.get(state.routeKey);
+    const affectedNow = affected.allRoutes ||
+      [...affected.routes].some((name) => (active ? routeCacheMatches(active, name) : state.route === name));
+    if (affectedNow) await refreshActiveRoute();
   }
 
   async function discoverFromAction(params, trigger) {
