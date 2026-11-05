@@ -187,8 +187,11 @@ type Message struct {
 	ReceivedAt     string
 	FolderRole     mail.FolderRole
 	HasAttachments bool
-	Body           string
-	Revision       int64
+	// StoredDue is an open follow-up date the mailbox stores for this
+	// message; it is a fact, not a classifier estimate.
+	StoredDue bool
+	Body      string
+	Revision  int64
 }
 
 // Input is one message's typed values for Score.
@@ -1371,6 +1374,7 @@ type rankedRow struct {
 	dated          bool
 	folderRole     mail.FolderRole
 	hasAttachments bool
+	storedDue      bool
 	signals        rowSignals
 }
 
@@ -1406,7 +1410,7 @@ func rowInput(row *rankedRow, now time.Time, thread threadintel.Assessment) Inpu
 	return Input{
 		Message: Message{MessageID: row.messageID, ConversationID: row.conversationID, Subject: row.subject,
 			SenderName: row.senderName, SenderAddress: row.senderAddress, ReceivedAt: row.receivedAt,
-			FolderRole: row.folderRole, HasAttachments: row.hasAttachments, Revision: row.revision},
+			FolderRole: row.folderRole, HasAttachments: row.hasAttachments, StoredDue: row.storedDue, Revision: row.revision},
 		Now: now, Thread: thread,
 	}
 }
@@ -1470,7 +1474,7 @@ func (s *Service) replySignals(ctx context.Context, profile *taxonomy.Profile, r
 			messageID: row.MessageID, revision: row.Revision, conversationID: row.ConversationID,
 			subject: row.Subject, senderName: row.SenderName, senderAddress: row.SenderAddress,
 			receivedAt: row.ReceivedAt, received: received, dated: dated,
-			folderRole: row.FolderRole, hasAttachments: row.HasAttachments, signals: rs,
+			folderRole: row.FolderRole, hasAttachments: row.HasAttachments, storedDue: row.StoredDue, signals: rs,
 		})
 		if row.ConversationID != "" {
 			conversations[row.ConversationID] = true

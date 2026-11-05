@@ -147,14 +147,14 @@ func scanPriorityIDs(t *testing.T, s *Store, fingerprint string) []int64 {
 		id                                                                                 int64
 		revision                                                                           int64
 		conversation, subject, senderName, senderAddress, receivedAt, role, body, rawRoute string
-		hasAttachments, truncated                                                          bool
+		hasAttachments, truncated, storedDue                                               bool
 		rawPreview                                                                         sql.NullString
 		routeRevision                                                                      int64
 		previewRevision                                                                    sql.NullInt64
 	)
 	for rows.Next() {
 		if err := rows.Scan(&id, &revision, &conversation, &subject, &senderName, &senderAddress, &receivedAt,
-			&role, &hasAttachments, &body, &truncated, &rawRoute, &rawPreview,
+			&role, &hasAttachments, &storedDue, &body, &truncated, &rawRoute, &rawPreview,
 			&routeRevision, &previewRevision); err != nil {
 			t.Fatal(err)
 		}

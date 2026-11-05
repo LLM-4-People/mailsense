@@ -40,7 +40,10 @@ type PriorityRow struct {
 	ReceivedAt     string // mail.Instant: sent_on for a sent item, received_at otherwise
 	FolderRole     mail.FolderRole
 	HasAttachments bool
-	Body           string
+	// StoredDue reports an open follow-up date the mailbox stores for this
+	// message. A completed flag is not open work.
+	StoredDue bool
+	Body      string
 	// BodyTruncated reports that Body is only the bounded head of a longer
 	// stored body, so a consumer may need the full text for a snippet.
 	BodyTruncated bool
@@ -128,7 +131,9 @@ func priorityQuery(vis string, includePreview, body, decode bool) string {
 		previewRevSQL = "rp.revision"
 	}
 	return `SELECT m.id, m.revision, m.conversation_id, m.subject, m.sender_name, m.sender_address,
-		` + instantSQL + `, f.role, m.has_attachments, ` + bodySQL + `, ` + truncatedSQL + `, ` + routeSQL + `, ` + previewSQL + `,
+		` + instantSQL + `, f.role, m.has_attachments,
+		CASE WHEN COALESCE(m.flag_status, 0) <> 1 AND m.task_due_date <> '' THEN 1 ELSE 0 END,
+		` + bodySQL + `, ` + truncatedSQL + `, ` + routeSQL + `, ` + previewSQL + `,
 		` + routeRevSQL + `, ` + previewRevSQL + `
 		FROM route_answers ra
 		JOIN messages m ON m.id = ra.message_id
@@ -397,7 +402,7 @@ func scanPriorityRow(rows priorityRowSource, raw *priorityRawRow) error {
 	var role string
 	if err := rows.Scan(&raw.row.MessageID, &raw.row.Revision, &raw.row.ConversationID, &raw.row.Subject,
 		&raw.row.SenderName, &raw.row.SenderAddress, &raw.row.ReceivedAt, &role, &raw.row.HasAttachments,
-		&raw.row.Body, &raw.row.BodyTruncated, &raw.rawRoute, &raw.rawPreview,
+		&raw.row.StoredDue, &raw.row.Body, &raw.row.BodyTruncated, &raw.rawRoute, &raw.rawPreview,
 		&raw.routeRevision, &raw.previewRevision); err != nil {
 		return err
 	}

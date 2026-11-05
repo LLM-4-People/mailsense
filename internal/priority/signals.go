@@ -122,7 +122,8 @@ func rowSignalsFor(p *taxonomy.Profile, answers map[string]engine.Answer, previe
 // dated are the caller's one parse of the stored receive instant.
 func scoreRowSignals(in Input, rs rowSignals, at time.Time, dated bool, withSnippet bool) (Item, bool) {
 	sig := rs.sig
-	act := action.Classify(action.Input{MessageID: in.Message.MessageID, Signals: actionSignals(sig), Thread: in.Thread})
+	act := action.Classify(action.Input{MessageID: in.Message.MessageID, Signals: actionSignals(sig), Thread: in.Thread,
+		StoredDue: in.Message.StoredDue})
 	// The reply filter claims an owner obligation, so it follows the action
 	// classification: an answered thread, an automated message or a concrete
 	// payment is not "to reply". The score still counts the classified reply
