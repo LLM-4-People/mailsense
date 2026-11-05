@@ -7,10 +7,16 @@ import (
 	"github.com/LLM-4-People/mailsense/internal/engine"
 )
 
-// RuleAnswers applies the rule key to stored evidence: message → question →
-// the deterministic rule answer. It is the read-time fallback for a question
-// the route abstained on as not certified; it writes nothing and never
-// changes the route, coverage or the learning gate.
+// RuleAnswers applies the definitional rule key to stored evidence:
+// message → question → the deterministic rule answer. It is the read-time
+// fallback for a question the route abstained on as not certified; it
+// writes nothing and never changes the route, coverage or the learning gate.
+//
+// Only a definitional rule answers here. A measured estimate is served by
+// the route's own key, not by this read-time fallback; an unmeasured
+// estimate is evidence only. The gold dev table is why: most estimates were
+// not accurate enough to be an answer (a question mark is not a request
+// count, a named date is not always a deadline).
 //
 // A question is answered only when its firing rules agree. For a choice or
 // noul question every firing rule must name the same option/truth. For a
@@ -30,6 +36,9 @@ func (e *Engine) RuleAnswers(ctx context.Context, ids []int64) (map[int64]map[st
 		byQuestion := map[string][]*Rule{}
 		for i := range e.rules.Rules {
 			r := &e.rules.Rules[i]
+			if !r.Definitional {
+				continue
+			}
 			if r.Fires(rec) {
 				byQuestion[r.Question] = append(byQuestion[r.Question], r)
 			}

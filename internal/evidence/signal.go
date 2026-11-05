@@ -68,6 +68,12 @@ type Signal struct {
 	// Opaque: the values are hashes (a mailer, a folder): meaningful as
 	// features, never shown as facts.
 	Opaque bool
+	// Lexical: Extract reads a fixed vocabulary of words or phrases (a
+	// wordlist, reply-prefix table or cue list) rather than structure,
+	// protocol or mailbox statistics. No rule may use such a signal: an
+	// automatic answer must not depend on one language's phrasing. A
+	// lexical signal may still feed features (threading) and be measured.
+	Lexical bool
 	// Shown maps a value to what aggregates (Coverage) show of it (nil:
 	// the value as it is): a custom message class is "custom".
 	Shown   func(string) string

@@ -88,11 +88,13 @@ func TestRuleAnswersScoreAmbiguity(t *testing.T) {
 	}
 }
 
-// The shipped rules answer a real stored record: one question mark names one
-// request and a question.
+// The shipped rules answer a real stored record only from a definitional
+// fact. A signature delimiter defines has_signature; a question mark does
+// not define a question (it is an estimate, measured at 0.565 precision on
+// the gold dev split) and must not answer without measurement.
 func TestRuleAnswersReadsStoredEvidence(t *testing.T) {
 	w := newWorld(t, everything, nil)
-	w.write(msg("m1", "a@client.com", 0, "Can you send the report by Friday?"))
+	w.write(msg("m1", "a@client.com", 0, "Can you send the report by Friday?\n\n-- \nJane Doe\nACME"))
 	w.run()
 	var row int64
 	_ = w.st.EachMessage(t.Context(), store.MessageFilter{}, func(r *store.MessageRow) error {
@@ -106,11 +108,13 @@ func TestRuleAnswersReadsStoredEvidence(t *testing.T) {
 		t.Fatal(err)
 	}
 	answers := got[row]
-	if a := answers["request_count"]; a.Value != 1 || a.AutoRule != "request_one" {
-		t.Fatalf("request_count = %+v, want the one-request rule", a)
+	if a := answers["has_signature"]; a.Value != 1 || a.AutoRule != "signature_found" {
+		t.Fatalf("has_signature = %+v, want the signature rule", a)
 	}
-	if a := answers["is_question"]; a.Value != 1 || a.AutoRule != "question_mark" {
-		t.Fatalf("is_question = %+v, want the question-mark rule", a)
+	for _, q := range []string{"request_count", "is_question"} {
+		if a, ok := answers[q]; ok {
+			t.Fatalf("an unmeasured estimate answered %s: %+v", q, a)
+		}
 	}
 }
 

@@ -1,8 +1,9 @@
 {
-  "_doc": "Evidence rules (role a): each maps conditions on causal signals to one answer of a triage question. A rule fires when every condition holds on a value that is there (not applicable or unavailable values never satisfy one; a value read on a cut input satisfies only conditions it cannot overstate: is true, a non-none enum value, a minimum). Answers: a choice option, true/false for a noul question, {min,max} levels for a score. A rule is an answer key on an install only when its precision measured against that install's judge labels has a Wilson lower bound (z = evidence.rules.z) of at least evidence.rules.min_precision; otherwise it is evidence only. Users override per rule id in evidence.rules.file (null removes).",
+  "_doc": "Evidence rules (role a): each maps conditions on causal signals to one answer of a triage question. A rule fires when every condition holds on a value that is there (not applicable or unavailable values never satisfy one; a value read on a cut input satisfies only conditions it cannot overstate: is true, a non-none enum value, a minimum). Answers: a choice option, true/false for a noul question, {min,max} levels for a score. A rule is an answer key on an install only when its precision measured against that install's judge labels has a Wilson lower bound (z = evidence.rules.z) of at least evidence.rules.min_precision. Only a definitional rule (the signal's semantics and the question's definition guarantee the answer) may answer without that measurement; every other rule is an estimate that teaches and answers only once measured. No rule may use a signal marked lexical: rules read structure, protocol and mailbox statistics, never a wordlist. Users override per rule id in evidence.rules.file (null removes).",
   "rules": {
     "asks_meeting_request": {
       "question": "asks_for",
+      "definitional": true,
       "answer": "meeting_availability",
       "when": [
         {
@@ -69,6 +70,7 @@
     },
     "cat_report_notifications": {
       "question": "category",
+      "definitional": true,
       "answer": "notifications",
       "when": [
         {
@@ -91,7 +93,7 @@
           "min": 5
         }
       ],
-      "doc": "Exchange rated it spam (SCL ≥ 5)."
+      "doc": "Exchange rated it spam (SCL \u2265 5)."
     },
     "cat_unsubscribe_marketing": {
       "question": "category",
@@ -235,6 +237,7 @@
     },
     "not_susp_internal": {
       "question": "suspicious",
+      "definitional": true,
       "answer": false,
       "when": [
         {
@@ -249,6 +252,7 @@
     },
     "not_susp_known_pass": {
       "question": "suspicious",
+      "definitional": true,
       "answer": false,
       "when": [
         {
@@ -317,6 +321,7 @@
     },
     "rel_directory": {
       "question": "relationship",
+      "definitional": true,
       "answer": "colleague",
       "when": [
         {
@@ -330,6 +335,7 @@
     },
     "rel_internal": {
       "question": "relationship",
+      "definitional": true,
       "answer": "colleague",
       "when": [
         {
@@ -381,6 +387,7 @@
     },
     "rel_precedence": {
       "question": "relationship",
+      "definitional": true,
       "answer": "automated_service",
       "when": [
         {
@@ -439,6 +446,7 @@
     },
     "reply_not_bulk": {
       "question": "reply_needed",
+      "definitional": true,
       "answer": false,
       "when": [
         {
@@ -453,6 +461,7 @@
     },
     "reply_not_cc": {
       "question": "reply_needed",
+      "definitional": true,
       "answer": false,
       "when": [
         {
@@ -515,6 +524,7 @@
     },
     "signature_found": {
       "question": "has_signature",
+      "definitional": true,
       "answer": true,
       "when": [
         {
@@ -608,7 +618,7 @@
           "min": 5
         }
       ],
-      "doc": "Exchange rated it spam (SCL ≥ 5)."
+      "doc": "Exchange rated it spam (SCL \u2265 5)."
     },
     "susp_spf_fail": {
       "question": "suspicious",
@@ -626,6 +636,7 @@
     },
     "topic_calendar": {
       "question": "topic",
+      "definitional": true,
       "answer": "meeting_scheduling",
       "when": [
         {
@@ -637,6 +648,7 @@
     },
     "topic_meeting_kind": {
       "question": "topic",
+      "definitional": true,
       "answer": "meeting_scheduling",
       "when": [
         {
@@ -696,6 +708,7 @@
     },
     "cta_meeting_request": {
       "question": "call_to_action",
+      "definitional": true,
       "answer": true,
       "when": [
         {

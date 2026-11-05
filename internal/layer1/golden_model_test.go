@@ -18,8 +18,11 @@ import (
 // that must not move a single weight; they were captured on the code before
 // the packed design and the compact answer commit (2026-11-03).
 const (
-	goldenWorldSize      = 60
-	goldenCategoryParams = "24403f590279341380914c4edd026ec5"
+	goldenWorldSize = 60
+	// 2026-11-05: the λ path now omits an unmeasurable (infinite) NLL and
+	// falls back to the default λ instead of λ 0; the golden world's
+	// category has a step no fold could score, so its final fit changed.
+	goldenCategoryParams = "ed6fee01bd62e02ae372b3d263ddfa7c"
 	goldenPredictions    = "9d0a68e0cae188c4d5e232f91a8eade5"
 	goldenAnswers        = "72ab0e141b0b9d48bce7bafbd9a9da2e"
 	goldenRoutes         = "f2d54cd96dd3accbc7c2823ef5c588bf"

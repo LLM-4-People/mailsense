@@ -29,12 +29,22 @@ const (
 
 // Rule maps conditions on causal signals to one answer of a question.
 type Rule struct {
-	ID       string          `json:"-"`
-	Question string          `json:"question"`
-	Answer   json.RawMessage `json:"answer"` // a choice option, true/false, or {"min": a, "max": b} levels
-	When     []Cond          `json:"when"`
-	Doc      string          `json:"doc"`
-	answer   answer
+	ID       string `json:"-"`
+	Question string `json:"question"`
+	// Definitional marks a rule whose conditions are properties the source
+	// asserts and whose answer follows from the question's definition (a
+	// meeting request asks for availability; an internal sender is a
+	// colleague; a report is a notification). Only a definitional rule may
+	// answer without being measured on this install; every other rule is an
+	// estimate that teaches the local model and answers only once its
+	// precision clears the bar. The gold dev table is the cross-check that
+	// rejected the estimates and the rules that only looked definitional
+	// (docs/EVIDENCE.md).
+	Definitional bool            `json:"definitional,omitempty"`
+	Answer       json.RawMessage `json:"answer"` // a choice option, true/false, or {"min": a, "max": b} levels
+	When         []Cond          `json:"when"`
+	Doc          string          `json:"doc"`
+	answer       answer
 }
 
 // Cond is one condition on one signal's value.
@@ -196,6 +206,8 @@ func (c *Cond) check(signals map[string]Signal) error {
 		return fmt.Errorf("unknown signal %q", c.Signal)
 	case !s.Causal:
 		return fmt.Errorf("signal %s is not causal: it can never settle a question", c.Signal)
+	case s.Lexical:
+		return fmt.Errorf("signal %s is lexical: a rule may not read a word list", c.Signal)
 	}
 	c.sig = s
 	ops := 0

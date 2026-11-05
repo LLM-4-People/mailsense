@@ -568,9 +568,11 @@ screen.
   **Relationship** (not "From"), and an uncertain information-sufficiency
   answer reads **Not clear enough** rather than a bare "Incertain". Raw
   signal names and percentages stay behind **Model details**. A question the
-  uncertified route abstained on may carry a deterministic rule answer: the
-  row shows **automatic rule · uncertified**, the disclosure counts those
-  answers once, and the list row counts them apart from certified answers.
+  uncertified route abstained on may carry a deterministic answer from a
+  **definitional** evidence rule (structure or protocol, never a wordlist or
+  an unmeasured estimate): the row shows **automatic rule · uncertified**,
+  the disclosure counts those answers once, and the list row counts them
+  apart from certified answers.
 - **On behalf of.** When the received message's claimed `From` address
   differs from its envelope sender, the header carries a warning badge
   **On behalf of {address}** whose tooltip names the actual sender. The

@@ -16,6 +16,7 @@ import (
 	"github.com/LLM-4-People/mailsense/internal/fixturetest"
 	"github.com/LLM-4-People/mailsense/internal/fsx"
 	"github.com/LLM-4-People/mailsense/internal/goldexport"
+	"github.com/LLM-4-People/mailsense/internal/goldset"
 	"github.com/LLM-4-People/mailsense/internal/index"
 	"github.com/LLM-4-People/mailsense/internal/learning"
 	"github.com/LLM-4-People/mailsense/internal/secrets"
@@ -138,21 +139,29 @@ func fakeIndex(t *testing.T, cfg *config.Config, st *store.Store) (*index.Indexe
 	}
 }
 
-// goldRules measures the rules on the gold sample's train and dev labels.
+// goldRules measures the rules on the gold sample's train and dev labels,
+// and again on the dev split alone: train+dev is the table the rule
+// document is built from, dev is the held-out check a rule has to pass
+// before its answer is trusted. Test stays sealed.
 func goldRules(t *testing.T, ev *Engine, st *store.Store) {
 	dir := os.Getenv("EVIDENCE_GOLD_DIR")
 	if dir == "" {
 		t.Log("FIXTURE EVIDENCE_GOLD_DIR not set: no rule table")
 		return
 	}
-	labels, splits := goldLabels(t, dir)
+	set, err := goldset.Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	labels, splits := set.Labels, set.Used()
 	rows := map[string]int64{}
 	_ = st.EachMessage(t.Context(), store.MessageFilter{}, func(r *store.MessageRow) error {
 		rows[goldexport.ID(&r.Message)] = r.RowID
 		return nil
 	})
 	byRow := map[int64]map[string]json.RawMessage{}
-	var ids []int64
+	devByRow := map[int64]map[string]json.RawMessage{}
+	var ids, devIDs []int64
 	for id, answers := range labels {
 		row, ok := rows[id]
 		if !ok {
@@ -160,23 +169,38 @@ func goldRules(t *testing.T, ev *Engine, st *store.Store) {
 		}
 		byRow[row] = answers
 		ids = append(ids, row)
+		if set.Splits[id] == goldset.Dev {
+			devByRow[row] = answers
+			devIDs = append(devIDs, row)
+		}
 	}
 	recs, err := ev.Records(t.Context(), ids)
 	if err != nil {
 		t.Fatal(err)
 	}
 	snap := ev.cfg.Snapshot()
-	table := ev.rules.Measure(byRow, recs, snap.Float("evidence.rules.z"), snap.Float("evidence.rules.min_precision"))
-	keys := 0
+	z, minPrecision := snap.Float("evidence.rules.z"), snap.Float("evidence.rules.min_precision")
+	table := ev.rules.Measure(byRow, recs, z, minPrecision)
+	dev := ev.rules.Measure(devByRow, recs, z, minPrecision)
+	keys, devKeys := 0, 0
 	for _, r := range table {
 		if r.Key {
 			keys++
 		}
-		t.Logf("FIXTURE rule %-30s %-14s fired %3d/%3d correct %3d precision %.3f wilson [%.3f, %.3f] key %v",
+	}
+	for i := range dev {
+		r := &dev[i]
+		if r.Key {
+			devKeys++
+		}
+		// The held-out line is the one a shipped rule must survive: fired,
+		// correct and the Wilson lower bound, on dev only.
+		t.Logf("FIXTURE dev rule %-30s %-14s fired %3d/%3d correct %3d precision %.3f wilson [%.3f, %.3f] key %v",
 			r.ID, r.Question, r.Fired, r.Labelled, r.Correct, r.Precision, r.WilsonLow, r.WilsonHi, r.Key)
 	}
 	writeReport(t, ev.cfg, "evidence-rules.json", map[string]any{"splits_used": splits, "messages": len(labels),
-		"z": snap.Float("evidence.rules.z"), "min_precision": snap.Float("evidence.rules.min_precision"), "keys": keys, "rules": table})
+		"dev_messages": len(devIDs), "z": z, "min_precision": minPrecision,
+		"keys": keys, "dev_keys": devKeys, "rules": table, "dev_rules": dev})
 }
 
 func writeReport(t *testing.T, cfg *config.Config, name string, v any) {

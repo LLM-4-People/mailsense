@@ -21,6 +21,14 @@ type experiment struct {
 	sample   bool           // E1: only the experiment sample (gold + the stratified draw)
 	mates    bool           // E6: also exclude the dev and test messages' conversation-mates from every target
 	plan     func(*Plan)    // a pass-level choice under test (E2 heads)
+	// noLabels keeps the label sources defined but stores no label rows:
+	// the fresh install a zero-teaching claim is about. Removing the
+	// sources instead would be a different, invalid configuration
+	// (requirements.certify_sources names manual and judge).
+	noLabels bool
+	// zeroShot measures the taxonomy-definition embedding classifier on
+	// the dev split instead of training layer 1 (E5).
+	zeroShot bool
 }
 
 // noOndelle is the cold start: no decider answers, live or legacy.
@@ -32,6 +40,9 @@ var experiments = map[string]experiment{
 	// E1 (on the experiment sample)
 	"e1-noemb":      {sample: true, settings: map[string]any{SettingUseEmbedding: false}},
 	"e1-noevidence": {sample: true, settings: map[string]any{SettingUseEvidence: false}},
+	// E5: no rule, no wordlist, no label: the taxonomy's own descriptions
+	// are the class prototypes.
+	"e8-definitions": {zeroShot: true, teachers: noOndelle},
 	// E2
 	"e2-l2-wide":  {settings: map[string]any{SettingGrid: []any{-5, -4, -3, -2, -1, 0}}},
 	"e2-l2-fixed": {settings: map[string]any{SettingGrid: []any{-3}}},
@@ -48,7 +59,7 @@ var experiments = map[string]experiment{
 	"e4-coldstart":        {teachers: noOndelle},
 	"e4-coldstart-knn":    {teachers: noOndelle, settings: map[string]any{SettingKNN: true}},
 	"e4-legacy-only":      {teachers: `{"sources": {"judge": {"from": "labels", "label_source": "judge", "precedence": 2, "weight": 2, "eval": true}, "rules": null}}`},
-	"e4-rules-unmeasured": {teachers: `{"sources": {"rules": {"from": "rules", "precedence": 5, "weight": 0.3, "min_lower_bound": 0.7, "unmeasured_precision": 0.6}}}`},
+	"e4-rules-unmeasured": {noLabels: true, teachers: `{"sources": {"decider": null, "legacy": null, "rules": {"from": "rules", "precedence": 5, "weight": 0.3, "min_lower_bound": 0.7, "unmeasured_precision": 0.6}}}`},
 	"e4-hard":             {teachers: `{"sources": {"legacy": {"from": "decisions", "decider": "legacy:ondelle-snap-preview", "provider": "ondelle", "precedence": 4, "weight": 1, "temperature": 0.05}}}`},
 	"e4-T2":               {teachers: `{"sources": {"legacy": {"from": "decisions", "decider": "legacy:ondelle-snap-preview", "provider": "ondelle", "precedence": 4, "weight": 1, "temperature": 2}}}`},
 	"e4-noleak":           {teachers: `{"questions": {"reply_needed": {"legacy": null}, "call_to_action": {"legacy": null}, "decision_needed": {"legacy": null}, "urgency": {"legacy": null}}}`},

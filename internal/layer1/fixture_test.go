@@ -58,6 +58,47 @@ const harnessDecider = "legacy:harness-dev"
 // override merges over it.
 const legacyTeacher = `{"sources": {"legacy": {"from": "decisions", "decider": "legacy:ondelle-snap-preview", "provider": "ondelle", "precedence": 4, "weight": 1, "temperature": 1}}}`
 
+// harnessTeachers composes the file an experiment runs with. The file is
+// overlaid onto the shipped teacher document by LoadTeachers, and that
+// merge only deletes keys the file names: a null removes a shipped source,
+// while a source the file omits is kept. An experiment that dropped
+// manual/judge used to lose those nulls in the harness's own merge and
+// silently measure "labels + rules" as zero-label. This builder therefore
+// names every shipped source: the effective value, or null when removed.
+func harnessTeachers(exp experiment) ([]byte, error) {
+	effective, err := jsonx.Overlay(teachersJSON, []byte(legacyTeacher), "sources", "questions")
+	if err != nil {
+		return nil, err
+	}
+	if exp.teachers != "" {
+		if effective, err = jsonx.Overlay(effective, []byte(exp.teachers), "sources", "questions"); err != nil {
+			return nil, err
+		}
+	}
+	var shipped, final struct {
+		Sources   map[string]json.RawMessage `json:"sources"`
+		Questions json.RawMessage            `json:"questions"`
+	}
+	if err := json.Unmarshal(teachersJSON, &shipped); err != nil {
+		return nil, err
+	}
+	if err := json.Unmarshal(effective, &final); err != nil {
+		return nil, err
+	}
+	sources := map[string]json.RawMessage{}
+	for name := range shipped.Sources {
+		if v, ok := final.Sources[name]; ok {
+			sources[name] = v
+			continue
+		}
+		sources[name] = json.RawMessage("null")
+	}
+	for name, v := range final.Sources {
+		sources[name] = v
+	}
+	return json.Marshal(map[string]any{"sources": sources, "questions": final.Questions})
+}
+
 func TestLayer1Fixture(t *testing.T) {
 	t.Parallel()
 	name := os.Getenv("LAYER1_EXPERIMENT")
@@ -79,12 +120,9 @@ func TestLayer1Fixture(t *testing.T) {
 	}
 	start := time.Now()
 	cfg, st := fixturetest.Import(t, fixturetest.Path(t), overrides)
-	teachers := []byte(legacyTeacher)
-	if exp.teachers != "" {
-		var err error
-		if teachers, err = jsonx.Overlay(teachers, []byte(exp.teachers), "sources", "questions"); err != nil {
-			t.Fatal(err)
-		}
+	teachers, err := harnessTeachers(exp)
+	if err != nil {
+		t.Fatal(err)
 	}
 	if err := os.WriteFile(cfg.Paths().Resolve(cfg.String(SettingTeachersFile)), teachers, 0o600); err != nil {
 		t.Fatal(err)
@@ -192,7 +230,10 @@ func TestLayer1Fixture(t *testing.T) {
 		Skip: func(id string) bool { return !devIDs[id] }, MaxLine: 1 << 26}); err != nil {
 		t.Fatal(err)
 	}
-	judge := putJudgeLabels(t, st, profile, gold, rows)
+	judge := 0
+	if !exp.noLabels {
+		judge = putJudgeLabels(t, st, profile, gold, rows)
+	}
 	t.Logf("LAYER1 judge labels (gold train): %d", judge)
 
 	// the experiment's vectors and population
@@ -229,6 +270,10 @@ func TestLayer1Fixture(t *testing.T) {
 	}
 	if exp.plan != nil {
 		exp.plan(plan)
+	}
+	if exp.zeroShot {
+		zeroShotRun(t, ctx, plan.Profile, docE, set, gold, rows, run)
+		return
 	}
 	plan.Progress = func(done, total int, r QuestionReport) {
 		t.Logf("LAYER1 trained %d/%d %s: train %d eval %d λ %g iterations %d converged %v fits %d evaluations %d %s in %s", done, total, r.Question,

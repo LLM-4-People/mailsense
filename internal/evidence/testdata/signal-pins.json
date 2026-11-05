@@ -295,6 +295,10 @@
     "key": "v1+65e5063a",
     "values": "f4be96da56879dd4"
   },
+  "voting_options": {
+    "key": "v1",
+    "values": "ba3c9adbae3f1380"
+  },
   "weekday_days": {
     "key": "v3+41cdf7cc",
     "values": "483ee305b8695d24"
