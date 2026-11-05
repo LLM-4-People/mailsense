@@ -24,6 +24,7 @@ import (
 	"github.com/LLM-4-People/mailsense/internal/search"
 	"github.com/LLM-4-People/mailsense/internal/store"
 	"github.com/LLM-4-People/mailsense/internal/triage"
+	"github.com/LLM-4-People/mailsense/internal/update"
 	worldsvc "github.com/LLM-4-People/mailsense/internal/world"
 )
 
@@ -760,6 +761,44 @@ func (f *fakeAsk) HistoryItem(_ context.Context, id int64) (qa.AskView, bool, er
 func (f *fakeAsk) ClearHistory(context.Context) error {
 	f.clearCalls++
 	return f.clearErr
+}
+
+// fakeUpdate is the release-detection surface: each method records its call,
+// its last version and answers the status the test installed. Check never
+// touches the network here; the update package tests own that.
+type fakeUpdate struct {
+	status      update.Status
+	checkStatus update.Status
+	skipStatus  update.Status
+	seenStatus  update.Status
+	err         error
+	statusCalls int
+	checkCalls  int
+	skipCalls   int
+	seenCalls   int
+	lastVersion string
+}
+
+func (f *fakeUpdate) Status() update.Status {
+	f.statusCalls++
+	return f.status
+}
+
+func (f *fakeUpdate) Check(context.Context) (update.Status, error) {
+	f.checkCalls++
+	return f.checkStatus, f.err
+}
+
+func (f *fakeUpdate) Skip(version string) (update.Status, error) {
+	f.skipCalls++
+	f.lastVersion = version
+	return f.skipStatus, f.err
+}
+
+func (f *fakeUpdate) MarkSeen(version string) (update.Status, error) {
+	f.seenCalls++
+	f.lastVersion = version
+	return f.seenStatus, f.err
 }
 
 type fakeShutdown struct {

@@ -346,7 +346,7 @@ image:
     <div class="privacy-panel">
     <div class="section-head section-head-dark">
       <h2 id="boundary-title">What leaves the machine</h2>
-      <p class="section-lead">Mailsense makes four kinds of network request. Each one has a reason you can see.</p>
+      <p class="section-lead">Mailsense makes five kinds of network request. Each one has a reason you can see.</p>
     </div>
       <div class="privacy-grid">
         <div class="boundary-col boundary-leaves">
@@ -356,6 +356,7 @@ image:
             <li>A request to a remote provider you configured, for an Ask answer or automatic triage after a sync. It carries the question and the message fields that call needs.</li>
             <li>A provider model list when you press Fetch models.</li>
             <li>One small test request when you press Test. A test is billable and is not covered by a budget.</li>
+            <li>The update check: at most once per update.check.interval (24 hours by default), one request to GitHub asks for the latest published release. It carries no mail, address or installation identifier, and can be turned off in Settings.</li>
           </ol>
         </div>
         <div class="boundary-col boundary-stays">
@@ -363,7 +364,7 @@ image:
           <ol>
             <li>The mail store, attachments, indexes and learned profile. They are SQLite files in the data directory you chose.</li>
             <li>The classification, evidence and ranking code. They run as local Go code, not as a cloud call.</li>
-            <li>No telemetry, no analytics, no update ping and no vendor account.</li>
+            <li>No telemetry, no analytics and no vendor account.</li>
           </ol>
         </div>
       </div>

@@ -82,8 +82,11 @@ The app makes these requests, and no others:
    index pass after a sync when that role points at a remote record.
 3. A provider model list, when you ask for it.
 4. A provider test, when you press Test.
+5. The update check: one unauthenticated request to the Mailsense releases
+   endpoint on GitHub, with no mail, address, account or installation
+   identifier.
 
-There is no telemetry, no analytics, no update ping and no vendor account.
+There is no telemetry, no analytics and no vendor account.
 [Privacy](privacy.md) lists the fields each request can carry.
 
 ## Rendering untrusted mail

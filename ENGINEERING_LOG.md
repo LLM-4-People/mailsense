@@ -58,6 +58,33 @@ Each was independently checked against source by the coordinator:
   specs passed 54/54; the PII gate caught a literal internal host name in this
   log, which was neutralised.
 
+### Finish round (verified and executed)
+
+- `feat-site-dark-theme` (`b1d8ef8`): the public site has both palettes, a
+  system default and a persisted three-state toggle; the generated head script
+  carries the theme key, the header emits the localized buttons, and a
+  contrast test pins WCAG AA for both palettes.
+- `test-e2e-brief-topic` (`3358b79`): the Brief relationship row and the
+  uncertified-zero coverage sentence are pinned end to end.
+- `perf-derived-caches` (`dfae776`): the search coverage count is computed
+  once per vector copy sequence and reused; the conversations facts memo
+  remains queued.
+- `perf-triage-core` (`0a66fcf`): the cache and the model share one
+  mail-derived core, with a build counter proving one build per stamp.
+- `intel-world-trend` (`015aef8`): a neutral cadence trend over two equal
+  complete-month windows, carried on the company profile and its wire.
+- `chore-ci-followup` (`075d8cd`): one log directory for CI failure logs, the
+  stale sidecar artifact removed, scorecard/CodeQL/release-asset follow-ups,
+  and `stop-windows.sh` now waits on the descriptor and treats refused/401 as
+  not running (six exit paths exercised against a fake API).
+- `feat-update-detect` (`249f169`): slice 1 of the update feature (semver
+  comparison, GitHub release checker with ETag and rate-limit handling, atomic
+  state, gated API, startup check, settings) and the privacy pages now list
+  the update check as the fifth request kind.
+- Verification on the integrated tree: `make fast` green, the affected
+  Playwright flows 56/56, the named regression suites for each feature green,
+  the generated site current, and the PII gate clean.
+
 ### Security (guidance mode) — results so far
 
 - **Loopback API hunt:** four low candidates, each source-verified with a
@@ -134,7 +161,8 @@ Each was independently checked against source by the coordinator:
 ### Next queue
 
 The owner asked for the interrupted wave to be verified and finished, then the
-work to stop. Remaining work, in priority order:
+work to stop. Slice 1 of the update feature and the docs/site theme are now
+shipped; remaining work, in priority order:
 
 1. Evidence-date deadlines: the pure detector (`internal/datecue`) first, then
    the evidence producer, the revision/rules-scoped `message_due_cues`
@@ -147,17 +175,18 @@ work to stop. Remaining work, in priority order:
 3. Priority-count coverage: one `priority.Coverage` from the ranking scan,
    `RankPage`, persisted `qa_history.coverage`, and the shared Ask coverage
    line.
-4. Update feature: slice 1 detection (semver, GitHub checker, atomic state,
-   gated API, startup check, settings keys), then the settings tab and the
-   first-open What's New overlay; slice 2 (download and install) adds the
-   `httpx` asset-host allowlist, a shared fetch package and the Windows
-   relauncher helper, and must revise the "no update ping" privacy claim.
-5. Theme: the docs/site dark theme (semantic tokens, three-state toggle,
-   pre-paint script) and the app theme (`ui.theme`, both palettes, mail-frame
-   propagation, WebView2 background as an optional tail).
-6. Resource work: one owner for the vector set, one mail-derived triage core,
-   the priority second decision map, a byte budget for `qa.answers`,
-   usage-write coalescing, and the search coverage / conversations facts memo.
+4. Update feature: slice 1 shipped (semver detection, GitHub checker, atomic
+   state, gated API, startup check, settings). Remaining: the Settings tab and
+   the first-open What's New overlay, then slice 2 (download and install: the
+   `httpx` asset-host allowlist, a shared fetch package, the Windows
+   relauncher helper). The privacy pages now list the update check as the
+   fifth request kind.
+5. Theme: the docs/site dark theme shipped. Remaining: the app theme
+   (`ui.theme`, both palettes, mail-frame propagation, WebView2 background as
+   an optional tail).
+6. Resource work: one owner for the vector set, the priority second decision
+   map, a byte budget for `qa.answers`, usage-write coalescing, and the
+   conversations facts memo (the search coverage count shipped).
 7. Security follow-ups: the `http.proxy_url` secret-at-rest decision (owner),
    the answer provenance note and the script-free mail-frame invariant test,
    WebView2 data path/background, and the remaining informational residuals.

@@ -97,7 +97,7 @@ Host/Origin refused, `405` wrong method, `500` internal.
 
 An action has one spelling: a name the dispatcher does not know answers `404 not_found`. The former aliases (`evidence`, `layer1`, `judge`, `label`, `label_messages`, `backfill_bodies`) were removed. `label_messages` is still a learning blocker id, but the UI handles it by opening the Labels screen; the queue itself is `GET /api/labels/queue`.
 
-| `GET /api/settings` | optional `keys=a,b` | `200` `{"settings":[…],"total":261,"restart_pending":[…]}` | `?keys=` projects the list de-duplicated in schema order; absent or empty returns all; `total` is always the full schema count; unknown key → `400 invalid_keys` with `params.key`; secret values masked |
+| `GET /api/settings` | optional `keys=a,b` | `200` `{"settings":[…],"total":264,"restart_pending":[…]}` | `?keys=` projects the list de-duplicated in schema order; absent or empty returns all; `total` is always the full schema count; unknown key → `400 invalid_keys` with `params.key`; secret values masked |
 | `GET /api/settings/{key}` | — | `200` `SettingView` | `404 unknown_setting` |
 | `PUT /api/settings/{key}` | `{"value":…}` | `200` `SettingView` | mailbox selection keys → `409 use_mailbox_endpoint`; `ui.language` and `learning.test_mode` apply live, no restart |
 | `DELETE /api/settings/{key}` | — | `200` `SettingView` | reset to default |
@@ -144,6 +144,10 @@ An action has one spelling: a name the dispatcher does not know answers `404 not
 | `POST /api/ask` | `{"question":"…","language":"en"\|"fr","conversation_id":"…","route":"auto\|local\|remote"}` | `200` `AskView` | **gated**, long timeout; question 3…500 characters; optional `conversation_id` is 1…64 ASCII letters, digits, `_` or `-`; an omitted id starts a thread and returns a generated 16-hex id; optional `route` defaults to `auto` and is returned on the view; `400 invalid_question`/`invalid_language`/`invalid_conversation_id`/`invalid_route`; `503 qa_disabled` |
 | `GET /api/ask/history` | `?limit=<n>` | `200` `{"items":[AskView]}` | **gated**; `limit` 1…100 (default 20), newest first |
 | `DELETE /api/ask/history` | — | `204` | **gated**; removes the local history |
+| `GET /api/update` | — | `200` `update.Status` | **gated**; local status read only, never a release check or a network request; see [Update detection](#update-detection) |
+| `POST /api/update/check` | empty or `{}` | `200` `update.Status` | **gated**; one conditional `GET` of the latest published release, plus one release-list page only when that release is newer; a failed upstream answer is a quiet `200` with `error_code`/`last_error`, never an API error |
+| `POST /api/update/skip` | `{"version":"…"}` | `200` `update.Status` | **gated**; the version is required, 1…128 bytes of UTF-8; mutes the offer until `update.remind.after` has elapsed |
+| `POST /api/update/seen` | `{"version":"…"}` | `200` `update.Status` | **gated**; records the What's New marker for that version |
 | `POST /api/shutdown` | empty or `{}` | `202` `{"ok":true}` | second call `503 shutting_down` |
 | `GET /` | — | `200` HTML | embedded desktop shell |
 | `GET /index.html` | — | `308` `/` | |
@@ -181,6 +185,40 @@ the OS and of one setting, not additional preferences: the only language
 preference is `GET`/`PUT /api/settings/ui.language` (`auto`, `en`, `fr`).
 The shell shows confirmed dates in `time_zone` and discloses the machine
 zone when it is empty; the server never formats user-facing dates.
+
+### Update detection
+
+`GET /api/update` is a local read of one state file; it never calls GitHub, so
+a screen refresh cannot spend the rate limit. The automatic check runs after
+the startup warm and then at `update.check.interval` (24 h default) plus up to
+10% jitter; `update.check.enabled` (default on) turns it off.
+`POST /api/update/check` performs one conditional `GET` of the latest
+published release and, only when that release is newer than the running build,
+one bounded page of the release list under `versions_behind`. The check is off
+the request path: the `GET` never checks, and the `POST` checks only when
+asked.
+
+`update.Status` is:
+
+```json
+{"current":"0.1.0","latest":"0.2.0","available":true,"versions_behind":1,
+ "release_url":"https://github.com/LLM-4-People/mailsense/releases/tag/v0.2.0",
+ "notes":"The release notes","notes_seen":false,"skipped":false,
+ "check_enabled":true,"checked_at":"2026-11-04T10:00:00Z"}
+```
+
+`notes` is bounded plain text, never remote HTML. `latest` and `release_url`
+describe the cached release; `available` is true only when a parsed `latest`
+orders after the parsed running version, so an equal, older, malformed latest
+or an unparseable running build is never offered. `versions_behind` counts
+parsed release tags strictly between the two. `skipped` is true while the offer
+for that latest version is inside `update.remind.after`; `notes_seen` records
+the What's New marker (or a database last opened on that version). A failed
+check keeps the cached release, sets `error_code` to `unreachable`,
+`rate_limited`, `http_error`, `invalid_response` or `too_large`, and
+`last_error` to a bounded message; it is a `200` status, and the next
+successful check clears both fields. `error_code`, `last_error`, `latest`,
+`release_url` and `checked_at` are omitted while empty.
 
 ### Mailbox selection and first-open discovery
 

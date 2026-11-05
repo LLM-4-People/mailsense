@@ -41,7 +41,7 @@ the only requests that can leave it.
 
 ## What leaves the machine
 
-Mailsense makes four kinds of network request, and only for the reasons below:
+Mailsense makes five kinds of network request, and only for the reasons below:
 
 1. **Local runtime download.** When you start the local runtime for the first
    time, it downloads its artifacts and model from the pinned URLs recorded in
@@ -51,13 +51,24 @@ Mailsense makes four kinds of network request, and only for the reasons below:
    missing. Settings, Providers names the four roles, the record each one uses
    and the fields each call carries; [Ask](ask.md) lists what a written answer
    sends. Automatic triage and the index pass that follows a sync can start a
-   call without a screen asking when their role is configured, and a provider
-   test makes one small fixed call when you press Test. The provider's terms
-   apply.
+   call without a screen asking when their role is configured. The provider's
+   terms apply.
 3. **A provider model list.** Only when you ask the Providers screen to fetch the
    models a provider offers.
-4. **Nothing else.** No telemetry, no analytics, no update ping, no hidden
-   request.
+4. **A provider test.** Only when you press Test. It makes one small call, which
+   is billable and is not covered by a budget.
+5. **An update check.** After the startup warm, and at most once per
+   `update.check.interval` (24 hours by default), the app asks GitHub for the
+   latest published Mailsense release. It is one unauthenticated `GET` to
+   `api.github.com/repos/LLM-4-People/mailsense/releases/latest`, with an
+   `If-None-Match` header after the first answer. The request carries no mail,
+   no address, no account and no installation identifier; GitHub sees the
+   request's IP address and the standard HTTP headers. The release notes in
+   the answer are cached locally as plain text. When a newer release exists,
+   one more request lists the recent release tags so the app can count how far
+   behind it is. The check is on by default (`update.check.enabled`) and can
+   be turned off in Settings; a manual check runs only when you ask for it.
+6. **Nothing else.** No telemetry, no analytics, no hidden request.
 
 Embeddings have a default of their own. On first start the app selects the
 pinned local embedder, and the local runtime computes embeddings in a process on

@@ -1379,6 +1379,7 @@ window.MailsenseI18nCatalogs.fr = {
 
   "settings.group.General": "Général",
   "settings.group.Interface": "Interface",
+  "settings.group.Updates": "Mises à jour",
   "settings.group.Logging": "Journalisation",
   "settings.group.Events": "Événements",
   "settings.group.Network": "Réseau",
@@ -1416,6 +1417,9 @@ window.MailsenseI18nCatalogs.fr = {
 
   "settings.ui.language.description": "Langue de l’interface. Automatique suit le système d’exploitation\u00a0; l’anglais et le français sont disponibles.",
   "settings.ui.setup.done.description": "Marque la configuration du premier démarrage comme terminée. L’écran de configuration l’écrit quand vous terminez\u00a0; réinitialisez-la pour revoir la configuration. Ce n’est pas un contrôle de sécurité.",
+  "settings.update.check.enabled.description": "Vérifier les versions publiées sur GitHub pour trouver une version plus récente. Désactivé, le contrôle automatique s’arrête\u00a0; un contrôle manuel depuis l’écran de mise à jour fonctionne toujours.",
+  "settings.update.check.interval.description": "Délai minimal entre deux contrôles automatiques des versions (un petit décalage aléatoire évite que toutes les installations vérifient au même moment).",
+  "settings.update.remind.after.description": "Durée pendant laquelle une mise à jour ignorée reste silencieuse avant que la même version soit proposée de nouveau.",
 
   "settings.log.level.description": "Niveau minimal enregistré pour les composants sans niveau propre.",
   "settings.log.components.description": "Niveaux par composant sous la forme composant=niveau (ex.\u00a0store=debug). Un composant pointé hérite de son parent (source.archive depuis source).",

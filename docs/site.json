@@ -660,8 +660,8 @@
       "fr": "Ce qui quitte la machine"
     },
     "lead": {
-      "en": "Mailsense makes four kinds of network request. Each one has a reason you can see.",
-      "fr": "Mailsense fait quatre types de requêtes réseau. Chacune a une raison visible."
+      "en": "Mailsense makes five kinds of network request. Each one has a reason you can see.",
+      "fr": "Mailsense fait cinq types de requêtes réseau. Chacune a une raison visible."
     },
     "leaves_title": {
       "en": "Leaves, only when it runs",
@@ -683,6 +683,10 @@
       {
         "en": "One small test request when you press Test. A test is billable and is not covered by a budget.",
         "fr": "Une petite requête de test quand vous cliquez sur Tester. Un test est facturable et n'est pas couvert par un budget."
+      },
+      {
+        "en": "The update check: at most once per update.check.interval (24 hours by default), one request to GitHub asks for the latest published release. It carries no mail, address or installation identifier, and can be turned off in Settings.",
+        "fr": "Le contrôle des mises à jour : au plus une fois par update.check.interval (24 heures par défaut), une requête à GitHub demande la dernière version publiée. Elle ne porte aucun courrier, aucune adresse ni identifiant d'installation, et peut être désactivée dans les Réglages."
       }
     ],
     "stays_title": {
@@ -699,8 +703,8 @@
         "fr": "Le code de classification, de preuve et de classement. Il s'exécute en Go local, pas comme un appel à un service."
       },
       {
-        "en": "No telemetry, no analytics, no update ping and no vendor account.",
-        "fr": "Aucune télémétrie, aucune analyse, aucun appel de mise à jour et aucun compte chez un fournisseur."
+        "en": "No telemetry, no analytics and no vendor account.",
+        "fr": "Aucune télémétrie, aucune analyse et aucun compte chez un fournisseur."
       }
     ],
     "note": {

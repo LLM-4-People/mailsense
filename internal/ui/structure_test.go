@@ -157,8 +157,10 @@ var sourceLineBudget = map[string]int{
 	// the coverage line in both catalogs: three lines each. The Brief
 	// open-loop round replaced the two dead relationship digest keys with the
 	// open-loop, overdue and stored follow-up keys and added the uncertified
-	// zero sentence: two lines in each catalog.
-	"internal/ui/i18n.fr.js": 2615,
+	// zero sentence: two lines in each catalog. The update round added the
+	// Updates group and its three setting descriptions in the French catalog:
+	// four lines, on top of the Brief round's two.
+	"internal/ui/i18n.fr.js": 2619,
 	"internal/ui/i18n.en.js": 2228,
 	"internal/qa/qa_test.go": 4930,
 	// The three Node behavior harnesses each run the shared thread-state

@@ -53,8 +53,8 @@ citation opens the message it names.
   message number, and is refused when a marker points outside the retrieved set.
 - Citations are renumbered to citation positions and kept only when they name a
   real message.
-- There is no telemetry, no analytics, no update ping and no vendor account.
-  Four request kinds exist; the privacy page lists them.
+- There is no telemetry, no analytics and no vendor account. Five request
+  kinds exist, including the update check; the privacy page lists them.
 - The public copy exists in English and French with identical structure. The
   browser language picks the tree.
 - No real mail, client name, machine name, vendor name or environment path

@@ -30,6 +30,7 @@ import (
 	"github.com/LLM-4-People/mailsense/internal/store"
 	"github.com/LLM-4-People/mailsense/internal/syncer"
 	"github.com/LLM-4-People/mailsense/internal/triage"
+	"github.com/LLM-4-People/mailsense/internal/update"
 )
 
 // errHubClosed ends a handler that was seeding the log ring when the hub
@@ -103,6 +104,7 @@ func (h *Hub) subscribeAll() error {
 		func(h *Hub) error { return subscribeHub(h, outlook.TopicPhase) },
 		func(h *Hub) error { return subscribeHub(h, httpx.TopicRetry) },
 		func(h *Hub) error { return subscribeHub(h, feedback.TopicLabel) },
+		func(h *Hub) error { return subscribeHub(h, update.TopicUpdate) },
 	} {
 		if err := sub(h); err != nil {
 			return err

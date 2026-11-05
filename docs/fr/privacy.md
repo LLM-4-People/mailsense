@@ -43,7 +43,7 @@ machine ; la section suivante liste les seules requêtes qui peuvent en sortir.
 
 ## Ce qui sort de la machine
 
-Mailsense fait quatre types de requêtes réseau, et seulement pour les raisons
+Mailsense fait cinq types de requêtes réseau, et seulement pour les raisons
 suivantes :
 
 1. **Téléchargement du moteur local.** Au premier lancement du moteur, ses
@@ -55,13 +55,26 @@ suivantes :
    quatre rôles, la fiche de chacun et les champs que chaque appel porte ;
    [Demander](ask.md) liste ce qu'envoie une réponse écrite. Le triage
    automatique et la passe d'indexation qui suit une synchronisation peuvent
-   faire un appel sans qu'un écran le demande quand leur rôle est configuré, et
-   le test d'un fournisseur fait un petit appel fixe quand vous cliquez sur
-   Tester. Les conditions du fournisseur s'appliquent.
+   faire un appel sans qu'un écran le demande quand leur rôle est configuré.
+   Les conditions du fournisseur s'appliquent.
 3. **Liste de modèles d'un fournisseur.** Seulement quand vous demandez à
    l'écran Fournisseurs de récupérer les modèles offerts.
-4. **Rien d'autre.** Aucune télémétrie, aucune analyse, aucun appel de mise à
-   jour, aucune requête cachée.
+4. **Un test de fournisseur.** Seulement quand vous cliquez sur Tester. Il fait
+   un petit appel, qui est facturable et n'est pas couvert par un budget.
+5. **Un contrôle des mises à jour.** Après le préchauffage du démarrage, et au
+   plus une fois par `update.check.interval` (24 heures par défaut),
+   l'application demande à GitHub la dernière version publiée de Mailsense.
+   C'est un `GET` non authentifié vers
+   `api.github.com/repos/LLM-4-People/mailsense/releases/latest`, avec un
+   en-tête `If-None-Match` après la première réponse. La requête ne porte aucun
+   courrier, aucune adresse, aucun compte et aucun identifiant d'installation ;
+   GitHub voit l'adresse IP de la machine et les en-têtes HTTP standard. Les
+   notes de version de la réponse sont conservées localement en texte brut.
+   Quand une version plus récente existe, une requête de plus liste les
+   étiquettes récentes pour compter le nombre de versions d'avance. Le contrôle
+   est actif par défaut (`update.check.enabled`) et peut être désactivé dans les
+   réglages ; un contrôle manuel ne part que si vous le demandez.
+6. **Rien d'autre.** Aucune télémétrie, aucune analyse, aucune requête cachée.
 
 Les embeddings ont leur propre défaut. Au premier démarrage, l'application
 sélectionne l'embeddeur local épinglé, et le moteur local calcule les embeddings

@@ -47,6 +47,7 @@ import (
 	"github.com/LLM-4-People/mailsense/internal/syncer"
 	"github.com/LLM-4-People/mailsense/internal/triage"
 	"github.com/LLM-4-People/mailsense/internal/triage/taxonomy"
+	"github.com/LLM-4-People/mailsense/internal/update"
 )
 
 const instanceLockFile = "mailsense.lock"
@@ -253,6 +254,11 @@ func runWithShutdownUI(environ []string, goos, home string, report func(dataDir 
 	defer stopLayer1()
 	stopStoreMaintenance := startStoreMaintenance(a, shutdown, warmDone)
 	defer stopStoreMaintenance()
+	// Detect a newer release after the warm; the check is off the request
+	// path and obeys the persisted interval (update.check.interval), so a
+	// restart inside the interval makes no request at all.
+	stopUpdateCheck := startUpdateCheck(a, shutdown, warmDone)
+	defer stopUpdateCheck()
 	if desktopUI != nil {
 		if _, err := desktopUI(srv.BootstrapURL(), shutdown); err != nil {
 			// A failed window (the Windows exe needs the WebView2 runtime)
@@ -301,6 +307,7 @@ type app struct {
 	index    *index.Indexer
 	evidence *evidence.Engine
 	layer1   *layer1.Runner
+	update   *update.Service
 	// views joins the detached read-model rebuilds the API adapters own (the
 	// hub, the companies explorer, the conversation pages, the open loops and
 	// the Brief). They read the store after the request that started them
@@ -495,11 +502,17 @@ func wireEngines(cfg *config.Config, environ []string, bus *events.Bus, st *stor
 		cleanup()
 		return nil, fmt.Errorf("qa: %w", err)
 	}
+	up, err := update.New(update.Options{Config: cfg, Bus: bus, Store: st, Current: buildinfo.Version})
+	if err != nil {
+		registry.Close()
+		cleanup()
+		return nil, fmt.Errorf("update checks: %w", err)
+	}
 	runtimeUp = true
 	application := &app{cfg: cfg, bus: bus, logs: nil, st: st, sec: sec, jobs: jm, guard: guard, sidecar: sc, registry: registry,
 		engines: engines, labels: feedback.NewLabeler(st, bus), embedder: sem.src,
 		learning: machine, syncer: syncer.New(st, cfg, bus, nil), triage: tr, search: sr, priority: pr, agenda: ags, qa: qs,
-		index: sem.ix, evidence: ev, layer1: l1}
+		index: sem.ix, evidence: ev, layer1: l1, update: up}
 	application.stop = func() bool {
 		// Priority owns the one cold ranking build; stop it before the
 		// store closes under it, and report whether every worker was
