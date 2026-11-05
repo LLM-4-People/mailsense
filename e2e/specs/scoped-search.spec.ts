@@ -75,6 +75,14 @@ test("Companies keeps its placeholder, accessible name and filter across a cache
   // The screen's server-side query owns the route identity; wait for it so
   // the Back below lands on the cached screen the owner actually left.
   await expect(app.page).toHaveURL(/q=Beta/);
+  // The q navigation paints the route skeleton, which shares the
+  // .companies-screen class; its screen node is then replaced by the fetched
+  // list. Waiting on the URL alone can set the probe on that skeleton and
+  // lose it. Wait for the real, non-busy screen before marking it.
+  await expect(
+    app.page.locator('.companies-screen[aria-busy="true"]'),
+  ).toHaveCount(0);
+  await expect(beta).toBeVisible();
   await app.page.evaluate(() => {
     (
       document.querySelector(".companies-screen") as HTMLElement

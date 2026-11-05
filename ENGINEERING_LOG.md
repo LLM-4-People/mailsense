@@ -86,6 +86,10 @@ Each was independently checked against source by the coordinator:
   wrapped in the learning gate. The routes are now bearer-only and reachable
   before learning; the test asserts 200 with a closed gate, that the gate is
   never consulted, and that a missing bearer still answers 401.
+- `test(e2e)`: the Companies cached-Back probe now waits for the fetched
+  screen instead of the route skeleton that shares its class, removing a real
+  race that failed once in CI; the probe passed 12 repeats under four workers
+  and the full suite 193/193 locally.
 - Verification on the integrated tree: `make fast` green, the affected
   Playwright flows 56/56, the named regression suites for each feature green,
   the generated site current, and the PII gate clean.
