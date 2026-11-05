@@ -29,20 +29,34 @@ Each was independently checked against source by the coordinator:
   (`internal/ui/js/22-ask.js:848`): the exact silently-uncertified zero the
   feature exists to disclose.
 
-### In flight (isolated writer worktrees, all based on `c781d3a`)
+### Shipped in this wave
 
-- `fix-brief-row`: render open loops in Brief rows, delete the dead wire
-  fields, add `/api/brief` to the preview reads, render coverage at 0/0.
-- `fix-count-scope`: make the count decision depend on wording and scope only,
-  on every route and with or without a generator; update the Ask contract.
-- `perf-viewcache-budget`: a byte budget (`MaxBytes`/`Weigh`) at the shared
-  viewcache owner, wired into every construction site except `internal/brief`.
-- `chore-ci-hardening`: source the Go version from `go.mod` in the
-  vulnerability job, bound artifact storage, audit workflow triggers.
-- `docs-ask-intelligence`: document local topic counts, coverage honesty and
-  the scope rule in EN and FR.
-- Read-only design audits running: evidence-date deadlines, memory/cache
-  bounds, people profiles.
+- `fix-brief-row` (`b6dfe34`): the Brief relationship row renders the open-loop
+  count, overdue and stored follow-up partitions the producer sends; the dead
+  conversation-digest fields were deleted from `brief.Item`, the stale fixture
+  was replaced with the real wire shape (the updated test fails on the old
+  renderer), `/api/brief` joined the preview reads, and the topic coverage line
+  renders at 0/0 with a distinct uncertified sentence.
+- `fix-count-scope` (`c78821d`): the count decision is one scope check on
+  wording, on every route and with or without a generator; an accepted count
+  answers deterministically, a rejected one follows its route's freeform path.
+  Closes the reproduced "urgent messages from Bob" mailbox-wide leak.
+- `perf-viewcache-budget` (`1c1eb9d`): `Options.MaxBytes`/`Weigh` bound the
+  shared read caches by bytes at their one owner, wired into every construction
+  site except `internal/brief`.
+- `chore-ci-hardening` (`4ebcf39`): the vulnerability job reads the Go version
+  from `go.mod` (the action's `stable` default is suppressed), failure,
+  Playwright and release artifacts are retained 7 days, and `.github/actions/**`
+  edits re-run actionlint and the area label.
+- `docs-ask-intelligence` (`1856154`): Ask's local topic counts, coverage
+  honesty and scope rule documented EN/FR.
+- `chore-node-version` (`490791b`, `6869e9d`): `.nvmrc` owns the Node version;
+  the three workflows and the generated site/README text read it.
+- `test-e2e-coverage` (`9fe8b04`): request-count pin for one changed-mail sync
+  frame and a topic-answer rendering test.
+- Local gate: `make fast` green on the integrated tree; the affected Playwright
+  specs passed 54/54; the PII gate caught a literal internal host name in this
+  log, which was neutralised.
 
 ### Security (guidance mode) — results so far
 
@@ -53,49 +67,100 @@ Each was independently checked against source by the coordinator:
   before the port-ownership check; the Windows browser fallback passes the
   token URL to `ShellExecuteW` as argv while the POSIX path deliberately uses
   a 0600 redirect page; the bench scripts put a live token in argv. Clean on
-  CORS/CSRF, token travel, static/attachment traversal, CSP and body caps. A
-  fix writer is in flight.
+  CORS/CSRF, token travel, static/attachment traversal, CSP and body caps.
+  All four were fixed on `security-hardening` (`afbb017`) with captured
+  baselines: the gate now decides on the decoded and escaped path forms
+  (`GET /api/%2e%2e/status` answers 401), the sidecar probes ownership before
+  sending the per-launch key (a foreign listener no longer receives it; the
+  unverifiable-platform stub is documented rather than claimed as mitigated),
+  the Windows fallback opens a 0600 redirect page instead of passing the token
+  URL to `ShellExecuteW`, and the bench scripts pass the bearer through a 0600
+  curl config.
 - **Secrets/data-at-rest hunt:** one medium — the only secret-classified
   setting (`http.proxy_url`) is persisted plaintext in `settings.json`; the
   owner decides between routing secret settings through the secret store or
   refusing credential-bearing values from the file layer. Two low: the POSIX
   browser launcher inherits `MAILSENSE_*` env into the browser process tree
-  (fix in flight); `http.log.body_max_bytes` writes mail text to logs by
-  explicit opt-in (documented trade-off). Clean on DPAPI scope, redaction,
-  sidecar artifact pinning, installer, env handling and tracked secrets.
+  (fixed in `afbb017`: the launcher gets an allow-listed environment with every
+  `MAILSENSE_*` stripped, reproduced as a leak before the fix);
+  `http.log.body_max_bytes` writes mail text to logs by explicit opt-in
+  (documented trade-off). Clean on DPAPI scope, redaction, sidecar artifact
+  pinning, installer, env handling and tracked secrets.
 - **Egress/render hunt:** one medium residual — indirect prompt injection can
   steer a model-written answer, and `groundAnswer` validates citation indices
   rather than entailment (`internal/qa/ask.go:1623-1678`); no state change,
   extra retrieval, model-directed fetch or exfiltration is reachable. Honest
-  mitigations queued: a provenance note in the answer card, the egress matrix
-  and residual on the public security/privacy pages (writer in flight), and a
-  test pinning the script-free mail-frame sandbox invariant. Clean on implicit
-  egress, provider URL policy and SSRF, HTML sanitization, links, attachments
-  and the sidecar trust chain.
-- **Desktop/IPC hunt:** still running.
+  mitigations: the egress matrix, the embeddings default and the grounding
+  residual are on the EN/FR security and privacy pages
+  (`docs-security-egress`, `c00c358`; the writer corrected the old
+  "computes embeddings on your machine" wording, which ignored the first-start
+  local-embedder default and the remote case). A provenance note in the answer
+  card and a test pinning the script-free mail-frame sandbox invariant remain
+  pending. Clean on implicit egress, provider URL policy and SSRF, HTML
+  sanitization, links, attachments and the sidecar trust chain.
+- **Desktop/IPC hunt:** confirmed the same two defects (sidecar key before
+  ownership, Windows token in browser argv) at exact fix sites, both now fixed,
+  and reported informational residuals: the shell installs no navigation,
+  new-window or permission policy with the pinned WebView2 wrapper (no trigger
+  found today: every app link is a hash route and mail links are filtered),
+  the WebView2 profile lives outside the data directory, the runtime child
+  shares the data tree that holds the descriptor, `stop-windows.sh` trusts a
+  stale descriptor PID, and `StartOutlook` launched a bare `OUTLOOK.EXE`. The
+  Outlook launch was fixed in `security-outlook-path` (`8881994`: App Paths
+  resolution under HKLM then HKCU, a typed error when unresolved, never a
+  bare-name fallback); its fake user-profile path tripped the PII gate on CI
+  and was neutralised in `9d0263a`.
 - Promoting any of this to the full six-phase audit with artifacts still needs
   explicit authorization.
 
+### Deployment verification (Windows test host)
+
+- Built `0.3.0-dev+20261105040320` from `395083b`, uploaded it to the host's
+  deploy directory and started it as the signed-in user with a fresh isolated
+  `MAILSENSE_DATA_DIR`.
+- Verified: the runtime descriptor reports that build; `GET /` answered 200 and
+  the served bundle carries the new markers (`ask-topic-coverage`,
+  `briefRelationshipRow`, `brief.relationships.open_loops`);
+  `POST /api/ask "How many invoices?"` returned `423 learning_locked` with the
+  expected mailbox and provider problem codes, which is the gate refusing Ask
+  on an unmailed fresh directory rather than a fault; `POST /api/shutdown`
+  answered `{"ok":true}`, the descriptor was removed and no process remained.
+- The deployed binary predates the Outlook App Paths fix; the next build
+  includes it.
+- Process gap found: a merge made after the last `make fast` skipped the PII
+  stage, and the new Outlook fixture path matched the deny list. Re-run the
+  PII check (or the gate) after every merge, not only on the per-writer tree.
+
 ### Next queue
 
-1. Integrate the writer branches as they land (UI/brief, count scope,
-   viewcache budget, e2e coverage, security docs, security fixes, update
-   detection, site theme), run the full gate and the affected Playwright
-   flows, then deploy the build to the Windows test host and verify it.
-2. Security fixes are in flight; the proxy-URL secret-at-rest medium needs the
-   owner's decision (secret store vs refusing credentials from the file).
-3. Implement the returned designs: evidence-date deadlines (a pure `datecue`
-   package, evidence producer, one extended `DueDeadlines` read), people
-   profiles (`internal/people`, store person context, `world.Person`, API and
-   UI), priority-count coverage, the memory-bounds audit, and the
-   novelty-ranked correlations.
-4. Update feature: slice 1 (detect + What's New state + API) in flight; the
-   settings UI, overlay and privacy-doc move follow in the next wave, then the
-   install slice (asset-host allowlist in `httpx`, a shared fetch package, and
-   the Windows relauncher helper).
-5. Theme: the docs/site theme is in flight; the app theme (`ui.theme` setting,
-   both palettes, mail-frame propagation) follows after the UI writer merges,
-   with the WebView2 title bar as an optional tail.
+The owner asked for the interrupted wave to be verified and finished, then the
+work to stop. Remaining work, in priority order:
+
+1. Evidence-date deadlines: the pure detector (`internal/datecue`) first, then
+   the evidence producer, the revision/rules-scoped `message_due_cues`
+   projection (migration 0040 after the priority-coverage migration), one
+   extended `DueDeadlines` read, and the priority/commitments/agenda/Ask/UI
+   consumers.
+2. People profiles: `internal/people` merge, the store person context and
+   exact-address lookup, `world.Person`, the API route, and the Companies/Ask
+   surfaces.
+3. Priority-count coverage: one `priority.Coverage` from the ranking scan,
+   `RankPage`, persisted `qa_history.coverage`, and the shared Ask coverage
+   line.
+4. Update feature: slice 1 detection (semver, GitHub checker, atomic state,
+   gated API, startup check, settings keys), then the settings tab and the
+   first-open What's New overlay; slice 2 (download and install) adds the
+   `httpx` asset-host allowlist, a shared fetch package and the Windows
+   relauncher helper, and must revise the "no update ping" privacy claim.
+5. Theme: the docs/site dark theme (semantic tokens, three-state toggle,
+   pre-paint script) and the app theme (`ui.theme`, both palettes, mail-frame
+   propagation, WebView2 background as an optional tail).
+6. Resource work: one owner for the vector set, one mail-derived triage core,
+   the priority second decision map, a byte budget for `qa.answers`,
+   usage-write coalescing, and the search coverage / conversations facts memo.
+7. Security follow-ups: the `http.proxy_url` secret-at-rest decision (owner),
+   the answer provenance note and the script-free mail-frame invariant test,
+   WebView2 data path/background, and the remaining informational residuals.
 
 ## Cycle: three-writer intelligence round (2026-11-04/05)
 
