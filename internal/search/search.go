@@ -156,16 +156,22 @@ type Searcher struct {
 	// delta read and the install). The fast path only takes mu; a search
 	// that finds its set current never waits here.
 	filterMu sync.Mutex
-	// covMu serializes the slow path of the coverage rebuild. Two searches
-	// that both find the eligible set stale would otherwise scan the whole
-	// mailbox twice for one generation; the re-check inside the lock makes
-	// the second one read the set the first installed.
+	// covMu serializes the slow path of coverage: the eligible-set rebuild
+	// and the count of the copy. Two searches that both find the set stale
+	// or the sequence moved would otherwise scan the mailbox or the vectors
+	// twice for one state; the re-check inside the lock makes the second one
+	// read what the first installed.
 	covMu sync.Mutex
 	// filterScans counts the full FilterIDs scans: the work a cached filter
 	// set removes from the first search after a sync. Diagnostic, and the
 	// pin of "a mail write extends the set instead of listing the mailbox".
 	filterScans atomic.Uint64
-	status      *Status
+	// coverageScans counts the O(vectors) Count scans of the coverage count:
+	// the work the cached count removes from every search after the first at
+	// a vector copy's write sequence. Diagnostic, and the pin of "one count
+	// serves repeated searches until the copy moves".
+	coverageScans atomic.Uint64
+	status        *Status
 	// prepMu guards prep, the per-space preparation gate. One search may
 	// load the vector copy and wait for the index catch-up at a time; ten
 	// concurrent queries must not spawn ten workers contending for the same
