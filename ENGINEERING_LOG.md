@@ -5,6 +5,59 @@ changed, what was tried, what failed, and what comes next. It is not a changelog
 (the user-facing history lives in `CHANGELOG.md`) and not a plan (`docs/PLAN.md`
 owns scope). Keep it current as work proceeds.
 
+## Cycle: three-writer intelligence round (2026-11-04/05)
+
+### Shipped
+
+- PR #24 merges three isolated writer branches into `testing`: sync
+  invalidation coalescing (one pass per `sync.finished`, plus a preview flip
+  dropping the ranked, triage and conversation reads), topic-scoped local Ask
+  counts with classification coverage, and per-organization open loops from
+  the one deduped commitments build. The superseded conversations
+  organization rollup is deleted, so one obligation owner remains.
+- The generated UI bundle was regenerated from the merged sources; two
+  writers had touched `app.js` independently.
+
+### Verification
+
+- Each branch passed `make fast` in its own worktree; the integrated tree
+  passed `make fast` again (gofmt, scripts, generated bundles, PII, vet, 91
+  packages, sidecar, race).
+- Focused suites on the merged tree: `internal/subject`, `internal/priority`,
+  `internal/qa`, `internal/store`, `internal/ui`, `internal/conversations`,
+  `internal/brief`, `internal/commitments`, `internal/world`, `internal/api`,
+  `cmd/mailsense`.
+- Playwright on the affected flows: 51 tests across `ask`, `mail`, `hub` and
+  `completion-events` passed.
+- Baseline reproduction: reverting the shell sources to the merge base made
+  the new coalescing sandbox test fail; restoring the commit made it pass.
+
+### Deployment
+
+- Windows build `0.3.0-dev+20261105` on the isolated test host: PID matched
+  the runtime descriptor, `/api/status` reported the same version, `/` and
+  `/app.js` returned 200, and the bundle carried `syncFinishedTopics`, the
+  topic sentence, the coverage line and the topic intent branch.
+- The deployed binary answered `POST /api/ask "How many invoices?"` with
+  `mode=structured`, `intent=topic`, `topic=billing_account`,
+  `subtopic=invoice`, `count=0`, `classified=0`, `scanned=0`, no notice and no
+  citations: the new local path ran end to end on Windows with no generator.
+  The app then stopped through `POST /api/shutdown` (202) and its descriptor
+  was removed.
+
+### Next queue
+
+1. Uncertified-dimension notices for the remaining structured counts (a
+   priority category zero should disclose coverage like the topic count).
+2. Evidence-date deadlines: date pressure found in cited text must flow into
+   priority/commitments with its evidence.
+3. People profiles: one person view assembled from messages, commitments and
+   companies.
+4. Rendering the open-loops rollup in the Companies screen and Brief rows
+   (the server contract is in place; the UI still uses its local precedence).
+5. A memory byte budget for the shared view caches and the priority/semantic
+   path.
+
 ## Cycle: topic-scoped local Ask counts (2026-11-04)
 
 ### Shipped
