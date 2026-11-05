@@ -27,7 +27,7 @@ func (f *appPathFake) lookup(root appPathRoot, subkey string) (string, bool) {
 func TestResolveOutlookExeAppPaths(t *testing.T) {
 	const (
 		machineExe = `C:\Program Files\Microsoft Office\root\Office16\OUTLOOK.EXE`
-		userExe    = `C:\Users\owner\AppData\Local\Programs\Outlook\OUTLOOK.EXE`
+		userExe    = `C:\Program Files\Outlook\OUTLOOK.EXE`
 	)
 	cases := []struct {
 		name    string
