@@ -7,10 +7,11 @@
     SETTINGS_SIMPLE_KEY_LIST.map(encodeURIComponent).join(",");
   let settingsFullInflight = null;
 
-  // The two tabs that own settings rows of their own. General owns everything
+  // The tabs that own settings rows of their own. General owns everything
   // else, and its search hands a match on another tab to that tab with the
   // key in the query, so the owner lands on the row that matched.
   const SETTINGS_RUNTIME_GROUP = "Local runtime";
+  const SETTINGS_UPDATES_GROUP = "Updates";
   const SETTINGS_MAILBOX_SOURCE = "sources";
   const SETTINGS_MAILBOX_KEYS = new Set(["mailboxes.selected", "mailboxes.declared_addresses"]);
 
@@ -20,6 +21,7 @@
     const key = view && view.key ? view.key : "";
     if (PROVIDER_ROLE_SETTINGS.has(key)) return "providers";
     if (view && view.group === SETTINGS_RUNTIME_GROUP) return "runtime";
+    if (view && view.group === SETTINGS_UPDATES_GROUP) return "updates";
     return "general";
   }
 
@@ -126,6 +128,7 @@
     let settings = null;
     let providers = null;
     let sidecar = null;
+    let update = null;
     if (tab === "providers") {
       const providerRead = requestCached("/api/providers", {}, CACHE_TTL.providers)
         .catch((error) => ({ providers: [], error }));
@@ -143,6 +146,15 @@
         requestCached("/api/sidecar", {}, CACHE_TTL.sidecar),
         loadStatus(),
       ]);
+    } else if (tab === "updates") {
+      // Update status is a persisted local read, not a cached route payload:
+      // the check writes it and the SSE event carries the same shape.
+      const updateRead = loadUpdateStatus().catch((error) => ({ read_error: error }));
+      [settings, status, update] = await Promise.all([
+        requestCached(SETTINGS_FULL_PATH, {}, CACHE_TTL.settings),
+        loadStatus(),
+        updateRead,
+      ]);
     } else {
       [status, settings] = await Promise.all([
         loadStatus(),
@@ -150,7 +162,7 @@
       ]);
     }
     if (seq !== state.renderSeq) return h("div");
-    state.settingsData = { status, settings, providers, sidecar };
+    state.settingsData = { status, settings, providers, sidecar, update };
 
     if (tab === "providers") {
       const meta = [];
@@ -162,18 +174,22 @@
       setTopbarMeta(...meta);
     } else if (tab === "runtime") {
       setTopbarMeta(pill(t("settings.tab.runtime")));
+    } else if (tab === "updates") {
+      setTopbarMeta(pill(t("settings.tab.updates")));
     }
 
     const tabs = [
       ["general", t("settings.tab.general")],
       ["providers", t("settings.tab.providers")],
       ["runtime", t("settings.tab.runtime")],
+      ["updates", t("settings.tab.updates")],
     ];
     const subnav = h("nav", { class: "subnav", "aria-label": t("settings.sections_aria") }, tabs.map(([id, label]) =>
       tabButton(label, id === tab, () => navigate("settings", { tab: id, q: state.settingsQuery }), "settings-tab-" + id)));
     const content = tab === "providers" ? providersPanel(settings, providers)
       : tab === "runtime" ? runtimePanel(sidecar, providers, settings, status)
-        : generalSettingsPanel(settings, status);
+        : tab === "updates" ? updatesPanel(update, settings, status)
+          : generalSettingsPanel(settings, status);
     // A search that handed a match to another tab filters that tab's rows and
     // says how many matched.
     const filtered = tab === "general" ? content : applySettingsTabSearch(content, tab);
@@ -295,14 +311,16 @@
     try { window.sessionStorage.setItem(SETTINGS_ADVANCED_KEY, value ? "1" : "0"); } catch { /* storage may be unavailable */ }
   }
 
-  // generalSettingsList drops the rows owned by the Providers and Local
-  // runtime screens, whether the payload is the projection or the full list.
+  // generalSettingsList drops the rows owned by the Providers, Local runtime
+  // and Updates screens, whether the payload is the projection or the full
+  // list.
   function generalSettingsList(view) {
     return (Array.isArray(view.settings) ? view.settings : [])
       .filter((item) => !PROVIDER_ROLE_SETTINGS.has(item.key))
       // The Local engine tab owns the engine's settings (status and controls
-      // together); a second copy in General made two screens disagree.
-      .filter((item) => item.group !== SETTINGS_RUNTIME_GROUP);
+      // together); a second copy in General made two screens disagree. The
+      // Updates tab owns its three check settings for the same reason.
+      .filter((item) => item.group !== SETTINGS_RUNTIME_GROUP && item.group !== SETTINGS_UPDATES_GROUP);
   }
 
   function settingsSimpleCount(byKey) {

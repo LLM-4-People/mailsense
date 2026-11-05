@@ -100,6 +100,8 @@
     settingsTab: "general",
     settingsData: null,
     settingsAll: null,
+    update: null,
+    whatsNewPrompted: "",
     labelAnswers: {},
     labelExtras: [],
     labelTaskSeq: 0,

@@ -159,9 +159,11 @@ var sourceLineBudget = map[string]int{
 	// open-loop, overdue and stored follow-up keys and added the uncertified
 	// zero sentence: two lines in each catalog. The update round added the
 	// Updates group and its three setting descriptions in the French catalog:
-	// four lines, on top of the Brief round's two.
-	"internal/ui/i18n.fr.js": 2619,
-	"internal/ui/i18n.en.js": 2228,
+	// four lines, on top of the Brief round's two. The update screen round
+	// added the Updates tab, its panel and the What's New overlay: twenty-three
+	// lines in each catalog.
+	"internal/ui/i18n.fr.js": 2642,
+	"internal/ui/i18n.en.js": 2251,
 	"internal/qa/qa_test.go": 4930,
 	// The three Node behavior harnesses each run the shared thread-state
 	// block before their view block: +2 lines per harness. The Brief

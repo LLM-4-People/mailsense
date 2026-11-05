@@ -394,6 +394,7 @@
     state.setupPaintedStep = "";
     state.setupNotNow = false;
     state.setupActionError = "";
+    window.setTimeout(() => maybeOpenWhatsNew(), 0); // let the next route mount first
   }
 
   function focusSetupHeading() {

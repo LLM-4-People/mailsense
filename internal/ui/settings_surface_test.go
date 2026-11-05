@@ -11,9 +11,9 @@ import (
 // the guarantees are structural: a second renderer is how the default, the
 // reset state, the environment lock and the restart badge drift apart.
 
-// settingsModules are the three tabs plus the router that carries their
-// search. Every row is built in the first one.
-var settingsModules = []string{"40-settings.js", "41-providers.js"}
+// settingsModules are the tabs plus the router that carries their search.
+// Every row is built in the first one.
+var settingsModules = []string{"40-settings.js", "41-providers.js", "42-updates.js"}
 
 func TestSettingsTabsShareOneRowBuilder(t *testing.T) {
 	settings := readUIModule(t, "40-settings.js")

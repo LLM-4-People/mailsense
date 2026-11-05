@@ -111,6 +111,8 @@
     settingsTab: "general",
     settingsData: null,
     settingsAll: null,
+    update: null,
+    whatsNewPrompted: "",
     labelAnswers: {},
     labelExtras: [],
     labelTaskSeq: 0,
@@ -2101,6 +2103,7 @@
     state.setupPaintedStep = "";
     state.setupNotNow = false;
     state.setupActionError = "";
+    window.setTimeout(() => maybeOpenWhatsNew(), 0); // let the next route mount first
   }
 
   function focusSetupHeading() {
@@ -5034,6 +5037,9 @@
       }
     }
     if (refresh && targets.size) scheduleDataRefresh(...targets);
+    // The resolved sets are returned so a caller that awaited a write can
+    // decide whether the screen now on top is one the write can change.
+    return { reads, routes, targets, allRoutes };
   }
 
   // invalidateLearningReads drops every cached read a write can stale. It is
@@ -5383,6 +5389,7 @@
       invalidateTopics(["sidecar"]);
       if (state.route === "settings" && state.settingsTab === "runtime" && !state.modalOpen) refreshActiveRoute();
     });
+    source.addEventListener("update.state", handleUpdateStateEvent);
     source.addEventListener("evidence.finished", () => afterLearningDataChanged());
     source.addEventListener("layer1.finished", () => afterLearningDataChanged());
     source.addEventListener("feedback.label", () => invalidateTopics(["labels"]));
@@ -5448,11 +5455,12 @@
         { hard: true, refresh: false, forgetMail: false },
       );
       try {
-        await Promise.all([loadStatus(true), loadLearning(true), loadJobs(true)]);
+        await Promise.all([loadStatus(true), loadLearning(true), loadJobs(true), loadUpdateStatus().catch(() => null)]);
       } catch (error) {
         reportBackgroundError(error);
       }
       if (!state.modalOpen) await refreshActiveRoute();
+      maybeOpenWhatsNew();
       // The mounted All-Mail screen is settled first, including a Load more
       // it already started; forgetting the model afterwards makes the next
       // mount re-read instead of restoring rows the dropped stream cannot
@@ -6146,18 +6154,18 @@
     action.setAttribute("aria-label", label);
     action.title = label;
     const textNode = action.querySelector("span");
-    // The visible control is one verb. The job name lives in the accessible
-    // label and the title, so the strip never shows "Fermer Outlook" (which
-    // read as an instruction to close Outlook itself).
-    // withBusy owns the label while a cancel is in flight.
+    // The visible label owns the task name. Two jobs can run at once, so a
+    // bare "Cancel" never said which task it would stop; the label and the
+    // accessible name are the same string. withBusy still owns the label
+    // while a cancel is in flight.
     if (textNode && !action.disabled) {
-      textNode.textContent = kind === "cancel" ? t("common.cancel") : t("shell.job.dismiss_short");
+      textNode.textContent = kind === "cancel" ? label : t("shell.job.dismiss_short");
     }
   }
 
   function jobActionButton(info, kind, key, ids) {
     const action = kind === "cancel"
-      ? button(t("common.cancel"), (event) => cancelJob(key, event.currentTarget), { small: true, kind: "quiet" })
+      ? button(jobActionLabel(info, kind), (event) => cancelJob(key, event.currentTarget), { small: true, kind: "quiet" })
       : button(t("shell.job.dismiss_short"), () => {
         for (const id of ids) forgetJob(id);
         scheduleJobPaint();
@@ -16236,10 +16244,11 @@
     SETTINGS_SIMPLE_KEY_LIST.map(encodeURIComponent).join(",");
   let settingsFullInflight = null;
 
-  // The two tabs that own settings rows of their own. General owns everything
+  // The tabs that own settings rows of their own. General owns everything
   // else, and its search hands a match on another tab to that tab with the
   // key in the query, so the owner lands on the row that matched.
   const SETTINGS_RUNTIME_GROUP = "Local runtime";
+  const SETTINGS_UPDATES_GROUP = "Updates";
   const SETTINGS_MAILBOX_SOURCE = "sources";
   const SETTINGS_MAILBOX_KEYS = new Set(["mailboxes.selected", "mailboxes.declared_addresses"]);
 
@@ -16249,6 +16258,7 @@
     const key = view && view.key ? view.key : "";
     if (PROVIDER_ROLE_SETTINGS.has(key)) return "providers";
     if (view && view.group === SETTINGS_RUNTIME_GROUP) return "runtime";
+    if (view && view.group === SETTINGS_UPDATES_GROUP) return "updates";
     return "general";
   }
 
@@ -16355,6 +16365,7 @@
     let settings = null;
     let providers = null;
     let sidecar = null;
+    let update = null;
     if (tab === "providers") {
       const providerRead = requestCached("/api/providers", {}, CACHE_TTL.providers)
         .catch((error) => ({ providers: [], error }));
@@ -16372,6 +16383,15 @@
         requestCached("/api/sidecar", {}, CACHE_TTL.sidecar),
         loadStatus(),
       ]);
+    } else if (tab === "updates") {
+      // Update status is a persisted local read, not a cached route payload:
+      // the check writes it and the SSE event carries the same shape.
+      const updateRead = loadUpdateStatus().catch((error) => ({ read_error: error }));
+      [settings, status, update] = await Promise.all([
+        requestCached(SETTINGS_FULL_PATH, {}, CACHE_TTL.settings),
+        loadStatus(),
+        updateRead,
+      ]);
     } else {
       [status, settings] = await Promise.all([
         loadStatus(),
@@ -16379,7 +16399,7 @@
       ]);
     }
     if (seq !== state.renderSeq) return h("div");
-    state.settingsData = { status, settings, providers, sidecar };
+    state.settingsData = { status, settings, providers, sidecar, update };
 
     if (tab === "providers") {
       const meta = [];
@@ -16391,18 +16411,22 @@
       setTopbarMeta(...meta);
     } else if (tab === "runtime") {
       setTopbarMeta(pill(t("settings.tab.runtime")));
+    } else if (tab === "updates") {
+      setTopbarMeta(pill(t("settings.tab.updates")));
     }
 
     const tabs = [
       ["general", t("settings.tab.general")],
       ["providers", t("settings.tab.providers")],
       ["runtime", t("settings.tab.runtime")],
+      ["updates", t("settings.tab.updates")],
     ];
     const subnav = h("nav", { class: "subnav", "aria-label": t("settings.sections_aria") }, tabs.map(([id, label]) =>
       tabButton(label, id === tab, () => navigate("settings", { tab: id, q: state.settingsQuery }), "settings-tab-" + id)));
     const content = tab === "providers" ? providersPanel(settings, providers)
       : tab === "runtime" ? runtimePanel(sidecar, providers, settings, status)
-        : generalSettingsPanel(settings, status);
+        : tab === "updates" ? updatesPanel(update, settings, status)
+          : generalSettingsPanel(settings, status);
     // A search that handed a match to another tab filters that tab's rows and
     // says how many matched.
     const filtered = tab === "general" ? content : applySettingsTabSearch(content, tab);
@@ -16524,14 +16548,16 @@
     try { window.sessionStorage.setItem(SETTINGS_ADVANCED_KEY, value ? "1" : "0"); } catch { /* storage may be unavailable */ }
   }
 
-  // generalSettingsList drops the rows owned by the Providers and Local
-  // runtime screens, whether the payload is the projection or the full list.
+  // generalSettingsList drops the rows owned by the Providers, Local runtime
+  // and Updates screens, whether the payload is the projection or the full
+  // list.
   function generalSettingsList(view) {
     return (Array.isArray(view.settings) ? view.settings : [])
       .filter((item) => !PROVIDER_ROLE_SETTINGS.has(item.key))
       // The Local engine tab owns the engine's settings (status and controls
-      // together); a second copy in General made two screens disagree.
-      .filter((item) => item.group !== SETTINGS_RUNTIME_GROUP);
+      // together); a second copy in General made two screens disagree. The
+      // Updates tab owns its three check settings for the same reason.
+      .filter((item) => item.group !== SETTINGS_RUNTIME_GROUP && item.group !== SETTINGS_UPDATES_GROUP);
   }
 
   function settingsSimpleCount(byKey) {
@@ -18502,6 +18528,286 @@
   }
   // runtime-panel:end
 
+  // ---------------------------------------------------------------- updates
+  //
+  // One owner for the update surface: the Settings Updates tab reads the
+  // persisted status, and the first-open What's New overlay consumes the same
+  // state. The server owns the check, the skip marker and the seen marker, so
+  // the client keeps no cache copy of its own.
+
+  function updateStatusOf(info) {
+    return info && typeof info === "object" && !Array.isArray(info) ? info : null;
+  }
+
+  // A local Check/Skip owns the next paint. The SSE event it causes must not
+  // start a second refresh that replaces the control under the keyboard; the
+  // short window covers a marker event that arrives just after the response.
+  const UPDATE_ACTION_QUIET_MS = 1000;
+  let updateActionQuietUntil = 0;
+
+  // applyUpdateStatus is the one write of the status snapshot. It returns the
+  // accepted object so a caller can tell a malformed event from a real one.
+  function applyUpdateStatus(info) {
+    const next = updateStatusOf(info);
+    if (next) state.update = next;
+    syncUpdateBadge();
+    return next;
+  }
+
+  // syncUpdateBadge keeps the one persistent affordance honest: the Settings
+  // nav dot is the only update signal that survives dismissing the overlay.
+  function syncUpdateBadge() {
+    const show = !!(state.update && state.update.available && !state.update.skipped);
+    const dot = document.getElementById("nav-settings-update");
+    const label = document.getElementById("nav-settings-update-text");
+    if (dot) {
+      dot.hidden = !show;
+      dot.title = show ? t("update.whats_new.eyebrow") : "";
+    }
+    if (label) {
+      label.hidden = !show;
+      label.textContent = show ? t("update.whats_new.eyebrow") : "";
+    }
+  }
+
+  async function loadUpdateStatus() {
+    return applyUpdateStatus(await request("/api/update"));
+  }
+
+  function updateCheckedText(info) {
+    return info && info.checked_at ? formatDate(info.checked_at) : t("settings.update.never_checked");
+  }
+
+  function updateHeadline(info) {
+    if (!info) return t("settings.update.not_checked");
+    if (info.skipped && info.latest) return t("settings.update.skipped", { version: info.latest });
+    if (info.available && info.latest) return t("settings.update.available", { version: info.latest });
+    if (info.checked_at) return t("settings.update.up_to_date");
+    return t("settings.update.not_checked");
+  }
+
+  function updateFacts(info) {
+    if (!info) return null;
+    return kv([
+      [t("settings.update.current"), info.current || t("common.dash")],
+      info.latest ? [t("settings.update.latest"), info.latest] : null,
+      [t("settings.update.last_checked"), updateCheckedText(info)],
+    ]);
+  }
+
+  // inlineReleaseNodes renders the small inline subset the release body uses:
+  // bold, inline code and links (as their label only). Every value becomes a
+  // text node, never HTML.
+  function inlineReleaseNodes(value) {
+    const frag = document.createDocumentFragment();
+    const pattern = /(\*\*[^*]+\*\*|`[^`]+`|\[[^\]]+\]\([^)]+\))/g;
+    const source = String(value || "");
+    let at = 0;
+    let match;
+    while ((match = pattern.exec(source))) {
+      if (match.index > at) frag.append(document.createTextNode(source.slice(at, match.index)));
+      const token = match[0];
+      if (token.startsWith("**")) frag.append(h("strong", { text: token.slice(2, -2) }));
+      else if (token.startsWith("`")) frag.append(h("code", { text: token.slice(1, -1) }));
+      else frag.append(document.createTextNode(token.replace(/^\[([^\]]+)\]\([^)]+\)$/, "$1")));
+      at = match.index + token.length;
+    }
+    if (at < source.length) frag.append(document.createTextNode(source.slice(at)));
+    return frag;
+  }
+
+  // releaseNotesBody turns the bounded Markdown release body into headings,
+  // paragraphs and bullets. It is deliberately not a general Markdown engine:
+  // the note is display copy, and no remote markup becomes DOM.
+  function releaseNotesBody(value) {
+    const root = h("div", { class: "update-notes-body" });
+    let paragraph = [];
+    let list = null;
+    const flushParagraph = () => {
+      if (!paragraph.length) return;
+      root.append(h("p", null, inlineReleaseNodes(paragraph.join(" "))));
+      paragraph = [];
+    };
+    const closeList = () => { list = null; };
+    for (const raw of String(value || "").split(/\r?\n/)) {
+      const line = raw.trim();
+      if (!line) {
+        flushParagraph();
+        closeList();
+        continue;
+      }
+      const heading = line.match(/^(#{1,6})\s+(.+)$/);
+      if (heading) {
+        flushParagraph();
+        closeList();
+        root.append(h(heading[1].length <= 2 ? "h3" : "h4", { text: heading[2] }));
+        continue;
+      }
+      const bullet = line.match(/^[-*]\s+(.+)$/);
+      if (bullet) {
+        flushParagraph();
+        if (!list) {
+          list = h("ul");
+          root.append(list);
+        }
+        list.append(h("li", null, inlineReleaseNodes(bullet[1])));
+        continue;
+      }
+      closeList();
+      paragraph.push(line);
+    }
+    flushParagraph();
+    if (!root.children.length) root.append(h("p", { text: String(value || "") }));
+    return root;
+  }
+
+  function updateNotes(info) {
+    if (!info || !info.available || !info.notes) return null;
+    return h("details", { class: "update-notes" },
+      h("summary", { text: t("settings.update.notes") }),
+      releaseNotesBody(info.notes));
+  }
+
+  async function checkForUpdates(trigger) {
+    const hadFocus = document.activeElement === trigger;
+    updateActionQuietUntil = Date.now() + UPDATE_ACTION_QUIET_MS;
+    await withBusy(trigger, t("settings.update.checking"), async () => {
+      try {
+        // The server bounds one check at 30 s; the client waits a little
+        // longer so a slow upstream answer is shown, not aborted early.
+        applyUpdateStatus(await request("/api/update/check", {
+          method: "POST", body: {}, timeoutMs: 60000,
+        }));
+        await refreshActiveRoute();
+      } catch (error) {
+        reportActionError(error);
+      }
+    });
+    if (hadFocus) {
+      const next = document.getElementById("update-check");
+      if (next) next.focus({ preventScroll: true });
+    }
+  }
+
+  async function skipUpdate(trigger, version) {
+    if (!version) return;
+    const hadFocus = document.activeElement === trigger;
+    updateActionQuietUntil = Date.now() + UPDATE_ACTION_QUIET_MS;
+    await withBusy(trigger, t("settings.update.skipping"), async () => {
+      try {
+        applyUpdateStatus(await request("/api/update/skip", {
+          method: "POST", body: { version },
+        }));
+        await refreshActiveRoute();
+      } catch (error) {
+        reportActionError(error);
+      }
+    });
+    if (hadFocus) {
+      // The skipped action is gone after the refresh; Check now is the next
+      // useful control in the same card.
+      const next = document.getElementById("update-check");
+      if (next) next.focus({ preventScroll: true });
+    }
+  }
+
+  // updatesPanel is the Updates tab: the facts, the skip marker, the release
+  // notes and the three update settings the tab owns.
+  function updatesPanel(info, settings, status) {
+    const readError = info && info.read_error;
+    const data = readError ? null : (updateStatusOf(info) || state.update);
+    const failedText = data && data.error_code
+      ? t("settings.update.failed", { message: data.last_error || data.error_code })
+      : "";
+    const headline = readError ? t("settings.update.unavailable")
+      : failedText && !data.available ? failedText : updateHeadline(data);
+    const headlineWarn = !!readError || !!(failedText && data && !data.available);
+    const views = (settings && Array.isArray(settings.settings) ? settings.settings : [])
+      .filter((view) => view && view.group === SETTINGS_UPDATES_GROUP);
+    const group = views.length
+      ? settingsGroupNode(t("settings.update.settings_title"), views, status, { count: false, tab: "updates" })
+      : null;
+    const check = button(t("settings.update.check"), (event) => checkForUpdates(event.currentTarget), { icon: "refresh", small: true });
+    check.id = "update-check";
+    const skip = data && data.available && data.latest && !data.skipped
+      ? button(t("settings.update.skip"), (event) => skipUpdate(event.currentTarget, data.latest), { small: true })
+      : null;
+    if (skip) skip.id = "update-skip";
+    const card = h("div", { class: "update-status" },
+      h("p", { class: "update-headline" + (headlineWarn ? " warn-text" : ""), text: headline }),
+      updateFacts(data),
+      readError ? h("p", { class: "fine warn-text", text: apiFailure(readError).message }) : null,
+      failedText && data.available ? h("p", { class: "fine warn-text", text: failedText }) : null,
+      skip ? h("div", { class: "button-row" }, skip) : null,
+      updateNotes(data));
+    return settingsList(h("div", { class: "update-panel" },
+      section(t("settings.update.title"), t("settings.update.sub"), check, card, group)));
+  }
+
+  // markUpdateSeen is best-effort: a failed marker must not trap the owner in
+  // a dialog, and the next launch offers the notes again rather than claiming
+  // they were seen.
+  async function markUpdateSeen(version) {
+    if (!version) return;
+    try {
+      applyUpdateStatus(await request("/api/update/seen", { method: "POST", body: { version } }));
+    } catch { /* the panel still shows the release */ }
+  }
+
+  // maybeOpenWhatsNew is the one first-open trigger. It never fights setup or
+  // another modal, and one version is offered at most once per session.
+  function maybeOpenWhatsNew() {
+    const info = updateStatusOf(state.update);
+    if (!info || !info.available || !info.latest || !info.notes) return;
+    if (info.notes_seen || info.skipped) return;
+    if (state.shuttingDown || state.modalOpen || document.getElementById("setup-root") || document.querySelector("dialog[open]")) return;
+    if (state.whatsNewPrompted === info.latest) return;
+    state.whatsNewPrompted = info.latest;
+    let confirmed = false;
+    const body = h("div", null,
+      releaseNotesBody(info.notes),
+      h("p", { class: "fine update-current", text: t("update.whats_new.current", { current: info.current || t("common.dash") }) }));
+    openDialog({
+      title: t("update.whats_new.title", { version: info.latest }),
+      eyebrow: t("update.whats_new.eyebrow"),
+      body,
+      confirm: t("update.whats_new.got_it"),
+      cancel: t("modal.close"),
+      onConfirm: async () => {
+        confirmed = true;
+        await markUpdateSeen(info.latest);
+        return true;
+      },
+    }).then(() => {
+      // Closing with Later, Escape or the header X still counts as seen: the
+      // notes were shown. Confirm already wrote the same marker.
+      if (!confirmed) void markUpdateSeen(info.latest);
+    });
+  }
+
+  // onUpdateState is the one SSE consumer: the persisted status is the read
+  // model, and a mounted Updates tab re-reads after a background check.
+  function onUpdateState(info) {
+    if (!applyUpdateStatus(info)) return;
+    if (state.route === "settings" && state.settingsTab === "updates" && !state.modalOpen && Date.now() > updateActionQuietUntil) {
+      void refreshActiveRoute();
+    }
+    maybeOpenWhatsNew();
+  }
+
+  // handleUpdateStateEvent parses the one SSE payload. Keeping it outside
+  // connectEvents keeps that dispatcher inside its reviewed function budget.
+  function handleUpdateStateEvent(event) {
+    let status;
+    try { status = JSON.parse(event.data); } catch { return; }
+    onUpdateState(status);
+  }
+
+  // A boot dialog (the timezone confirmation) can hold the modal while the
+  // update lands. Any dialog close retries the one overlay once.
+  function scheduleWhatsNewAfterDialog() {
+    window.setTimeout(() => maybeOpenWhatsNew(), 0);
+  }
   // ---------------------------------------------------------------- logs
 
   async function renderLogs(route, seq) {
@@ -19140,13 +19446,19 @@
     if (!Array.isArray(topics) || !topics.length) {
       throw new Error("afterBackgroundAction requires at least one invalidation topic");
     }
-    invalidateTopics(topics, Object.assign({}, options, { refresh: false }));
+    const affected = invalidateTopics(topics, Object.assign({}, options, { refresh: false }));
     await Promise.all([
       loadLearning(true),
       loadHub(true).catch(() => null),
       loadStatus(true).catch(() => null),
     ]);
-    await refreshActiveRoute();
+    // The write can finish after the owner has moved on. Only the screen the
+    // topics can change is rebuilt then; an unrelated cached route keeps its
+    // DOM, scroll and focus for its next visit.
+    const active = routeCache.get(state.routeKey);
+    const affectedNow = affected.allRoutes ||
+      [...affected.routes].some((name) => (active ? routeCacheMatches(active, name) : state.route === name));
+    if (affectedNow) await refreshActiveRoute();
   }
 
   async function discoverFromAction(params, trigger) {
@@ -19423,6 +19735,7 @@
       dom.modal.removeEventListener("cancel", onCancel);
       dom.modal.close();
       resolve(value);
+      scheduleWhatsNewAfterDialog();
     };
     state.modalCloseFn = () => { if (!busy) close(false); };
     const cancel = button(options.cancel || t("common.cancel"), () => { if (!busy) close(false); }, { kind: "quiet" });
@@ -19628,6 +19941,7 @@
       gateBootSnapshot = null;
     }
     updateLearningChrome();
+    loadUpdateStatus().then(() => maybeOpenWhatsNew()).catch(() => null);
     // The zone auto-confirm needs the learning status and a POST, so it runs
     // after the content paint; a cold learning read never holds the screen.
     learningReady.then(() => {

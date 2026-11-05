@@ -92,7 +92,10 @@ func TestLauncherEnvironmentStripsMailsense(t *testing.T) {
 	}
 	dir := t.TempDir()
 	dump := filepath.Join(dir, "env.txt")
-	script := "#!/bin/sh\nenv > \"$(dirname \"$0\")/env.txt\"\n"
+	// The dump is published by rename, never written in place: the test polls
+	// for the file below, and reading the redirect's newly truncated file
+	// before `env` finished produced an empty map and a false failure.
+	script := "#!/bin/sh\nd=$(dirname \"$0\")\nenv > \"$d/env.tmp\" && mv \"$d/env.tmp\" \"$d/env.txt\"\n"
 	if err := os.WriteFile(filepath.Join(dir, "xdg-open"), []byte(script), 0o755); err != nil {
 		t.Fatal(err)
 	}

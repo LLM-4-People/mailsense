@@ -28,6 +28,7 @@
 34-conversation.js
 40-settings.js
 41-providers.js
+42-updates.js
 50-logs.js
 51-actions.js
 52-init.js

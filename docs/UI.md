@@ -132,7 +132,7 @@ unknown route all open Home; `#/ask` is the real Ask screen.
 | `#/answers` | Answer history: current manual/judge answers, filters, paging and one message's answer history | `/api/labels/summary`, `/api/answers`, `/api/questions`, `/api/messages/{id}?for=answer` | none; corrections link to Teach |
 | `#/learning` | Plain-language readiness, next actions, steps and technical details | `/api/learning`, `/api/status`, `/api/jobs` | `/api/actions/*` through the actions, `/api/learning/zone` |
 | `#/sources` | Mailboxes, discovery, picked set, declared owner address, display and inline-image backfill | `/api/mailboxes`, `/api/status`, `/api/jobs` | `/api/mailboxes/discover`, `pick`, `unpick`, `declare`, `undeclare`, `/api/actions/sync`, `/api/actions/backfill_html`, `/api/jobs/{id}/cancel` |
-| `#/settings` | Simple/advanced settings, provider records and role assignment, one local engine; reload and reset | `/api/settings`, `/api/providers`, `/api/sidecar` | `/api/settings/{key}`, `/api/settings/reload`, `/api/secrets/{name}`, `/api/providers`, `/api/providers/{id}` (create/update/delete) and `/api/providers/{id}/test`, `/api/sidecar/install` |
+| `#/settings` | Simple/advanced settings, provider records and role assignment, one local engine, updates; reload and reset | `/api/settings`, `/api/providers`, `/api/sidecar`, `/api/update` | `/api/settings/{key}`, `/api/settings/reload`, `/api/secrets/{name}`, `/api/providers`, `/api/providers/{id}` (create/update/delete) and `/api/providers/{id}/test`, `/api/sidecar/install`, `/api/update/check`, `/api/update/skip`, `/api/update/seen` |
 | `#/logs` | The log ring with level/component filters, pause and follow; an expanded row prints every stored attribute (content values are already `[REDACTED]` by `logx`; the built-in token/email patterns always apply and custom `log.redact.patterns` only add expressions) | `/api/logs`, SSE `log.wake` | none |
 
 Notes that the UI discloses instead of hiding:
@@ -813,6 +813,18 @@ download can succeed; **Refresh** stays, invalidates the cached
 `/api/sidecar` status and re-runs the probe. There is no CPU offer and no
 variant picker for this state.
 
+`#/settings?tab=updates` shows the installed and latest versions, the last
+check time, the release notes and the three update settings, with **Check
+now** and **Skip this version**. A check is the same conditional release
+read the startup worker makes; a failed upstream answer stays a quiet
+status line instead of an error toast. The tab follows `update.state` and
+re-reads after a background check. The first launch that detects a release
+whose notes are not marked seen opens one **What's New** dialog with the
+notes as plain text; **Got it**, **Close**, Escape or the header close marks
+them seen, while **Skip this version** mutes that version until
+`update.remind.after`. While an offer is available and not skipped, a small
+dot on the Settings nav keeps it discoverable after the overlay closes.
+
 ### Instant workspace
 
 The shell is a single mounted document; navigation does not reload the
@@ -926,8 +938,8 @@ replaced by a fake list, zero count or "no mail".
 
 `jobs.update` feeds the one global job strip between the topbar and
 `#main`: each running job shows its name, live `done / total`, percent,
-progress bar, message and a cancel action; a failure stays until dismissed
-and a finished job lingers four seconds. A job that reports a stage (the
+progress bar, message and a cancel action that names its job; a failure
+stays until dismissed and a finished job lingers four seconds. A job that reports a stage (the
 local classifier does) also shows the translated phase, the item it is on
 (a question name) and its position within the phase (`step 2 / 5`), plus
 an ETA measured from the job's own average rate. Every string the chip
@@ -1336,7 +1348,10 @@ by that attribute, never by a media query.
      settings; **Show all settings** reveals 250 and persists for the
      session; searching finds a setting hidden in advanced mode and the
      count says it searches all. Apply/Reset still work and a
-     restart-required setting shows its badge and pending banner.
+     restart-required setting shows its badge and pending banner. The
+     Updates tab shows the installed and latest versions, **Check now** and
+     **Skip this version**; a detected release opens What's New once and the
+     dialog does not return after it is seen or skipped.
   9. DevTools: the console is clean, Network shows no third-party request
      and no image fetched from a sender origin; an inline image is one
      authenticated request to the local

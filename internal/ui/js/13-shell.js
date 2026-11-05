@@ -400,6 +400,9 @@
       }
     }
     if (refresh && targets.size) scheduleDataRefresh(...targets);
+    // The resolved sets are returned so a caller that awaited a write can
+    // decide whether the screen now on top is one the write can change.
+    return { reads, routes, targets, allRoutes };
   }
 
   // invalidateLearningReads drops every cached read a write can stale. It is
@@ -749,6 +752,7 @@
       invalidateTopics(["sidecar"]);
       if (state.route === "settings" && state.settingsTab === "runtime" && !state.modalOpen) refreshActiveRoute();
     });
+    source.addEventListener("update.state", handleUpdateStateEvent);
     source.addEventListener("evidence.finished", () => afterLearningDataChanged());
     source.addEventListener("layer1.finished", () => afterLearningDataChanged());
     source.addEventListener("feedback.label", () => invalidateTopics(["labels"]));
@@ -814,11 +818,12 @@
         { hard: true, refresh: false, forgetMail: false },
       );
       try {
-        await Promise.all([loadStatus(true), loadLearning(true), loadJobs(true)]);
+        await Promise.all([loadStatus(true), loadLearning(true), loadJobs(true), loadUpdateStatus().catch(() => null)]);
       } catch (error) {
         reportBackgroundError(error);
       }
       if (!state.modalOpen) await refreshActiveRoute();
+      maybeOpenWhatsNew();
       // The mounted All-Mail screen is settled first, including a Load more
       // it already started; forgetting the model afterwards makes the next
       // mount re-read instead of restoring rows the dropped stream cannot

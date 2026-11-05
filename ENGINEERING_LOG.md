@@ -93,9 +93,62 @@ Each was independently checked against source by the coordinator:
 - Promotion: `testing` merges to `main` through PR #25 with every required
   check green. The owner's explicit instruction authorizes the admin merge
   because the ruleset demands an extra approval for unattributed commits.
+
+### Post-promotion fix (2026-11-05)
+
+- The job strip's per-job cancel button showed a bare "Cancel". The action
+  already built `Cancel <task>` for the accessible name and title but forced
+  the visible span to `common.cancel`; the visible label now uses the same
+  string at its one owner (`13-jobs.js:311`). The live Playwright case asserts
+  the visible text and fails on the old bundle; no new catalog key or budget
+  change.
+- The dispatched exhaustive CI exposed a fixture race in
+  `TestLauncherEnvironmentStripsMailsense`: the fake launcher's `env.txt` was
+  polled while `env` was still writing it, so an empty read failed the
+  GUI-variable check. The fake now writes a temporary file and renames it,
+  publishing the dump atomically; 200 repeats pass.
+
+### Update surface (2026-11-05)
+
+- `42-updates.js` is the one update UI owner. `#/settings?tab=updates` shows
+  the installed and latest versions, the last check, the release notes and
+  the three schema settings the tab now owns; **Check now** posts
+  `/api/update/check` and **Skip this version** posts `/api/update/skip`.
+  A failed upstream answer stays the quiet status line the API contract
+  promises, never an error toast.
+- The first open that detects a release with unseen notes shows one What's
+  New dialog. The release body renders as headings, paragraphs and bullets
+  from text nodes only; closing by any path marks the notes seen. The tab's
+  skip suppresses that version until `update.remind.after`. Setup and another
+  dialog only defer the overlay: setup close and any dialog close retry it,
+  and one version is offered at most once per session.
+- A small Settings nav dot survives the overlay, so an available release is
+  still discoverable; the panel's skipped and failed-check headlines are
+  mutually exclusive with the available one, and Check now returns keyboard
+  focus to the rebuilt control; the marker event it causes cannot start a
+  second refresh over that control.
+- `update.state` is subscribed in the shell; a mounted Updates tab re-reads,
+  and a dropped stream re-bases the status with the other live reads.
+- The first implementation used `state.setup` as the setup guard, but that
+  field holds the setup view even when setup is not needed; the guard is the
+  `#setup-root` node. Five Playwright cases cover the tab, both actions, the
+  overlay and the three suppression states; the catalog budget moved by the
+  exact 24 added lines in each language.
 - Verification on the integrated tree: `make fast` green, the affected
   Playwright flows 56/56, the named regression suites for each feature green,
   the generated site current, and the PII gate clean.
+
+### Background-action refresh scope (2026-11-05)
+
+- PR #26's Playwright run failed with Logs routed but zero `.logs-screen`
+  nodes. The discovery action settles its shell reads after its toast; the
+  test navigated back to Logs in that window, and `afterBackgroundAction`
+  unconditionally refreshed whichever screen was then active, replacing the
+  cached Logs DOM. The owner now asks the invalidation graph which routes the
+  write can change and rebuilds only a matching active screen; an unrelated
+  cached route keeps its DOM, scroll and focus. The Sources case holds one
+  shell read across the navigation and fails on the old unconditional
+  refresh (reproduced: `Expected: 1, Received: 0`).
 
 ### Security (guidance mode) — results so far
 
