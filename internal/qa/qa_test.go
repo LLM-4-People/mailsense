@@ -895,9 +895,12 @@ func TestContentActionPlanIsRejected(t *testing.T) {
 }
 
 // TestAggregateQuestionKeepsItsComputedAnswer pins the boundary between a
-// mailbox count/list and a content question. The explicit aggregate controls
-// keep their deterministic priority answer; the how-many questions that were
-// already freeform still execute a computed count plan.
+// mailbox count/list and a content question. The aggregate list controls
+// without a count cue keep their deterministic priority answer, and the plain
+// count accepted by the scope gate answers from the priority totals; a count
+// the scope gate rejects (an act recorded in a message, French included)
+// keeps the freeform path and executes the planner's computed count plan
+// instead of a mailbox-wide category total.
 func TestAggregateQuestionKeepsItsComputedAnswer(t *testing.T) {
 	structured := []struct {
 		name     string
@@ -905,10 +908,10 @@ func TestAggregateQuestionKeepsItsComputedAnswer(t *testing.T) {
 		intent   string
 		id       int64
 	}{
-		{"S1 approved deadlines count", "Combien d'échéances ai-je approuvées ?", IntentDeadline, 15},
-		{"S2 approved email list", "Which emails did I approve?", IntentDecision, 14},
-		{"S3 messages to approve list", "List messages I need to approve", IntentDecision, 14},
-		{"S4 plain deadlines", "Quelles sont mes échéances ?", IntentDeadline, 15},
+		{"S1 approved email list", "Which emails did I approve?", IntentDecision, 14},
+		{"S2 messages to approve list", "List messages I need to approve", IntentDecision, 14},
+		{"S3 plain deadlines", "Quelles sont mes échéances ?", IntentDeadline, 15},
+		{"S4 plain deadline count", "How many deadlines do I have?", IntentDeadline, 15},
 	}
 	w := newWorld(t, false)
 	w.prio.byFilter[priority.FilterDeadline] = []priority.Item{item(15, "deadline")}
@@ -938,14 +941,14 @@ func TestAggregateQuestionKeepsItsComputedAnswer(t *testing.T) {
 		})
 	}
 
-	// The computed count path stays the generator-configured behavior. With no
-	// generator, the provider-less fallback answers the same plain count from
-	// the structured priority totals (TestProviderlessAggregateCount*).
+	// A count the scope gate rejects stays freeform on every generator
+	// configuration, so it reaches the planner and executes its count plan
+	// (the action counts here name an act a category total cannot state).
 	computed := []struct {
 		name     string
 		question string
 	}{
-		{"S5 how many deadlines", "How many deadlines do I have?"},
+		{"S5 how many approved deadlines", "Combien d'échéances ai-je approuvées ?"},
 		{"S6 how many messages approved", "Combien de messages ai-je approuvés ?"},
 	}
 	for _, tc := range computed {
@@ -1005,8 +1008,8 @@ func TestProviderlessAggregateCountUsesThePriorityAnswer(t *testing.T) {
 	if w.gen.calls != 0 {
 		t.Fatalf("generator calls = %d, want 0", w.gen.calls)
 	}
-	if src.calls != 1 {
-		t.Fatalf("generator availability lookups = %d, want 1 local lookup", src.calls)
+	if src.calls != 0 {
+		t.Fatalf("generator availability lookups = %d, want 0: the count scope decision must not depend on availability", src.calls)
 	}
 	if w.search.calls != 0 {
 		t.Fatalf("search calls = %d, want 0", w.search.calls)
@@ -1717,8 +1720,8 @@ func TestProviderlessAggregateCountScopesFreeformToBobNotMontAmount(t *testing.T
 }
 
 // TestProviderlessAggregateCountPreSwitchGate pins the owner before the
-// intent switch: non-"how" count cues can parse directly to a category, so
-// the provider-less scope gate must run before that switch. Scoped and
+// route dispatch: non-"how" count cues can parse directly to a category, so
+// the scope gate must run before any route can answer them. Scoped and
 // person-framed counts stay free-form; plain counts keep their structured
 // answer.
 func TestProviderlessAggregateCountPreSwitchGate(t *testing.T) {

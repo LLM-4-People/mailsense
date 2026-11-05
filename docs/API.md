@@ -831,32 +831,48 @@ Modes are explicit:
   or owner-only search. `answer` is empty; the UI composes the localized
   sentence from `intent` and `counts`. No provider call and no cost.
   Intents: `reply`, `urgent`, `deadline`, `security`, `decision`,
-  `workload`, `priority`, `summary_today`, and `sender` (the text after an
-  explicit sender/from/expéditeur prefix; owner-only search, not the
+  `workload`, `priority`, `summary_today`, `topic`, and `sender` (the text
+  after an explicit sender/from/expéditeur prefix; owner-only search, not the
   generator). A sender search waits for complete retrieval
   (`qa.retrieval_timeout`); when the index is warming or the bound expires
   with no hit, the result is `retrieval` with `qa_index_warming` or
   `qa_retrieval_timeout`, never a false "no message from this sender".
-  `counts` carries the priority filter totals plus `total`. With
-  `qa.provider` empty, a plain count using the declared count vocabulary
+  `counts` carries the priority filter totals plus `total`. A `topic` answer
+  is a plain count of one catalogue topic or subtopic answered from the
+  classified-topic census; it carries
+  `{"topic":"…","subtopic":"…","count":N,"classified":N,"scanned":N}` and
+  `counts` stays empty. `subtopic` is empty for a whole-topic count; a zero
+  count still discloses the classification coverage (`classified` of the
+  `scanned` owner-facing messages) so an empty topic is never silently
+  uncertified, and it cites no message. A failed census read is an error,
+  never a zero.
+  A plain count using the declared count vocabulary
   (`count`/`counts`/`nombre`/`total`/`combien`/`amount`/`quantity`/
   `quantité`, the phrases `how many`/`how much`/`number of`/`nombre de`/
   `amount of`/`quantity of`/`quantité de`, and bare `number` immediately
   before a category or mailbox noun) with exactly one fallback category
   (`security`, `decision`, `deadline`, `urgent`, `reply` or `workload`) and
   no scoped wording ("How many deadlines do I have?") is answered here from
-  the priority totals (a zero total is a real zero with no citation). The
-  scope gate is fail-closed: after removing the count cue and the one
+  the priority totals (a zero total is a real zero with no citation); a plain
+  count whose wording names exactly one catalogue topic or subtopic
+  ("How many invoices?", "Combien de factures ?") is the `topic` answer
+  above. This is not limited to `qa.provider` empty: the scope decision and
+  its deterministic answer run with or without a configured generator.
+  The scope gate is fail-closed: after removing the count cue and the one
   category word, every remaining token must be a known filler, question or
   mailbox noun; any unlisted scope, topic, status or date word keeps the
-  question free-form. The gate runs before the intent switch for every
-  request with a recognized count cue, not only "how many" wording, so
+  question free-form. The gate runs before the route is chosen, for every
+  request with a recognized count cue and with or without a configured
+  generator, not only "how many" wording, so
   "Number of…", "Total…", "Amount of…", "Quantity of…", "Quantité…",
   bare "Number deadlines" and French "Combien…" cannot parse directly to a
   category and bypass it. The fail-closed scope and person guarantees apply
-  to every recognized cue. For a recognized cue, a company- or
-  person-scoped count also stays free-form and needs a generator when the
-  profile cannot answer it; a failed person or company lookup stays
+  to every recognized cue on every route. An accepted plain count is
+  answered here with no provider call; a rejected count follows the
+  request's route as a free-form question (Auto and Remote use the
+  configured generator, Local retrieves without one). For a recognized cue,
+  a company- or person-scoped count stays free-form and needs a generator
+  when the profile cannot answer it; a failed person or company lookup stays
   free-form rather than widening to the mailbox total. For recognized cues,
   third-person and person-frame counts ("does she have", "does An have", "do
   they have") stay free-form: the allowlist has no third-person pronouns or
@@ -884,8 +900,11 @@ Modes are explicit:
   the act recorded inside a message — "Which deadlines did I approve?",
   "Quelles échéances ai-je signées ?" — is free-form even when it contains a
   word such as `deadline` or `decision`: a count or list of subjects cannot
-  state the act. An explicit aggregate request ("Which emails did I approve?",
-  "Combien d'échéances ai-je approuvées ?") keeps its deterministic intent.
+  state the act. An explicit aggregate list request ("Which emails did I
+  approve?") keeps its deterministic intent; a count of an act ("Combien
+  d'échéances ai-je approuvées ?") is rejected by the count scope gate above
+  and stays free-form, because a mailbox-wide category total would not state
+  which ones were approved.
   Advice questions such as "Should I pay this invoice?" are free-form; a
   necessity question such as "Must I approve this invoice?" keeps the decision
   intent. Before the planner runs, the service resolves the person or organization
