@@ -90,6 +90,9 @@ Each was independently checked against source by the coordinator:
   screen instead of the route skeleton that shares its class, removing a real
   race that failed once in CI; the probe passed 12 repeats under four workers
   and the full suite 193/193 locally.
+- Promotion: `testing` merges to `main` through PR #25 with every required
+  check green. The owner's explicit instruction authorizes the admin merge
+  because the ruleset demands an extra approval for unattributed commits.
 - Verification on the integrated tree: `make fast` green, the affected
   Playwright flows 56/56, the named regression suites for each feature green,
   the generated site current, and the PII gate clean.
