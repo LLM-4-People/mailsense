@@ -689,28 +689,6 @@
     return mailHref(citation && citation.message_id, "all");
   }
 
-  function focusAskInput() {
-    const input = document.getElementById("ask-input");
-    if (input) {
-      input.focus();
-      input.select();
-      state.askFocusPending = false;
-      return true;
-    }
-    return false;
-  }
-
-  function requestAskFocus() {
-    state.askFocusPending = true;
-    if (state.route !== "ask") {
-      navigate("ask");
-      return;
-    }
-    window.requestAnimationFrame(() => {
-      if (!focusAskInput()) state.askFocusPending = true;
-    });
-  }
-
   function statusKind(value) {
     const v = String(value || "");
     return v === "done" || v === "succeeded" || v === "open" || v === "learned" ? "done"
