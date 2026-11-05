@@ -58,6 +58,44 @@ func priorityRoute(t *testing.T, s *Store, id int64, fingerprint, answers, previ
 	}
 }
 
+func TestEachPriorityReplyReportsOpenStoredDue(t *testing.T) {
+	s, _ := open(t, nil)
+	ctx := t.Context()
+	openDue := mailtest.Message("src", "open-due")
+	openDue.Subject, openDue.TaskDueDate, openDue.FlagStatus = "open-due", "2026-11-10T09:00:00Z", mail.Int(2)
+	completed := mailtest.Message("src", "completed-due")
+	completed.Subject, completed.TaskDueDate, completed.FlagStatus = "completed-due", "2026-11-11T09:00:00Z", mail.Int(1)
+	noDue := mailtest.Message("src", "no-due")
+	noDue.Subject, noDue.TaskDueDate = "no-due", ""
+	noDue.FlagStatus = mail.OptInt{}
+	msgs := []mail.Message{openDue, completed, noDue}
+	if err := s.UpsertMessages(ctx, 0, msgs); err != nil {
+		t.Fatal(err)
+	}
+	verdicts := make([]VerdictRow, 0, len(msgs))
+	for _, m := range msgs {
+		var id int64
+		if err := s.db.QueryRowContext(ctx, "SELECT id FROM messages WHERE msg_id = ?", m.ID).Scan(&id); err != nil {
+			t.Fatal(err)
+		}
+		verdicts = append(verdicts, VerdictRow{RowID: id, Verdict: scope.Owner, Reason: scope.ReasonAddressedFlag})
+		priorityRoute(t, s, id, "fp", `{}`, "")
+	}
+	if err := s.WriteVerdicts(ctx, "test", verdicts); err != nil {
+		t.Fatal(err)
+	}
+	got := map[string]bool{}
+	if err := s.EachPriorityReply(ctx, "fp", false, nil, func(row PriorityRow) error {
+		got[row.Subject] = row.StoredDue
+		return nil
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if !got["open-due"] || got["completed-due"] || got["no-due"] {
+		t.Fatalf("stored due = %+v, want only the open-due row", got)
+	}
+}
+
 func TestEachPriorityMessageOwnerOnlyAndStrict(t *testing.T) {
 	s, _ := open(t, nil)
 	ctx := t.Context()

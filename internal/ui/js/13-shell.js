@@ -469,6 +469,11 @@
   // the token on its content node, so every carrier in the subtree is cleared.
   function forgetPagingTokens(screen) {
     const drop = (node) => {
+      // Only a cached, detached node loses its token. The mounted screen is
+      // still painted and its Load more must stay live; dropping its token
+      // would leave the visible control dead until the route remounts. Its
+      // next page compares generated_at and refreshes when the snapshot moved.
+      if (node.isConnected) return;
       const page = readPagingToken(node);
       if (page && page.screen === screen) node.__pagingModel = null;
     };

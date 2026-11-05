@@ -880,6 +880,7 @@
       if (restoreCachedAllMail(route, seq, cachedEntry) && restoreCachedPaging(route, cachedEntry.node)) {
         appendMain(cachedEntry.node, 0, cachedEntry.scrolls || null);
         touchRouteCache(key, cachedEntry);
+        consumeAskPrefill();
         if (state.askFocusPending) focusAskInput();
         syncCachedMailDetail(route);
         syncCachedCompanyDetail(route);

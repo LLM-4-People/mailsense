@@ -62,7 +62,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        shard: [A, B, C, RACE]
+        shard: [A, B, C]
+        include:
+          # The race shard is explicitly strict: a runner without cgo fails
+          # the check instead of passing with no race detector.
+          - shard: RACE
+            race: "on"
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
@@ -79,6 +84,7 @@ jobs:
         env:
           STAGES: tests
           SHARDS: ${{ matrix.shard }}
+          RACE: ${{ matrix.race || 'auto' }}
           # The sidecar suite binds loopback ports, so it owns a runner of
           # its own instead of running before the shards.
           SIDECAR: "off"
@@ -86,7 +92,9 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: test-logs
+          # Artifact names are unique per run. Two failing shards must not
+          # race for one name and lose the second shard's logs.
+          name: test-logs-${{ matrix.shard }}
           path: |
             /tmp/mailsense-test-fast.*/*.log
             /tmp/*.log

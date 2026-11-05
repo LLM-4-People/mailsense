@@ -1,5 +1,52 @@
   // ---------------------------------------------------------------- ask
 
+  // The Ask composer is the one target of every cross-screen handoff: a
+  // citation, a search row, a company action and the first-run prompt all
+  // ask the shell to land here with a question. These helpers own that
+  // intent so the router does not reimplement focus or replay a prefill.
+  function focusAskInput(field) {
+    const input = field || document.getElementById("ask-input");
+    if (!input) return false;
+    input.focus();
+    // A fresh render consumes its prefill before the composer is mounted;
+    // focusing a detached field is a no-op, so keep the intent pending for
+    // restoreNavigationFocus to finish after the mount.
+    if (document.activeElement !== input) {
+      state.askFocusPending = true;
+      return false;
+    }
+    input.select();
+    state.askFocusPending = false;
+    return true;
+  }
+
+  // consumeAskPrefill applies the one-shot question handed over by another
+  // screen. It is a mount intent, not render state: a cached Ask node never
+  // runs its render again, so the router must be able to consume it too.
+  function consumeAskPrefill(field) {
+    if (!state.askPrefill) return false;
+    // A fresh Ask render is not mounted yet, so the caller hands its own
+    // input. A cached mount has no live composer reference and looks it up.
+    const input = field || document.getElementById("ask-input");
+    if (!input) return false;
+    input.value = state.askPrefill;
+    state.askPrefill = "";
+    focusAskInput(input);
+    input.setSelectionRange(input.value.length, input.value.length);
+    return true;
+  }
+
+  function requestAskFocus() {
+    state.askFocusPending = true;
+    if (state.route !== "ask") {
+      navigate("ask");
+      return;
+    }
+    window.requestAnimationFrame(() => {
+      if (!focusAskInput()) state.askFocusPending = true;
+    });
+  }
+
   const ASK_SUGGESTIONS = [
     "ask.suggestion.urgent",
     "ask.suggestion.reply",
@@ -1133,19 +1180,12 @@
     });
     input.addEventListener("input", () => markFieldError(input, errorLine, ""));
 
-    function setQuestion(value) {
-      input.value = value;
-      input.focus();
-      input.setSelectionRange(input.value.length, input.value.length);
-    }
-
     return {
       node: root,
       input,
       current,
       currentView: () => currentView,
       focus: () => { input.focus(); input.select(); },
-      setQuestion,
       showView,
       showEmpty,
       submit: (value) => submit(value),
@@ -1238,10 +1278,7 @@
     else workspace.showEmpty();
     if (requestedId && !requested.found) askHistory.syncRoute("");
     askHistory.render();
-    if (state.askPrefill) {
-      workspace.setQuestion(state.askPrefill);
-      state.askPrefill = "";
-    }
+    consumeAskPrefill(workspace.input);
     const main = h("div", { class: "ask-main section-scroll", dataset: { scrollKey: "ask-main" } }, workspace.node);
     return h("div", { class: "screen ask-screen" },
       h("div", { class: "ask-layout" }, main,

@@ -70,6 +70,12 @@ test("a slow priority read fills in place after the agenda paints", async ({
   releasePriority();
 
   await expect(important.locator(".mail-row")).toHaveCount(2);
+  // The section's own action must land on the mode it counts: a bare #/mail
+  // would inherit whatever mode the Mail screen chose last.
+  await expect(important.locator(".section-actions a")).toHaveAttribute(
+    "href",
+    "#/mail?mode=important",
+  );
   await expect(app.page.locator('.home-screen[data-e2e-stable="home"]')).toHaveCount(1);
   await expect(agenda.locator(".agenda-row")).toHaveCount(3);
   await expect(firstAgendaLink).toBeFocused();

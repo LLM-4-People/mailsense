@@ -6,8 +6,9 @@ on:
   # A tag push is the normal path. If that event is lost, or a job failed and
   # the tag cannot be moved, dispatch this workflow at the tag ref:
   #   gh workflow run release.yml --ref v0.1.0
-  # The version still comes from GITHUB_REF_NAME, so the assets keep matching
-  # the tag they are published against.
+  # The dispatch ref must be a v* tag. The version still comes from
+  # GITHUB_REF_NAME, so the assets keep matching the tag they are published
+  # against, and the gate refuses a branch ref before any build starts.
   workflow_dispatch:
 
 permissions:
@@ -25,6 +26,25 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
+      # A dispatch can name any branch. Publishing from one would derive the
+      # version from the branch name and attach it to a release that no tag
+      # owns, so the ref is checked before anything is built or published.
+      - name: the ref is a release tag
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ "$GITHUB_REF_TYPE" != "tag" ]]; then
+            echo "error: release must run at a tag ref, not ${GITHUB_REF_TYPE} ${GITHUB_REF_NAME}" >&2
+            echo "re-run with: gh workflow run release.yml --ref v<version>" >&2
+            exit 1
+          fi
+          case "$GITHUB_REF_NAME" in
+            v[0-9]*) ;;
+            *)
+              echo "error: a release tag must start with v and a digit: ${GITHUB_REF_NAME}" >&2
+              exit 1
+              ;;
+          esac
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0

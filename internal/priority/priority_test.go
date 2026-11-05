@@ -1435,5 +1435,32 @@ func TestScoreLevelIsTheDecidedClass(t *testing.T) {
 	}
 }
 
+// StoredDue is a mailbox fact, not a classifier estimate: priority must turn
+// an otherwise informational message with an open follow-up date into the
+// owner's follow-up, with the stored due source, so the ranked list cannot
+// contradict commitments and agenda.
+func TestStoredDuePromotesReadToFollowUp(t *testing.T) {
+	open := store.PriorityRow{MessageID: 1, Subject: "Invoice", ReceivedAt: receivedAgo(0),
+		StoredDue: true, Route: map[string]route.Answer{"urgency": score("urgency", 4)}}
+	closed := open
+	closed.MessageID, closed.StoredDue = 2, false
+	svc, _ := newService(t, []store.PriorityRow{open, closed}, false)
+	items, _, _, err := svc.Rank(t.Context(), FilterAll, 8)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(items) != 2 {
+		t.Fatalf("ranked %d items, want the urgent informational row and its control", len(items))
+	}
+	byID := map[int64]Item{items[0].MessageID: items[0], items[1].MessageID: items[1]}
+	if got := byID[1].Action; got.Primary != action.FollowUp || got.Waiting != action.WaitingOwner ||
+		got.DueSource != action.DueStored || !slices.Contains(got.Reasons, "due") {
+		t.Fatalf("open stored due action = %+v, want follow_up/owner/stored with reason due", got)
+	}
+	if got := byID[2].Action; got.Primary != action.Read || got.DueSource != action.DueNone {
+		t.Fatalf("control action = %+v, want read without a due source", got)
+	}
+}
+
 // A stale-while-revalidate serve keeps the snapshot's build time: the API
 // must not stamp a fresh request time on an older ranking.

@@ -1,7 +1,6 @@
 import {
   AT,
   emptyMessageListPage,
-  messageListPage,
   messageView,
   msg,
   priorityItem,
@@ -9,100 +8,11 @@ import {
   progressiveMailPage,
   progressiveSenderMailPage,
   progressiveUnreadMailPage,
-  questionsView,
-  searchView,
-  triageResult,
-  type MessagesPage,
 } from "../fixtures/data";
+import { mailMocks } from "../fixtures/mail";
 import { fulfillJson, mockApi } from "../fixtures/mock";
 import { emitSse, installFakeEventSource, installFakeStreamWithClock } from "../fixtures/sse";
 import { expect, test } from "../fixtures/test";
-
-type MailMockOptions = {
-  messagesPage?: (
-    role: string,
-    before: string,
-    sender: string,
-    unread: boolean,
-  ) => MessagesPage;
-  priorityPage?: (filter: string, limit: number, offset: number) => unknown;
-  priorityFail?: () => boolean;
-};
-
-async function mailMocks(
-  page: Parameters<typeof mockApi>[0],
-  options: MailMockOptions = {},
-) {
-  await mockApi(page, [
-    {
-      method: "GET",
-      path: "/api/priority",
-      handler: async ({ route, url }) => {
-        const filter = url.searchParams.get("filter") || "all";
-        const limit = url.searchParams.get("limit") || "50";
-        const offset = Number(url.searchParams.get("offset") || "0");
-        if (limit === "1") {
-          const totals: Record<string, number> = {
-            all: 2,
-            reply: 1,
-            deadline: 1,
-          };
-          await fulfillJson(route, {
-            items: [],
-            total: totals[filter] ?? 0,
-            generated_at: "2026-10-25T10:00:00Z",
-            preview: true,
-          });
-          return;
-        }
-        if (options.priorityPage) {
-          if (options.priorityFail && options.priorityFail()) {
-            await fulfillJson(route, { code: "internal", message: "Synthetic priority failure" }, 500);
-            return;
-          }
-          await fulfillJson(route, options.priorityPage(filter, Number(limit), offset));
-          return;
-        }
-        await fulfillJson(route, priorityView(filter));
-      },
-    },
-    {
-      method: "GET",
-      path: "/api/messages",
-      handler: async ({ route, url }) => {
-        const role = url.searchParams.get("role") || "all";
-        const before = url.searchParams.get("before") || "";
-        const sender = url.searchParams.get("sender") || "";
-        const unreadParam = (url.searchParams.get("unread") || "").toLowerCase();
-        const unread = unreadParam === "true" || unreadParam === "1";
-        await fulfillJson(
-          route,
-          options.messagesPage
-            ? options.messagesPage(role, before, sender, unread)
-            : messageListPage(role, before, sender, unread),
-        );
-      },
-    },
-    {
-      method: "GET",
-      path: /^\/api\/messages\/\d+$/,
-      handler: async ({ route, url }) => {
-        const id = Number(url.pathname.split("/").pop());
-        await fulfillJson(route, messageView(id));
-      },
-    },
-    {
-      method: "GET",
-      path: /^\/api\/triage\/\d+$/,
-      handler: async ({ route, url }) => {
-        const id = Number(url.pathname.split("/").pop());
-        await fulfillJson(route, triageResult(id));
-      },
-    },
-    { method: "GET", path: "/api/questions", body: questionsView() },
-    { method: "GET", path: "/api/search", body: searchView() },
-  ]);
-}
 
 type FirstMailFrame = {
   count: number;
@@ -242,6 +152,56 @@ test.describe("Mail", () => {
     await expect(app.page.locator("#mail-detail")).toContainText(
       "The synthetic budget is ready for review.",
     );
+  });
+
+  test("Ask about this message survives a cached Ask visit and is consumed once", async ({
+    app,
+  }) => {
+    await mailMocks(app.page);
+    // Warm Ask so the next visit is served from the route cache rather than
+    // running renderAsk again.
+    await app.goto("/ask");
+    await app.expectRoute("ask");
+    await expect(app.page.locator("#ask-input")).toHaveValue("");
+
+    await app.page.locator('a[data-nav="mail"]').click();
+    await app.expectRoute("mail");
+    await app.page.locator('.mail-row[data-message-id="101"]').click();
+    await expect(app.page.locator("#mail-detail .mail-subject")).toHaveText(
+      "Synthetic invoice",
+    );
+
+    await app.page.getByRole("button", { name: "Ask about this message" }).click();
+    await app.expectRoute("ask");
+    await expect(app.page.locator("#ask-input")).toHaveValue(
+      "Tell me about this message: Synthetic invoice",
+    );
+    await expect(app.page.locator("#ask-input")).toBeFocused();
+
+    // The handoff is one shot: a question the owner clears is not replayed
+    // when the cached screen mounts again. An untouched prefill stays as the
+    // draft it is, which is why this test clears it first.
+    await app.page.locator("#ask-input").fill("");
+    await app.page.locator('a[data-nav="mail"]').click();
+    await app.expectRoute("mail");
+    await app.page.locator('a[data-nav="ask"]').click();
+    await app.expectRoute("ask");
+    await expect(app.page.locator("#ask-input")).toHaveValue("");
+  });
+
+  test("Ask about this message prefills the first Ask render", async ({ app }) => {
+    await mailMocks(app.page);
+    // No warm Ask visit: this is the cold path, where the composer is not in
+    // the document yet when the handoff is consumed.
+    await app.goto("/mail?mode=important");
+    await app.expectRoute("mail");
+    await app.page.locator('.mail-row[data-message-id="101"]').click();
+    await app.page.getByRole("button", { name: "Ask about this message" }).click();
+    await app.expectRoute("ask");
+    await expect(app.page.locator("#ask-input")).toHaveValue(
+      "Tell me about this message: Synthetic invoice",
+    );
+    await expect(app.page.locator("#ask-input")).toBeFocused();
   });
 
   test("Home reads six priority rows while Important keeps its own 50-item page", async ({ app }) => {
