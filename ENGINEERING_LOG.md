@@ -59,6 +59,16 @@ Each was independently checked against source by the coordinator:
 3. Implement the designs when the read-only audits return: evidence-date
    deadlines, people profiles, the remaining memory bounds.
 4. Uncertified-dimension notices for the priority-category counts.
+5. Update feature (owner request): detect, download and install updates from
+   GitHub releases, updating correctly from any distance behind, with a
+   first-open "What's New"; seamless, fast, fail-closed on verification.
+   Design audit running; first slice is detect + notify + What's New, then the
+   install step (installer vs portable exe, rollback, reuse of the sidecar
+   verified-download machinery).
+6. Theme feature (owner request): dark and light for the app, the
+   marketing/preview surfaces and the Pages site; system preference by default
+   with a persistent manual override. Design audit running; app-UI work waits
+   for the `fix-brief-row` branch to merge (shared `internal/ui`).
 
 ## Cycle: three-writer intelligence round (2026-11-04/05)
 
