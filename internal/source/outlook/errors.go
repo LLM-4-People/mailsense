@@ -14,6 +14,11 @@ var (
 		"from an elevated process. Start Mailsense normally (not \"Run as administrator\")")
 	ErrNoClassicOutlook = errors.New("outlook: classic Outlook for Windows is not installed (Outlook.Application is not registered). " +
 		"The new Outlook has no COM interface; install or switch back to classic Outlook")
+	// ErrOutlookExeNotFound: classic Outlook is installed, but its App
+	// Paths registration (the absolute path of OUTLOOK.EXE, apppaths.go)
+	// resolved nowhere, so it cannot be started safely.
+	ErrOutlookExeNotFound = errors.New("outlook: classic Outlook's executable could not be located (no App Paths registration for OUTLOOK.EXE under HKLM or HKCU). " +
+		"Repair or reinstall classic Outlook")
 	ErrNewOutlook = errors.New("outlook: classic Outlook is not running and this profile is switched to the new Outlook " +
 		"(UseNewOutlook=1), which has no COM interface. Start classic Outlook, or turn off \"New Outlook\"")
 	ErrIntegrity = errors.New("outlook: Outlook and Mailsense run at different privilege levels (one of them as administrator). " +

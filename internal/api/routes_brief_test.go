@@ -28,10 +28,9 @@ func briefFixture() brief.Result {
 			LastAt: "2026-10-27T10:00:00Z", State: "awaiting_owner", StateReason: "inbound_last",
 		}}},
 		Relationships: brief.Section{Count: 1, Items: []brief.Item{{
-			ID: "organization:c:atelier nord", Kind: "organization", Title: "Atelier Nord", Subject: "Latest",
-			Organization:  &brief.Org{Key: "c:atelier nord", Label: "Atelier Nord"},
-			Conversations: 3, Messages: 12, AwaitingOwner: 2, AwaitingOther: 1, Count: 3,
-			LastAt: "2026-10-27T10:00:00Z", MessageID: 13, Evidence: []int64{13},
+			ID: "organization:c:atelier nord", Kind: "organization", Title: "Atelier Nord",
+			Organization: &brief.Org{Key: "c:atelier nord", Label: "Atelier Nord"},
+			Count:        3, Overdue: 1, StoredDue: 1,
 		}}},
 		Topics: brief.Section{Count: 7, Total: 120, Suggested: true, Scope: "owner_mailbox", Items: []brief.Item{{
 			ID: "topic:project_work", Kind: "topic", Title: "project_work", Count: 4, Suggested: true,
@@ -90,11 +89,15 @@ func TestBriefShape(t *testing.T) {
 	}
 	relationship := body["relationships"].(map[string]any)["items"].([]any)[0].(map[string]any)
 	for key, want := range map[string]any{
-		"kind": "organization", "conversations": float64(3), "messages": float64(12),
-		"awaiting_owner": float64(2), "awaiting_other": float64(1), "count": float64(3),
+		"kind": "organization", "count": float64(3), "overdue": float64(1), "stored_due": float64(1),
 	} {
 		if got := relationship[key]; got != want {
 			t.Errorf("relationship[%q] = %#v, want %#v", key, got, want)
+		}
+	}
+	for _, dead := range []string{"conversations", "messages", "awaiting_owner", "awaiting_other"} {
+		if _, ok := relationship[dead]; ok {
+			t.Errorf("relationship[%q] exposes a dead digest fact", dead)
 		}
 	}
 	topics := body["topics"].(map[string]any)

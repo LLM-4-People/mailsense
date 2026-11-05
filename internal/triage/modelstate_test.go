@@ -1,8 +1,11 @@
 package triage
 
 import (
+	"context"
 	"encoding/json"
+	"reflect"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -76,6 +79,120 @@ func TestModelStateCarriesNoLabelsHistoryOrPredictions(t *testing.T) {
 	}
 	if afterPredictions := state(); afterPredictions != before {
 		t.Fatalf("a prediction changed the judge state:\nbefore:\n%s\nafter:\n%s", before, afterPredictions)
+	}
+}
+
+// The cache path and the judge's state share ONE mail-derived core per mail
+// stamp: warming one and then the other pays a single heavy build (the build
+// counter and the evidence load, which runs inside buildMailCore after
+// threads.Load, prove it), and both label overlays point at the same
+// analysis, behaviour and history. A label write reloads the cache's overlay
+// only; new mail rebuilds the one core once for both.
+func TestCacheAndModelShareOneMailCore(t *testing.T) {
+	for _, tc := range []struct {
+		name       string
+		modelFirst bool
+	}{
+		{name: "cache first"},
+		{name: "model first", modelFirst: true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			w := newWorld(t, nil)
+			id := w.mail("a@x.org", "A", "Hi", 0, 0)
+			ev := &countingEvidence{}
+			w.tr.UseEvidence(ev)
+			if err := w.cfg.Set("triage.facts.evidence", true); err != nil {
+				t.Fatal(err)
+			}
+			var builds atomic.Int64
+			w.tr.build = func(ctx context.Context) (*core, error) {
+				builds.Add(1)
+				return w.tr.buildMailCore(ctx)
+			}
+			warmCache := func() *core {
+				t.Helper()
+				c, err := w.tr.core(t.Context())
+				if err != nil {
+					t.Fatal(err)
+				}
+				return c
+			}
+			warmModel := func() *core {
+				t.Helper()
+				if _, err := w.tr.ModelState(t.Context(), id); err != nil {
+					t.Fatal(err)
+				}
+				c, err := w.tr.modelCore(t.Context())
+				if err != nil {
+					t.Fatal(err)
+				}
+				return c
+			}
+
+			var cache, model *core
+			if tc.modelFirst {
+				model, cache = warmModel(), warmCache()
+			} else {
+				cache, model = warmCache(), warmModel()
+			}
+			if got := builds.Load(); got != 1 {
+				t.Fatalf("warming the cache and the model built the mail core %d times, want 1", got)
+			}
+			if got := ev.facts; got != 1 {
+				t.Fatalf("warming the cache and the model loaded the evidence facts %d times, want 1 (one threads.Load)", got)
+			}
+			if model.analysis != cache.analysis || model.history != cache.history ||
+				model.behaviour != cache.behaviour ||
+				reflect.ValueOf(model.facts).Pointer() != reflect.ValueOf(cache.facts).Pointer() {
+				t.Fatal("the cache and the model do not share the mail-derived core")
+			}
+
+			// A label write reloads the cache's label overlay: the mail core
+			// and the judge's overlay stay put.
+			if err := w.st.PutLabel(t.Context(), id, "reply_needed", "1", store.LabelManual); err != nil {
+				t.Fatal(err)
+			}
+			labeled, err := w.tr.core(t.Context())
+			if err != nil {
+				t.Fatal(err)
+			}
+			if labeled.analysis != cache.analysis || len(labeled.labels) != 1 {
+				t.Fatal("a label write did not reload only the label overlay")
+			}
+			if again, err := w.tr.modelCore(t.Context()); err != nil || again != model {
+				t.Fatal("a label write rebuilt the model's overlay")
+			}
+			if got := builds.Load(); got != 1 {
+				t.Fatalf("a label write built the mail core %d times, want 1", got)
+			}
+
+			// New mail rebuilds the one mail core once: the first consumer
+			// pays it, the second reuses it.
+			w.mail("b@x.org", "B", "Hi", time.Hour, 0)
+			grown, err := w.tr.core(t.Context())
+			if err != nil {
+				t.Fatal(err)
+			}
+			if grown.analysis == labeled.analysis {
+				t.Fatal("new mail did not rebuild the mail core")
+			}
+			if got := builds.Load(); got != 2 {
+				t.Fatalf("new mail built the mail core %d times, want 2 total", got)
+			}
+			next, err := w.tr.modelCore(t.Context())
+			if err != nil {
+				t.Fatal(err)
+			}
+			if next.analysis != grown.analysis {
+				t.Fatal("the model did not reuse the rebuilt mail core")
+			}
+			if got := builds.Load(); got != 2 {
+				t.Fatalf("the model built the mail core %d times after the cache, want 2 total", got)
+			}
+			if got := ev.facts; got != 2 {
+				t.Fatalf("the evidence facts were loaded %d times, want 2 (one per mail stamp)", got)
+			}
+		})
 	}
 }
 

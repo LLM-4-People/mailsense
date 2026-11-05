@@ -346,7 +346,7 @@ image:
     <div class="privacy-panel">
     <div class="section-head section-head-dark">
       <h2 id="boundary-title">Ce qui quitte la machine</h2>
-      <p class="section-lead">Mailsense fait quatre types de requêtes réseau. Chacune a une raison visible.</p>
+      <p class="section-lead">Mailsense fait cinq types de requêtes réseau. Chacune a une raison visible.</p>
     </div>
       <div class="privacy-grid">
         <div class="boundary-col boundary-leaves">
@@ -356,6 +356,7 @@ image:
             <li>Une requête vers un fournisseur distant que vous avez configuré, pour une réponse Ask ou le triage automatique après une synchronisation. Elle porte la question et les champs du message dont cet appel a besoin.</li>
             <li>Une liste de modèles d&#39;un fournisseur quand vous cliquez sur Récupérer les modèles.</li>
             <li>Une petite requête de test quand vous cliquez sur Tester. Un test est facturable et n&#39;est pas couvert par un budget.</li>
+            <li>Le contrôle des mises à jour : au plus une fois par update.check.interval (24 heures par défaut), une requête à GitHub demande la dernière version publiée. Elle ne porte aucun courrier, aucune adresse ni identifiant d&#39;installation, et peut être désactivée dans les Réglages.</li>
           </ol>
         </div>
         <div class="boundary-col boundary-stays">
@@ -363,7 +364,7 @@ image:
           <ol>
             <li>Le stockage du courrier, les pièces jointes, les index et le profil appris. Ce sont des fichiers SQLite dans le répertoire de données que vous avez choisi.</li>
             <li>Le code de classification, de preuve et de classement. Il s&#39;exécute en Go local, pas comme un appel à un service.</li>
-            <li>Aucune télémétrie, aucune analyse, aucun appel de mise à jour et aucun compte chez un fournisseur.</li>
+            <li>Aucune télémétrie, aucune analyse et aucun compte chez un fournisseur.</li>
           </ol>
         </div>
       </div>

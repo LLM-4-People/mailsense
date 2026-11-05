@@ -154,13 +154,20 @@ var sourceLineBudget = map[string]int{
 	// each catalog. The first-run round added the basic and advanced setup
 	// wording in both catalogs; the budget moved by the exact added lines.
 	// The topic-count round added the Ask topic sentence, its zero form and
-	// the coverage line in both catalogs: three lines each.
-	"internal/ui/i18n.fr.js": 2613,
-	"internal/ui/i18n.en.js": 2226,
+	// the coverage line in both catalogs: three lines each. The Brief
+	// open-loop round replaced the two dead relationship digest keys with the
+	// open-loop, overdue and stored follow-up keys and added the uncertified
+	// zero sentence: two lines in each catalog. The update round added the
+	// Updates group and its three setting descriptions in the French catalog:
+	// four lines, on top of the Brief round's two.
+	"internal/ui/i18n.fr.js": 2619,
+	"internal/ui/i18n.en.js": 2228,
 	"internal/qa/qa_test.go": 4930,
 	// The three Node behavior harnesses each run the shared thread-state
-	// block before their view block: +2 lines per harness.
-	"internal/ui/ui_test.go":             6957,
+	// block before their view block: +2 lines per harness. The Brief
+	// open-loop round rebuilt the relationship fixture to the real wire shape
+	// and pinned the partitions and the 0/0 Ask coverage: +12 lines.
+	"internal/ui/ui_test.go":             6967,
 	"internal/priority/priority_test.go": 1456,
 	// The Mail spec carries Important's cached-paging and completion-event
 	// regressions; they belong with the screen's mocks.

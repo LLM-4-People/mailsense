@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"net/http"
 	"strings"
 	"testing"
 	"time"
@@ -27,6 +28,10 @@ func TestAuth(t *testing.T) {
 		{"query ignored on status", request{method: "GET", path: "/api/status?token=" + sameLength}, 200},
 		{"double slash no token", noAuth(request{method: "GET", path: "//api/status"}), 401},
 		{"dot segment no token", noAuth(request{method: "GET", path: "/x/../api/status"}), 401},
+		// The percent-encoded dot segment reaches ServeMux as an escaped
+		// "/api/" path while the decoded path cleans to "/status"; the gate
+		// must decide on the same form the mux matches.
+		{"escaped dot segment no token", noAuth(request{method: "GET", path: "/api/%2e%2e/status"}), 401},
 		{"double slash with token", request{method: "GET", path: "//api/status"}, 307},
 		{"token in body", noAuth(request{method: "POST", path: "/api/learning/zone", body: `{"zone":"` + valid + `"}`}), 401},
 	}
@@ -43,6 +48,15 @@ func TestAuth(t *testing.T) {
 				}
 			}
 		})
+	}
+	// The escaped case above only proves anything when the request keeps its
+	// percent-encoded form: a normalised request would test the decoded path.
+	escaped, err := http.NewRequest("GET", ts.URL+"/api/%2e%2e/status", nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if escaped.URL.RawPath != "/api/%2e%2e/status" {
+		t.Fatalf("the escaped request was normalised: RawPath = %q, Path = %q", escaped.URL.RawPath, escaped.URL.Path)
 	}
 	if _, _, data := do(t, ts, srv, noAuth(request{method: "GET", path: "/api/status"})); strings.Contains(string(data), valid) {
 		t.Fatal("the 401 body contains the token")

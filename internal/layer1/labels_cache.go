@@ -19,7 +19,49 @@ import (
 const (
 	labelQueueTTL  = 30 * time.Second
 	labelQueueSize = 16
+	// labelQueueMaxBytes bounds the estimated retained bytes of the queue
+	// cache: a queue carries at most LabelQueueMax tasks of short strings and
+	// one decoded suggestion each, so 1 MiB covers all 16 entries.
+	labelQueueMaxBytes = 1 << 20
+	// labelOrderMaxBytes bounds the estimated retained bytes of the ranking
+	// cache: the same task shape as a queue, four entries.
+	labelOrderMaxBytes = 512 << 10
 )
+
+// The estimates behind weighLabelQueue and weighLabelTasks: a task is a few
+// short strings, and a review task adds a decoded suggestion header and value.
+const (
+	labelTaskBytes           = 128
+	labelTaskSuggestionBytes = 64
+)
+
+// weighLabelTask estimates one task.
+func weighLabelTask(t LabelTask) int {
+	n := labelTaskBytes
+	if t.Suggestion != nil {
+		n += labelTaskSuggestionBytes
+	}
+	return n
+}
+
+// weighLabelQueue estimates one queue: the task list dominates.
+func weighLabelQueue(q LabelQueue) int {
+	n := 128 + len(q.Question) + len(q.Strategy)
+	for _, task := range q.Tasks {
+		n += weighLabelTask(task)
+	}
+	return n
+}
+
+// weighLabelTasks estimates one candidate order: the task list is the whole
+// value.
+func weighLabelTasks(tasks []LabelTask) int {
+	n := 0
+	for _, task := range tasks {
+		n += weighLabelTask(task)
+	}
+	return n
+}
 
 // queueKey identifies one rendered label queue. Every input that changes
 // the result is part of it: the question, the effective limit and strategy
@@ -46,9 +88,11 @@ type queueKey struct {
 func (r *Runner) queueCache() *viewcache.Cache[queueKey, LabelQueue] {
 	r.queuesOnce.Do(func() {
 		r.queues = viewcache.New(viewcache.Options[queueKey, LabelQueue]{
-			TTL:  labelQueueTTL,
-			Size: labelQueueSize,
-			Now:  clock.Or(r.clock).Now,
+			TTL:      labelQueueTTL,
+			Size:     labelQueueSize,
+			MaxBytes: labelQueueMaxBytes,
+			Weigh:    weighLabelQueue,
+			Now:      clock.Or(r.clock).Now,
 			// The rebuild timeout is viewcache's default, not restated here.
 			Component: "layer1",
 		})
@@ -73,6 +117,8 @@ func (r *Runner) orderCache() *viewcache.Cache[orderKey, []LabelTask] {
 		r.orders = viewcache.New(viewcache.Options[orderKey, []LabelTask]{
 			TTL:       labelOrderTTL,
 			Size:      labelOrderSize,
+			MaxBytes:  labelOrderMaxBytes,
+			Weigh:     weighLabelTasks,
 			Now:       clock.Or(r.clock).Now,
 			Component: "layer1",
 		})

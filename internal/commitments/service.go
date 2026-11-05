@@ -208,6 +208,11 @@ const (
 // single background refresh runs, so no request waits for a store read.
 const CacheTTL = 15 * time.Second
 
+// cacheMaxBytes bounds the estimated retained bytes of the one built set: the
+// deduped items dominate (the read windows above cap them), so 4 MiB fits
+// every plausible set while still capping a pathological mailbox.
+const cacheMaxBytes = 4 << 20
+
 // The background rebuild's bound is viewcache's default (two minutes), so a
 // stuck read cannot keep the refresh flag set forever.
 
@@ -288,6 +293,30 @@ type snapshot struct {
 	loops    []OrganizationOpenLoops
 }
 
+// Per-row estimates behind weighSnapshot: a commitment row is a dozen short
+// strings plus its evidence ids (counted exactly); a map entry is one header.
+const (
+	commitmentRowBytes  = 256
+	commitmentMapBytes  = 64
+	commitmentLoopBytes = 256
+)
+
+// weighSnapshot estimates one built set from its slices and maps. The
+// organization rollups copy row headers and their bounded item lists, so they
+// are counted beside the full item list: shared strings are counted twice,
+// which keeps the estimate an upper bound.
+func weighSnapshot(s snapshot) int {
+	n := 512
+	for _, item := range s.items {
+		n += commitmentRowBytes + len(item.Evidence)*8
+	}
+	n += len(s.counts) * commitmentMapBytes
+	for _, org := range s.loops {
+		n += commitmentLoopBytes + len(org.Kinds)*commitmentMapBytes + len(org.Items)*commitmentRowBytes
+	}
+	return n
+}
+
 // New returns a commitments service. It does not read the store.
 func New(d Deps) *Service {
 	s := &Service{
@@ -298,7 +327,8 @@ func New(d Deps) *Service {
 		clock:     clock.Or(d.Clock),
 	}
 	s.cache = viewcache.New[struct{}, snapshot](viewcache.Options[struct{}, snapshot]{
-		TTL: CacheTTL, Size: 1, Now: s.clock.Now, Component: "commitments",
+		TTL: CacheTTL, Size: 1, MaxBytes: cacheMaxBytes, Weigh: weighSnapshot,
+		Now: s.clock.Now, Component: "commitments",
 		// The key is constant, so a generation move is not a new entry: the
 		// installed set is served stale while one refresh runs, and this gate
 		// refuses to install a set built for the moved-from generation.

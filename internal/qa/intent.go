@@ -13,7 +13,7 @@ import (
 // parseIntent: it is the freeform question that entity linking resolves to
 // exactly one known organization and that asks about that organization
 // itself, answered from its profile. IntentTopic is the catalogue topic count
-// the provider-less gate answers from the topic census.
+// the count scope gate answers from the topic census.
 const (
 	IntentReply        = "reply"
 	IntentUrgent       = "urgent"

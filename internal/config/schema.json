@@ -2391,6 +2391,31 @@
       "default": false,
       "group": "Interface",
       "description": "Marks the first-run setup as finished. The setup screen sets it when you finish; reset it to see the setup again. It is not a security control."
+    },
+    {
+      "key": "update.check.enabled",
+      "type": "bool",
+      "default": true,
+      "group": "Updates",
+      "description": "Check GitHub releases for a newer version. Off stops the automatic check; a manual check from the update screen still runs."
+    },
+    {
+      "key": "update.check.interval",
+      "type": "duration",
+      "default": "24h",
+      "min": "1h",
+      "max": "720h",
+      "group": "Updates",
+      "description": "Shortest gap between two automatic release checks (a small jitter is added so installations do not all check at the same moment)."
+    },
+    {
+      "key": "update.remind.after",
+      "type": "duration",
+      "default": "72h",
+      "min": "1h",
+      "max": "720h",
+      "group": "Updates",
+      "description": "How long a skipped update stays quiet before the same version is offered again."
     }
   ],
   "constraints": [

@@ -23,7 +23,7 @@ func writeDocumentationCSS(out *strings.Builder) {
 }
 .breadcrumb a { color: var(--muted); text-decoration: none; }
 .breadcrumb a:hover { color: var(--teal); }
-.breadcrumb span[aria-current] { color: var(--ink); }
+.breadcrumb span[aria-current] { color: var(--page-ink); }
 
 .doc-layout {
   display: grid;
@@ -100,7 +100,7 @@ func writeDocumentationCSS(out *strings.Builder) {
   padding: 9px 10px 9px 0;
   text-align: left;
   vertical-align: bottom;
-  border-bottom: 1px solid var(--ink);
+  border-bottom: 1px solid var(--page-ink);
   color: var(--muted);
   font-family: var(--mono);
   font-size: 0.56rem;
@@ -115,8 +115,8 @@ func writeDocumentationCSS(out *strings.Builder) {
   max-width: 100%;
   padding: 16px 18px;
   border-radius: var(--r-md);
-  background: var(--ink);
-  color: var(--paper);
+  background: var(--code-block);
+  color: var(--code-block-ink);
   overflow-x: auto;
   line-height: 1.5;
 }
@@ -124,8 +124,8 @@ func writeDocumentationCSS(out *strings.Builder) {
 .doc-main code {
   padding: 0.12em 0.32em;
   border-radius: 6px;
-  background: var(--sand);
-  color: var(--ink);
+  background: var(--code);
+  color: var(--code-ink);
   font-family: var(--mono);
   font-size: 0.86em;
   overflow-wrap: anywhere;
@@ -211,8 +211,8 @@ func writeDocumentationCSS(out *strings.Builder) {
   text-transform: uppercase;
   white-space: nowrap;
 }
-.doc-index a:hover { background: var(--paper); color: var(--ink); }
-.doc-index-current { background: var(--ink); color: var(--paper); }
+.doc-index a:hover { background: var(--page); color: var(--page-ink); }
+.doc-index-current { background: var(--chip); color: var(--chip-ink); }
 
 .rail-title {
   margin: 0 0 10px;
@@ -255,7 +255,7 @@ func writeDocumentationCSS(out *strings.Builder) {
   padding: 10px 0;
   list-style: none;
   cursor: pointer;
-  color: var(--ink);
+  color: var(--page-ink);
   font-family: var(--mono);
   font-size: 0.66rem;
   letter-spacing: 0.1em;

@@ -210,29 +210,29 @@
     return h("div", { class: "brief-row brief-changed-row" }, content);
   }
 
+  // briefRelationshipRow renders one organization's open loops: the loop
+  // total and the overdue and stored follow-up partitions the commitments
+  // rollup sends. The digest's conversation and message counts are no longer
+  // on this wire, so the row states only what the producer reports.
   function briefRelationshipRow(item) {
     const source = item && typeof item === "object" ? item : {};
     const organization = source.organization && typeof source.organization === "object" ? source.organization : {};
     const label = briefOrganizationLabel(organization) || String(source.title || "").trim() || t("brief.organization_unknown");
     const key = String(organization.key || "").trim();
+    const openLoops = briefCount(source.count);
+    const overdue = briefCount(source.overdue);
+    const storedDue = briefCount(source.stored_due);
     const content = [
       h("div", { class: "brief-row-main" },
         h("span", { class: "brief-rel-title", dir: "auto", text: label }),
         h("div", { class: "brief-rel-stats" },
-          h("span", { text: t("mail.conversations.count", { count: briefCount(source.conversations) }) }),
-          h("span", { text: t("detail.thread.message_count", { count: briefCount(source.messages) }) }),
-          briefCount(source.awaiting_owner)
-            ? badge(t("brief.relationships.open_owner", { count: briefCount(source.awaiting_owner) }), "accent")
+          h("span", { text: t("brief.relationships.open_loops", { count: openLoops }) }),
+          overdue
+            ? badge(t("brief.relationships.overdue", { count: overdue }), "danger")
             : null,
-          briefCount(source.awaiting_other)
-            ? badge(t("brief.relationships.open_other", { count: briefCount(source.awaiting_other) }), "plain")
+          storedDue
+            ? badge(t("brief.relationships.stored_due", { count: storedDue }), "plain")
             : null)),
-      source.last_at ? h("div", { class: "brief-row-side" },
-        h("span", {
-          class: "brief-when",
-          title: formatDate(source.last_at),
-          text: conversationWhen(source.last_at),
-        })) : null,
     ];
     if (key) {
       return h("a", {

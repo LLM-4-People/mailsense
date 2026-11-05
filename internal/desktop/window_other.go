@@ -4,11 +4,10 @@ package desktop
 
 import (
 	"errors"
-	"html"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"runtime"
+	"strings"
 	"time"
 )
 
@@ -51,40 +50,54 @@ func launchBrowser(target string) error {
 		return err
 	}
 	cmd := exec.Command(name, args...)
+	cmd.Env = launcherEnv(os.Environ())
 	if err := cmd.Start(); err != nil {
 		cleanup()
 		return err
 	}
 	// The browser reads the redirect after the launcher returns. Keep the
 	// 0600 file briefly, then remove the whole private directory.
-	time.AfterFunc(2*time.Minute, cleanup)
+	time.AfterFunc(bootstrapPageTTL, cleanup)
 	return cmd.Process.Release()
 }
 
-// bootstrapPage writes a one-shot HTML redirect and returns its file URL.
-// The launcher receives only this path: the bearer token in the app URL is
-// never an argv value, where another local user could read it from
-// /proc/<pid>/cmdline or ps while the app runs.
-func bootstrapPage(target string) (string, func(), error) {
-	dir, err := os.MkdirTemp("", "mailsense-launch-")
-	if err != nil {
-		return "", nil, err
+// launcherEnv keeps only the variables a GUI browser launcher needs: PATH
+// to find the browser and its helpers, the session handles, the temp
+// directory and the locale. The app's MAILSENSE_* variables — secrets and
+// credential-bearing overrides — never reach the browser process tree.
+// The allow-list style (case-insensitive names) mirrors the sidecar's
+// childEnv in internal/sidecar/process.go.
+func launcherEnv(base []string) []string {
+	var out []string
+	for _, kv := range base {
+		name, _, _ := strings.Cut(kv, "=")
+		up := strings.ToUpper(name)
+		if strings.HasPrefix(up, "MAILSENSE_") || !launcherEnvAllowed(up) {
+			continue
+		}
+		out = append(out, kv)
 	}
-	cleanup := func() { _ = os.RemoveAll(dir) }
-	if err := os.Chmod(dir, 0o700); err != nil {
-		cleanup()
-		return "", nil, err
-	}
-	path := filepath.Join(dir, "open.html")
-	page := "<!doctype html><meta charset=\"utf-8\"><title>" + html.EscapeString(WindowTitle) + "</title>" +
-		"<meta http-equiv=\"refresh\" content=\"0;url=" + html.EscapeString(target) + "\">" +
-		"<p><a href=\"" + html.EscapeString(target) + "\">Open " + html.EscapeString(WindowTitle) + "</a></p>\n"
-	if err := os.WriteFile(path, []byte(page), 0o600); err != nil {
-		cleanup()
-		return "", nil, err
-	}
-	return "file://" + filepath.ToSlash(path), cleanup, nil
+	return out
 }
+
+// launcherEnvAllowed reports whether one upper-cased variable name is kept:
+// an exact name a launcher reads, or one of the XDG_*/LC_* families.
+func launcherEnvAllowed(up string) bool {
+	for _, name := range launcherEnvNames {
+		if up == name {
+			return true
+		}
+	}
+	for _, prefix := range launcherEnvPrefixes {
+		if strings.HasPrefix(up, prefix) {
+			return true
+		}
+	}
+	return false
+}
+
+var launcherEnvNames = []string{"PATH", "HOME", "DISPLAY", "WAYLAND_DISPLAY", "TMPDIR", "TERM", "LANG"}
+var launcherEnvPrefixes = []string{"XDG_", "LC_"}
 
 // browserCommand is the one browser-launch vocabulary outside Windows.
 func browserCommand(goos, target string) (string, []string, error) {

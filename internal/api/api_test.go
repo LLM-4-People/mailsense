@@ -33,6 +33,7 @@ import (
 	"github.com/LLM-4-People/mailsense/internal/source"
 	"github.com/LLM-4-People/mailsense/internal/store"
 	"github.com/LLM-4-People/mailsense/internal/triage"
+	"github.com/LLM-4-People/mailsense/internal/update"
 	worldsvc "github.com/LLM-4-People/mailsense/internal/world"
 )
 
@@ -64,6 +65,7 @@ type world struct {
 	agenda        *fakeAgenda
 	ask           *fakeAsk
 	companies     *fakeCompanies
+	update        *fakeUpdate
 	held          *fakeHeldRemovals
 	shutdown      *fakeShutdown
 	boot          *fakeBoot
@@ -145,6 +147,12 @@ func newWorld() *world {
 		ask:      &fakeAsk{view: qa.AskView{ID: 1, Mode: qa.ModeStructured, Intent: qa.IntentPriority, Counts: map[string]int{}, Citations: []qa.Citation{}}, history: []qa.HistoryRow{}},
 		companies: &fakeCompanies{list: worldsvc.ListResult{Companies: []worldsvc.CompanyRow{}},
 			profile: worldsvc.ProfileView{Key: "c:atelier nord", Label: "Atelier Nord"}},
+		update: &fakeUpdate{
+			status:      update.Status{Current: "0.1.0", CheckEnabled: true},
+			checkStatus: update.Status{Current: "0.1.0", CheckEnabled: true},
+			skipStatus:  update.Status{Current: "0.1.0", CheckEnabled: true},
+			seenStatus:  update.Status{Current: "0.1.0", CheckEnabled: true},
+		},
 		hub: &fakeHub{
 			hub: hub.Hub{
 				Gate:    hub.Gate{Open: false, State: learning.Stuck, Labels: hub.LabelTotals{Manual: 1, Judge: 2, Needed: 3, Review: 2}},
@@ -166,7 +174,7 @@ func newWorld() *world {
 		Sidecar: w.sidecar, Logs: w.logs, Labels: w.labels, Usage: w.usage, Sources: w.sources, Hub: w.hub, Messages: w.messages,
 		Threads: w.threads, Conversations: w.conversations, Commitments: w.commitments, Brief: w.brief,
 		Priority: w.priority, Agenda: w.agenda, Ask: w.ask,
-		Companies: w.companies, Shutdown: w.shutdown, Boot: w.boot,
+		Companies: w.companies, Update: w.update, Shutdown: w.shutdown, Boot: w.boot,
 	}
 	return w
 }

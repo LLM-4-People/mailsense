@@ -67,6 +67,14 @@ func fakeLlama(args []string) int {
 		fmt.Fprintln(os.Stderr, "fake: refusing to start")
 		return 5
 	}
+	if os.Getenv("FAKE_NO_BIND") == "1" {
+		// A process that stays alive without binding anything (the lost
+		// port race: a foreign listener holds the port).
+		fmt.Fprintln(os.Stderr, "fake: alive without binding")
+		for {
+			time.Sleep(time.Hour)
+		}
+	}
 	dumpEnv()
 	f := &embedtest.Fake{Key: os.Getenv("LLAMA_API_KEY"), Delay: fakeDelay(*threads)}
 	f.SetMode(embedtest.Mode(os.Getenv("FAKE_MODE")))

@@ -48,11 +48,11 @@ answer history stay in a SQLite directory the owner chooses.
    bound of its answered precision reaches 0.99 on a held-out split, with at
    least 200 training labels, 50 evaluation labels and 0.5 coverage. Below that
    threshold it abstains, and the Learning screen names the blocking stage.
-5. **The boundary is stated.** Four kinds of network request exist: the pinned
+5. **The boundary is stated.** Five kinds of network request exist: the pinned
    runtime and model download, a configured remote provider call, a provider
-   model list on request, and one test request on request. The store, indexes,
-   attachments, learned profile, queue and answer history are local. There is no
-   telemetry, no analytics, no update ping and no vendor account.
+   model list on request, one test request on request, and the update check.
+   The store, indexes, attachments, learned profile, queue and answer history
+   are local. There is no telemetry, no analytics and no vendor account.
 
 ## Who it is not for
 
@@ -178,7 +178,7 @@ assistant may differ; read its terms before making a claim about it.
 - A resource ceiling that pauses a job and writes the reason to Logs.
 - The pinned runtime size and hash in the catalog.
 - The Linux source preview with an empty inbox and the explanation on Sources.
-- The four network request kinds on the privacy page.
+- The five network request kinds on the privacy page.
 
 ## Copy rules
 

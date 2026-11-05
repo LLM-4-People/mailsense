@@ -44,11 +44,22 @@ type Triager struct {
 	log     *slog.Logger
 	running sync.Mutex // single flight in this process (TryLock)
 	holder  string     // this triager's lease holder id
+	// cache is the cache path's label overlay (withLabels) of the shared
+	// mail core, keyed by the store generation (which label writes bump).
 	cacheMu sync.Mutex
 	cache   *cached
-	// model is the label-free core of ModelState (the judge's state): its
-	// key excludes the label generation, so a judge run's own label writes
-	// never rebuild it and never change the state.
+	// mail is the ONE mail-derived core of this triager: profile, rules,
+	// threads, behaviour, settings, scales, history, evidence facts and
+	// the picked stores, without labels. The cache path and ModelState
+	// derive their label overlays from it (withLabels), so one mail stamp
+	// pays one heavy build (threads.Load) whatever asks first.
+	mailMu  sync.Mutex
+	mail    *core
+	mailKey string
+	// model is ModelState's overlay (withLabels) of the mail core. Its key
+	// excludes the label generation, so a judge run's own label writes
+	// never rebuild it and never change the state (the model view reads no
+	// labels, examples or history).
 	modelMu  sync.Mutex
 	model    *core
 	modelKey string
@@ -77,9 +88,9 @@ type Triager struct {
 	pending       func(context.Context, store.DecisionScope) (bool, error)
 	candidates    func(context.Context, store.DecisionScope) ([]int64, error)
 	loadDecisions func(context.Context, store.TriageKey, []int64) (map[int64]store.Decision, error)
-	// build is buildCore as seen by the trigger's cost tests (nil uses
-	// buildCore). Like pending, candidates and loadDecisions it is a test
-	// seam only; the app never sets it.
+	// build is buildMailCore as seen by the trigger's cost tests (nil uses
+	// buildMailCore). Like pending, candidates and loadDecisions it is a
+	// test seam only; the app never sets it.
 	build func(context.Context) (*core, error)
 	// routeKey is the configuration identity the route rows are stored
 	// under (layer1.RouteKey in the app). It is injected because layer1
@@ -154,15 +165,41 @@ func (t *Triager) UseRoute(r RouteReader, keys RouteKeyer) {
 
 // UseEvidence wires the evidence engine whose facts join the observed
 // facts of the states while triage.facts.evidence is on (call before the
-// first run).
+// first run). Every core the engine's facts were baked into is dropped: the
+// shared mail core and both label overlays.
 func (t *Triager) UseEvidence(f EvidenceFacts) {
 	t.cacheMu.Lock()
 	defer t.cacheMu.Unlock()
 	t.evidence, t.cache = f, nil
 	t.modelMu.Lock()
 	t.model, t.modelKey = nil, ""
+	t.mailMu.Lock()
+	t.mail, t.mailKey = nil, ""
+	t.mailMu.Unlock()
 	t.modelMu.Unlock()
 }
+
+// Read-model cache bounds. Pages and summaries are keyed by the full answer
+// identity, so the TTL only bounds staleness a generation cannot see; the
+// byte budgets bound what those views may pin. A page holds at most
+// TriagePageMax rows, and its Profile pointer is shared with the triager, so
+// it is never counted per entry.
+const (
+	pageCacheMaxBytes    = 4 << 20
+	summaryCacheMaxBytes = 256 << 10
+)
+
+// pageRowBytes is weighPage's basis: a row is a few ints, a taxonomy value
+// and a handful of short strings.
+const pageRowBytes = 256
+
+// weighPage estimates one page from its row map and id order.
+func weighPage(p *Page) int {
+	return len(p.Results)*pageRowBytes + len(p.IDs)*8
+}
+
+// weighSummary estimates one summary: a key and a handful of coverage counts.
+func weighSummary(*Summary) int { return 256 }
 
 // New returns a Triager; bus and clk may be nil.
 func New(cfg *config.Config, st *store.Store, bus *events.Bus, src DeciderSource, gate learning.Gate, clk clock.Clock) (*Triager, error) {
@@ -175,10 +212,12 @@ func New(cfg *config.Config, st *store.Store, bus *events.Bus, src DeciderSource
 		holder: fmt.Sprintf("%d-%s", os.Getpid(), hex.EncodeToString(id)), coverage: st.RouteCoverage,
 		pending: st.HasPendingDecisions, candidates: st.DecisionCandidates, loadDecisions: st.LoadDecisionsFor}
 	t.pages = viewcache.New[viewKey, *Page](viewcache.Options[viewKey, *Page]{
-		TTL: 30 * time.Second, Size: 16, Now: t.clock.Now, Component: "triage",
+		TTL: 30 * time.Second, Size: 16, MaxBytes: pageCacheMaxBytes, Weigh: weighPage,
+		Now: t.clock.Now, Component: "triage",
 	})
 	t.summaries = viewcache.New[viewKey, *Summary](viewcache.Options[viewKey, *Summary]{
-		TTL: 30 * time.Second, Size: 16, Now: t.clock.Now, Component: "triage",
+		TTL: 30 * time.Second, Size: 16, MaxBytes: summaryCacheMaxBytes, Weigh: weighSummary,
+		Now: t.clock.Now, Component: "triage",
 	})
 	return t, nil
 }
@@ -206,6 +245,9 @@ type session struct {
 
 // core is the decider-independent part, reused while nothing it reads
 // changed (store generation, settings snapshot, profile and rules files).
+// The mail-derived fields are shared by every label overlay and between the
+// cache and the model (mailCore + withLabels); labels, composer and priors
+// belong to the overlay.
 type core struct {
 	profile   *taxonomy.Profile
 	rules     *Rules
@@ -224,9 +266,11 @@ type core struct {
 	facts   map[int64]string // evidence facts by row (triage.facts.evidence; nil when off)
 }
 
+// cached is the cache path's label overlay and the store stamp it was built
+// at; the shared mail core's own stamp is Triager.mailKey.
 type cached struct {
-	stamp, mailStamp string
-	core             *core
+	stamp string
+	core  *core
 }
 
 // prepare builds (or reuses) the core and builds the decider afresh.
@@ -404,6 +448,10 @@ func (t *Triager) identity() (*viewIdentity, error) {
 	return t.id, nil
 }
 
+// core is the cache path's core: the one mail-derived core (mailCore) with
+// the current labels (withLabels). Its stamp includes the store generation,
+// so a label write reloads the label overlay; a mail change rebuilds the
+// shared mail core.
 func (t *Triager) core(ctx context.Context) (*core, error) {
 	stamp, mailStamp := t.stamp(t.st.Generation()), t.stamp(t.st.MailGeneration())
 	t.cacheMu.Lock()
@@ -411,19 +459,41 @@ func (t *Triager) core(ctx context.Context) (*core, error) {
 	if t.cache != nil && t.cache.stamp == stamp {
 		return t.cache.core, nil
 	}
+	m, err := t.mailCore(ctx, mailStamp)
+	if err != nil {
+		return nil, err
+	}
+	c, err := m.withLabels(ctx, t.st)
+	if err != nil {
+		return nil, err
+	}
+	t.cache = &cached{stamp: stamp, core: c}
+	return c, nil
+}
+
+// mailCore is the ONE mail-derived core per mail stamp: profile, rules,
+// threads and behaviour, settings, scales, history, evidence facts and the
+// picked stores, without labels. The cache path and ModelState derive their
+// label overlays from it (withLabels), so a mail stamp pays the heavy build
+// (threads.Load) once, whoever asks first. The stamp is the caller's, so the
+// two paths keep their own key semantics.
+func (t *Triager) mailCore(ctx context.Context, key string) (*core, error) {
+	t.mailMu.Lock()
+	defer t.mailMu.Unlock()
+	if t.mail != nil && t.mailKey == key {
+		return t.mail, nil
+	}
 	var c *core
 	var err error
-	if t.cache != nil && t.cache.mailStamp == mailStamp {
-		c, err = t.cache.core.withLabels(ctx, t.st) // only labels changed: the mail analysis is reused
-	} else if t.build != nil {
+	if t.build != nil {
 		c, err = t.build(ctx)
 	} else {
-		c, err = t.buildCore(ctx)
+		c, err = t.buildMailCore(ctx)
 	}
 	if err != nil {
 		return nil, err
 	}
-	t.cache = &cached{stamp: stamp, mailStamp: mailStamp, core: c}
+	t.mail, t.mailKey = c, key
 	return c, nil
 }
 
@@ -445,7 +515,11 @@ func FolderRoles(cfg *config.Config) []mail.FolderRole { return store.TriageFold
 // folderRoles is the package's own call site of the one conversion.
 func folderRoles(cfg *config.Config) []mail.FolderRole { return FolderRoles(cfg) }
 
-func (t *Triager) buildCore(ctx context.Context) (*core, error) {
+// buildMailCore builds the mail-derived core: everything the mail, the
+// profile, the rules and the evidence say, without labels (withLabels adds
+// them). It is the one heavy build of a mail stamp, shared by the cache
+// path and ModelState through mailCore.
+func (t *Triager) buildMailCore(ctx context.Context) (*core, error) {
 	profile, err := taxonomy.Load(t.cfg)
 	if err != nil {
 		return nil, err
@@ -476,10 +550,9 @@ func (t *Triager) buildCore(ctx context.Context) (*core, error) {
 		return nil, err
 	}
 	sc := newScales(set.Options.BucketMinutes, rules.Urgency.BoundsMinutes, rules.Urgency.ResolutionMinutes)
-	c := &core{profile: profile, rules: rules, analysis: analysis, behaviour: behaviour, set: set, scales: sc, facts: facts,
+	return &core{profile: profile, rules: rules, analysis: analysis, behaviour: behaviour, set: set, scales: sc, facts: facts,
 		history: analysis.KnownHistory(sc.fine, set.Options.ExamplesPerSender, set.Options.Zone, set.Domains),
-		fb:      feedback.SettingsFrom(t.cfg), stores: source.Selected(t.cfg.Snapshot()), roles: folderRoles(t.cfg)}
-	return c.withLabels(ctx, t.st)
+		fb:      feedback.SettingsFrom(t.cfg), stores: source.Selected(t.cfg.Snapshot()), roles: folderRoles(t.cfg)}, nil
 }
 
 // evidenceFacts are the evidence facts while triage.facts.evidence is on

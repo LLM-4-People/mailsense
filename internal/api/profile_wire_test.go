@@ -49,6 +49,7 @@ func jsonAtPath(value any, path string) (any, bool) {
 
 func profileWireFixture() worldsvc.ProfileView {
 	at := time.Date(2026, 11, 3, 9, 0, 0, 0, time.UTC)
+	inboundDays, outboundDays := 6, 20
 	return worldsvc.ProfileView{
 		GeneratedAt: "2026-11-03T09:00:00Z",
 		Key:         "c:acme",
@@ -65,7 +66,13 @@ func profileWireFixture() worldsvc.ProfileView {
 		FirstAt: "2026-08-01T09:00:00Z", LastAt: "2026-11-02T09:00:00Z",
 		LastInboundAt: "2026-11-02T09:00:00Z", LastOutboundAt: "2026-11-01T09:00:00Z",
 		Activity90: worldsvc.CompanyActivity{Messages: 5, Sent: 2, Received: 3, Threads: 2, ActiveDays: 4},
-		Months:     []worldsvc.CompanyMonth{{Month: "2026-11", Messages: 5, Sent: 2, Received: 3}},
+		Trend: &worldsvc.ProfileTrend{
+			Status: worldsvc.TrendOK, TwoWay: true,
+			DaysSinceInbound: &inboundDays, DaysSinceOutbound: &outboundDays,
+			Recent:   worldsvc.TrendWindow{Months: 5, Messages: 4, Sent: 2, Received: 2, ActiveMonths: 2},
+			Baseline: worldsvc.TrendWindow{Months: 5, Messages: 12, Sent: 6, Received: 6, ActiveMonths: 5},
+		},
+		Months: []worldsvc.CompanyMonth{{Month: "2026-11", Messages: 5, Sent: 2, Received: 3}},
 		Recent: []worldsvc.CompanyMessage{{
 			MessageID: 42, ConversationID: "conv-acme", Subject: "Synthetic renewal",
 			SenderName: "Ada Lovelace", SenderAddress: "ada@acme.test",
@@ -127,6 +134,11 @@ func TestCompanyProfileWireKeepsEveryReadField(t *testing.T) {
 		"messages", "sent", "received", "threads", "first_at", "last_at",
 		"last_inbound_at", "last_outbound_at",
 		"last_90_days.messages", "last_90_days.threads", "last_90_days.active_days",
+		"trend.status", "trend.two_way", "trend.days_since_inbound", "trend.days_since_outbound",
+		"trend.recent.months", "trend.recent.messages", "trend.recent.sent", "trend.recent.received",
+		"trend.recent.active_months",
+		"trend.baseline.months", "trend.baseline.messages", "trend.baseline.sent",
+		"trend.baseline.received", "trend.baseline.active_months",
 		"months.0.month", "months.0.messages", "months.0.sent", "months.0.received",
 		"recent.0.message_id", "recent.0.subject", "recent.0.sender_name",
 		"recent.0.sender_address", "recent.0.instant", "recent.0.sent",
@@ -243,6 +255,66 @@ func TestCompanyProfileWireOpenLoopsArraysAreNeverNull(t *testing.T) {
 	absent := wireObject(t, CompanyProfileViewOf(worldsvc.ProfileView{}))
 	if _, ok := jsonAtPath(absent, "open_loops"); ok {
 		t.Fatal("a profile without a rollup still carries open_loops")
+	}
+}
+
+// The trend crosses the wire as the world evidence states it: a present trend
+// is projected whole, a same-day age is present as 0 rather than dropped, a
+// profile with no mail omits the field, and the projection owns its copy so a
+// handler cannot mutate the cached service value through it.
+func TestCompanyProfileWireTrend(t *testing.T) {
+	view := profileWireFixture()
+	body := wireObject(t, CompanyProfileViewOf(view))
+	if got, ok := jsonAtPath(body, "trend.status"); !ok || got != string(worldsvc.TrendOK) {
+		t.Fatalf("trend.status = %v (present %v), want %q", got, ok, worldsvc.TrendOK)
+	}
+	if got, ok := jsonAtPath(body, "trend.two_way"); !ok || got != true {
+		t.Fatalf("trend.two_way = %v (present %v), want true", got, ok)
+	}
+	for path, want := range map[string]float64{
+		"trend.days_since_inbound":     6,
+		"trend.days_since_outbound":    20,
+		"trend.recent.months":          5,
+		"trend.recent.messages":        4,
+		"trend.recent.active_months":   2,
+		"trend.baseline.months":        5,
+		"trend.baseline.messages":      12,
+		"trend.baseline.active_months": 5,
+	} {
+		if got, ok := jsonAtPath(body, path); !ok || got != want {
+			t.Errorf("%s = %v (present %v), want %v", path, got, ok, want)
+		}
+	}
+
+	// A zero-day age is a fact, not an absent value: the key stays.
+	today := 0
+	sameDay := profileWireFixture()
+	sameDay.Trend.DaysSinceInbound = &today
+	sameDayBody := wireObject(t, CompanyProfileViewOf(sameDay))
+	if got, ok := jsonAtPath(sameDayBody, "trend.days_since_inbound"); !ok || got != float64(0) {
+		t.Fatalf("a same-day inbound age was dropped: %v (present %v)", got, ok)
+	}
+
+	// A direction with no dated message omits its age.
+	noAge := profileWireFixture()
+	noAge.Trend.DaysSinceOutbound = nil
+	noAgeBody := wireObject(t, CompanyProfileViewOf(noAge))
+	if _, ok := jsonAtPath(noAgeBody, "trend.days_since_outbound"); ok {
+		t.Fatal("an absent outbound age still carries a value")
+	}
+
+	// A profile with no mail omits the trend rather than sending null.
+	empty := wireObject(t, CompanyProfileViewOf(worldsvc.ProfileView{}))
+	if _, ok := jsonAtPath(empty, "trend"); ok {
+		t.Fatal("a profile without mail still carries a trend")
+	}
+
+	// The projection owns its copy: mutating the wire cannot move the cache.
+	wire := CompanyProfileViewOf(view)
+	wire.Trend.Status = worldsvc.TrendInsufficientHistory
+	*wire.Trend.DaysSinceInbound = 99
+	if view.Trend.Status != worldsvc.TrendOK || *view.Trend.DaysSinceInbound != 6 {
+		t.Fatalf("the wire trend aliases the service value: %+v", view.Trend)
 	}
 }
 

@@ -55,14 +55,41 @@ func (h *winHost) Attach() (Object, error) {
 	return h.object("GetActiveObject", func(clsid *ole.GUID) (*ole.IUnknown, error) { return ole.GetActiveObject(clsid, ole.IID_IUnknown) })
 }
 
-// Start runs outlook.exe through the shell (its App Paths registration),
-// exactly as the user starting it: its own window, the default profile.
-// Never CoCreateInstance: that starts a windowless Outlook.
+// Start starts classic Outlook through the shell, exactly as the user
+// starting it: its own window, the default profile. It opens the absolute
+// path its App Paths registration resolved to (apppaths.go), never the
+// bare name: the shell would search its own path — the working and install
+// directories included — and a planted OUTLOOK.EXE there could run
+// instead. Never CoCreateInstance: that starts a windowless Outlook.
 func (h *winHost) Start() error {
+	return launchOutlook(registryAppPath, openOutlook)
+}
+
+// registryAppPath reads the default (unnamed) value of an App Paths
+// registration: the absolute path the Outlook installer wrote, per
+// machine (HKLM) or per user (HKCU). A missing key or a non-string value
+// does not resolve.
+func registryAppPath(root appPathRoot, subkey string) (string, bool) {
+	hive := registry.CURRENT_USER
+	if root == appPathHKLM {
+		hive = registry.LOCAL_MACHINE
+	}
+	k, err := registry.OpenKey(hive, subkey, registry.QUERY_VALUE)
+	if err != nil {
+		return "", false
+	}
+	defer k.Close()
+	exe, _, err := k.GetStringValue("")
+	return exe, err == nil
+}
+
+// openOutlook opens exe through the shell ("open"): its own window, the
+// default profile.
+func openOutlook(exe string) error {
 	verb, _ := windows.UTF16PtrFromString("open")
-	file, _ := windows.UTF16PtrFromString(outlookExe)
+	file, _ := windows.UTF16PtrFromString(exe)
 	if err := windows.ShellExecute(0, verb, file, nil, nil, windows.SW_SHOWNORMAL); err != nil {
-		return fmt.Errorf("ShellExecute %s: %w", outlookExe, err)
+		return fmt.Errorf("ShellExecute %s: %w", exe, err)
 	}
 	return nil
 }

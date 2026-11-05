@@ -2495,15 +2495,16 @@ func TestBriefScreen(t *testing.T) {
 			t.Errorf("app.js lacks the brief step %q", required)
 		}
 	}
-	// Brief reuses the existing conversation and message labels instead of
-	// maintaining a second wording for the same counts.
+	// Brief reuses the existing message label for its topic counts and the
+	// shared company vocabulary; the relationship row states the open-loop
+	// partitions the commitments rollup sends.
 	briefStart := strings.Index(js, "// brief-view:start")
 	briefEnd := strings.Index(js, "// brief-view:end")
 	if briefStart < 0 || briefEnd <= briefStart {
 		t.Fatal("the brief-view markers are missing")
 	}
 	for _, required := range []string{
-		`t("mail.conversations.count"`,
+		`t("brief.relationships.open_loops"`,
 		`t("detail.thread.message_count"`,
 		`t("mail.conversations.due"`,
 		`t("brief.org_open_aria"`,
@@ -2635,7 +2636,8 @@ func TestBriefScreen(t *testing.T) {
 		"brief.organization_unknown", "brief.mark_seen", "brief.mark_seen_aria",
 		"brief.mark_seen_failed", "brief.error.title", "brief.error.body",
 		"brief.locked_title",
-		"brief.relationships.open_owner", "brief.relationships.open_other",
+		"brief.relationships.open_loops", "brief.relationships.overdue",
+		"brief.relationships.stored_due",
 		"brief.topics.suggested",
 		"brief.topics.scope.owner_mailbox", "brief.topics.scope_generic", "brief.topics.coverage",
 	}
@@ -2648,7 +2650,8 @@ func TestBriefScreen(t *testing.T) {
 		}
 	}
 	for _, key := range []string{
-		"brief.relationships.open_owner", "brief.relationships.open_other",
+		"brief.relationships.open_loops", "brief.relationships.overdue",
+		"brief.relationships.stored_due",
 	} {
 		if !en[key].isPlural || !fr[key].isPlural {
 			t.Errorf("%q must be a plural entry", key)
@@ -2851,7 +2854,6 @@ const view = {
     person: "Alice Martin", due: "2026-10-30T09:00:00Z", status: "overdue",
     direction: "owner", conversation_id: "C1", message_id: 42, evidence: [42],
     last_at: "2026-10-29T09:00:00Z", state: "", state_reason: "",
-    conversations: 0, messages: 0, awaiting_owner: 0, awaiting_other: 0,
     count: 0, suggested: false, action: "pay", waiting: "owner",
     topic: "project_work", subtopic: "approval",
   }]},
@@ -2860,7 +2862,6 @@ const view = {
     organization: { key: "c:atelier nord", label: "Atelier Nord" }, person: "Bob",
     status: "open", direction: "other", message_id: 43, evidence: [43],
     last_at: "2026-10-28T09:00:00Z", state: "", state_reason: "",
-    conversations: 0, messages: 0, awaiting_owner: 0, awaiting_other: 0,
     count: 0, suggested: false,
   }]},
   changed: { count: 1, since: "2026-10-20T08:00:00Z", items: [{
@@ -2871,11 +2872,9 @@ const view = {
     state_reason: "inbound_last", count: 0, suggested: false,
   }]},
   relationships: { count: 1, items: [{
-    id: "org:c:atelier nord", kind: "organization", title: "Atelier Nord",
+    id: "organization:c:atelier nord", kind: "organization", title: "Atelier Nord",
     organization: { key: "c:atelier nord", label: "Atelier Nord" },
-    conversations: 215, messages: 986, awaiting_owner: 12, awaiting_other: 12,
-    count: 215, last_at: "2026-10-26T09:00:00Z", message_id: 42, evidence: [42],
-    state: "", state_reason: "", suggested: false,
+    count: 215, overdue: 12, stored_due: 7,
   }]},
   topics: { count: 87, total: 120, suggested: true, scope: "owner_mailbox", items: [{
     id: "topic:project_work", kind: "topic", title: "project_work", count: 87, suggested: true,
@@ -2942,12 +2941,22 @@ assert.ok(links(changedBody).some((entry) => entry.attrs.href === "#/mail?mode=i
 const relBody = sandbox.briefSectionBodyNode("relationships", view.relationships);
 const relText = texts(relBody).join(" | ");
 assert.ok(relText.includes("Atelier Nord"), "relationship organization missing");
-assert.ok(relText.includes("215 conversations"), "relationship conversation count missing");
-assert.ok(relText.includes("986 messages"), "relationship message count missing");
-assert.ok(relText.includes("12 conversations waiting on you"), "relationship open count missing");
+assert.ok(relText.includes("215 open loops"), "relationship open-loop count missing");
+assert.ok(relText.includes("12 overdue"), "relationship overdue badge missing");
+assert.ok(relText.includes("7 stored follow-ups"), "relationship stored follow-up badge missing");
+assert.ok(!relText.includes("0 conversations"), "a dead conversation count reached the relationship row");
+assert.ok(!relText.includes("0 messages"), "a dead message count reached the relationship row");
 assert.ok(links(relBody).some((entry) => entry.attrs.href === "#/companies?key=c%3Aatelier+nord"), "relationship company link missing");
-const openBadge = all(relBody, (entry) => entry.tag === "span" && String(entry.text).includes("waiting on you"))[0];
-assert.ok(openBadge && String(openBadge.attrs.class).includes("accent"), "open count is not accented");
+const relOverdue = all(relBody, (entry) => entry.tag === "span" && String(entry.text).includes("12 overdue"))[0];
+assert.ok(relOverdue && String(relOverdue.attrs.class).includes("danger"), "overdue loops are not marked");
+const quietRel = sandbox.briefSectionBodyNode("relationships", { count: 1, items: [{
+  id: "organization:c:acme.example", kind: "organization", title: "Acme",
+  organization: { key: "c:acme.example", label: "Acme" }, count: 3,
+}]});
+const quietRelText = texts(quietRel).join(" | ");
+assert.ok(quietRelText.includes("3 open loops"), "an organization with no partitions lost its open-loop count");
+assert.ok(!quietRelText.includes("overdue"), "a zero overdue count rendered a badge");
+assert.ok(!quietRelText.includes("follow-up"), "a zero stored count rendered a badge");
 
 const topicsBody = sandbox.briefSectionBodyNode("topics", view.topics);
 const topicsText = texts(topicsBody).join(" | ");
@@ -3004,6 +3013,9 @@ assert.equal(sandbox.briefDirectionLabel("other"), "en attente de leur réponse"
 const frWaitingText = texts(sandbox.briefSectionBodyNode("waiting", view.waiting)).join(" | ");
 assert.ok(frWaitingText.includes("en attente de leur réponse"), "French waiting direction missing");
 assert.ok(!frWaitingText.includes("waiting on them"), "English direction leaked into French");
+const frRelText = texts(sandbox.briefSectionBodyNode("relationships", view.relationships)).join(" | ");
+assert.ok(frRelText.includes("215 engagements ouverts"), "French open-loop count missing");
+assert.ok(frRelText.includes("12 en retard"), "French overdue badge missing");
 
 console.log("brief behavior: ok");
 `

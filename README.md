@@ -56,7 +56,7 @@ again.
 
 ## What leaves the machine
 
-Mailsense makes four kinds of network request. Each one has a reason you can
+Mailsense makes five kinds of network request. Each one has a reason you can
 see.
 
 **Leaves, only when it runs**
@@ -69,6 +69,10 @@ see.
 - A provider model list when you press Fetch models.
 - One small test request when you press Test. A test is billable and is not
   covered by a budget.
+- The update check: at most once per update.check.interval (24 hours by
+  default), one request to GitHub asks for the latest published release. It
+  carries no mail, address or installation identifier, and can be turned off in
+  Settings.
 
 **Never leaves**
 
@@ -76,7 +80,7 @@ see.
   files in the data directory you chose.
 - The classification, evidence and ranking code. They run as local Go code, not
   as a cloud call.
-- No telemetry, no analytics, no update ping and no vendor account.
+- No telemetry, no analytics and no vendor account.
 
 Mailsense reads the classic Outlook profile already open on Windows. It does not
 ask for Microsoft credentials. A remote provider's terms govern what it does
@@ -129,8 +133,8 @@ requires a migration.
 
 ## Build from source
 
-Go (the version in `go.mod`), Node 22 for the UI test harnesses, and optionally
-Playwright for the browser suite.
+Go (the version in `go.mod`), Node (the version in `.nvmrc`) for the UI test
+harnesses, and optionally Playwright for the browser suite.
 
 ```bash
 scripts/build.sh all        # dist/mailsense and dist/mailsense.exe

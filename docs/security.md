@@ -78,13 +78,58 @@ certificate.
 The app makes these requests, and no others:
 
 1. The pinned runtime and model download.
-2. A remote provider call you configured, including automatic triage after a
-   sync.
+2. A remote provider call you configured, including an automatic triage or
+   index pass after a sync when that role points at a remote record.
 3. A provider model list, when you ask for it.
 4. A provider test, when you press Test.
+5. The update check: one unauthenticated request to the Mailsense releases
+   endpoint on GitHub, with no mail, address, account or installation
+   identifier.
 
-There is no telemetry, no analytics, no update ping and no vendor account.
+There is no telemetry, no analytics and no vendor account.
 [Privacy](privacy.md) lists the fields each request can carry.
+
+## Rendering untrusted mail
+
+A message body is untrusted HTML. Mailsense rebuilds it instead of trusting it:
+
+- The local server parses the stored body and keeps an allowlist of text
+  elements, lists, quotes, tables and links. Scripts, frames, objects, forms
+  and media are dropped with their content.
+- The rebuilt fragment and the sender's compiled presentation sheet are rendered
+  in an iframe whose sandbox grants no script, no popup and no top-level
+  navigation permission, and the document carries its own CSP:
+  `script-src 'none'`, `form-action 'none'`, `base-uri 'none'`.
+- Remote images become a placeholder, and a 1x1 tracking pixel is dropped
+  entirely. Inline images are fetched by the shell with the bearer token and
+  swapped into the frame as ephemeral blob URLs.
+- A link is kept only for http, https and mailto. A click never navigates: it
+  opens a dialog that shows the exact destination and offers Copy.
+- Attachment reads are served from content-addressed rows and only as raster
+  inline images, with `nosniff` and an asset CSP, and only when the message
+  passes the owner and picked-store check.
+
+## When a model writes an answer
+
+Ask can send retrieved messages to the provider you configured and show the
+answer it writes. Whoever wrote a message controls its text, so message text
+can try to steer that answer. This is indirect prompt injection, and no
+instruction to the model removes it. What the app constrains:
+
+- Citation markers are checked, not trusted. An answer with a marker outside the
+  numbered context is refused as a whole; a valid marker is renumbered to the
+  message it names, and the citation list is built from those messages. That
+  check proves the cited message exists in the context. It does not prove the
+  answer's words follow from it: a steered answer can carry a real citation.
+- Model output changes no app state. A plan is strict JSON, validated against
+  fixed shapes and run as a read-only local query. Counts and rankings are
+  computed by local code, never taken from the model. An answer starts no
+  further retrieval, no network request and no action on your mail.
+- The model sees only owner-visible data from that turn: the numbered retrieved
+  messages with their excerpts, computed counts and facts, and, in a thread, the
+  prior turns. The answer footer names the provider and the model, and every
+  citation opens the message it names. Treat a written answer as a suggestion,
+  not as a trusted statement.
 
 ## Report a vulnerability
 

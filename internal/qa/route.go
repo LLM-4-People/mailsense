@@ -21,7 +21,9 @@ type Route string
 
 // Answer routes. Auto keeps the historical behavior: a deterministic answer
 // when one is exact, the configured provider otherwise. Local never calls a
-// provider. Remote always calls the one configured qa.provider.
+// provider. Remote uses the one configured qa.provider; only the exact
+// deterministic owners (an accepted plain count, a clarification, an empty
+// result) answer without it.
 const (
 	RouteAuto   Route = "auto"
 	RouteLocal  Route = "local"
@@ -141,10 +143,11 @@ func (s *Service) companyScope(ctx context.Context, question, language string) (
 
 // answerLocal answers without any provider call. Every deterministic owner
 // keeps its existing behavior (sender lookup, structured ranking, company
-// profile, clarification); a plain count of a priority category or a
-// catalogue topic is answered locally from the priority/topic census, and a
-// free-form question that would need a written answer returns the retrieved
-// sources with an explicit local notice.
+// profile, clarification); a free-form question that would need a written
+// answer returns the retrieved sources with an explicit local notice. A
+// recognized count cue never reaches this function: answerCount runs the
+// scope decision for every route, and only a rejected count follows the
+// Local freeform path.
 func (s *Service) answerLocal(ctx context.Context, view AskView, question, language, intent, senderText string) (AskView, error) {
 	view.Route = RouteLocal
 	switch intent {
@@ -157,21 +160,42 @@ func (s *Service) answerLocal(ctx context.Context, view AskView, question, langu
 		view.Route = RouteLocal
 		return view, err
 	case IntentFreeform:
-		if countIntent, phrase, ok := s.providerlessCountIntent(ctx, question); ok {
-			var err error
-			if countIntent == IntentTopic {
-				view, err = s.askTopic(ctx, view, phrase)
-			} else {
-				view, err = s.askStructured(ctx, view, countIntent)
-			}
-			view.Route = RouteLocal
-			return view, err
-		}
 		view, err := s.answerLocalFreeform(ctx, view, question, language)
 		view.Route = RouteLocal
 		return view, err
 	default:
 		return s.answerLocalStructured(ctx, view, question, language, intent)
+	}
+}
+
+// answerCount is the one count owner shared by every route. A question with a
+// recognized count cue first passes the providerless scope decision
+// (providerlessCountIntent), which runs with or without a configured
+// generator: an accepted plain count is answered from the priority totals or
+// the topic census with no provider call, and a rejected count — a person,
+// organization, date, act or any other unlisted scope — follows that route's
+// freeform path. Without this owner, a count that parseIntent maps to a
+// structured category would let Auto, Local and Remote answer a mailbox-wide
+// total for a scoped question.
+func (s *Service) answerCount(ctx context.Context, view AskView, route Route, question, language string, preview bool,
+	turns []store.QAHistory, turnKey string, remoteGen Generator) (AskView, error) {
+	countIntent, phrase, ok := s.providerlessCountIntent(ctx, question)
+	switch {
+	case ok && countIntent == IntentTopic:
+		view.Intent = IntentTopic
+		return s.askTopic(ctx, view, phrase)
+	case ok:
+		view.Intent = countIntent
+		return s.askStructured(ctx, view, countIntent)
+	}
+	view.Intent = IntentFreeform
+	switch route {
+	case RouteLocal:
+		return s.answerLocalFreeform(ctx, view, question, language)
+	case RouteRemote:
+		return s.answerRemote(ctx, view, question, language, IntentFreeform, "", turns, remoteGen)
+	default:
+		return s.askFreeform(ctx, view, question, language, preview, turns, turnKey)
 	}
 }
 

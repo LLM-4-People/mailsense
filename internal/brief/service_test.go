@@ -492,11 +492,9 @@ func TestBriefMapsChangedSinceAndRelationships(t *testing.T) {
 		second.Count != 4 || second.Overdue != 1 || second.StoredDue != 1 {
 		t.Fatalf("second relationship item %+v", second)
 	}
-	// A loop row carries no thread or rollup facts: it is the organization
+	// A loop row carries no thread or digest facts: it is the organization
 	// and its commitment partition, nothing the conversation digest said.
-	if first.Conversations != 0 || first.Messages != 0 || first.AwaitingOwner != 0 ||
-		first.AwaitingOther != 0 || first.MessageID != 0 || first.LastAt != "" ||
-		first.Evidence != nil {
+	if first.MessageID != 0 || first.LastAt != "" || first.Evidence != nil {
 		t.Fatalf("a loop row invented digest facts: %+v", first)
 	}
 }

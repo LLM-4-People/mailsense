@@ -5,8 +5,9 @@
 // in the key gets another entry after a write, and a caller with one fixed key
 // puts them in the value and checks them in Options.Keep, so a value built
 // before the write is treated as stale. The TTL bounds only the staleness a
-// generation cannot see, and the entry bound keeps a paging session's memory
-// small. An expired entry is served immediately while one detached,
+// generation cannot see, the entry bound keeps a paging session's memory
+// small, and the byte bound (MaxBytes and Weigh) caps the retained values of
+// one cache. An expired entry is served immediately while one detached,
 // timeout-bounded rebuild runs. Entries are immutable once installed: Get
 // never mutates a value it returns.
 //
@@ -52,6 +53,17 @@ type Options[K comparable, V any] struct {
 	NeverExpires bool
 	// Size is the maximum number of entries; 0 means 1.
 	Size int
+	// MaxBytes bounds the estimated retained bytes of the installed values;
+	// 0 means no byte bound. When set, Weigh is required: New panics
+	// without it, because a byte bound that cannot measure is the unbounded
+	// cache this field exists to remove.
+	MaxBytes int
+	// Weigh estimates how many bytes one value retains. It runs once per
+	// install or refresh, under the cache lock, never on the Get path, and
+	// its result is clamped to zero, so it must return a non-negative,
+	// cheap estimate. It is required when MaxBytes is set and ignored when
+	// nil.
+	Weigh func(V) int
 	// RefreshTimeout bounds one background rebuild; 0 means 2 minutes.
 	RefreshTimeout time.Duration
 	// Now reads the clock; nil means time.Now.
@@ -77,11 +89,17 @@ type Options[K comparable, V any] struct {
 
 // Cache is one bounded, single-flight, stale-while-revalidate cache.
 type Cache[K comparable, V any] struct {
-	mu             sync.Mutex
-	entries        map[K]*entry[V]
-	ttl            time.Duration
-	neverExpires   bool
-	size           int
+	mu           sync.Mutex
+	entries      map[K]*entry[V]
+	ttl          time.Duration
+	neverExpires bool
+	size         int
+	maxBytes     int
+	weigh        func(V) int
+	// bytes is the total estimated retained bytes of the installed values,
+	// guarded by mu. A placeholder, a failed build and a rejected Keep
+	// install account zero; a replacement swaps the entry's estimate.
+	bytes          int
 	refreshTimeout time.Duration
 	now            func() time.Time
 	keep           func(K, V) bool
@@ -100,9 +118,12 @@ type Cache[K comparable, V any] struct {
 // false). ready closes once the first build of the entry finished, so
 // concurrent callers of a missing key share that one build.
 type entry[V any] struct {
-	at         time.Time
-	view       V
-	set        bool
+	at   time.Time
+	view V
+	set  bool
+	// bytes is Weigh's estimate of view while set, 0 on a placeholder. It
+	// is written only under the cache lock, at install or refresh.
+	bytes      int
 	done       bool // the first build finished (successfully or not)
 	err        error
 	ready      chan struct{}
@@ -116,6 +137,9 @@ type entry[V any] struct {
 
 // New returns one cache with the given bounds.
 func New[K comparable, V any](opts Options[K, V]) *Cache[K, V] {
+	if opts.MaxBytes > 0 && opts.Weigh == nil {
+		panic("viewcache: Options.MaxBytes requires Options.Weigh")
+	}
 	size := opts.Size
 	if size <= 0 {
 		size = 1
@@ -138,6 +162,8 @@ func New[K comparable, V any](opts Options[K, V]) *Cache[K, V] {
 		ttl:            opts.TTL,
 		neverExpires:   opts.NeverExpires,
 		size:           size,
+		maxBytes:       opts.MaxBytes,
+		weigh:          opts.Weigh,
 		refreshTimeout: refresh,
 		now:            now,
 		keep:           opts.Keep,
@@ -194,7 +220,7 @@ func (c *Cache[K, V]) Get(ctx context.Context, key K, build func(context.Context
 			if cached.done && cached.err != nil && cached.waiters == 0 {
 				// A failed build no one is left to observe: a fresh caller
 				// does not inherit the error.
-				delete(c.entries, key)
+				c.removeLocked(key)
 				c.mu.Unlock()
 				continue
 			}
@@ -207,7 +233,7 @@ func (c *Cache[K, V]) Get(ctx context.Context, key K, build func(context.Context
 				c.mu.Lock()
 				cached.waiters--
 				if c.entries[key] == cached && cached.waiters == 0 && cached.done && cached.err != nil {
-					delete(c.entries, key)
+					c.removeLocked(key)
 				}
 				c.mu.Unlock()
 				return zero, ctx.Err()
@@ -217,7 +243,7 @@ func (c *Cache[K, V]) Get(ctx context.Context, key K, build func(context.Context
 			view, set, err := cached.view, cached.set, cached.err
 			cached.waiters--
 			if same && !set && cached.done && cached.err != nil && cached.waiters == 0 {
-				delete(c.entries, key)
+				c.removeLocked(key)
 			}
 			c.mu.Unlock()
 			switch {
@@ -290,16 +316,16 @@ func (c *Cache[K, V]) buildFirst(ctx context.Context, key K, cached *entry[V], b
 	c.mu.Lock()
 	cached.err, cached.done = err, true
 	switch {
-	case err == nil && keep:
-		cached.view, cached.set, cached.at = view, true, c.now()
+	case err == nil && keep && c.entries[key] == cached:
+		c.installValueLocked(key, cached, view)
 		cached.stamp++
 	case err == nil && c.entries[key] == cached:
 		// A rejected install leaves nothing behind.
-		delete(c.entries, key)
+		c.removeLocked(key)
 	case err != nil && c.entries[key] == cached && cached.waiters == 0:
 		// With no waiter to share the failure with, the failed
 		// build leaves nothing behind; the next call builds again.
-		delete(c.entries, key)
+		c.removeLocked(key)
 	}
 	close(cached.ready)
 	c.mu.Unlock()
@@ -322,7 +348,8 @@ func (c *Cache[K, V]) refresh(key K, cached *entry[V], build func(context.Contex
 	c.mu.Lock()
 	if c.entries[key] == cached {
 		if err == nil && keep && !c.jobs.Closed() {
-			cached.view, cached.set, cached.at, cached.refreshing = view, true, c.now(), false
+			c.installValueLocked(key, cached, view)
+			cached.refreshing = false
 			cached.stamp++
 		} else {
 			cached.refreshing = false
@@ -351,28 +378,77 @@ func (c *Cache[K, V]) Close(ctx context.Context) bool {
 }
 
 // Len is how many entries the cache holds: a value plus any build in flight.
-// It is the size a caller's bound promises to keep.
+// It is the entry count a caller's Size bound promises to keep.
 func (c *Cache[K, V]) Len() int {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	return len(c.entries)
 }
 
-// installLocked inserts one entry and evicts the oldest when the bound is
-// reached. A build in flight counts as young (its placeholder carries the
-// instant it was installed), so a burst of first builds cannot evict one
-// another. The caller holds mu.
+// Bytes is the estimated retained bytes of the installed values: the total
+// MaxBytes bounds (zero while no Weigh is set), except that one value larger
+// than the bound stays alone (see MaxBytes). Placeholders, failed builds and
+// rejected Keep installs account zero, so Bytes never counts a value the
+// cache does not hold.
+func (c *Cache[K, V]) Bytes() int {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	return c.bytes
+}
+
+// installLocked inserts a placeholder for a key the caller has shown to be
+// absent and enforces both bounds. A build in flight counts as young (its
+// placeholder carries the instant it was installed), so a burst of first
+// builds cannot evict one another. The caller holds mu.
 func (c *Cache[K, V]) installLocked(key K, cached *entry[V]) {
-	if len(c.entries) >= c.size {
+	c.entries[key] = cached
+	c.trimLocked(key)
+}
+
+// installValueLocked records one built value on the entry installed under
+// key, replacing the entry's previous estimate, and enforces both bounds. The
+// caller holds mu and has established that cached is the entry the map holds.
+func (c *Cache[K, V]) installValueLocked(key K, cached *entry[V], view V) {
+	c.bytes -= cached.bytes
+	cached.view, cached.set, cached.at = view, true, c.now()
+	// A negative estimate would silently buy budget; clamp it to zero.
+	cached.bytes = 0
+	if c.weigh != nil {
+		if n := c.weigh(view); n > 0 {
+			cached.bytes = n
+		}
+	}
+	c.bytes += cached.bytes
+	c.trimLocked(key)
+}
+
+// trimLocked evicts the oldest entries until the entry bound and the byte
+// bound hold, never evicting the entry under key (the one just installed or
+// refreshed): a single value larger than MaxBytes stays alone, because
+// serving the fresh value beats enforcing the budget. The caller holds mu.
+func (c *Cache[K, V]) trimLocked(key K) {
+	for len(c.entries) > c.size || (c.maxBytes > 0 && c.bytes > c.maxBytes) {
 		var oldestKey K
-		var oldest time.Time
-		first := true
+		var oldest *entry[V]
 		for candidate, existing := range c.entries {
-			if first || existing.at.Before(oldest) {
-				oldestKey, oldest, first = candidate, existing.at, false
+			if candidate == key {
+				continue
+			}
+			if oldest == nil || existing.at.Before(oldest.at) {
+				oldestKey, oldest = candidate, existing
 			}
 		}
-		delete(c.entries, oldestKey)
+		if oldest == nil {
+			return // only the just-installed entry is left
+		}
+		c.removeLocked(oldestKey)
 	}
-	c.entries[key] = cached
+}
+
+// removeLocked drops one entry and its estimated bytes. The caller holds mu.
+func (c *Cache[K, V]) removeLocked(key K) {
+	if existing := c.entries[key]; existing != nil {
+		c.bytes -= existing.bytes
+		delete(c.entries, key)
+	}
 }

@@ -5,6 +5,205 @@ changed, what was tried, what failed, and what comes next. It is not a changelog
 (the user-facing history lives in `CHANGELOG.md`) and not a plan (`docs/PLAN.md`
 owns scope). Keep it current as work proceeds.
 
+## Cycle: adversarial fix wave and resource budgets (2026-11-05)
+
+### Adversarial findings on the merged round (validated, being fixed)
+
+An adversarial review of PR #24 (`c781d3a`) found two defects and two risks.
+Each was independently checked against source by the coordinator:
+
+- The Brief relationship row (`internal/ui/js/21-brief.js:221-229`) still
+  rendered the conversations rollup fields the new server producer stopped
+  sending, so every row showed "0 conversations, 0 messages" and the new
+  open-loop counts were invisible. The UI test fixture still pinned the stale
+  wire shape, which is why the suite stayed green.
+- The plain-count scope gate was skipped whenever a generator was configured
+  (`internal/qa/qa.go:519`) and on the Local structured default branch
+  (`internal/qa/route.go:173-175`): "Number of urgent messages from Bob?"
+  answered a mailbox-wide total while `docs/API.md:852-857` promised the gate
+  for every count cue. Reproduced with fake priority totals.
+- A preview flip dropped `/api/priority`, `/api/triage` and
+  `/api/conversations` but not `/api/brief`, whose snapshot is preview-keyed;
+  a warm Brief repainted pre-flip data for up to the client TTL.
+- The topic coverage line was suppressed when `scanned === 0`
+  (`internal/ui/js/22-ask.js:848`): the exact silently-uncertified zero the
+  feature exists to disclose.
+
+### Shipped in this wave
+
+- `fix-brief-row` (`b6dfe34`): the Brief relationship row renders the open-loop
+  count, overdue and stored follow-up partitions the producer sends; the dead
+  conversation-digest fields were deleted from `brief.Item`, the stale fixture
+  was replaced with the real wire shape (the updated test fails on the old
+  renderer), `/api/brief` joined the preview reads, and the topic coverage line
+  renders at 0/0 with a distinct uncertified sentence.
+- `fix-count-scope` (`c78821d`): the count decision is one scope check on
+  wording, on every route and with or without a generator; an accepted count
+  answers deterministically, a rejected one follows its route's freeform path.
+  Closes the reproduced "urgent messages from Bob" mailbox-wide leak.
+- `perf-viewcache-budget` (`1c1eb9d`): `Options.MaxBytes`/`Weigh` bound the
+  shared read caches by bytes at their one owner, wired into every construction
+  site except `internal/brief`.
+- `chore-ci-hardening` (`4ebcf39`): the vulnerability job reads the Go version
+  from `go.mod` (the action's `stable` default is suppressed), failure,
+  Playwright and release artifacts are retained 7 days, and `.github/actions/**`
+  edits re-run actionlint and the area label.
+- `docs-ask-intelligence` (`1856154`): Ask's local topic counts, coverage
+  honesty and scope rule documented EN/FR.
+- `chore-node-version` (`490791b`, `6869e9d`): `.nvmrc` owns the Node version;
+  the three workflows and the generated site/README text read it.
+- `test-e2e-coverage` (`9fe8b04`): request-count pin for one changed-mail sync
+  frame and a topic-answer rendering test.
+- Local gate: `make fast` green on the integrated tree; the affected Playwright
+  specs passed 54/54; the PII gate caught a literal internal host name in this
+  log, which was neutralised.
+
+### Finish round (verified and executed)
+
+- `feat-site-dark-theme` (`b1d8ef8`): the public site has both palettes, a
+  system default and a persisted three-state toggle; the generated head script
+  carries the theme key, the header emits the localized buttons, and a
+  contrast test pins WCAG AA for both palettes.
+- `test-e2e-brief-topic` (`3358b79`): the Brief relationship row and the
+  uncertified-zero coverage sentence are pinned end to end.
+- `perf-derived-caches` (`dfae776`): the search coverage count is computed
+  once per vector copy sequence and reused; the conversations facts memo
+  remains queued.
+- `perf-triage-core` (`0a66fcf`): the cache and the model share one
+  mail-derived core, with a build counter proving one build per stamp.
+- `intel-world-trend` (`015aef8`): a neutral cadence trend over two equal
+  complete-month windows, carried on the company profile and its wire.
+- `chore-ci-followup` (`075d8cd`): one log directory for CI failure logs, the
+  stale sidecar artifact removed, scorecard/CodeQL/release-asset follow-ups,
+  and `stop-windows.sh` now waits on the descriptor and treats refused/401 as
+  not running (six exit paths exercised against a fake API).
+- `feat-update-detect` (`249f169`): slice 1 of the update feature (semver
+  comparison, GitHub release checker with ETag and rate-limit handling, atomic
+  state, API, startup check, settings) and the privacy pages now list
+  the update check as the fifth request kind.
+- `fix(update-gate)`: the live Windows verification showed `GET /api/update`
+  answering 423 on a fresh data dir because the four update routes were
+  wrapped in the learning gate. The routes are now bearer-only and reachable
+  before learning; the test asserts 200 with a closed gate, that the gate is
+  never consulted, and that a missing bearer still answers 401.
+- `test(e2e)`: the Companies cached-Back probe now waits for the fetched
+  screen instead of the route skeleton that shares its class, removing a real
+  race that failed once in CI; the probe passed 12 repeats under four workers
+  and the full suite 193/193 locally.
+- Promotion: `testing` merges to `main` through PR #25 with every required
+  check green. The owner's explicit instruction authorizes the admin merge
+  because the ruleset demands an extra approval for unattributed commits.
+- Verification on the integrated tree: `make fast` green, the affected
+  Playwright flows 56/56, the named regression suites for each feature green,
+  the generated site current, and the PII gate clean.
+
+### Security (guidance mode) — results so far
+
+- **Loopback API hunt:** four low candidates, each source-verified with a
+  concrete fix: the auth gate reads the decoded path while the multiplexer
+  matches the escaped path (`GET /api/%2e%2e/status` answers 404 without a
+  token instead of 401); the sidecar sends its per-launch bearer on `/health`
+  before the port-ownership check; the Windows browser fallback passes the
+  token URL to `ShellExecuteW` as argv while the POSIX path deliberately uses
+  a 0600 redirect page; the bench scripts put a live token in argv. Clean on
+  CORS/CSRF, token travel, static/attachment traversal, CSP and body caps.
+  All four were fixed on `security-hardening` (`afbb017`) with captured
+  baselines: the gate now decides on the decoded and escaped path forms
+  (`GET /api/%2e%2e/status` answers 401), the sidecar probes ownership before
+  sending the per-launch key (a foreign listener no longer receives it; the
+  unverifiable-platform stub is documented rather than claimed as mitigated),
+  the Windows fallback opens a 0600 redirect page instead of passing the token
+  URL to `ShellExecuteW`, and the bench scripts pass the bearer through a 0600
+  curl config.
+- **Secrets/data-at-rest hunt:** one medium — the only secret-classified
+  setting (`http.proxy_url`) is persisted plaintext in `settings.json`; the
+  owner decides between routing secret settings through the secret store or
+  refusing credential-bearing values from the file layer. Two low: the POSIX
+  browser launcher inherits `MAILSENSE_*` env into the browser process tree
+  (fixed in `afbb017`: the launcher gets an allow-listed environment with every
+  `MAILSENSE_*` stripped, reproduced as a leak before the fix);
+  `http.log.body_max_bytes` writes mail text to logs by explicit opt-in
+  (documented trade-off). Clean on DPAPI scope, redaction, sidecar artifact
+  pinning, installer, env handling and tracked secrets.
+- **Egress/render hunt:** one medium residual — indirect prompt injection can
+  steer a model-written answer, and `groundAnswer` validates citation indices
+  rather than entailment (`internal/qa/ask.go:1623-1678`); no state change,
+  extra retrieval, model-directed fetch or exfiltration is reachable. Honest
+  mitigations: the egress matrix, the embeddings default and the grounding
+  residual are on the EN/FR security and privacy pages
+  (`docs-security-egress`, `c00c358`; the writer corrected the old
+  "computes embeddings on your machine" wording, which ignored the first-start
+  local-embedder default and the remote case). A provenance note in the answer
+  card and a test pinning the script-free mail-frame sandbox invariant remain
+  pending. Clean on implicit egress, provider URL policy and SSRF, HTML
+  sanitization, links, attachments and the sidecar trust chain.
+- **Desktop/IPC hunt:** confirmed the same two defects (sidecar key before
+  ownership, Windows token in browser argv) at exact fix sites, both now fixed,
+  and reported informational residuals: the shell installs no navigation,
+  new-window or permission policy with the pinned WebView2 wrapper (no trigger
+  found today: every app link is a hash route and mail links are filtered),
+  the WebView2 profile lives outside the data directory, the runtime child
+  shares the data tree that holds the descriptor, `stop-windows.sh` trusts a
+  stale descriptor PID, and `StartOutlook` launched a bare `OUTLOOK.EXE`. The
+  Outlook launch was fixed in `security-outlook-path` (`8881994`: App Paths
+  resolution under HKLM then HKCU, a typed error when unresolved, never a
+  bare-name fallback); its fake user-profile path tripped the PII gate on CI
+  and was neutralised in `9d0263a`.
+- Promoting any of this to the full six-phase audit with artifacts still needs
+  explicit authorization.
+
+### Deployment verification (Windows test host)
+
+- Built `0.3.0-dev+20261105040320` from `395083b`, uploaded it to the host's
+  deploy directory and started it as the signed-in user with a fresh isolated
+  `MAILSENSE_DATA_DIR`.
+- Verified: the runtime descriptor reports that build; `GET /` answered 200 and
+  the served bundle carries the new markers (`ask-topic-coverage`,
+  `briefRelationshipRow`, `brief.relationships.open_loops`);
+  `POST /api/ask "How many invoices?"` returned `423 learning_locked` with the
+  expected mailbox and provider problem codes, which is the gate refusing Ask
+  on an unmailed fresh directory rather than a fault; `POST /api/shutdown`
+  answered `{"ok":true}`, the descriptor was removed and no process remained.
+- The deployed binary predates the Outlook App Paths fix; the next build
+  includes it.
+- Process gap found: a merge made after the last `make fast` skipped the PII
+  stage, and the new Outlook fixture path matched the deny list. Re-run the
+  PII check (or the gate) after every merge, not only on the per-writer tree.
+
+### Next queue
+
+The owner asked for the interrupted wave to be verified and finished, then the
+work to stop. Slice 1 of the update feature and the docs/site theme are now
+shipped; remaining work, in priority order:
+
+1. Evidence-date deadlines: the pure detector (`internal/datecue`) first, then
+   the evidence producer, the revision/rules-scoped `message_due_cues`
+   projection (migration 0040 after the priority-coverage migration), one
+   extended `DueDeadlines` read, and the priority/commitments/agenda/Ask/UI
+   consumers.
+2. People profiles: `internal/people` merge, the store person context and
+   exact-address lookup, `world.Person`, the API route, and the Companies/Ask
+   surfaces.
+3. Priority-count coverage: one `priority.Coverage` from the ranking scan,
+   `RankPage`, persisted `qa_history.coverage`, and the shared Ask coverage
+   line.
+4. Update feature: slice 1 shipped (semver detection, GitHub checker, atomic
+   state, API available before learning completes, startup check, settings).
+   Remaining: the Settings tab and
+   the first-open What's New overlay, then slice 2 (download and install: the
+   `httpx` asset-host allowlist, a shared fetch package, the Windows
+   relauncher helper). The privacy pages now list the update check as the
+   fifth request kind.
+5. Theme: the docs/site dark theme shipped. Remaining: the app theme
+   (`ui.theme`, both palettes, mail-frame propagation, WebView2 background as
+   an optional tail).
+6. Resource work: one owner for the vector set, the priority second decision
+   map, a byte budget for `qa.answers`, usage-write coalescing, and the
+   conversations facts memo (the search coverage count shipped).
+7. Security follow-ups: the `http.proxy_url` secret-at-rest decision (owner),
+   the answer provenance note and the script-free mail-frame invariant test,
+   WebView2 data path/background, and the remaining informational residuals.
+
 ## Cycle: three-writer intelligence round (2026-11-04/05)
 
 ### Shipped

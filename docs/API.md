@@ -24,8 +24,8 @@ cookie: the only client is the embedded same-origin shell.
 
 `scripts/run-windows.sh` starts the app and waits for the descriptor;
 `scripts/stop-windows.sh` reads it, posts `/api/shutdown` with the token in
-curl's stdin config, and waits for the process and descriptor to disappear.
-Neither prints the token.
+curl's stdin config, and waits for the descriptor to disappear. Neither prints
+the token.
 
 ## Errors
 
@@ -97,7 +97,7 @@ Host/Origin refused, `405` wrong method, `500` internal.
 
 An action has one spelling: a name the dispatcher does not know answers `404 not_found`. The former aliases (`evidence`, `layer1`, `judge`, `label`, `label_messages`, `backfill_bodies`) were removed. `label_messages` is still a learning blocker id, but the UI handles it by opening the Labels screen; the queue itself is `GET /api/labels/queue`.
 
-| `GET /api/settings` | optional `keys=a,b` | `200` `{"settings":[…],"total":261,"restart_pending":[…]}` | `?keys=` projects the list de-duplicated in schema order; absent or empty returns all; `total` is always the full schema count; unknown key → `400 invalid_keys` with `params.key`; secret values masked |
+| `GET /api/settings` | optional `keys=a,b` | `200` `{"settings":[…],"total":264,"restart_pending":[…]}` | `?keys=` projects the list de-duplicated in schema order; absent or empty returns all; `total` is always the full schema count; unknown key → `400 invalid_keys` with `params.key`; secret values masked |
 | `GET /api/settings/{key}` | — | `200` `SettingView` | `404 unknown_setting` |
 | `PUT /api/settings/{key}` | `{"value":…}` | `200` `SettingView` | mailbox selection keys → `409 use_mailbox_endpoint`; `ui.language` and `learning.test_mode` apply live, no restart |
 | `DELETE /api/settings/{key}` | — | `200` `SettingView` | reset to default |
@@ -144,6 +144,10 @@ An action has one spelling: a name the dispatcher does not know answers `404 not
 | `POST /api/ask` | `{"question":"…","language":"en"\|"fr","conversation_id":"…","route":"auto\|local\|remote"}` | `200` `AskView` | **gated**, long timeout; question 3…500 characters; optional `conversation_id` is 1…64 ASCII letters, digits, `_` or `-`; an omitted id starts a thread and returns a generated 16-hex id; optional `route` defaults to `auto` and is returned on the view; `400 invalid_question`/`invalid_language`/`invalid_conversation_id`/`invalid_route`; `503 qa_disabled` |
 | `GET /api/ask/history` | `?limit=<n>` | `200` `{"items":[AskView]}` | **gated**; `limit` 1…100 (default 20), newest first |
 | `DELETE /api/ask/history` | — | `204` | **gated**; removes the local history |
+| `GET /api/update` | — | `200` `update.Status` | owner-only; local status read only, never a release check or a network request; available before learning completes; see [Update detection](#update-detection) |
+| `POST /api/update/check` | empty or `{}` | `200` `update.Status` | owner-only; one conditional `GET` of the latest published release, plus one release-list page only when that release is newer; a failed upstream answer is a quiet `200` with `error_code`/`last_error`, never an API error; available before learning completes |
+| `POST /api/update/skip` | `{"version":"…"}` | `200` `update.Status` | owner-only; the version is required, 1…128 bytes of UTF-8; mutes the offer until `update.remind.after` has elapsed; available before learning completes |
+| `POST /api/update/seen` | `{"version":"…"}` | `200` `update.Status` | owner-only; records the What's New marker for that version; available before learning completes |
 | `POST /api/shutdown` | empty or `{}` | `202` `{"ok":true}` | second call `503 shutting_down` |
 | `GET /` | — | `200` HTML | embedded desktop shell |
 | `GET /index.html` | — | `308` `/` | |
@@ -181,6 +185,40 @@ the OS and of one setting, not additional preferences: the only language
 preference is `GET`/`PUT /api/settings/ui.language` (`auto`, `en`, `fr`).
 The shell shows confirmed dates in `time_zone` and discloses the machine
 zone when it is empty; the server never formats user-facing dates.
+
+### Update detection
+
+`GET /api/update` is a local read of one state file; it never calls GitHub, so
+a screen refresh cannot spend the rate limit. The automatic check runs after
+the startup warm and then at `update.check.interval` (24 h default) plus up to
+10% jitter; `update.check.enabled` (default on) turns it off.
+`POST /api/update/check` performs one conditional `GET` of the latest
+published release and, only when that release is newer than the running build,
+one bounded page of the release list under `versions_behind`. The check is off
+the request path: the `GET` never checks, and the `POST` checks only when
+asked.
+
+`update.Status` is:
+
+```json
+{"current":"0.1.0","latest":"0.2.0","available":true,"versions_behind":1,
+ "release_url":"https://github.com/LLM-4-People/mailsense/releases/tag/v0.2.0",
+ "notes":"The release notes","notes_seen":false,"skipped":false,
+ "check_enabled":true,"checked_at":"2026-11-04T10:00:00Z"}
+```
+
+`notes` is bounded plain text, never remote HTML. `latest` and `release_url`
+describe the cached release; `available` is true only when a parsed `latest`
+orders after the parsed running version, so an equal, older, malformed latest
+or an unparseable running build is never offered. `versions_behind` counts
+parsed release tags strictly between the two. `skipped` is true while the offer
+for that latest version is inside `update.remind.after`; `notes_seen` records
+the What's New marker (or a database last opened on that version). A failed
+check keeps the cached release, sets `error_code` to `unreachable`,
+`rate_limited`, `http_error`, `invalid_response` or `too_large`, and
+`last_error` to a bounded message; it is a `200` status, and the next
+successful check clears both fields. `error_code`, `last_error`, `latest`,
+`release_url` and `checked_at` are omitted while empty.
 
 ### Mailbox selection and first-open discovery
 
@@ -581,6 +619,24 @@ The profile also carries the evidence the Companies screen states:
 - `last_90_days` is `{messages, threads, active_days}` over the 90 days
   ending at the profile's build instant. Totals (`messages`, `sent`,
   `received`, `threads`) are all time.
+- `trend` is the organization's cadence evidence over two equal windows of
+  complete local calendar months, not trailing days: `trend.recent` is the
+  newest five complete months and `trend.baseline` the five complete months
+  before them; the build instant's partial month is never compared. With
+  less history both windows shrink together, down to one month each when two
+  complete months exist; fewer than two complete months form no window and
+  both `months` are `0`. `trend.recent` and `trend.baseline` each carry
+  `months`, `messages`, `sent`, `received` and `active_months`; a zero month
+  stays inside its window as an inactive month, never a missing one.
+  `trend.status` is `ok` only when both directions exchanged mail inside the
+  compared span (`trend.two_way`), at least six months of that span are
+  active and `trend.baseline.messages` is at least 12; otherwise it is
+  `insufficient_history` and still carries the counts it has.
+  `trend.days_since_inbound` and `trend.days_since_outbound` are whole days
+  from the build instant to the newest message of that direction, omitted
+  when that direction has no dated message. The field itself is omitted only
+  when the organization has no mail at all. These are evidence, never a
+  verdict about the organization.
 - `recent_total`, `open_threads_total`, `events_total` and `deadlines_total`
   are the full list sizes before the display caps. The arrays are capped at
   100 people, 20 recent messages, 20 open threads, 10 events and 20
@@ -831,32 +887,48 @@ Modes are explicit:
   or owner-only search. `answer` is empty; the UI composes the localized
   sentence from `intent` and `counts`. No provider call and no cost.
   Intents: `reply`, `urgent`, `deadline`, `security`, `decision`,
-  `workload`, `priority`, `summary_today`, and `sender` (the text after an
-  explicit sender/from/expéditeur prefix; owner-only search, not the
+  `workload`, `priority`, `summary_today`, `topic`, and `sender` (the text
+  after an explicit sender/from/expéditeur prefix; owner-only search, not the
   generator). A sender search waits for complete retrieval
   (`qa.retrieval_timeout`); when the index is warming or the bound expires
   with no hit, the result is `retrieval` with `qa_index_warming` or
   `qa_retrieval_timeout`, never a false "no message from this sender".
-  `counts` carries the priority filter totals plus `total`. With
-  `qa.provider` empty, a plain count using the declared count vocabulary
+  `counts` carries the priority filter totals plus `total`. A `topic` answer
+  is a plain count of one catalogue topic or subtopic answered from the
+  classified-topic census; it carries
+  `{"topic":"…","subtopic":"…","count":N,"classified":N,"scanned":N}` and
+  `counts` stays empty. `subtopic` is empty for a whole-topic count; a zero
+  count still discloses the classification coverage (`classified` of the
+  `scanned` owner-facing messages) so an empty topic is never silently
+  uncertified, and it cites no message. A failed census read is an error,
+  never a zero.
+  A plain count using the declared count vocabulary
   (`count`/`counts`/`nombre`/`total`/`combien`/`amount`/`quantity`/
   `quantité`, the phrases `how many`/`how much`/`number of`/`nombre de`/
   `amount of`/`quantity of`/`quantité de`, and bare `number` immediately
   before a category or mailbox noun) with exactly one fallback category
   (`security`, `decision`, `deadline`, `urgent`, `reply` or `workload`) and
   no scoped wording ("How many deadlines do I have?") is answered here from
-  the priority totals (a zero total is a real zero with no citation). The
-  scope gate is fail-closed: after removing the count cue and the one
+  the priority totals (a zero total is a real zero with no citation); a plain
+  count whose wording names exactly one catalogue topic or subtopic
+  ("How many invoices?", "Combien de factures ?") is the `topic` answer
+  above. This is not limited to `qa.provider` empty: the scope decision and
+  its deterministic answer run with or without a configured generator.
+  The scope gate is fail-closed: after removing the count cue and the one
   category word, every remaining token must be a known filler, question or
   mailbox noun; any unlisted scope, topic, status or date word keeps the
-  question free-form. The gate runs before the intent switch for every
-  request with a recognized count cue, not only "how many" wording, so
+  question free-form. The gate runs before the route is chosen, for every
+  request with a recognized count cue and with or without a configured
+  generator, not only "how many" wording, so
   "Number of…", "Total…", "Amount of…", "Quantity of…", "Quantité…",
   bare "Number deadlines" and French "Combien…" cannot parse directly to a
   category and bypass it. The fail-closed scope and person guarantees apply
-  to every recognized cue. For a recognized cue, a company- or
-  person-scoped count also stays free-form and needs a generator when the
-  profile cannot answer it; a failed person or company lookup stays
+  to every recognized cue on every route. An accepted plain count is
+  answered here with no provider call; a rejected count follows the
+  request's route as a free-form question (Auto and Remote use the
+  configured generator, Local retrieves without one). For a recognized cue,
+  a company- or person-scoped count stays free-form and needs a generator
+  when the profile cannot answer it; a failed person or company lookup stays
   free-form rather than widening to the mailbox total. For recognized cues,
   third-person and person-frame counts ("does she have", "does An have", "do
   they have") stay free-form: the allowlist has no third-person pronouns or
@@ -884,8 +956,11 @@ Modes are explicit:
   the act recorded inside a message — "Which deadlines did I approve?",
   "Quelles échéances ai-je signées ?" — is free-form even when it contains a
   word such as `deadline` or `decision`: a count or list of subjects cannot
-  state the act. An explicit aggregate request ("Which emails did I approve?",
-  "Combien d'échéances ai-je approuvées ?") keeps its deterministic intent.
+  state the act. An explicit aggregate list request ("Which emails did I
+  approve?") keeps its deterministic intent; a count of an act ("Combien
+  d'échéances ai-je approuvées ?") is rejected by the count scope gate above
+  and stays free-form, because a mailbox-wide category total would not state
+  which ones were approved.
   Advice questions such as "Should I pay this invoice?" are free-form; a
   necessity question such as "Must I approve this invoice?" keeps the decision
   intent. Before the planner runs, the service resolves the person or organization
@@ -1523,7 +1598,8 @@ or route answer. A second explicit surface is
 that has a stored answer while the gate is closed, and an unanswered
 message gets the same `423`. Everything that opens or configures learning (status,
 learning, settings, secrets, mailboxes, jobs, learning actions, the
-display backfill, logs, providers, sidecar, labels, events, shutdown)
+display backfill, logs, providers, sidecar, labels, events, the update
+status and its markers, shutdown)
 works while the gate is closed. The service remains authoritative: a
 service that returns `*LockedError` is answered `423` even if the
 middleware's check just passed.

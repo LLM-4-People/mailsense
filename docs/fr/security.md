@@ -83,13 +83,68 @@ pas un certificat d'éditeur.
 L'application fait ces requêtes, et aucune autre :
 
 1. Le téléchargement des fichiers épinglés du moteur et du modèle.
-2. Un appel à un fournisseur distant que vous avez configuré, y compris le
-   triage automatique après une synchronisation.
+2. Un appel à un fournisseur distant que vous avez configuré, y compris un
+   triage ou une passe d'indexation automatique après une synchronisation quand
+   ce rôle pointe vers un service distant.
 3. Une liste de modèles d'un fournisseur, quand vous la demandez.
 4. Un test de fournisseur, quand vous cliquez sur Tester.
+5. Le contrôle des mises à jour : une requête non authentifiée vers le point
+   de publication de Mailsense sur GitHub, sans courrier, adresse, compte ni
+   identifiant d'installation.
 
-Il n'y a ni télémétrie, ni analyse, ni appel de mise à jour, ni compte central.
+Il n'y a ni télémétrie, ni analyse, ni compte central.
 [Confidentialité](privacy.md) liste les champs que chaque requête peut porter.
+
+## Le rendu du courrier non fiable
+
+Le corps d'un message est du HTML non fiable. Mailsense le reconstruit au lieu
+de lui faire confiance :
+
+- Le serveur local analyse le corps stocké et ne garde qu'une liste fermée
+  d'éléments de texte, de listes, de citations, de tableaux et de liens. Les
+  scripts, les cadres, les objets, les formulaires et les médias sont retirés
+  avec leur contenu.
+- Le fragment reconstruit et la feuille de présentation compilée de l'expéditeur
+  sont rendus dans un iframe dont le bac à sable n'accorde ni script, ni fenêtre
+  surgissante, ni navigation de la page de niveau supérieur, et le document
+  porte sa propre CSP : `script-src 'none'`, `form-action 'none'`,
+  `base-uri 'none'`.
+- Les images distantes deviennent un espace réservé, et un pixel de suivi 1x1
+  est supprimé entièrement. Les images en ligne sont récupérées par l'enveloppe
+  avec le jeton porteur et remplacées dans le cadre par des URL blob éphémères.
+- Un lien n'est conservé que pour http, https et mailto. Un clic ne navigue
+  jamais : il ouvre une boîte qui montre la destination exacte et propose de la
+  copier.
+- Une lecture de pièce jointe est servie depuis des lignes adressées par contenu
+  et uniquement comme image matricielle en ligne, avec `nosniff` et une CSP
+  d'actif, et seulement si le message passe le contrôle du propriétaire et des
+  boîtes choisies.
+
+## Quand un modèle rédige une réponse
+
+La page Demander peut envoyer des messages retrouvés au fournisseur que vous
+avez configuré et afficher la réponse qu'il rédige. L'auteur d'un message
+contrôle son texte, donc le texte d'un message peut tenter d'orienter cette
+réponse. C'est l'injection de prompt indirecte, qu'aucune consigne donnée au
+modèle ne peut supprimer. Ce que l'application encadre :
+
+- Les marqueurs de citation sont vérifiés, pas crus sur parole. Une réponse dont
+  un marqueur sort du contexte numéroté est refusée en entier ; un marqueur
+  valide est renuméroté vers le message qu'il nomme, et la liste des citations
+  est construite à partir de ces messages. Cette vérification prouve que le
+  message cité existe dans le contexte. Elle ne prouve pas que les mots de la
+  réponse en découlent : une réponse orientée peut porter une vraie citation.
+- La sortie du modèle ne change aucun état de l'application. Un plan est du
+  JSON strict, validé contre des formes fixes et exécuté comme une requête
+  locale en lecture seule. Les nombres et les classements sont calculés par du
+  code local, jamais repris du modèle. Une réponse ne déclenche ni nouvelle
+  recherche, ni requête réseau, ni action sur votre courrier.
+- Le modèle ne voit que des données visibles par le propriétaire pour ce tour :
+  les messages numérotés retrouvés avec leurs extraits, les comptes et les faits
+  calculés localement, et, dans un fil, les tours précédents. Le pied de la
+  réponse nomme le fournisseur et le modèle, et chaque citation ouvre le message
+  qu'elle nomme. Traitez une réponse rédigée comme une suggestion, pas comme une
+  affirmation fiable.
 
 ## Signaler une vulnérabilité
 

@@ -9,7 +9,7 @@ import (
 )
 
 // migratedTemplate is one migrated, empty database built once per test
-// process. Every test copies it instead of replaying the 37 migrations (and
+// process. Every test copies it instead of replaying the 38 migrations (and
 // their full-text index setup) on each of the suite's opens. The bytes are
 // copied, so each test still owns a private database file.
 var migratedTemplate = sync.OnceValues(func() ([]byte, error) {

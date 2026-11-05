@@ -72,6 +72,11 @@ const (
 	cacheTTL            = 30 * time.Second
 	cacheRefreshTimeout = 2 * time.Minute
 	profileCacheSize    = 16
+	// profileCacheMaxBytes bounds the estimated retained bytes of the cached
+	// profiles: the open-thread list dominates (the store caps it at 2000
+	// rows), so 8 MiB fits several large profiles while still capping a
+	// pathological one.
+	profileCacheMaxBytes = 8 << 20
 )
 
 // MaxProfileBatch is the largest profile prefetch one request may ask for,
@@ -183,6 +188,42 @@ type profileValue struct {
 	routeGen uint64 // store.RouteGeneration: the thread overlay
 }
 
+// Per-row estimates behind weighProfile: a view, thread, message, event or
+// deadline row is a handful of short strings and ints; a month, person,
+// address or map entry is smaller; a cadence trend is a fixed-size struct.
+const (
+	profileViewBytes  = 512
+	profileRowBytes   = 256
+	profileSmallBytes = 64
+	// profileTrendBytes is one trend: two five-int windows plus the status,
+	// the two-way flag and the two optional day counts.
+	profileTrendBytes = 128
+)
+
+// weighProfile estimates one profile view from its bounded lists. Every list
+// has a store cap (the open-thread list dominates at 2000 rows); OpenLoops is
+// the other service's rollup, counted coarsely from its item count.
+func weighProfile(v profileValue) int {
+	view := v.view
+	n := profileViewBytes
+	if view.Trend != nil {
+		n += profileTrendBytes
+	}
+	n += len(view.Months) * profileSmallBytes
+	n += len(view.People) * profileSmallBytes
+	n += len(view.Addresses) * profileSmallBytes
+	n += len(view.Domains) * profileSmallBytes
+	n += len(view.ThreadStates) * profileSmallBytes
+	n += len(view.Recent) * profileRowBytes
+	n += len(view.OpenThreads) * profileRowBytes
+	n += len(view.Events) * profileRowBytes
+	n += len(view.Deadlines) * profileRowBytes
+	if view.OpenLoops != nil {
+		n += profileRowBytes + len(view.OpenLoops.Items)*profileRowBytes + len(view.OpenLoops.Kinds)*profileSmallBytes
+	}
+	return n
+}
+
 // New returns a world service.
 func New(d Deps) (*Service, error) {
 	if d.Store == nil || d.Config == nil {
@@ -193,7 +234,8 @@ func New(d Deps) (*Service, error) {
 	s.base, s.cancel = context.WithCancel(context.Background())
 	s.refreshes = join.New()
 	s.profiles = viewcache.New[string, profileValue](viewcache.Options[string, profileValue]{
-		TTL: cacheTTL, Size: profileCacheSize, Now: s.clock.Now,
+		TTL: cacheTTL, Size: profileCacheSize, MaxBytes: profileCacheMaxBytes, Weigh: weighProfile,
+		Now:       s.clock.Now,
 		Component: "world",
 		Keep: func(_ string, value profileValue) bool {
 			return value.gen == s.store.MailGeneration() && value.routeGen == s.store.RouteGeneration()
@@ -262,6 +304,15 @@ type ProfileView struct {
 	LastInboundAt  string          `json:"last_inbound_at,omitempty"`
 	LastOutboundAt string          `json:"last_outbound_at,omitempty"`
 	Activity90     CompanyActivity `json:"last_90_days"`
+
+	// Trend is the organization's cadence evidence over two equal windows of
+	// complete calendar months: the newest five complete months against the
+	// five before them, shrinking together when the profile has less history.
+	// It is derived from the months, direction instants and totals above. It
+	// is nil when the organization has no mail at all, and its status is
+	// insufficient_history whenever the evidence gates fail; it is never a
+	// verdict about the organization.
+	Trend *ProfileTrend `json:"trend,omitempty"`
 
 	Months       []CompanyMonth   `json:"months"`
 	Recent       []CompanyMessage `json:"recent"`
@@ -586,6 +637,9 @@ func (s *Service) buildProfiles(ctx context.Context, keys []string, months, even
 		if loops, ok := openLoops[key]; ok {
 			view.OpenLoops = &loops
 		}
+		// The trend is derived last from the assembled view, so its windows
+		// and ages are exactly the values this profile serves.
+		view.Trend = companyTrend(view, now)
 		views[key] = view
 	}
 	return views, nil

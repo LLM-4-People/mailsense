@@ -23,6 +23,9 @@
 #   SIDECAR       on (default) | off: the sidecar suite binds loopback ports
 #                 and must run alone
 #   TEST_TIMEOUT  per-test-binary timeout in seconds (default 300)
+#   MAILSENSE_LOG_DIR
+#                 root for this gate's log directories (default: the system
+#                 temp directory); CI uploads this one known path
 #   GO            Go toolchain to use
 #
 # Use scripts/test.sh for the exhaustive release gate.
@@ -156,7 +159,7 @@ if [[ "$STAGES" == "sidecar" ]]; then
 	exit 0
 fi
 
-tmp="$(mktemp -d "${TMPDIR:-/tmp}/mailsense-test-fast.XXXXXX")"
+tmp="$(gate_log_dir mailsense-test-fast)"
 failed=0
 cleanup() {
 	if ((failed)); then

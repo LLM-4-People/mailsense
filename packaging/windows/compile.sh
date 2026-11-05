@@ -5,7 +5,9 @@
 #   packaging/windows/compile.sh
 #
 # The version comes from dist/VERSION, which scripts/build.sh owns, so the
-# installer name and its version stamp cannot disagree with the binary. ISCC
+# installer name and its version stamp cannot disagree with the binary. The
+# validated path is appended to GITHUB_OUTPUT when GitHub Actions sets it, so
+# the release workflow derives the asset name instead of restating it. ISCC
 # must be installed (Inno Setup 6); set ISCC to a different path when needed.
 #
 # Git Bash rewrites a leading slash into a drive path. Both variables switch
@@ -48,4 +50,9 @@ setup="dist/mailsense-${version}-setup.exe"
 	printf 'error: %s was not produced\n' "$setup" >&2
 	exit 1
 }
+# CI captures the validated path here, so the release workflow consumes this
+# one owner instead of restating the name pattern.
+if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
+	printf 'setup=%s\n' "$setup" >>"$GITHUB_OUTPUT"
+fi
 printf 'ok   %s\n' "$setup"

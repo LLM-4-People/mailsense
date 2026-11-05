@@ -177,6 +177,33 @@ test.describe("completion events", () => {
     await expect.poll(() => messageReads(), { timeout: 5_000 }).toBeGreaterThan(messagesBeforeReturn);
   });
 
+  // One sync.finished frame carrying changed mail fetches the shared /api/hub
+  // read and the mounted screen's own reads exactly once, and the mounted
+  // screen still refreshes. The exact deltas plus the trailing settle pin the
+  // request outcome. The Go sandbox test owns the invalidation-pass count; at
+  // this level a pre-coalescing two-call listener looks the same, because the
+  // refresh timer already unions the synchronous passes.
+  test("one changed-mail sync frame fetches each affected read once", async ({ app }) => {
+    await installFakeEventSource(app.page);
+    await completionMocks(app);
+    const hubReads = requestsTo(app, "/api/hub");
+    const agendaReads = requestsTo(app, "/api/agenda");
+
+    await app.goto("/hub");
+    await app.expectRoute("hub");
+    await settle(app);
+    const before = { hub: hubReads(), agenda: agendaReads() };
+
+    await emitSse(app.page, "sync.finished", { totals: { written: 3 } });
+    // Both reads advance by exactly the one refresh the pass owes; the settle
+    // below then proves no second pass refetches either one.
+    await expect.poll(() => hubReads(), { timeout: 5_000 }).toBe(before.hub + 1);
+    await expect.poll(() => agendaReads(), { timeout: 5_000 }).toBe(before.agenda + 1);
+    await settle(app);
+    expect(hubReads()).toBe(before.hub + 1);
+    expect(agendaReads()).toBe(before.agenda + 1);
+  });
+
   test("a sync with no changed mail issues no request", async ({ app }) => {
     await installFakeEventSource(app.page);
     await completionMocks(app, [

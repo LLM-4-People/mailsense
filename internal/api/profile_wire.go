@@ -88,6 +88,13 @@ type CompanyProfileWire struct {
 	LastOutboundAt string              `json:"last_outbound_at,omitempty"`
 	Activity90     CompanyActivityWire `json:"last_90_days"`
 
+	// Trend is the organization's cadence evidence over two equal windows of
+	// complete calendar months: the newest five complete months against the
+	// five before them, shrinking together with shorter history. It is
+	// omitted when the organization has no mail at all; an
+	// insufficient_history status never drops the counts it has.
+	Trend *worldsvc.ProfileTrend `json:"trend,omitempty"`
+
 	Months       []CompanyMonthWire   `json:"months"`
 	Recent       []CompanyMessageWire `json:"recent"`
 	OpenThreads  []CompanyThreadWire  `json:"open_threads"`
@@ -216,6 +223,7 @@ func CompanyProfileViewOf(view worldsvc.ProfileView) CompanyProfileWire {
 			Threads:    view.Activity90.Threads,
 			ActiveDays: view.Activity90.ActiveDays,
 		},
+		Trend:            trendWire(view.Trend),
 		Months:           make([]CompanyMonthWire, len(view.Months)),
 		Recent:           make([]CompanyMessageWire, len(view.Recent)),
 		OpenThreads:      make([]CompanyThreadWire, len(view.OpenThreads)),
@@ -293,6 +301,26 @@ func openLoopsWire(in *worldsvc.OrganizationOpenLoops) *worldsvc.OrganizationOpe
 	out.Items = nonNilSlice(slices.Clone(in.Items))
 	for i := range out.Items {
 		out.Items[i].Evidence = nonNilSlice(out.Items[i].Evidence)
+	}
+	return &out
+}
+
+// trendWire is the one projection of the cadence trend to the profile wire: a
+// copy whose day pointers are copied too, so a handler cannot mutate the
+// cached view through the shared trend. A nil trend stays nil, so a profile
+// with no mail omits the field entirely.
+func trendWire(in *worldsvc.ProfileTrend) *worldsvc.ProfileTrend {
+	if in == nil {
+		return nil
+	}
+	out := *in
+	if in.DaysSinceInbound != nil {
+		days := *in.DaysSinceInbound
+		out.DaysSinceInbound = &days
+	}
+	if in.DaysSinceOutbound != nil {
+		days := *in.DaysSinceOutbound
+		out.DaysSinceOutbound = &days
 	}
 	return &out
 }

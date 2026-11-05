@@ -60,7 +60,7 @@ propose Réessayer.
 
 ## Ce qui quitte la machine
 
-Mailsense fait quatre types de requêtes réseau. Chacune a une raison visible.
+Mailsense fait cinq types de requêtes réseau. Chacune a une raison visible.
 
 **Sortent, uniquement à l'exécution**
 
@@ -73,6 +73,10 @@ Mailsense fait quatre types de requêtes réseau. Chacune a une raison visible.
   modèles.
 - Une petite requête de test quand vous cliquez sur Tester. Un test est
   facturable et n'est pas couvert par un budget.
+- Le contrôle des mises à jour : au plus une fois par update.check.interval (24
+  heures par défaut), une requête à GitHub demande la dernière version publiée.
+  Elle ne porte aucun courrier, aucune adresse ni identifiant d'installation, et
+  peut être désactivée dans les Réglages.
 
 **Ne sortent jamais**
 
@@ -80,8 +84,7 @@ Mailsense fait quatre types de requêtes réseau. Chacune a une raison visible.
   sont des fichiers SQLite dans le répertoire de données que vous avez choisi.
 - Le code de classification, de preuve et de classement. Il s'exécute en Go
   local, pas comme un appel à un service.
-- Aucune télémétrie, aucune analyse, aucun appel de mise à jour et aucun compte
-  chez un fournisseur.
+- Aucune télémétrie, aucune analyse et aucun compte chez un fournisseur.
 
 Mailsense lit le profil Outlook classique déjà ouvert sous Windows. Il ne
 demande pas d'identifiants Microsoft. Les conditions d'un fournisseur distant
@@ -141,8 +144,8 @@ de version signalent tout ce qui demande une migration.
 
 ## Construire depuis les sources
 
-Go (la version de `go.mod`), Node 22 pour les harnais d'interface, et Playwright
-pour la suite navigateur, en option.
+Go (la version de `go.mod`), Node (la version de `.nvmrc`) pour les harnais
+d'interface, et Playwright pour la suite navigateur, en option.
 
 ```bash
 scripts/build.sh all        # dist/mailsense and dist/mailsense.exe

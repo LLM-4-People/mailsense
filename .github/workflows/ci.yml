@@ -41,6 +41,10 @@ jobs:
       - run: scripts/test-fast.sh
         env:
           STAGES: lint
+          # One known root for the failure logs; the upload below reads it
+          # directly, so the log directory cannot silently disappear from the
+          # artifact when an internal name changes.
+          MAILSENSE_LOG_DIR: ${{ runner.temp }}/mailsense-logs
       # The public pages and brand assets are generated from docs/site.json.
       # scripts/test-fast.sh does not read them, so the site check runs here.
       - name: site check
@@ -50,10 +54,11 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: lint-logs
-          path: |
-            /tmp/mailsense-vet.*/*.log
-            /tmp/*.log
+          path: ${{ runner.temp }}/mailsense-logs
           if-no-files-found: ignore
+          # Failure logs are a debugging aid, not a record: keep a week, not
+          # the default 90 days.
+          retention-days: 7
 
   tests:
     name: tests (${{ matrix.shard }})
@@ -88,6 +93,7 @@ jobs:
           # The sidecar suite binds loopback ports, so it owns a runner of
           # its own instead of running before the shards.
           SIDECAR: "off"
+          MAILSENSE_LOG_DIR: ${{ runner.temp }}/mailsense-logs
       - name: upload logs
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
@@ -95,10 +101,9 @@ jobs:
           # Artifact names are unique per run. Two failing shards must not
           # race for one name and lose the second shard's logs.
           name: test-logs-${{ matrix.shard }}
-          path: |
-            /tmp/mailsense-test-fast.*/*.log
-            /tmp/*.log
+          path: ${{ runner.temp }}/mailsense-logs
           if-no-files-found: ignore
+          retention-days: 7
 
   sidecar:
     name: sidecar suite
@@ -116,13 +121,8 @@ jobs:
       - run: scripts/test-fast.sh
         env:
           STAGES: sidecar
-      - name: upload logs
-        if: failure()
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
-        with:
-          name: sidecar-logs
-          path: /tmp/*.log
-          if-no-files-found: ignore
+      # The sidecar stage streams `go test` output to this job's log and writes
+      # no log files, so there is no failure artifact to upload.
 
   # The ruleset requires the "fast gate" context. This job joins the runners
   # so the required check stays one name while the work runs in parallel.
@@ -208,7 +208,11 @@ jobs:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: golang/govulncheck-action@032d45514ae346b1db93c04b0c90b841c370344f # v1
         with:
-          go-version-input: "1.27"
+          # go.mod owns the Go version. The input must be set to an explicit
+          # empty string: the action would otherwise pass its own "stable"
+          # default to setup-go, which out-ranks go-version-file.
+          go-version-input: ""
+          go-version-file: go.mod
           go-package: ./...
           repo-checkout: false
 

@@ -50,7 +50,8 @@ stays empty.
 ## Do I need a model to use it?
 
 Triage needs a decider, and answers `422 provider_not_configured` without one.
-Search works without a decider. The local classifier still learns from your
+Search works without a decider, and Ask can answer a plain count such as "How
+many invoices?" without a model. The local classifier still learns from your
 answers because it runs in the app. Semantic search needs an embedder, which the
 local runtime can provide.
 

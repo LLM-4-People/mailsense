@@ -650,18 +650,6 @@ func companyCitations(profile world.ProfileView) []Citation {
 	return out
 }
 
-// generatorAvailable reports whether a Q&A generator is configured. It is a
-// local catalog lookup: an empty selector, an unknown record or a missing key
-// is unavailable without a provider call. The provider-less count fallback
-// uses it to stay off the computed path when a generator can still answer.
-func (s *Service) generatorAvailable() bool {
-	if s.source == nil {
-		return false
-	}
-	gen, err := s.source.Generator()
-	return err == nil && gen != nil
-}
-
 // providerlessCountScopeAllowed reports whether a plain provider-less count
 // owns the whole mailbox scope: no organization and no person is named, and
 // both optional reads succeeded. A company-book or person-candidate failure
