@@ -44,31 +44,58 @@ Each was independently checked against source by the coordinator:
 - Read-only design audits running: evidence-date deadlines, memory/cache
   bounds, people profiles.
 
-### Security (guidance mode)
+### Security (guidance mode) — results so far
 
-- Three read-only hunters are auditing the loopback API boundary, secrets and
-  data at rest, and model egress plus mail rendering. Each candidate is
-  validated by the coordinator against source before it is reported; promoting
-  to the full six-phase audit with artifacts needs explicit authorization.
+- **Loopback API hunt:** four low candidates, each source-verified with a
+  concrete fix: the auth gate reads the decoded path while the multiplexer
+  matches the escaped path (`GET /api/%2e%2e/status` answers 404 without a
+  token instead of 401); the sidecar sends its per-launch bearer on `/health`
+  before the port-ownership check; the Windows browser fallback passes the
+  token URL to `ShellExecuteW` as argv while the POSIX path deliberately uses
+  a 0600 redirect page; the bench scripts put a live token in argv. Clean on
+  CORS/CSRF, token travel, static/attachment traversal, CSP and body caps. A
+  fix writer is in flight.
+- **Secrets/data-at-rest hunt:** one medium — the only secret-classified
+  setting (`http.proxy_url`) is persisted plaintext in `settings.json`; the
+  owner decides between routing secret settings through the secret store or
+  refusing credential-bearing values from the file layer. Two low: the POSIX
+  browser launcher inherits `MAILSENSE_*` env into the browser process tree
+  (fix in flight); `http.log.body_max_bytes` writes mail text to logs by
+  explicit opt-in (documented trade-off). Clean on DPAPI scope, redaction,
+  sidecar artifact pinning, installer, env handling and tracked secrets.
+- **Egress/render hunt:** one medium residual — indirect prompt injection can
+  steer a model-written answer, and `groundAnswer` validates citation indices
+  rather than entailment (`internal/qa/ask.go:1623-1678`); no state change,
+  extra retrieval, model-directed fetch or exfiltration is reachable. Honest
+  mitigations queued: a provenance note in the answer card, the egress matrix
+  and residual on the public security/privacy pages (writer in flight), and a
+  test pinning the script-free mail-frame sandbox invariant. Clean on implicit
+  egress, provider URL policy and SSRF, HTML sanitization, links, attachments
+  and the sidecar trust chain.
+- **Desktop/IPC hunt:** still running.
+- Promoting any of this to the full six-phase audit with artifacts still needs
+  explicit authorization.
 
 ### Next queue
 
-1. Integrate the five writer branches, run the full gate and the affected
-   Playwright flows, then deploy the build to `sbk-pc-jacobd` and verify it.
-2. Validate the security candidates and fix confirmed findings at their owner.
-3. Implement the designs when the read-only audits return: evidence-date
-   deadlines, people profiles, the remaining memory bounds.
-4. Uncertified-dimension notices for the priority-category counts.
-5. Update feature (owner request): detect, download and install updates from
-   GitHub releases, updating correctly from any distance behind, with a
-   first-open "What's New"; seamless, fast, fail-closed on verification.
-   Design audit running; first slice is detect + notify + What's New, then the
-   install step (installer vs portable exe, rollback, reuse of the sidecar
-   verified-download machinery).
-6. Theme feature (owner request): dark and light for the app, the
-   marketing/preview surfaces and the Pages site; system preference by default
-   with a persistent manual override. Design audit running; app-UI work waits
-   for the `fix-brief-row` branch to merge (shared `internal/ui`).
+1. Integrate the writer branches as they land (UI/brief, count scope,
+   viewcache budget, e2e coverage, security docs, security fixes, update
+   detection, site theme), run the full gate and the affected Playwright
+   flows, then deploy the build to `sbk-pc-jacobd` and verify it.
+2. Security fixes are in flight; the proxy-URL secret-at-rest medium needs the
+   owner's decision (secret store vs refusing credentials from the file).
+3. Implement the returned designs: evidence-date deadlines (a pure `datecue`
+   package, evidence producer, one extended `DueDeadlines` read), people
+   profiles (`internal/people`, store person context, `world.Person`, API and
+   UI), priority-count coverage, the memory-bounds audit, and the
+   novelty-ranked correlations.
+4. Update feature: slice 1 (detect + What's New state + API) in flight; the
+   settings UI, overlay and privacy-doc move follow in the next wave, then the
+   install slice (asset-host allowlist in `httpx`, a shared fetch package, and
+   the Windows relauncher helper).
+5. Theme: the docs/site theme is in flight; the app theme (`ui.theme` setting,
+   both palettes, mail-frame propagation) follows after the UI writer merges,
+   with the WebView2 title bar as an optional tail.
 
 ## Cycle: three-writer intelligence round (2026-11-04/05)
 
