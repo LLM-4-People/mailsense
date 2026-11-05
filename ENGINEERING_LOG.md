@@ -54,6 +54,17 @@ owns scope). Keep it current as work proceeds.
   descriptor was removed. A fresh data directory reports `gate.allowed=false`
   until learning is opened, which is the expected first-run state.
 
+### Merged and community state
+
+- PR #23 merged to `main` as `d90a35c`. Main `ci`, `actionlint`, `codeql` and
+  `scorecard` completed successfully; `pages` was not triggered because the
+  change touched no docs or site sources. `testing` is synced to `main`.
+- Three writer agents are working in isolated worktrees on non-overlapping
+  slices: sync invalidation coalescing (UI shell), topic-scoped local Ask
+  counts (subject/qa/store/Ask UI), and company open loops (commitments, brief,
+  world, API wire). Each must pass `make fast` in its worktree and is reviewed
+  and gated again during integration.
+
 ### Audits and their top findings
 
 1. **Intelligence/correlation** — topic-scoped local counts, silent
