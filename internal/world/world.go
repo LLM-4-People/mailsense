@@ -190,11 +190,14 @@ type profileValue struct {
 
 // Per-row estimates behind weighProfile: a view, thread, message, event or
 // deadline row is a handful of short strings and ints; a month, person,
-// address or map entry is smaller.
+// address or map entry is smaller; a cadence trend is a fixed-size struct.
 const (
 	profileViewBytes  = 512
 	profileRowBytes   = 256
 	profileSmallBytes = 64
+	// profileTrendBytes is one trend: two five-int windows plus the status,
+	// the two-way flag and the two optional day counts.
+	profileTrendBytes = 128
 )
 
 // weighProfile estimates one profile view from its bounded lists. Every list
@@ -203,6 +206,9 @@ const (
 func weighProfile(v profileValue) int {
 	view := v.view
 	n := profileViewBytes
+	if view.Trend != nil {
+		n += profileTrendBytes
+	}
 	n += len(view.Months) * profileSmallBytes
 	n += len(view.People) * profileSmallBytes
 	n += len(view.Addresses) * profileSmallBytes
@@ -298,6 +304,15 @@ type ProfileView struct {
 	LastInboundAt  string          `json:"last_inbound_at,omitempty"`
 	LastOutboundAt string          `json:"last_outbound_at,omitempty"`
 	Activity90     CompanyActivity `json:"last_90_days"`
+
+	// Trend is the organization's cadence evidence over two equal windows of
+	// complete calendar months: the newest five complete months against the
+	// five before them, shrinking together when the profile has less history.
+	// It is derived from the months, direction instants and totals above. It
+	// is nil when the organization has no mail at all, and its status is
+	// insufficient_history whenever the evidence gates fail; it is never a
+	// verdict about the organization.
+	Trend *ProfileTrend `json:"trend,omitempty"`
 
 	Months       []CompanyMonth   `json:"months"`
 	Recent       []CompanyMessage `json:"recent"`
@@ -622,6 +637,9 @@ func (s *Service) buildProfiles(ctx context.Context, keys []string, months, even
 		if loops, ok := openLoops[key]; ok {
 			view.OpenLoops = &loops
 		}
+		// The trend is derived last from the assembled view, so its windows
+		// and ages are exactly the values this profile serves.
+		view.Trend = companyTrend(view, now)
 		views[key] = view
 	}
 	return views, nil
