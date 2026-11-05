@@ -5,6 +5,61 @@ changed, what was tried, what failed, and what comes next. It is not a changelog
 (the user-facing history lives in `CHANGELOG.md`) and not a plan (`docs/PLAN.md`
 owns scope). Keep it current as work proceeds.
 
+## Cycle: adversarial fix wave and resource budgets (2026-11-05)
+
+### Adversarial findings on the merged round (validated, being fixed)
+
+An adversarial review of PR #24 (`c781d3a`) found two defects and two risks.
+Each was independently checked against source by the coordinator:
+
+- The Brief relationship row (`internal/ui/js/21-brief.js:221-229`) still
+  rendered the conversations rollup fields the new server producer stopped
+  sending, so every row showed "0 conversations, 0 messages" and the new
+  open-loop counts were invisible. The UI test fixture still pinned the stale
+  wire shape, which is why the suite stayed green.
+- The plain-count scope gate was skipped whenever a generator was configured
+  (`internal/qa/qa.go:519`) and on the Local structured default branch
+  (`internal/qa/route.go:173-175`): "Number of urgent messages from Bob?"
+  answered a mailbox-wide total while `docs/API.md:852-857` promised the gate
+  for every count cue. Reproduced with fake priority totals.
+- A preview flip dropped `/api/priority`, `/api/triage` and
+  `/api/conversations` but not `/api/brief`, whose snapshot is preview-keyed;
+  a warm Brief repainted pre-flip data for up to the client TTL.
+- The topic coverage line was suppressed when `scanned === 0`
+  (`internal/ui/js/22-ask.js:848`): the exact silently-uncertified zero the
+  feature exists to disclose.
+
+### In flight (isolated writer worktrees, all based on `c781d3a`)
+
+- `fix-brief-row`: render open loops in Brief rows, delete the dead wire
+  fields, add `/api/brief` to the preview reads, render coverage at 0/0.
+- `fix-count-scope`: make the count decision depend on wording and scope only,
+  on every route and with or without a generator; update the Ask contract.
+- `perf-viewcache-budget`: a byte budget (`MaxBytes`/`Weigh`) at the shared
+  viewcache owner, wired into every construction site except `internal/brief`.
+- `chore-ci-hardening`: source the Go version from `go.mod` in the
+  vulnerability job, bound artifact storage, audit workflow triggers.
+- `docs-ask-intelligence`: document local topic counts, coverage honesty and
+  the scope rule in EN and FR.
+- Read-only design audits running: evidence-date deadlines, memory/cache
+  bounds, people profiles.
+
+### Security (guidance mode)
+
+- Three read-only hunters are auditing the loopback API boundary, secrets and
+  data at rest, and model egress plus mail rendering. Each candidate is
+  validated by the coordinator against source before it is reported; promoting
+  to the full six-phase audit with artifacts needs explicit authorization.
+
+### Next queue
+
+1. Integrate the five writer branches, run the full gate and the affected
+   Playwright flows, then deploy the build to `sbk-pc-jacobd` and verify it.
+2. Validate the security candidates and fix confirmed findings at their owner.
+3. Implement the designs when the read-only audits return: evidence-date
+   deadlines, people profiles, the remaining memory bounds.
+4. Uncertified-dimension notices for the priority-category counts.
+
 ## Cycle: three-writer intelligence round (2026-11-04/05)
 
 ### Shipped
