@@ -36,6 +36,9 @@ liste de messages correspondants ou de réponse écrite avec citations.
 - Un décompte ou un classement sur les métadonnées du courrier : combien de
   messages sont urgents, quels expéditeurs ont écrit le plus, quel mois a été le
   plus chargé.
+- Un décompte d'un sujet reconnu, comme les factures ou les demandes
+  d'assistance, avec le sujet nommé et la couverture de classification derrière
+  le nombre.
 - Une liste de messages correspondants : quels messages parlent de la facture.
 - Un fait tiré du courrier : ce que la proposition signée vous demande de
   confirmer.
@@ -57,6 +60,29 @@ Le sélecteur de modèle se trouve à côté du champ de question.
 Le mode Distant n'est proposé que lorsqu'un fournisseur est configuré et
 utilisable. Sinon, le sélecteur dit pourquoi et mène aux réglages du
 fournisseur, et Auto et Local restent disponibles.
+
+## Décomptes depuis l'index local
+
+Ask peut répondre à un décompte simple d'un sujet reconnu ou d'une catégorie de
+priorité depuis l'index local sans appeler de modèle. « Combien de factures ? »,
+« Combien de demandes d'assistance ? » et « How many invoices? » comptent un
+sujet ; « Combien de messages urgents ? » compte une catégorie de priorité.
+Local répond directement à ces décomptes, et Auto fait de même lorsqu'aucun
+modèle n'est configuré.
+
+La réponse de sujet nomme le sujet ou le sous-sujet compté et indique la
+couverture de classification derrière le nombre, par exemple « 2 messages sont
+classés dans Facturation ou compte › Facture » puis « 9 messages sur 12 ont un
+sujet ». La ligne de couverture indique combien de messages de la boîte portent
+un sujet, ce qui permet de lire un décompte faible ou nul à la lumière de ce qui
+a été classé. Quand le décompte est nul, la réponse dit qu'aucun message n'est
+classé dans ce sujet et ne cite rien.
+
+Le décompte local ne s'applique qu'à une formulation simple, à l'échelle de la
+boîte. Quand la formulation nomme une personne, une organisation, une date ou
+un autre périmètre, le décompte local n'y répond pas : « Combien de factures
+cette semaine ? » et « Combien de factures de Bob ? » portent sur un ensemble
+plus petit.
 
 ## Comment une réponse écrite est ancrée
 
@@ -91,10 +117,11 @@ conservées.
 
 ## Quand il n'y a pas de modèle
 
-Local n'appelle jamais de modèle. Un décompte structuré, un classement et le
-profil d'une organisation répondent quand même. Une question libre renvoie les
-messages correspondants et un avis qui dit que Local n'appelle jamais de modèle,
-avec la possibilité de passer en Auto ou en Distant.
+Local n'appelle jamais de modèle. Un décompte d'un sujet reconnu ou d'une
+catégorie de priorité, un classement et le profil d'une organisation répondent
+quand même. Une question libre renvoie les messages correspondants et un avis
+qui dit que Local n'appelle jamais de modèle, avec la possibilité de passer en
+Auto ou en Distant.
 
 Un appel au fournisseur en échec et une réponse qui n'a pas pu être ancrée
 gardent les messages correspondants à l'écran. Un index en préparation ou un

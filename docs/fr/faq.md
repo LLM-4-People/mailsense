@@ -52,9 +52,11 @@ direct manquante ; la boîte reste donc vide.
 ## Faut-il un modèle pour l'utiliser ?
 
 Le triage a besoin d'un décideur et répond `422 provider_not_configured` sans
-lui. La recherche fonctionne sans décideur. Le classifieur local continue
-d'apprendre de vos réponses parce qu'il s'exécute dans l'application. La
-recherche sémantique a besoin d'un embeddeur, que le moteur local peut fournir.
+lui. La recherche fonctionne sans décideur, et Ask peut répondre à un décompte
+simple comme « Combien de factures ? » sans modèle. Le classifieur local
+continue d'apprendre de vos réponses parce qu'il s'exécute dans l'application.
+La recherche sémantique a besoin d'un embeddeur, que le moteur local peut
+fournir.
 
 ## Où sont mes données ?
 
