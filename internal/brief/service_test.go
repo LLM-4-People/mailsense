@@ -21,8 +21,11 @@ var testNow = time.Date(2026, 10, 27, 12, 0, 0, 0, time.UTC)
 
 type fakeCommitments struct {
 	res        commitments.Result
+	loops      commitments.OrganizationOpenLoopsResult
 	err        error
+	loopsErr   error
 	calls      int
+	loopCalls  int
 	lastFilter commitments.Filter
 	started    chan struct{}
 	release    chan struct{}
@@ -38,6 +41,11 @@ func (f *fakeCommitments) List(_ context.Context, filter commitments.Filter) (co
 		<-f.release
 	}
 	return f.res, f.err
+}
+
+func (f *fakeCommitments) OpenLoops(context.Context) (commitments.OrganizationOpenLoopsResult, error) {
+	f.loopCalls++
+	return f.loops, f.loopsErr
 }
 
 type fakeConversations struct {
@@ -144,9 +152,10 @@ func TestBriefSplitsCommitmentsAndKeepsOrder(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if commitmentsFake.calls != 1 || conversationsFake.calls != 1 || priorityFake.calls != 1 {
-		t.Fatalf("composition calls: commitments %d, conversations %d, priority %d",
-			commitmentsFake.calls, conversationsFake.calls, priorityFake.calls)
+	if commitmentsFake.calls != 1 || commitmentsFake.loopCalls != 1 ||
+		conversationsFake.calls != 1 || priorityFake.calls != 1 {
+		t.Fatalf("composition calls: commitments %d/%d, conversations %d, priority %d",
+			commitmentsFake.calls, commitmentsFake.loopCalls, conversationsFake.calls, priorityFake.calls)
 	}
 	if want := (commitments.Filter{Limit: CommitmentScan}); commitmentsFake.lastFilter != want {
 		t.Fatalf("commitment filter %+v, want %+v", commitmentsFake.lastFilter, want)
@@ -436,22 +445,25 @@ func TestBriefMapsChangedSinceAndRelationships(t *testing.T) {
 			State:        threadintel.Assessment{State: threadintel.AwaitingOwner, Reason: threadintel.ReasonInboundLast},
 			Organization: &conversations.Organization{Key: "c:atelier nord", Label: "Atelier Nord", Declared: true},
 		}},
+		// The conversations rollup is deliberately not the relationship
+		// source anymore: these open organizations must not create a row.
 		OrganizationsOpenTotal: 6,
-		Organizations: []conversations.OrganizationFact{
-			{
-				Organization:  conversations.Organization{Key: "c:atelier nord", Label: "Atelier Nord", Declared: true},
-				Conversations: 3, Messages: 12, AwaitingOwner: 2, AwaitingOther: 1,
-				LastAt: "2026-10-27T10:00:00Z", LastMessageID: 42, LastSubject: "Latest activity",
-			},
-			{
-				Organization:  conversations.Organization{Key: "d:quiet.ca", Label: "quiet.ca"},
-				Conversations: 2, Messages: 5,
-				LastAt: "2026-10-26T10:00:00Z", LastMessageID: 41, LastSubject: "Quiet",
-			},
-		},
+		Organizations: []conversations.OrganizationFact{{
+			Organization:  conversations.Organization{Key: "c:atelier nord", Label: "Atelier Nord", Declared: true},
+			Conversations: 3, Messages: 12, AwaitingOwner: 2, AwaitingOther: 1,
+			LastAt: "2026-10-27T10:00:00Z", LastMessageID: 42, LastSubject: "Latest activity",
+		}},
 	}
 	conversationsFake := &fakeConversations{facts: facts}
-	svc, _ := newTestService(t, &fakeCommitments{}, conversationsFake, &fakePriority{})
+	commitmentsFake := &fakeCommitments{loops: commitments.OrganizationOpenLoopsResult{
+		GeneratedAt: "2026-10-27T12:00:00Z",
+		Total:       4,
+		Organizations: []commitments.OrganizationOpenLoops{
+			{Key: "d:acme.example", Label: "Acme", Total: 6, Owner: 5, Other: 1, Overdue: 3, StoredDue: 2},
+			{Key: "c:atelier nord", Label: "Atelier Nord", Total: 4, Owner: 3, Other: 1, Overdue: 1, StoredDue: 1},
+		},
+	}}
+	svc, _ := newTestService(t, commitmentsFake, conversationsFake, &fakePriority{})
 
 	result, err := svc.Brief(t.Context(), "2026-10-26T02:00:00+02:00")
 	if err != nil {
@@ -475,18 +487,63 @@ func TestBriefMapsChangedSinceAndRelationships(t *testing.T) {
 		t.Fatalf("changed evidence %+v", changed)
 	}
 
-	relationship := result.Relationships.Items[0]
-	if result.Relationships.Count != 6 || len(result.Relationships.Items) != 1 {
+	// The section reads the loops result, in its order and with its honest
+	// total; the conversations rollup above contributes nothing.
+	if result.Relationships.Count != 4 || len(result.Relationships.Items) != 2 {
 		t.Fatalf("relationships section %+v", result.Relationships)
 	}
-	if relationship.ID != "organization:c:atelier nord" || relationship.Kind != "organization" ||
-		relationship.Title != "Atelier Nord" || relationship.Subject != "Latest activity" ||
-		relationship.Organization == nil || relationship.Organization.Label != "Atelier Nord" ||
-		relationship.Conversations != 3 || relationship.Messages != 12 ||
-		relationship.AwaitingOwner != 2 || relationship.AwaitingOther != 1 || relationship.Count != 3 ||
-		relationship.LastAt != "2026-10-27T10:00:00Z" || relationship.MessageID != 42 ||
-		len(relationship.Evidence) != 1 || relationship.Evidence[0] != 42 {
-		t.Fatalf("relationship item %+v", relationship)
+	first, second := result.Relationships.Items[0], result.Relationships.Items[1]
+	if first.ID != "organization:d:acme.example" || first.Kind != "organization" ||
+		first.Title != "Acme" || first.Organization == nil || first.Organization.Key != "d:acme.example" ||
+		first.Organization.Label != "Acme" || first.Count != 6 || first.Overdue != 3 || first.StoredDue != 2 {
+		t.Fatalf("first relationship item %+v", first)
+	}
+	if second.ID != "organization:c:atelier nord" || second.Title != "Atelier Nord" ||
+		second.Count != 4 || second.Overdue != 1 || second.StoredDue != 1 {
+		t.Fatalf("second relationship item %+v", second)
+	}
+	// A loop row carries no thread or rollup facts: it is the organization
+	// and its commitment partition, nothing the conversation digest said.
+	if first.Conversations != 0 || first.Messages != 0 || first.AwaitingOwner != 0 ||
+		first.AwaitingOther != 0 || first.MessageID != 0 || first.LastAt != "" ||
+		first.Evidence != nil {
+		t.Fatalf("a loop row invented digest facts: %+v", first)
+	}
+}
+
+// An empty loops result keeps the relationship section empty: the section is
+// always present with an array, and the conversation digest's organizations
+// do not leak into it.
+func TestBriefEmptyOpenLoopsKeepTheRelationshipSectionEmpty(t *testing.T) {
+	commitmentsFake := &fakeCommitments{loops: commitments.OrganizationOpenLoopsResult{}}
+	conversationsFake := &fakeConversations{facts: conversations.Facts{
+		OrganizationsOpenTotal: 2,
+		Organizations: []conversations.OrganizationFact{{
+			Organization:  conversations.Organization{Key: "c:quiet.test", Label: "Quiet"},
+			Conversations: 2, AwaitingOwner: 1, LastMessageID: 9,
+		}},
+	}}
+	svc, _ := newTestService(t, commitmentsFake, conversationsFake, &fakePriority{})
+
+	result, err := svc.Brief(t.Context(), "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if result.Relationships.Count != 0 || result.Relationships.Items == nil || len(result.Relationships.Items) != 0 {
+		t.Fatalf("empty loops relationships %+v", result.Relationships)
+	}
+	if commitmentsFake.loopCalls != 1 {
+		t.Fatalf("loops called %d times, want 1", commitmentsFake.loopCalls)
+	}
+}
+
+// A loops read failure fails the Brief instead of quietly dropping the
+// section: the relationship list is an obligation view, not a suggestion.
+func TestBriefOpenLoopsFailureFailsTheBrief(t *testing.T) {
+	commitmentsFake := &fakeCommitments{loopsErr: errors.New("loops unavailable")}
+	svc, _ := newTestService(t, commitmentsFake, &fakeConversations{}, &fakePriority{})
+	if _, err := svc.Brief(t.Context(), ""); err == nil {
+		t.Fatal("a loops read failure must fail the Brief")
 	}
 }
 

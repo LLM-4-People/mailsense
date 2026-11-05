@@ -1,6 +1,8 @@
 package api
 
 import (
+	"maps"
+	"slices"
 	"time"
 
 	"github.com/LLM-4-People/mailsense/internal/calendar"
@@ -94,12 +96,19 @@ type CompanyProfileWire struct {
 	Events    []CompanyEventWire    `json:"events"`
 	Deadlines []CompanyDeadlineWire `json:"deadlines"`
 
+	// OpenLoops is the organization's open-loop rollup from the commitments
+	// service, absent when the source is not wired or the read failed. The
+	// items keep the commitments page's own row shape: the profile's loop
+	// ledger is that same page narrowed to one organization.
+	OpenLoops *worldsvc.OrganizationOpenLoops `json:"open_loops,omitempty"`
+
 	PeopleContacted int `json:"people_contacted"`
 	PeopleKnown     int `json:"people_known"`
 
-	RecentTotal    int `json:"recent_total"`
-	EventsTotal    int `json:"events_total"`
-	DeadlinesTotal int `json:"deadlines_total"`
+	RecentTotal      int `json:"recent_total"`
+	OpenThreadsTotal int `json:"open_threads_total"`
+	EventsTotal      int `json:"events_total"`
+	DeadlinesTotal   int `json:"deadlines_total"`
 }
 
 // CompanyActivityWire is the last-90-days block the profile renders.
@@ -207,17 +216,19 @@ func CompanyProfileViewOf(view worldsvc.ProfileView) CompanyProfileWire {
 			Threads:    view.Activity90.Threads,
 			ActiveDays: view.Activity90.ActiveDays,
 		},
-		Months:          make([]CompanyMonthWire, len(view.Months)),
-		Recent:          make([]CompanyMessageWire, len(view.Recent)),
-		OpenThreads:     make([]CompanyThreadWire, len(view.OpenThreads)),
-		ThreadStates:    make(map[string]int, len(view.ThreadStates)),
-		Events:          make([]CompanyEventWire, len(view.Events)),
-		Deadlines:       make([]CompanyDeadlineWire, len(view.Deadlines)),
-		PeopleContacted: view.PeopleContacted,
-		PeopleKnown:     view.PeopleKnown,
-		RecentTotal:     view.RecentTotal,
-		EventsTotal:     view.EventsTotal,
-		DeadlinesTotal:  view.DeadlinesTotal,
+		Months:           make([]CompanyMonthWire, len(view.Months)),
+		Recent:           make([]CompanyMessageWire, len(view.Recent)),
+		OpenThreads:      make([]CompanyThreadWire, len(view.OpenThreads)),
+		ThreadStates:     make(map[string]int, len(view.ThreadStates)),
+		Events:           make([]CompanyEventWire, len(view.Events)),
+		Deadlines:        make([]CompanyDeadlineWire, len(view.Deadlines)),
+		OpenLoops:        openLoopsWire(view.OpenLoops),
+		PeopleContacted:  view.PeopleContacted,
+		PeopleKnown:      view.PeopleKnown,
+		RecentTotal:      view.RecentTotal,
+		OpenThreadsTotal: view.OpenThreadsTotal,
+		EventsTotal:      view.EventsTotal,
+		DeadlinesTotal:   view.DeadlinesTotal,
 	}
 	for i, person := range view.People {
 		out.People[i] = CompanyPersonWire{
@@ -266,6 +277,24 @@ func CompanyProfileViewOf(view worldsvc.ProfileView) CompanyProfileWire {
 		}
 	}
 	return out
+}
+
+// openLoopsWire is the one projection of the commitments rollup to the
+// profile wire: a copy whose item list, every item's evidence and the kind
+// map are never null. The zero organization still marshals as
+// {"items":[],"kinds":{}}. A nil rollup stays nil, so a profile without a
+// commitments source omits the field entirely.
+func openLoopsWire(in *worldsvc.OrganizationOpenLoops) *worldsvc.OrganizationOpenLoops {
+	if in == nil {
+		return nil
+	}
+	out := *in
+	out.Kinds = nonNilMap(maps.Clone(in.Kinds))
+	out.Items = nonNilSlice(slices.Clone(in.Items))
+	for i := range out.Items {
+		out.Items[i].Evidence = nonNilSlice(out.Items[i].Evidence)
+	}
+	return &out
 }
 
 // CompanyProfileViewsOf projects one prefetch batch. The key stays the map

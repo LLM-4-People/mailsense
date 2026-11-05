@@ -83,7 +83,12 @@ type Item struct {
 	AwaitingOwner  int     `json:"awaiting_owner,omitempty"`
 	AwaitingOther  int     `json:"awaiting_other,omitempty"`
 	Count          int     `json:"count,omitempty"`
-	Suggested      bool    `json:"suggested,omitempty"`
+	// Overdue and StoredDue are the relationship row's open-loop partition:
+	// how many of the organization's loops are overdue and how many carry the
+	// stored follow-up source. They are zero for every non-relationship row.
+	Overdue   int  `json:"overdue,omitempty"`
+	StoredDue int  `json:"stored_due,omitempty"`
+	Suggested bool `json:"suggested,omitempty"`
 	// Action and Waiting are the one action classification of a commitment
 	// row. Topic and Subtopic are the one subject hierarchy. Both are
 	// identifiers; the screen owns their copy.
@@ -122,9 +127,12 @@ type Result struct {
 	Topics        Section `json:"topics"`
 }
 
-// Commitments is the open-loop read model.
+// Commitments is the open-loop read model: the flat deduped set and its
+// per-organization grouping. One service owns both, so the relationship
+// section and the commitment sections can never disagree.
 type Commitments interface {
 	List(ctx context.Context, f commitments.Filter) (commitments.Result, error)
+	OpenLoops(ctx context.Context) (commitments.OrganizationOpenLoopsResult, error)
 }
 
 // Conversations is the conversation facts read model.
@@ -251,6 +259,10 @@ func (s *Service) build(ctx context.Context, sinceStamp string) (Result, error) 
 	if err != nil {
 		return Result{}, fmt.Errorf("brief: commitments: %w", err)
 	}
+	loops, err := s.commitments.OpenLoops(ctx)
+	if err != nil {
+		return Result{}, fmt.Errorf("brief: open loops: %w", err)
+	}
 	facts, err := s.conversations.Facts(ctx, sinceStamp, ChangedLimit, OrganizationLimit)
 	if err != nil {
 		return Result{}, fmt.Errorf("brief: conversations: %w", err)
@@ -260,7 +272,7 @@ func (s *Service) build(ctx context.Context, sinceStamp string) (Result, error) 
 		Must:          commitmentSection(open, commitments.DirectionOwner, MustLimit),
 		Waiting:       commitmentSection(open, commitments.DirectionOther, WaitingLimit),
 		Changed:       changedSection(facts, sinceStamp),
-		Relationships: relationshipSection(facts.Organizations, facts.OrganizationsOpenTotal),
+		Relationships: relationshipSection(loops),
 		Topics:        s.topicSection(ctx, facts.Messages),
 	}, nil
 }
@@ -365,32 +377,29 @@ func changedSection(facts conversations.Facts, since string) Section {
 	return Section{Count: sectionCount(facts.RecentTotal, len(items)), Items: items, Since: since}
 }
 
-// relationshipSection keeps the relationships that still carry an open
-// loop: an organization with nothing awaiting either side belongs to the
-// Companies explorer, not to the Brief's work list.
-func relationshipSection(orgs []conversations.OrganizationFact, total int) Section {
-	items := make([]Item, 0, len(orgs))
-	for _, org := range orgs {
-		if org.AwaitingOwner+org.AwaitingOther == 0 {
-			continue
+// relationshipSection turns the commitments service's per-organization open
+// loops into the Brief column. Every organization in the result carries at
+// least one open loop; the section keeps the service's own order and its
+// uncapped organization total, so a capped or under-reported source can never
+// make count trail the rows shown.
+func relationshipSection(loops commitments.OrganizationOpenLoopsResult) Section {
+	items := make([]Item, 0, len(loops.Organizations))
+	for _, org := range loops.Organizations {
+		title := org.Label
+		if title == "" {
+			title = org.Key
 		}
 		items = append(items, Item{
-			ID:            "organization:" + org.Organization.Key,
-			Kind:          "organization",
-			Title:         org.Organization.Label,
-			Subject:       org.LastSubject,
-			Organization:  &Org{Key: org.Organization.Key, Label: org.Organization.Label},
-			MessageID:     org.LastMessageID,
-			Evidence:      []int64{org.LastMessageID},
-			LastAt:        org.LastAt,
-			Conversations: org.Conversations,
-			Messages:      org.Messages,
-			AwaitingOwner: org.AwaitingOwner,
-			AwaitingOther: org.AwaitingOther,
-			Count:         org.AwaitingOwner + org.AwaitingOther,
+			ID:           "organization:" + org.Key,
+			Kind:         "organization",
+			Title:        title,
+			Organization: &Org{Key: org.Key, Label: org.Label},
+			Count:        org.Total,
+			Overdue:      org.Overdue,
+			StoredDue:    org.StoredDue,
 		})
 	}
-	return Section{Count: sectionCount(total, len(items)), Items: items}
+	return Section{Count: sectionCount(loops.Total, len(items)), Items: items}
 }
 
 func factOrg(org *conversations.Organization) *Org {
