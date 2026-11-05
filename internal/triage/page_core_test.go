@@ -337,7 +337,7 @@ func TestPageRowsMatchTheFullCoreBuild(t *testing.T) {
 
 // countingEvidence counts the causal core's probes: Version is read at the
 // top of core() (twice per call, through stamp), Facts once inside
-// buildCore after threads.Load. A page build that never enters the core
+// buildMailCore after threads.Load. A page build that never enters the core
 // leaves both at zero; the old full-core path increments them.
 type countingEvidence struct {
 	versions int
