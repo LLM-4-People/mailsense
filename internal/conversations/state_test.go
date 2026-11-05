@@ -161,7 +161,7 @@ func TestEveryReadSurfaceReportsTheMissingState(t *testing.T) {
 			return err
 		}},
 		{name: "facts", call: func() error {
-			_, err := svc.Facts(t.Context(), "", 5, 5)
+			_, err := svc.Facts(t.Context(), "", 5)
 			return err
 		}},
 	}

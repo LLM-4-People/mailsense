@@ -29,13 +29,12 @@ import (
 // Section bounds. The Brief is mostly a bounded working set; Topics is the
 // one whole-mailbox census, with its mailbox total carried beside it.
 const (
-	DefaultSince      = 7 * 24 * time.Hour
-	CommitmentScan    = 500
-	MustLimit         = 12
-	WaitingLimit      = 8
-	ChangedLimit      = conversations.DefaultRecent
-	OrganizationLimit = conversations.DefaultOrganizations
-	TopicLimit        = 12
+	DefaultSince   = 7 * 24 * time.Hour
+	CommitmentScan = 500
+	MustLimit      = 12
+	WaitingLimit   = 8
+	ChangedLimit   = conversations.DefaultRecent
+	TopicLimit     = 12
 	// CacheTTL bounds one composed Brief. An expired Brief is served
 	// immediately while one background composition runs.
 	CacheTTL = 15 * time.Second
@@ -137,7 +136,7 @@ type Commitments interface {
 
 // Conversations is the conversation facts read model.
 type Conversations interface {
-	Facts(ctx context.Context, since string, recent, orgs int) (conversations.Facts, error)
+	Facts(ctx context.Context, since string, recent int) (conversations.Facts, error)
 }
 
 // Priority is the ranked message read model and its whole-mailbox topic
@@ -263,7 +262,7 @@ func (s *Service) build(ctx context.Context, sinceStamp string) (Result, error) 
 	if err != nil {
 		return Result{}, fmt.Errorf("brief: open loops: %w", err)
 	}
-	facts, err := s.conversations.Facts(ctx, sinceStamp, ChangedLimit, OrganizationLimit)
+	facts, err := s.conversations.Facts(ctx, sinceStamp, ChangedLimit)
 	if err != nil {
 		return Result{}, fmt.Errorf("brief: conversations: %w", err)
 	}

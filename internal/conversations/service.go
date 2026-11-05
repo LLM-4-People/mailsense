@@ -8,7 +8,6 @@
 package conversations
 
 import (
-	"cmp"
 	"context"
 	"encoding/base64"
 	"encoding/json"
@@ -55,10 +54,8 @@ const (
 	// stuck store read cannot keep the refresh flag set forever.
 	// Fact capacities. The Brief reads a bounded working set, never the
 	// whole mailbox.
-	DefaultRecent        = 12
-	MaxRecent            = 50
-	DefaultOrganizations = 8
-	MaxOrganizations     = 30
+	DefaultRecent = 12
+	MaxRecent     = 50
 )
 
 // Errors the API maps to its 400 contract.
@@ -171,23 +168,9 @@ type Fact struct {
 	Organization   *Organization
 }
 
-// OrganizationFact is the conversation rollup of one external organization.
-// LastAt, LastMessageID and LastSubject describe its latest conversation
-// message; no participant or snippet is read for it.
-type OrganizationFact struct {
-	Organization  Organization
-	Conversations int
-	Messages      int
-	AwaitingOwner int
-	AwaitingOther int
-	LastAt        string
-	LastMessageID int64
-	LastSubject   string
-}
-
 // Facts is the Brief's conversation evidence. Counts always carries every
-// threadintel.States key over the whole digest; Recent and Organizations are
-// bounded, deterministic slices and never nil.
+// threadintel.States key over the whole digest; Recent is a bounded,
+// deterministic slice and never nil.
 type Facts struct {
 	GeneratedAt string
 	// Total is the conversation count; Messages is the owner-facing message
@@ -196,13 +179,11 @@ type Facts struct {
 	Total    int
 	Messages int
 	Counts   map[string]int
-	// RecentTotal and OrganizationsOpenTotal count every match before the
-	// display caps, so the Brief can report an honest section total while
-	// carrying only the bounded rows.
-	RecentTotal            int
-	Recent                 []Fact
-	OrganizationsOpenTotal int
-	Organizations          []OrganizationFact
+	// RecentTotal counts every match before the display cap, so the Brief
+	// can report an honest section total while carrying only the bounded
+	// rows.
+	RecentTotal int
+	Recent      []Fact
 }
 
 // Service is the cached, gated mailbox page.
@@ -626,9 +607,9 @@ func (s *Service) enrichRows(ctx context.Context, pageRows []Row, snap *snapshot
 // participant, snippet or message body. since is a stored mail timestamp;
 // empty means no cutoff, and a value that does not parse is
 // ErrInvalidSince. Rows at or before since are excluded, as are undated rows
-// while a cutoff is set. Organizations are resolved once from the company
-// book; an unresolved or internal sender has no organization.
-func (s *Service) Facts(ctx context.Context, since string, recentLimit, orgLimit int) (Facts, error) {
+// while a cutoff is set. The counterparty organization is resolved from the
+// company book; an unresolved or internal sender has no organization.
+func (s *Service) Facts(ctx context.Context, since string, recentLimit int) (Facts, error) {
 	since = strings.TrimSpace(since)
 	var cutoff time.Time
 	hasCutoff := since != ""
@@ -640,7 +621,6 @@ func (s *Service) Facts(ctx context.Context, since string, recentLimit, orgLimit
 		cutoff = at
 	}
 	recentLimit = mathx.Clamp(recentLimit, DefaultRecent, MaxRecent)
-	orgLimit = mathx.Clamp(orgLimit, DefaultOrganizations, MaxOrganizations)
 
 	snap, err := s.snapshot(ctx, s.preview(ctx))
 	if err != nil {
@@ -710,90 +690,13 @@ func (s *Service) Facts(ctx context.Context, since string, recentLimit, orgLimit
 		recent = recent[:recentLimit]
 	}
 
-	type rollup struct {
-		Organization  Organization
-		Conversations int
-		Messages      int
-		AwaitingOwner int
-		AwaitingOther int
-		LastAt        string
-		LastMessageID int64
-		LastSubject   string
-		lastConvID    string
-		hasLatest     bool
-	}
-	byKey := make(map[string]*rollup)
-	for _, fact := range all {
-		if fact.Organization == nil {
-			continue
-		}
-		org := byKey[fact.Organization.Key]
-		if org == nil {
-			org = &rollup{Organization: *fact.Organization}
-			byKey[fact.Organization.Key] = org
-		}
-		org.Conversations++
-		org.Messages += fact.Messages
-		switch fact.State.State {
-		case threadintel.AwaitingOwner:
-			org.AwaitingOwner++
-		case threadintel.AwaitingOther:
-			org.AwaitingOther++
-		}
-		newer := !org.hasLatest
-		if !newer {
-			c := compareInstant(fact.LastAt, org.LastAt)
-			newer = c < 0 ||
-				(c == 0 && fact.LastMessageID > org.LastMessageID) ||
-				(c == 0 && fact.LastMessageID == org.LastMessageID && fact.ConversationID < org.lastConvID)
-		}
-		if newer {
-			org.LastAt = fact.LastAt
-			org.LastMessageID = fact.LastMessageID
-			org.LastSubject = fact.Subject
-			org.lastConvID = fact.ConversationID
-			org.hasLatest = true
-		}
-	}
-	organizations := make([]OrganizationFact, 0, len(byKey))
-	openOrganizations := 0
-	for _, org := range byKey {
-		if org.AwaitingOwner+org.AwaitingOther > 0 {
-			openOrganizations++
-		}
-		organizations = append(organizations, OrganizationFact{
-			Organization:  org.Organization,
-			Conversations: org.Conversations,
-			Messages:      org.Messages,
-			AwaitingOwner: org.AwaitingOwner,
-			AwaitingOther: org.AwaitingOther,
-			LastAt:        org.LastAt,
-			LastMessageID: org.LastMessageID,
-			LastSubject:   org.LastSubject,
-		})
-	}
-	slices.SortFunc(organizations, func(a, b OrganizationFact) int {
-		if a.AwaitingOwner != b.AwaitingOwner {
-			return cmp.Compare(b.AwaitingOwner, a.AwaitingOwner)
-		}
-		if c := compareInstant(a.LastAt, b.LastAt); c != 0 {
-			return c
-		}
-		return strings.Compare(a.Organization.Key, b.Organization.Key)
-	})
-	if len(organizations) > orgLimit {
-		organizations = organizations[:orgLimit]
-	}
-
 	return Facts{
-		GeneratedAt:            mail.Stamp(s.clock.Now()),
-		Total:                  len(snap.digests),
-		Messages:               snap.coverage.Messages,
-		Counts:                 counts,
-		RecentTotal:            recentTotal,
-		Recent:                 recent,
-		OrganizationsOpenTotal: openOrganizations,
-		Organizations:          organizations,
+		GeneratedAt: mail.Stamp(s.clock.Now()),
+		Total:       len(snap.digests),
+		Messages:    snap.coverage.Messages,
+		Counts:      counts,
+		RecentTotal: recentTotal,
+		Recent:      recent,
 	}, nil
 }
 

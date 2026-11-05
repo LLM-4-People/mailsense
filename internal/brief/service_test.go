@@ -49,17 +49,16 @@ func (f *fakeCommitments) OpenLoops(context.Context) (commitments.OrganizationOp
 }
 
 type fakeConversations struct {
-	facts     conversations.Facts
-	err       error
-	calls     int
-	lastSince string
-	lastRecent,
-	lastOrgs int
+	facts      conversations.Facts
+	err        error
+	calls      int
+	lastSince  string
+	lastRecent int
 }
 
-func (f *fakeConversations) Facts(_ context.Context, since string, recent, orgs int) (conversations.Facts, error) {
+func (f *fakeConversations) Facts(_ context.Context, since string, recent int) (conversations.Facts, error) {
 	f.calls++
-	f.lastSince, f.lastRecent, f.lastOrgs = since, recent, orgs
+	f.lastSince, f.lastRecent = since, recent
 	return f.facts, f.err
 }
 
@@ -187,10 +186,9 @@ func TestBriefSplitsCommitmentsAndKeepsOrder(t *testing.T) {
 		t.Fatalf("waiting item %+v", waiting)
 	}
 	wantSince := testNow.Truncate(24 * time.Hour).Add(-DefaultSince).Format(time.RFC3339)
-	if conversationsFake.lastSince != wantSince || conversationsFake.lastRecent != ChangedLimit ||
-		conversationsFake.lastOrgs != OrganizationLimit {
-		t.Fatalf("facts request %q/%d/%d, want %q/%d/%d", conversationsFake.lastSince,
-			conversationsFake.lastRecent, conversationsFake.lastOrgs, wantSince, ChangedLimit, OrganizationLimit)
+	if conversationsFake.lastSince != wantSince || conversationsFake.lastRecent != ChangedLimit {
+		t.Fatalf("facts request %q/%d, want %q/%d", conversationsFake.lastSince,
+			conversationsFake.lastRecent, wantSince, ChangedLimit)
 	}
 	if result.Changed.Since != wantSince {
 		t.Fatalf("changed since %q, want %q", result.Changed.Since, wantSince)
@@ -445,14 +443,6 @@ func TestBriefMapsChangedSinceAndRelationships(t *testing.T) {
 			State:        threadintel.Assessment{State: threadintel.AwaitingOwner, Reason: threadintel.ReasonInboundLast},
 			Organization: &conversations.Organization{Key: "c:atelier nord", Label: "Atelier Nord", Declared: true},
 		}},
-		// The conversations rollup is deliberately not the relationship
-		// source anymore: these open organizations must not create a row.
-		OrganizationsOpenTotal: 6,
-		Organizations: []conversations.OrganizationFact{{
-			Organization:  conversations.Organization{Key: "c:atelier nord", Label: "Atelier Nord", Declared: true},
-			Conversations: 3, Messages: 12, AwaitingOwner: 2, AwaitingOther: 1,
-			LastAt: "2026-10-27T10:00:00Z", LastMessageID: 42, LastSubject: "Latest activity",
-		}},
 	}
 	conversationsFake := &fakeConversations{facts: facts}
 	commitmentsFake := &fakeCommitments{loops: commitments.OrganizationOpenLoopsResult{
@@ -488,7 +478,7 @@ func TestBriefMapsChangedSinceAndRelationships(t *testing.T) {
 	}
 
 	// The section reads the loops result, in its order and with its honest
-	// total; the conversations rollup above contributes nothing.
+	// total; it carries no digest facts.
 	if result.Relationships.Count != 4 || len(result.Relationships.Items) != 2 {
 		t.Fatalf("relationships section %+v", result.Relationships)
 	}
@@ -512,18 +502,10 @@ func TestBriefMapsChangedSinceAndRelationships(t *testing.T) {
 }
 
 // An empty loops result keeps the relationship section empty: the section is
-// always present with an array, and the conversation digest's organizations
-// do not leak into it.
+// always present with an array.
 func TestBriefEmptyOpenLoopsKeepTheRelationshipSectionEmpty(t *testing.T) {
 	commitmentsFake := &fakeCommitments{loops: commitments.OrganizationOpenLoopsResult{}}
-	conversationsFake := &fakeConversations{facts: conversations.Facts{
-		OrganizationsOpenTotal: 2,
-		Organizations: []conversations.OrganizationFact{{
-			Organization:  conversations.Organization{Key: "c:quiet.test", Label: "Quiet"},
-			Conversations: 2, AwaitingOwner: 1, LastMessageID: 9,
-		}},
-	}}
-	svc, _ := newTestService(t, commitmentsFake, conversationsFake, &fakePriority{})
+	svc, _ := newTestService(t, commitmentsFake, &fakeConversations{}, &fakePriority{})
 
 	result, err := svc.Brief(t.Context(), "")
 	if err != nil {
