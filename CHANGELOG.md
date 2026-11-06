@@ -48,10 +48,15 @@ exists.
   download.
 - CI now verifies that the committed generated UI bundles match their sources,
   and a failed gate stage names the command that reruns only that stage.
+- A merge to `main` releases automatically: semantic-release reads the
+  conventional commits, creates the next semantic-version tag and GitHub
+  release only after the fast and exhaustive gates pass, then dispatches the
+  release build that attaches the Windows installer, SBOM and checksums.
+  Release Drafter is retired, so commits are the single version owner.
 - GitHub automation now covers actionlint, a generated-site link crawl, pull
-  request titles and sizes, path labels, release drafting, OSSF Scorecard, Go
-  dependency submission, first-contribution guidance and a stale policy that
-  never closes a pull request.
+  request titles and sizes, path labels, automatic semantic releases, OSSF
+  Scorecard, Go dependency submission, first-contribution guidance and a stale
+  policy that never closes a pull request.
 - CI runs the lint and vet half, the test half and the sidecar suite on
   separate runners, cross-builds the Windows binary on Linux, and analyzes Go
   and JavaScript in parallel. The fast gate went from about six minutes to
