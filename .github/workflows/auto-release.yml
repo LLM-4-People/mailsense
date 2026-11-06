@@ -56,40 +56,138 @@ jobs:
 
       # A dispatch can name a branch. Releasing from one would tag a tree that
       # main does not contain; the release workflow would refuse it later, but
-      # no tag should be created in the first place.
+      # no tag should be created in the first place. On a workflow_run event
+      # GITHUB_SHA is the default-branch tip, not the commit this job checked
+      # out, so check HEAD: that is the commit the tag would point at.
       - name: the commit is on main
         shell: bash
         run: |
           set -euo pipefail
           git fetch --no-tags origin main
-          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+          git merge-base --is-ancestor "$(git rev-parse HEAD)" origin/main
 
-      - name: Semantic release
-        id: semantic
-        uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 # v6.0.0
-        with:
-          semantic_version: 25.0.9
-          # Pinned plugins, matching .releaserc.json. The default npm plugin is
-          # deliberately absent: Mailsense is not an npm package; the tag is
+      # The repository Actions policy allows GitHub-owned actions and a short
+      # list of named third parties. A semantic-release action is not on that
+      # list, and a blocked action fails the whole run at startup with no job
+      # and no log. Install the pinned release tool with npm and run it
+      # directly; the only action this workflow uses is GitHub's setup-node.
+      - name: Install semantic-release
+        shell: bash
+        run: |
+          set -euo pipefail
+          # Pinned versions, matching .releaserc.json. The default npm plugin
+          # is deliberately absent: Mailsense is not an npm package; the tag is
           # the product, and release.yml builds the Windows installer.
-          extra_plugins: |
-            @semantic-release/commit-analyzer@13.0.1
-            @semantic-release/release-notes-generator@14.1.1
+          npm install --no-save --no-audit --no-fund \
+            semantic-release@25.0.9 \
+            @semantic-release/commit-analyzer@13.0.1 \
+            @semantic-release/release-notes-generator@14.1.1 \
             @semantic-release/github@12.0.10
+
+      - name: Create the tag and GitHub release
+        id: semantic
+        shell: bash
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          before="$RUNNER_TEMP/tags-before"
+          after="$RUNNER_TEMP/tags-after"
+          log="$RUNNER_TEMP/semantic-release.log"
+
+          tag_commit() {
+            git ls-remote --tags origin |
+              awk -v t="refs/tags/$1" '
+                $2 == t { sha = $1 }
+                $2 == t "^{}" { peeled = $1 }
+                END { print (peeled ? peeled : sha) }
+              '
+          }
+
+          # semantic-release creates the tag through the API, so the local
+          # checkout gains no tag. Snapshot the remote tags and diff them.
+          git ls-remote --tags origin > "$before"
+          ./node_modules/.bin/semantic-release | tee "$log"
+
+          published=false
+          if grep -q "Published release" "$log"; then
+            published=true
+          fi
+
+          new_tags=()
+          for attempt in 1 2 3 4 5; do
+            git ls-remote --tags origin > "$after"
+            mapfile -t new_tags < <(
+              comm -13 <(sort "$before") <(sort "$after") |
+                awk '{ print $2 }' |
+                sed -E 's#^refs/tags/##; s/\^\{\}$//' |
+                sort -u
+            )
+            if (( ${#new_tags[@]} > 0 )); then
+              break
+            fi
+            if [[ "$published" == false ]]; then
+              break
+            fi
+            if (( attempt == 5 )); then
+              echo "error: semantic-release published a release but no new tag is visible" >&2
+              exit 1
+            fi
+            sleep 2
+          done
+
+          if (( ${#new_tags[@]} > 1 )); then
+            echo "error: semantic-release created more than one tag: ${new_tags[*]}" >&2
+            exit 1
+          fi
+          if (( ${#new_tags[@]} == 0 )); then
+            echo "released=false" >> "$GITHUB_OUTPUT"
+            echo "No release: no commit since the last tag required one."
+            exit 0
+          fi
+
+          tag="${new_tags[0]}"
+
+          # @semantic-release/github creates the tag at the branch name, not at
+          # the commit it analyzed. If main moved while CI ran, the tag can
+          # point at a commit that never passed this gate. This job created the
+          # tag seconds ago; move it to the commit CI tested before anything
+          # builds from it.
+          tested="$(git rev-parse HEAD)"
+          actual="$(tag_commit "$tag")"
+          if [[ "$actual" != "$tested" ]]; then
+            echo "tag $tag points at $actual; moving it to the tested $tested" >&2
+            gh api --method PATCH "repos/$GITHUB_REPOSITORY/git/refs/tags/$tag" \
+              -f sha="$tested" -F force=true >/dev/null
+            for attempt in 1 2 3 4 5; do
+              actual="$(tag_commit "$tag")"
+              if [[ "$actual" == "$tested" ]]; then
+                break
+              fi
+              if (( attempt == 5 )); then
+                echo "error: tag $tag still points at $actual, not $tested" >&2
+                exit 1
+              fi
+              sleep 2
+            done
+          fi
+
+          echo "released=true" >> "$GITHUB_OUTPUT"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          echo "semantic-release created $tag at $tested"
 
       - name: Dispatch the release build at the new tag
-        if: steps.semantic.outputs.new_release_published == 'true'
+        if: steps.semantic.outputs.released == 'true'
         shell: bash
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          TAG: ${{ steps.semantic.outputs.new_release_git_tag }}
+          TAG: ${{ steps.semantic.outputs.tag }}
         run: |
           set -euo pipefail
           tag="$TAG"
           if [[ -z "$tag" ]]; then
-            echo "error: semantic-release published without a git tag" >&2
+            echo "error: no tag was recorded for the release" >&2
             exit 1
           fi
           # The tag is created through the API. Wait until it is visible, then
@@ -118,15 +216,13 @@ jobs:
           done
 
       - name: Release summary
-        if: steps.semantic.outputs.new_release_published == 'true'
+        if: steps.semantic.outputs.released == 'true'
         shell: bash
         env:
-          VERSION: ${{ steps.semantic.outputs.new_release_version }}
-          TAG: ${{ steps.semantic.outputs.new_release_git_tag }}
+          TAG: ${{ steps.semantic.outputs.tag }}
         run: |
           {
             echo "### Released $TAG"
             echo ""
-            echo "Version: $VERSION"
             echo "The release workflow builds the Windows installer and attaches the assets."
           } >> "$GITHUB_STEP_SUMMARY"
