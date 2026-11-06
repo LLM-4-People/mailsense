@@ -64,11 +64,15 @@ every action it uses is GitHub-owned.
   repos/.../actions/permissions/selected-actions` showed the allowlist did not
   contain the action. After the rewrite, the workflow uses only
   `actions/checkout` and `actions/setup-node`.
-- `actionlint` on the workflow; the tag-diff and no-release branches exercised
-  locally against the public tag list; `make fast`; PR CI; then the merged
-  workflow's own `auto-release` run, the tag, and the dispatched release
-  build. The release is not considered done until the release workflow
-  completes and its assets are visible.
+- `actionlint` on the workflow; the tag-diff and tag-resolution logic
+  exercised locally against a scratch remote; `scripts/test-fast.sh
+  STAGES=lint`; PR CI.
+- The merged workflow's own `auto-release` run (`42224808758`, `3ea10cc`)
+  completed in 67 seconds: it analyzed 85 commits, resolved **0.2.0**, created
+  the tag at the tested commit, and dispatched `release.yml`
+  (`42224955299`). That build completed successfully. `SHA256SUMS` verifies
+  the 9,072,600-byte installer and the SBOM, and both `main` and the tag
+  point at `3ea10cc`.
 
 ### Next queue
 
