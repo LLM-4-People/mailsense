@@ -5,6 +5,57 @@ changed, what was tried, what failed, and what comes next. It is not a changelog
 (the user-facing history lives in `CHANGELOG.md`) and not a plan (`docs/PLAN.md`
 owns scope). Keep it current as work proceeds.
 
+## Cycle: automatic semantic releases (2026-11-06)
+
+### Why the main merge produced no release
+
+Release Drafter only updates a draft release; a maintainer had to open the
+draft and publish it, and publishing is what creates the tag that starts
+`release.yml`. The merge to `main` therefore left a new draft and no release.
+The repository also carried several old drafts and two version owners (the
+draft's label resolver and the tag's version), which is the handling defect to
+remove, not a missing manual step.
+
+### Shipped
+
+- `.github/workflows/auto-release.yml` runs after the whole `ci` workflow
+  succeeds on a push to `main` (the fast gate and, on main, the exhaustive
+  gate). It checks out the exact commit CI tested, refuses a commit that is
+  not on `main`, and runs semantic-release with pinned `25.0.9` and pinned
+  default plugins.
+- semantic-release computes the next version from the conventional commits
+  and creates the tag and GitHub release. The npm plugin is deliberately
+  absent: Mailsense is not an npm package; the tag is the product.
+- A tag created through `GITHUB_TOKEN` does not trigger a `push` workflow.
+  The workflow therefore dispatches `release.yml` at the new tag, after
+  checking the tag is visible. `release.yml` still refuses a branch ref and
+  verifies the tag is an ancestor of `main`, so a manual dispatch cannot
+  publish a branch.
+- `release-drafter` and its config are removed, and `.github/labeler.yml` no
+  longer names it. There is one version owner: the commit history. The
+  existing `release.yml` remains the one builder and publisher of the
+  installer, SBOM and checksums.
+- `CHANGELOG.md` stays curated; the generated release notes are the commit
+  summary on the GitHub release. The release body is not overwritten by the
+  publish job.
+
+### Verification
+
+- `semantic-release --dry-run` on `835f5d7` analyzed 81 commits and resolved
+  **0.2.0** (a minor release from the `feat` commits), with generated notes.
+- `actionlint` on the new workflow; `make fast`; PR CI; then the merged
+  workflow's own `auto-release` run, the tag, and the dispatched release
+  build. The release is not considered done until the release workflow
+  completes and its assets are visible.
+
+### Next queue
+
+- If a release build fails after the tag exists, re-dispatch `release.yml` at
+  the tag; the workflow is idempotent and uploads the assets to the existing
+  release. A future reconciliation job can do that automatically.
+- The old draft releases are left untouched; they are unpublished and do not
+  affect the tag history.
+
 ## Cycle: measured rules and the definitional gate (2026-11-05)
 
 ### What the gold dev split measured

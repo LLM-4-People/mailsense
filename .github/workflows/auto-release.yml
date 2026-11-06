@@ -1,0 +1,132 @@
+name: auto-release
+
+# The normal path is a merge to main. The ci workflow runs the fast gate and,
+# on main, the exhaustive gate; this workflow starts only after that whole
+# workflow succeeds and releases the exact commit it tested. A manual dispatch
+# is the recovery path for a lost event; it releases the checked-out main.
+#
+# semantic-release creates the tag and the GitHub release from the conventional
+# commits. A tag created with GITHUB_TOKEN does not trigger a push workflow, so
+# the release build is dispatched explicitly at the new tag. release.yml still
+# refuses a branch ref and verifies the tag is on main.
+on:
+  workflow_run:
+    workflows: ["ci"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # One release at a time. A later merge waits; it must not cancel a release
+  # that is creating its tag or dispatching the build.
+  group: auto-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: tag and release
+    if: >
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_branch == 'main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write # create the tag and the GitHub release
+      actions: write # dispatch release.yml at the new tag
+      issues: write # semantic-release comments on released issues
+      pull-requests: write # and on released pull requests
+    steps:
+      - name: Checkout the commit that passed CI
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.ref }}
+          # semantic-release reads every tag and commit since the last release.
+          fetch-depth: 0
+          # The GitHub plugin authenticates with GITHUB_TOKEN; no persisted git
+          # credential can leak into the release step.
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+
+      # A dispatch can name a branch. Releasing from one would tag a tree that
+      # main does not contain; the release workflow would refuse it later, but
+      # no tag should be created in the first place.
+      - name: the commit is on main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --no-tags origin main
+          git merge-base --is-ancestor "$GITHUB_SHA" origin/main
+
+      - name: Semantic release
+        id: semantic
+        uses: cycjimmy/semantic-release-action@b12c8f6015dc215fe37bc154d4ad456dd3833c90 # v6.0.0
+        with:
+          semantic_version: 25.0.9
+          # Pinned plugins, matching .releaserc.json. The default npm plugin is
+          # deliberately absent: Mailsense is not an npm package; the tag is
+          # the product, and release.yml builds the Windows installer.
+          extra_plugins: |
+            @semantic-release/commit-analyzer@13.0.1
+            @semantic-release/release-notes-generator@14.1.1
+            @semantic-release/github@12.0.10
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Dispatch the release build at the new tag
+        if: steps.semantic.outputs.new_release_published == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.semantic.outputs.new_release_git_tag }}
+        run: |
+          set -euo pipefail
+          tag="$TAG"
+          if [[ -z "$tag" ]]; then
+            echo "error: semantic-release published without a git tag" >&2
+            exit 1
+          fi
+          # The tag is created through the API. Wait until it is visible, then
+          # dispatch release.yml at it; a token-created tag does not start a
+          # push workflow on its own.
+          for attempt in 1 2 3 4 5; do
+            if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
+              break
+            fi
+            if [[ "$attempt" == 5 ]]; then
+              echo "error: tag $tag is not visible after 5 attempts" >&2
+              exit 1
+            fi
+            sleep 2
+          done
+          for attempt in 1 2 3 4 5; do
+            if gh workflow run release.yml --ref "$tag"; then
+              echo "dispatched release.yml at $tag"
+              exit 0
+            fi
+            if [[ "$attempt" == 5 ]]; then
+              echo "error: could not dispatch release.yml at $tag" >&2
+              exit 1
+            fi
+            sleep 5
+          done
+
+      - name: Release summary
+        if: steps.semantic.outputs.new_release_published == 'true'
+        shell: bash
+        env:
+          VERSION: ${{ steps.semantic.outputs.new_release_version }}
+          TAG: ${{ steps.semantic.outputs.new_release_git_tag }}
+        run: |
+          {
+            echo "### Released $TAG"
+            echo ""
+            echo "Version: $VERSION"
+            echo "The release workflow builds the Windows installer and attaches the assets."
+          } >> "$GITHUB_STEP_SUMMARY"
