@@ -50,6 +50,9 @@ coverage.out
 /docs/_site/
 /_site/
 
+# semantic-release is installed into the repo root by the release workflow
+/node_modules/
+
 # Inno Setup output when a developer runs it from packaging/windows
 packaging/dist/
 

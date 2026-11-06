@@ -16,6 +16,14 @@ The repository also carried several old drafts and two version owners (the
 draft's label resolver and the tag's version), which is the handling defect to
 remove, not a missing manual step.
 
+The first automatic run then failed before it started: the repository Actions
+policy allows GitHub-owned actions plus a short allowlist of named third
+parties, and `cycjimmy/semantic-release-action` is not on it. A blocked action
+produces `startup_failure` with no jobs and no logs, which is exactly what run
+`42221171098` recorded. A release tool is a CLI, not an action: the workflow
+now installs the pinned packages with npm and runs the binary directly, so
+every action it uses is GitHub-owned.
+
 ### Shipped
 
 - `.github/workflows/auto-release.yml` runs after the whole `ci` workflow
@@ -26,6 +34,14 @@ remove, not a missing manual step.
 - semantic-release computes the next version from the conventional commits
   and creates the tag and GitHub release. The npm plugin is deliberately
   absent: Mailsense is not an npm package; the tag is the product.
+- The release step snapshots the remote tags before and after the run and
+  emits the new tag as a step output. The tag refs are the fact, not a parsed
+  release name; the log only decides whether a missing tag is worth waiting
+  for, and a run that released nothing is a successful no-op.
+- `@semantic-release/github` targets the new tag at the branch name, so a
+  merge that lands while CI runs could put the tag on a commit this gate never
+  tested. The workflow moves the just-created tag to the checked-out HEAD and
+  verifies the ref before it dispatches the build.
 - A tag created through `GITHUB_TOKEN` does not trigger a `push` workflow.
   The workflow therefore dispatches `release.yml` at the new tag, after
   checking the tag is visible. `release.yml` still refuses a branch ref and
@@ -43,7 +59,13 @@ remove, not a missing manual step.
 
 - `semantic-release --dry-run` on `835f5d7` analyzed 81 commits and resolved
   **0.2.0** (a minor release from the `feat` commits), with generated notes.
-- `actionlint` on the new workflow; `make fast`; PR CI; then the merged
+- The first `auto-release` run (`42221171098`, `b44d481`) was a
+  `startup_failure` with no jobs; `gh api
+  repos/.../actions/permissions/selected-actions` showed the allowlist did not
+  contain the action. After the rewrite, the workflow uses only
+  `actions/checkout` and `actions/setup-node`.
+- `actionlint` on the workflow; the tag-diff and no-release branches exercised
+  locally against the public tag list; `make fast`; PR CI; then the merged
   workflow's own `auto-release` run, the tag, and the dispatched release
   build. The release is not considered done until the release workflow
   completes and its assets are visible.
