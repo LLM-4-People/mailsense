@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -17,10 +18,12 @@ import (
 	"github.com/LLM-4-People/mailsense/internal/source"
 )
 
-// Kind is the connector kind of classic Outlook.
+// Kind is the connector kind of classic Outlook. It is a protocol/storage
+// identity, not a screen label; the label is outlook.display_name.
 const Kind = "outlook"
 
-// Origin is the Message.Origin of Outlook mail.
+// Origin is the Message.Origin of Outlook mail. It is message provenance, not
+// a screen label.
 const Origin = "outlook"
 
 // Connector reads every mail folder of every store of the running classic
@@ -64,6 +67,8 @@ type Connector struct {
 
 var (
 	_ source.Connector      = (*Connector)(nil)
+	_ source.Named          = (*Connector)(nil)
+	_ source.Prober         = (*Connector)(nil)
 	_ source.DetailReader   = (*Connector)(nil)
 	_ source.FolderProber   = (*Connector)(nil)
 	_ source.ContactSource  = (*Connector)(nil)
@@ -98,6 +103,9 @@ func (c *Connector) ID() string { return c.id }
 
 // Kind returns "outlook".
 func (c *Connector) Kind() string { return Kind }
+
+// DisplayName returns the configured owner-facing name of this source.
+func (c *Connector) DisplayName() string { return c.cfg.String("outlook.display_name") }
 
 // Capabilities: incremental folder cursors, full bodies and recipients in
 // the detail pass, removals from complete snapshots, the owner addresses
@@ -162,7 +170,8 @@ type settings struct {
 	selected       map[string]bool // picked store keys (source.SettingSelected)
 	recheck        time.Duration   // snapshot backstop
 	excludeFolders []*regexp.Regexp
-	countUnpicked  bool // walk unpicked stores once for their counts
+	countUnpicked  bool   // walk unpicked stores once for their counts
+	profile        string // configured mail profile ("" = whatever is open)
 	times          mail.Times
 	pace           paceSettings
 	breaker        breakerSettings
@@ -194,6 +203,7 @@ func compileSettings(snap *config.Snapshot) (settings, error) {
 			max: snap.Duration("outlook.com.retry.max_delay")},
 		selected: source.Selected(snap), times: mail.TimesFromConfig(snap), recheck: snap.Duration("outlook.sync.recheck_after"),
 		pace: paceFrom(snap), breaker: breakerFrom(snap), countUnpicked: snap.Bool("outlook.discover.count_unpicked"),
+		profile: strings.TrimSpace(snap.String("outlook.profile")),
 	}
 	for _, p := range snap.Strings("outlook.folders.exclude_patterns") {
 		re, err := regexp.Compile(p)
@@ -228,13 +238,21 @@ func (c *Connector) op(ctx context.Context, fn func(ns Object, s settings) error
 	defer cancel()
 	view := func(ctx context.Context, obj Object, class string) *guard { return c.view(ctx, s, obj, class) }
 	err = c.apt.do(ctx, func() error {
+		// A configured profile change applies to the next operation: a running
+		// Outlook cannot switch profiles, so drop the old session and let
+		// connect verify the configured profile (and fail with the cause when
+		// the open Outlook uses another one).
+		if c.sess != nil && s.profile != "" && !strings.EqualFold(c.sess.profile, s.profile) {
+			c.sess.close()
+			c.sess = nil
+		}
 		if c.sess == nil {
-			sess, err := connect(ctx, c.host, view)
+			sess, err := connect(ctx, c.host, view, s.profile)
 			if err != nil {
 				return err
 			}
 			c.sess = sess
-			c.log.Info("connected to Outlook", "pace", c.Breaker())
+			c.log.Info("connected to Outlook", "pace", c.Breaker(), "profile", sess.profile)
 		}
 		err := fn(view(ctx, c.sess.ns, classNamespace), s)
 		if errors.Is(err, ErrSessionLost) {
@@ -360,17 +378,51 @@ func (c *Connector) Resume() error {
 }
 
 // StartOutlook is the user's action to start classic Outlook as they
-// would themselves (its window, the default profile). Background work
+// would themselves (its window, the configured profile). Background work
 // never calls it: the connector only attaches to a running Outlook. A
-// running Outlook is left alone.
+// running Outlook is left alone, but a configured profile must match: COM
+// cannot switch a running Outlook to another profile.
 func (c *Connector) StartOutlook(ctx context.Context) error {
-	c.opMu.Lock()
-	defer c.opMu.Unlock()
-	if err := c.admit(settings{}, false); err != nil {
+	s, err := c.settings()
+	if err != nil {
 		return err
 	}
-	if _, err := c.host.Started(); err == nil {
-		return nil
+	c.opMu.Lock()
+	err = c.admit(s, false)
+	c.opMu.Unlock()
+	if err != nil {
+		return err
+	}
+
+	// Outlook already runs: it owns its profile. Verify the configured one
+	// instead of pretending a start succeeded.
+	if _, started := c.host.Started(); started == nil {
+		if s.profile == "" {
+			return nil
+		}
+		h, err := c.Health(ctx)
+		if err != nil {
+			return err
+		}
+		if strings.EqualFold(h.Profile, s.profile) {
+			return nil
+		}
+		return fmt.Errorf("%w: Outlook is running with profile %q; the configured profile is %q. "+
+			"Close Outlook, then use Start Outlook", ErrWrongProfile, h.Profile, s.profile)
+	}
+
+	c.opMu.Lock()
+	defer c.opMu.Unlock()
+	if err := c.admit(s, false); err != nil {
+		return err
+	}
+	// Another caller (or the user) may have started Outlook while we waited.
+	if _, started := c.host.Started(); started == nil {
+		if s.profile == "" {
+			return nil
+		}
+		return fmt.Errorf("%w: Outlook started before Mailsense could open profile %q; "+
+			"close Outlook, then use Start Outlook", ErrWrongProfile, s.profile)
 	}
 	if err := c.host.Registered(); err != nil {
 		return fmt.Errorf("%w (%w)", ErrNoClassicOutlook, err)
@@ -382,10 +434,10 @@ func (c *Connector) StartOutlook(ctx context.Context) error {
 		return err
 	}
 	// ShellExecute wants COM initialized on its thread: the apartment's.
-	if err := c.apt.do(ctx, c.host.Start); err != nil {
+	if err := c.apt.do(ctx, func() error { return c.host.Start(s.profile) }); err != nil {
 		return fmt.Errorf("outlook: cannot start Outlook: %w", err)
 	}
-	c.log.Info("Outlook started at the user's request")
+	c.log.Info("Outlook started at the user's request", "profile", s.profile)
 	return nil
 }
 
@@ -393,6 +445,7 @@ func (c *Connector) StartOutlook(ctx context.Context) error {
 type Health struct {
 	Connected  bool          `json:"connected"`
 	Version    string        `json:"version,omitempty"` // Outlook's version
+	Profile    string        `json:"profile,omitempty"` // Namespace.CurrentProfileName
 	Elevated   bool          `json:"elevated"`
 	NewOutlook bool          `json:"new_outlook"` // the profile is switched to the new Outlook
 	Breaker    BreakerStatus `json:"breaker"`
@@ -406,8 +459,14 @@ func (c *Connector) Health(ctx context.Context) (Health, error) {
 	h.Elevated, _ = c.host.Elevated()
 	err := c.op(ctx, func(ns Object, s settings) error {
 		v, err := c.view(ctx, s, c.sess.app, classApplication).Get("Version")
+		if err != nil {
+			return err
+		}
 		h.Version = asString(v)
-		return err
+		if p, perr := c.view(ctx, s, ns, classNamespace).Get("CurrentProfileName"); perr == nil {
+			h.Profile = strings.TrimSpace(asString(p))
+		}
+		return nil
 	})
 	h.Connected = err == nil
 	h.Breaker = c.Breaker()
@@ -415,6 +474,19 @@ func (c *Connector) Health(ctx context.Context) (Health, error) {
 		h.Error = err.Error()
 	}
 	return h, err
+}
+
+// Probe reports whether the connector can be used now. It uses Health, so a
+// missing Outlook, a COM failure, an elevated process or a configured profile
+// mismatch all become an unavailable readiness with the connector's named
+// cause. The source stays a passive list entry otherwise.
+func (c *Connector) Probe(ctx context.Context) source.Readiness {
+	h, err := c.Health(ctx)
+	if err != nil {
+		cause, _ := source.Cause(err)
+		return source.Readiness{Available: false, Cause: cause, Detail: err.Error(), Profile: h.Profile}
+	}
+	return source.Readiness{Available: true, Profile: h.Profile}
 }
 
 // publish emits a phase measurement.

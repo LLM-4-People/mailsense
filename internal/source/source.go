@@ -6,6 +6,7 @@ package source
 import (
 	"context"
 	"reflect"
+	"strings"
 
 	"github.com/LLM-4-People/mailsense/internal/mail"
 )
@@ -135,6 +136,41 @@ type Connector interface {
 	// Sync streams the folder's messages changed since cursor into sink and
 	// returns the cursor to store once the sync is known to be complete.
 	Sync(ctx context.Context, folder mail.Folder, cursor Cursor, sink Sink) (Cursor, error)
+}
+
+// Named is implemented by connectors whose owner-facing name is configured.
+// The stable id remains the identity used by storage and the API; the name is
+// only the label a screen shows.
+type Named interface {
+	DisplayName() string
+}
+
+// DisplayName projects a connector's configured name, falling back to its
+// stable id. This is the one label projection: screens never humanize an id.
+func DisplayName(c Connector) string {
+	if named, ok := c.(Named); ok {
+		if name := strings.TrimSpace(named.DisplayName()); name != "" {
+			return name
+		}
+	}
+	return c.ID()
+}
+
+// Readiness is a connector's live answer to "can this source be used now".
+// A source that cannot probe itself is treated as available: the probe is an
+// extra gate, not a requirement.
+type Readiness struct {
+	Available bool   `json:"available"`
+	Cause     string `json:"cause,omitempty"`
+	Detail    string `json:"detail,omitempty"`
+	Profile   string `json:"profile,omitempty"`
+}
+
+// Prober is implemented by connectors that can check their live
+// preconditions without starting a sync (for example, whether the source
+// application is running and its COM surface answers).
+type Prober interface {
+	Probe(ctx context.Context) Readiness
 }
 
 // Starter is implemented by connectors whose application can be started at

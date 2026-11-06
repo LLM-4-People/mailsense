@@ -338,10 +338,12 @@ type UsageAPI interface {
 	List(ctx context.Context, days int) ([]store.UsageRow, error)
 }
 
-// SourcesAPI performs the owner actions a connector exposes outside a sync:
-// start its application, resume a stopped connection, and clear the messages
-// set aside after a failed detail read.
+// SourcesAPI lists the registered connectors with their live readiness and
+// performs the owner actions a connector exposes outside a sync: start its
+// application, resume a stopped connection, and clear the messages set aside
+// after a failed detail read.
 type SourcesAPI interface {
+	List(ctx context.Context) ([]SourceView, error)
 	Start(ctx context.Context, sourceID string) (SourceActionView, error)
 	Resume(ctx context.Context, sourceID string) (SourceActionView, error)
 	RetryDetails(ctx context.Context, sourceID string) (SourceActionView, error)
@@ -362,20 +364,48 @@ type HubAPI interface {
 type SourceInfo struct {
 	ID           string                `json:"id"`
 	Kind         string                `json:"kind"`
+	DisplayName  string                `json:"display_name"`
 	Capabilities source.CapabilityList `json:"capabilities"`
 	Actions      []source.OwnerAction  `json:"actions"`
 }
 
 // SourceInfoOf is the one projection of a registered connector to the source
-// list. The status route and any future source list call it instead of
+// list. The status route and the source readiness route call it instead of
 // restating the capability or action vocabulary.
 func SourceInfoOf(c source.Connector) SourceInfo {
 	return SourceInfo{
 		ID:           c.ID(),
 		Kind:         c.Kind(),
+		DisplayName:  source.DisplayName(c),
 		Capabilities: c.Capabilities().List(),
 		Actions:      source.ConnectorActions(c),
 	}
+}
+
+// SourceView is a source identity plus the live readiness a screen needs
+// before it offers that source. A source that does not implement Prober is
+// available: readiness is an extra gate, never a requirement.
+type SourceView struct {
+	SourceInfo
+	Available bool   `json:"available"`
+	Cause     string `json:"cause,omitempty"`
+	Detail    string `json:"detail,omitempty"`
+	Profile   string `json:"profile,omitempty"`
+}
+
+// SourceViewOf projects one connector and asks its optional probe. The
+// sources route is the only caller: /api/status stays a passive identity list
+// so boot never waits on a COM round trip.
+func SourceViewOf(ctx context.Context, c source.Connector) SourceView {
+	v := SourceView{SourceInfo: SourceInfoOf(c), Available: true}
+	if prober, ok := c.(source.Prober); ok {
+		r := prober.Probe(ctx)
+		v.Available = r.Available
+		v.Cause = r.Cause
+		v.Detail = r.Detail
+		v.Profile = r.Profile
+	}
+	return v
 }
 
 // SourceActionView is the one answer of an owner action on a source. Action

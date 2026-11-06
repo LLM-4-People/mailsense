@@ -1,5 +1,10 @@
 package outlook
 
+import (
+	"fmt"
+	"strings"
+)
+
 // outlookExe is classic Outlook's executable: its process name
 // (system_windows.go) and the name of its App Paths registration.
 const outlookExe = "OUTLOOK.EXE"
@@ -41,15 +46,34 @@ func resolveOutlookExe(lookup appPathLookup) (string, error) {
 	return "", ErrOutlookExeNotFound
 }
 
+// profileParams quotes a validated profile name for Outlook's /profile
+// switch. Empty means the default profile. The schema rejects quotes and
+// control characters; this check is defence in depth for tools that build a
+// connector without the schema.
+func profileParams(profile string) (string, error) {
+	if profile == "" {
+		return "", nil
+	}
+	if strings.Contains(profile, "\"") ||
+		strings.ContainsFunc(profile, func(r rune) bool { return r < 0x20 || r == 0x7f }) {
+		return "", fmt.Errorf("outlook: invalid mail profile name")
+	}
+	return `/profile "` + profile + `"`, nil
+}
+
 // launchOutlook starts classic Outlook through shell, with the absolute
 // path its App Paths registration resolved to, verbatim. Only
 // Connector.StartOutlook (the user's explicit action) calls it: background
 // work never starts Outlook, and the shell is never handed a bare name a
 // planted copy could shadow.
-func launchOutlook(lookup appPathLookup, shell func(exe string) error) error {
+func launchOutlook(lookup appPathLookup, shell func(exe, params string) error, profile string) error {
+	params, err := profileParams(profile)
+	if err != nil {
+		return err
+	}
 	exe, err := resolveOutlookExe(lookup)
 	if err != nil {
 		return err
 	}
-	return shell(exe)
+	return shell(exe, params)
 }

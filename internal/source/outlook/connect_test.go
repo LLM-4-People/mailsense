@@ -2,6 +2,7 @@ package outlook
 
 import (
 	"errors"
+	"strings"
 	"testing"
 
 	"github.com/LLM-4-People/mailsense/internal/source"
@@ -94,6 +95,96 @@ func TestStartOutlookMisuse(t *testing.T) {
 	conn.Close()
 	if err := conn.StartOutlook(t.Context()); !errors.Is(err, ErrClosed) {
 		t.Fatalf("closed: %v", err)
+	}
+}
+
+// A configured profile is verified against the MAPI session the connector
+// actually attached to. A running Outlook cannot be switched, so a mismatch
+// is refused before any mail is read.
+func TestConnectVerifiesTheConfiguredProfile(t *testing.T) {
+	o := profile()
+	o.profile = "A"
+	c, _ := testConnector(t, o, map[string]any{"outlook.profile": "B"})
+	_, err := c.Discover(t.Context())
+	if !errors.Is(err, ErrWrongProfile) {
+		t.Fatalf("mismatch: %v, want ErrWrongProfile", err)
+	}
+	if cause, _ := source.Cause(err); cause != "outlook_wrong_profile" {
+		t.Fatalf("cause %q", cause)
+	}
+
+	o = profile()
+	o.profile = "B"
+	c, _ = testConnector(t, o, map[string]any{"outlook.profile": "B"})
+	if _, err := c.Discover(t.Context()); err != nil {
+		t.Fatalf("matching profile: %v", err)
+	}
+
+	// Empty means the profile already open, whatever it is.
+	o = profile()
+	o.profile = "A"
+	c, _ = testConnector(t, o, nil)
+	if _, err := c.Discover(t.Context()); err != nil {
+		t.Fatalf("empty profile: %v", err)
+	}
+	if h, err := c.Health(t.Context()); err != nil || h.Profile != "A" {
+		t.Fatalf("health %+v %v", h, err)
+	}
+}
+
+// The user's Start action opens the configured profile; a running Outlook is
+// left alone, and a configured mismatch is named instead of silently ignored.
+func TestStartOutlookUsesTheConfiguredProfile(t *testing.T) {
+	o := profile()
+	o.running = false
+	c, _ := testConnector(t, o, map[string]any{"outlook.profile": "Work Mail"})
+	if err := c.StartOutlook(t.Context()); err != nil {
+		t.Fatalf("start: %v", err)
+	}
+	if o.startProfile != "Work Mail" {
+		t.Fatalf("started profile %q, want Work Mail", o.startProfile)
+	}
+	if _, err := c.Discover(t.Context()); err != nil {
+		t.Fatalf("attach after start: %v", err)
+	}
+
+	o = profile()
+	o.profile = "A"
+	c, _ = testConnector(t, o, map[string]any{"outlook.profile": "B"})
+	if err := c.StartOutlook(t.Context()); !errors.Is(err, ErrWrongProfile) {
+		t.Fatalf("running mismatch: %v, want ErrWrongProfile", err)
+	}
+	if o.starts != 0 {
+		t.Fatalf("a running Outlook must not be started (%d)", o.starts)
+	}
+}
+
+// Probe turns the connector's named preconditions into the readiness a setup
+// screen renders, without starting Outlook.
+func TestProbeReportsReadiness(t *testing.T) {
+	o := profile()
+	c, _ := testConnector(t, o, nil)
+	if got := c.Probe(t.Context()); !got.Available || got.Cause != "" {
+		t.Fatalf("running: %+v", got)
+	}
+
+	o = profile()
+	o.running = false
+	c, _ = testConnector(t, o, nil)
+	got := c.Probe(t.Context())
+	if got.Available || got.Cause != "outlook_not_running" {
+		t.Fatalf("not running: %+v", got)
+	}
+	if o.starts != 0 {
+		t.Fatalf("probe started Outlook (%d)", o.starts)
+	}
+
+	o = profile()
+	o.profile = "A"
+	c, _ = testConnector(t, o, map[string]any{"outlook.profile": "B"})
+	got = c.Probe(t.Context())
+	if got.Available || got.Cause != "outlook_wrong_profile" || !strings.Contains(got.Detail, `"A"`) {
+		t.Fatalf("wrong profile: %+v", got)
 	}
 }
 

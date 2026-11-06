@@ -5,6 +5,77 @@ changed, what was tried, what failed, and what comes next. It is not a changelog
 (the user-facing history lives in `CHANGELOG.md`) and not a plan (`docs/PLAN.md`
 owns scope). Keep it current as work proceeds.
 
+## Cycle: source readiness and Outlook profiles (2026-11-06)
+
+### What was wrong
+
+The first-run mailbox step listed every registered connector and let the
+owner pick it without asking whether it could work. The Windows build always
+registers the classic Outlook connector, even when Outlook is closed or COM
+is refused, so Setup offered a source whose first Discover would fail. The
+source label was also rebuilt from the stable id and kind (`outlook ·
+outlook`), and there was no way to name the profile the connector should use.
+
+### The profile limit
+
+Classic Outlook is one process, one profile and one MAPI session per Windows
+user session. Mailsense attaches with `GetActiveObject(Outlook.Application)`
+and `GetNamespace("MAPI")`, so when profile A is open the connector reaches A.
+`NameSpace.Logon` does not switch a running Outlook, and `NewSession` cannot
+create a second session; Microsoft documents that starting Outlook again
+joins the same process and profile. `outlook.exe /profile "B"` selects a
+profile only on a fresh start. Therefore profile A can stay open **or** the
+app can work with profile B, never both through classic Outlook COM. The
+supported path is to close Outlook, then start B (or use a separate Windows
+user session or Microsoft Graph for a second mailbox).
+
+### Shipped
+
+- `GET /api/sources` returns each source identity plus an optional live
+  `Probe`: `available`, stable `cause`, English `detail` and the current
+  `profile`. `/api/status` stays a passive identity list so boot never waits
+  on a COM round trip.
+- The first-run picker reads that route, disables a source the probe rejects,
+  and offers the connector's `start` action and a Check again path. A failed
+  readiness read fails closed: no source is selectable.
+- `outlook.profile` (default empty) is verified against
+  `NameSpace.CurrentProfileName` after the namespace is obtained. A mismatch
+  is the named `outlook_wrong_profile` cause; no mail is read. `StartOutlook`
+  passes `/profile "<name>"` on a fresh launch and never starts Outlook while
+  it is already running.
+- `outlook.display_name` (default `Outlook`) is the one source label. The
+  setup picker, Sources picker and job strip use it instead of humanizing the
+  id; the stable id and kind remain the storage identity.
+- The connector's plain preconditions (`ErrElevated`, `ErrNoClassicOutlook`,
+  `ErrNewOutlook`, `ErrIntegrity`) now carry stable cause codes, so Setup and
+  the job strip translate them instead of showing English only.
+- Profile names are validated by the schema (no quotes or control
+  characters) and again before the shell command line is built.
+
+### Verification
+
+- Unit tests: profile match/mismatch, empty profile, `/profile` quoting and
+  rejection, StartOutlook profile handling, Probe readiness, source views and
+  `/api/sources`, schema parsing and the French settings catalog.
+- Browser test: a mocked unavailable source disables the picker and Discover,
+  shows the cause, and offers Start and Check again. The other first-run
+  paths pass.
+- No real mailbox or Outlook profile was opened; the tests use the existing
+  fake COM object model.
+
+### Residual risk
+
+- The UI cannot switch a running Outlook from A to B; that is a Microsoft
+  limitation, not an unfinished control. The app reports it and waits for the
+  owner to close Outlook. One data directory still holds one profile: changing
+  `outlook.profile` after mail has synced is not a data migration, and the
+  previous profile's stores can remain recorded. Use a fresh data directory per
+  profile.
+- The stable source id (`outlook`) and the COM protocol constants
+  (`Outlook.Application`, `OUTLOOK.EXE`, registry paths) remain named
+  constants: they are persisted identity and protocol, not labels. Moving the
+  id to configuration would require a store-key migration.
+
 ## Cycle: automatic semantic releases (2026-11-06)
 
 ### Why the main merge produced no release

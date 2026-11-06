@@ -35,6 +35,22 @@ func (actionSource) ReadDetails(context.Context, source.ItemRef) (mail.Details, 
 	return mail.Details{}, nil
 }
 
+// namedSource has a configured owner-facing name.
+type namedSource struct {
+	plainSource
+	name string
+}
+
+func (s namedSource) DisplayName() string { return s.name }
+
+// probeSource reports a chosen live readiness.
+type probeSource struct {
+	plainSource
+	ready source.Readiness
+}
+
+func (s probeSource) Probe(context.Context) source.Readiness { return s.ready }
+
 // The source projection carries the capabilities and actions the connector
 // actually declares, both always arrays.
 func TestSourceInfoAdvertisesCapabilitiesAndActions(t *testing.T) {
@@ -50,7 +66,7 @@ func TestSourceInfoAdvertisesCapabilitiesAndActions(t *testing.T) {
 	}
 	body := decodeMap(t, data)
 	want := map[string]any{
-		"id": "outlook", "kind": "outlook",
+		"id": "outlook", "kind": "outlook", "display_name": "outlook",
 		"capabilities": []any{"incremental", "bodies", "read_state", "calendar"},
 		"actions":      []any{"start", "resume", "retry-details"},
 	}
@@ -65,11 +81,61 @@ func TestSourceInfoAdvertisesCapabilitiesAndActions(t *testing.T) {
 	}
 	plainBody := decodeMap(t, plainData)
 	plainWant := map[string]any{
-		"id": "archive", "kind": "archive",
+		"id": "archive", "kind": "archive", "display_name": "archive",
 		"capabilities": []any{}, "actions": []any{},
 	}
 	if !reflect.DeepEqual(plainBody, plainWant) {
 		t.Fatalf("source %#v, want %#v", plainBody, plainWant)
+	}
+}
+
+// The configured name is the label, not a humanized id.
+func TestSourceInfoUsesTheConfiguredDisplayName(t *testing.T) {
+	full := namedSource{plainSource{id: "outlook", kind: "outlook"}, "Work Outlook"}
+	info := SourceInfoOf(full)
+	if info.DisplayName != "Work Outlook" {
+		t.Fatalf("display name %q, want Work Outlook", info.DisplayName)
+	}
+}
+
+// The sources route carries the optional probe result; a connector without a
+// probe remains available.
+func TestSourceViewCarriesReadiness(t *testing.T) {
+	ready := SourceViewOf(context.Background(), probeSource{
+		plainSource: plainSource{id: "outlook", kind: "outlook"},
+		ready: source.Readiness{Available: false, Cause: "outlook_wrong_profile",
+			Detail: "Outlook is running with profile A", Profile: "A"},
+	})
+	if ready.Available || ready.Cause != "outlook_wrong_profile" || ready.Profile != "A" {
+		t.Fatalf("ready %+v", ready)
+	}
+	plain := SourceViewOf(context.Background(), plainSource{id: "archive", kind: "archive"})
+	if !plain.Available || plain.Cause != "" {
+		t.Fatalf("plain %+v", plain)
+	}
+}
+
+func TestSourcesRouteCarriesReadiness(t *testing.T) {
+	srv, ts, w := newTestServer(t)
+	w.sources.list = []SourceView{{
+		SourceInfo: SourceInfo{ID: "outlook", Kind: "outlook", DisplayName: "Work Outlook",
+			Capabilities: source.CapabilityList{}, Actions: []source.OwnerAction{source.ActionStart}},
+		Available: false, Cause: "outlook_not_running", Detail: "classic Outlook is not running",
+	}}
+	status, _, data := do(t, ts, srv, request{method: "GET", path: "/api/sources"})
+	mustStatus(t, status, 200, data)
+	body := decodeMap(t, data)
+	list, ok := body["sources"].([]any)
+	if !ok || len(list) != 1 {
+		t.Fatalf("sources %#v", body["sources"])
+	}
+	got, ok := list[0].(map[string]any)
+	if !ok {
+		t.Fatalf("source %#v", list[0])
+	}
+	if got["display_name"] != "Work Outlook" || got["available"] != false ||
+		got["cause"] != "outlook_not_running" || got["detail"] != "classic Outlook is not running" {
+		t.Fatalf("source %#v", got)
 	}
 }
 

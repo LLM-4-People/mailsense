@@ -56,13 +56,14 @@ func (h *winHost) Attach() (Object, error) {
 }
 
 // Start starts classic Outlook through the shell, exactly as the user
-// starting it: its own window, the default profile. It opens the absolute
-// path its App Paths registration resolved to (apppaths.go), never the
-// bare name: the shell would search its own path — the working and install
-// directories included — and a planted OUTLOOK.EXE there could run
-// instead. Never CoCreateInstance: that starts a windowless Outlook.
-func (h *winHost) Start() error {
-	return launchOutlook(registryAppPath, openOutlook)
+// starting it: its own window, the configured profile (the default profile
+// when empty). It opens the absolute path its App Paths registration
+// resolved to (apppaths.go), never the bare name: the shell would search its
+// own path — the working and install directories included — and a planted
+// OUTLOOK.EXE there could run instead. Never CoCreateInstance: that starts a
+// windowless Outlook.
+func (h *winHost) Start(profile string) error {
+	return launchOutlook(registryAppPath, openOutlook, profile)
 }
 
 // registryAppPath reads the default (unnamed) value of an App Paths
@@ -83,12 +84,16 @@ func registryAppPath(root appPathRoot, subkey string) (string, bool) {
 	return exe, err == nil
 }
 
-// openOutlook opens exe through the shell ("open"): its own window, the
-// default profile.
-func openOutlook(exe string) error {
+// openOutlook opens exe through the shell ("open"): its own window, with the
+// already validated profile parameters (empty for the default profile).
+func openOutlook(exe, params string) error {
 	verb, _ := windows.UTF16PtrFromString("open")
 	file, _ := windows.UTF16PtrFromString(exe)
-	if err := windows.ShellExecute(0, verb, file, nil, nil, windows.SW_SHOWNORMAL); err != nil {
+	var paramsPtr *uint16
+	if params != "" {
+		paramsPtr, _ = windows.UTF16PtrFromString(params)
+	}
+	if err := windows.ShellExecute(0, verb, file, paramsPtr, nil, windows.SW_SHOWNORMAL); err != nil {
 		return fmt.Errorf("ShellExecute %s: %w", exe, err)
 	}
 	return nil

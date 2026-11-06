@@ -74,12 +74,50 @@ func TestLaunchOutlookRunsTheResolvedPathVerbatim(t *testing.T) {
 	const exe = `C:\Program Files\Microsoft Office\root\Office16\OUTLOOK.EXE`
 	var ran []string
 	lookup := func(appPathRoot, string) (string, bool) { return exe, true }
-	shell := func(path string) error { ran = append(ran, path); return nil }
-	if err := launchOutlook(lookup, shell); err != nil {
+	shell := func(path, _ string) error { ran = append(ran, path); return nil }
+	if err := launchOutlook(lookup, shell, ""); err != nil {
 		t.Fatalf("launchOutlook: %v", err)
 	}
 	if !slices.Equal(ran, []string{exe}) {
 		t.Fatalf("ran %q, want exactly [%q]", ran, exe)
+	}
+}
+
+// A configured profile reaches Outlook's /profile switch, quoted for a name
+// that contains a space; empty keeps the default profile.
+func TestLaunchOutlookPassesTheConfiguredProfile(t *testing.T) {
+	lookup := func(appPathRoot, string) (string, bool) { return `C:\Outlook\OUTLOOK.EXE`, true }
+	for _, c := range []struct {
+		profile string
+		want    string
+	}{
+		{"", ""},
+		{"Work Mail", `/profile "Work Mail"`},
+		{"B", `/profile "B"`},
+	} {
+		var got string
+		shell := func(_, params string) error { got = params; return nil }
+		if err := launchOutlook(lookup, shell, c.profile); err != nil {
+			t.Errorf("profile %q: %v", c.profile, err)
+			continue
+		}
+		if got != c.want {
+			t.Errorf("profile %q: params %q, want %q", c.profile, got, c.want)
+		}
+	}
+}
+
+// A profile name that would break the quoted command line is refused before
+// the shell sees anything.
+func TestLaunchOutlookRejectsAnUnsafeProfile(t *testing.T) {
+	ran := false
+	lookup := func(appPathRoot, string) (string, bool) { return `C:\Outlook\OUTLOOK.EXE`, true }
+	shell := func(_, _ string) error { ran = true; return nil }
+	if err := launchOutlook(lookup, shell, `bad"name`); err == nil {
+		t.Fatal("an embedded quote must be rejected")
+	}
+	if ran {
+		t.Fatal("the shell must not run an invalid profile")
 	}
 }
 
@@ -88,8 +126,8 @@ func TestLaunchOutlookRunsTheResolvedPathVerbatim(t *testing.T) {
 func TestLaunchOutlookNeverFallsBackToTheBareName(t *testing.T) {
 	var ran []string
 	lookup := func(appPathRoot, string) (string, bool) { return "", false }
-	shell := func(path string) error { ran = append(ran, path); return nil }
-	if err := launchOutlook(lookup, shell); !errors.Is(err, ErrOutlookExeNotFound) {
+	shell := func(path, _ string) error { ran = append(ran, path); return nil }
+	if err := launchOutlook(lookup, shell, ""); !errors.Is(err, ErrOutlookExeNotFound) {
 		t.Fatalf("launchOutlook: %v, want ErrOutlookExeNotFound", err)
 	}
 	if len(ran) != 0 {

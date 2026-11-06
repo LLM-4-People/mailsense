@@ -34,12 +34,22 @@
     return raw.replace(/[._-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   }
 
+  // sourceDisplayName is the configured label of a registered source. The
+  // job keeps the stable source id as its name; the label is a presentation
+  // fact from /api/status, never a humanized id.
+  function sourceDisplayName(id) {
+    const sources = state.status && Array.isArray(state.status.sources) ? state.status.sources : [];
+    const source = sources.find((item) => item.id === id);
+    return source && source.display_name ? source.display_name : "";
+  }
+
   // jobDisplayName names the work and its subject: "Mail sync · Outlook"
   // instead of a bare source id. A producer whose name is already the kind
   // (triage, layer1, index) keeps the single label.
   function jobDisplayName(info) {
     const kind = jobNameLabel(info && info.kind ? info.kind : "");
-    const name = jobNameLabel(info && (info.name || info.kind) ? (info.name || info.kind) : (info && info.id));
+    const raw = info && (info.name || info.kind) ? (info.name || info.kind) : (info && info.id);
+    const name = (info && info.name && sourceDisplayName(info.name)) || jobNameLabel(raw);
     if (!kind) return name;
     if (!name || name.toLowerCase() === kind.toLowerCase()) return kind;
     return kind + " · " + name;

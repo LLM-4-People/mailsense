@@ -447,6 +447,15 @@ func (a sourcesAPI) connector(id string) (source.Connector, error) {
 	return c, nil
 }
 
+func (a sourcesAPI) List(ctx context.Context) ([]api.SourceView, error) {
+	list := a.w.app.registry.List()
+	out := make([]api.SourceView, 0, len(list))
+	for _, c := range list {
+		out = append(out, api.SourceViewOf(ctx, c))
+	}
+	return out, nil
+}
+
 func (a sourcesAPI) Start(ctx context.Context, id string) (api.SourceActionView, error) {
 	c, err := a.connector(id)
 	if err != nil {

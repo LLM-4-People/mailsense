@@ -61,6 +61,11 @@ Mailsense reads the classic Outlook profile that is already open on Windows. It
 does not sign in to Microsoft. Check that classic Outlook is installed, running,
 and has at least one store. On Linux, live mail is not available yet.
 
+If `outlook.profile` names a profile and Outlook is open with another one, COM
+cannot switch it: close Outlook, then use Start Outlook in Setup or Sources.
+Classic Outlook allows one profile per running process. Use one profile per
+data directory; changing the profile after mail has synced is not a migration.
+
 ## Setup opens again
 
 The setup marker is the `ui.setup.done` setting. If it is false and no mailbox is

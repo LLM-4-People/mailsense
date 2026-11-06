@@ -3,6 +3,7 @@ package outlook
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 )
 
@@ -23,10 +24,11 @@ type host interface {
 	// none). It is the ONLY way the connector obtains Outlook: background
 	// work never starts it.
 	Attach() (Object, error)
-	// Start starts classic Outlook as the user would (its own window, the
-	// default profile); only the user's explicit action calls it
+	// Start starts classic Outlook as the user would (its own window). An
+	// empty profile starts the default profile; a named profile is passed to
+	// Outlook's /profile switch. Only the user's explicit action calls it
 	// (Connector.StartOutlook).
-	Start() error
+	Start(profile string) error
 	// Started is when the running Outlook process of this session started
 	// (ErrNotRunning when none runs).
 	Started() (time.Time, error)
@@ -38,6 +40,7 @@ type host interface {
 // both unguarded (views wrap them per operation and never release them).
 type session struct {
 	app, ns Object
+	profile string // Namespace.CurrentProfileName at connect ("" if unknown)
 }
 
 func (s *session) close() {
@@ -50,7 +53,7 @@ func (s *session) close() {
 // background job (no window, possibly racing Windows' own restart after a
 // crash) is exactly what must not happen. Each failure is a named error
 // the user can act on (errors.go).
-func connect(ctx context.Context, h host, root func(context.Context, Object, string) *guard) (*session, error) {
+func connect(ctx context.Context, h host, root func(context.Context, Object, string) *guard, profile string) (*session, error) {
 	elevated, err := h.Elevated()
 	if err != nil {
 		return nil, fmt.Errorf("outlook: cannot read this process's elevation: %w", err)
@@ -84,5 +87,26 @@ func connect(ctx context.Context, h host, root func(context.Context, Object, str
 		}
 		return nil, fmt.Errorf("%w: GetNamespace: %w", ErrNotRunning, err)
 	}
-	return &session{app: app, ns: v.(*guard).inner}, nil
+	s := &session{app: app, ns: v.(*guard).inner}
+	// CurrentProfileName is read-only and identifies the MAPI session this
+	// process actually attached to. When a profile is configured, a mismatch
+	// is refused before any mail is read: Outlook cannot switch a running
+	// process to another profile, so the owner must close it and start the
+	// configured one.
+	current, profileErr := root(ctx, s.ns, classNamespace).Get("CurrentProfileName")
+	if profileErr == nil {
+		s.profile = strings.TrimSpace(asString(current))
+	}
+	if profile != "" {
+		if profileErr != nil {
+			s.close()
+			return nil, fmt.Errorf("outlook: cannot verify the running mail profile: %w", profileErr)
+		}
+		if !strings.EqualFold(s.profile, profile) {
+			s.close()
+			return nil, fmt.Errorf("%w: Outlook is running with profile %q; the configured profile is %q. "+
+				"Close Outlook, then use Start Outlook to open the configured profile", ErrWrongProfile, s.profile, profile)
+		}
+	}
+	return s, nil
 }

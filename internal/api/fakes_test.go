@@ -594,7 +594,15 @@ type fakeSources struct {
 	start, resume, retry                SourceActionView
 	startErr, resumeErr, retryErr       error
 	startCalls, resumeCalls, retryCalls int
+	list                                []SourceView
+	listErr                             error
+	listCalls                           int
 	lastID                              string
+}
+
+func (f *fakeSources) List(_ context.Context) ([]SourceView, error) {
+	f.listCalls++
+	return f.list, f.listErr
 }
 
 func (f *fakeSources) Start(_ context.Context, sourceID string) (SourceActionView, error) {

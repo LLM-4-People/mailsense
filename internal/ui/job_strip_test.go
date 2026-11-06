@@ -51,6 +51,22 @@ func TestJobStripIsOneAggregate(t *testing.T) {
 	}
 }
 
+// The source half of the label is the configured name from /api/status, not
+// a humanized stable id. The job keeps the id as its identity.
+func TestJobStripUsesTheConfiguredSourceName(t *testing.T) {
+	jobs := readUIModule(t, "13-jobs.js")
+	for _, want := range []string{
+		"function sourceDisplayName(id)",
+		"state.status && Array.isArray(state.status.sources)",
+		"source && source.display_name",
+		"(info && info.name && sourceDisplayName(info.name)) || jobNameLabel(raw)",
+	} {
+		if !strings.Contains(jobs, want) {
+			t.Errorf("13-jobs.js lacks %q", want)
+		}
+	}
+}
+
 // The aggregate is weighted by each running job's total. Finished jobs
 // linger in the text but never pull the running bar backwards.
 func TestJobAggregateFormula(t *testing.T) {

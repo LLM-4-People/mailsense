@@ -16,6 +16,8 @@ type fakeOutlook struct {
 	attachErr                                   uint32 // HRESULT on Attach
 	starts                                      int    // Start calls (the user's action)
 	startErr                                    error  // Start answers this
+	startProfile                                string // last profile passed to Start
+	profile                                     string // Namespace.CurrentProfileName
 	startedAt                                   time.Time
 	idle                                        time.Duration // the user's idle time (UserIdle)
 	idleErr                                     error
@@ -131,8 +133,8 @@ type fakeAttachment struct {
 
 // newFake is a running Outlook started long ago, the user away.
 func newFake() *fakeOutlook {
-	return &fakeOutlook{running: true, startedAt: t0.Add(-24 * time.Hour), idle: time.Hour, book: map[string]fakeEntry{},
-		refuseCols: map[string]bool{propLocalCommitTime: true}}
+	return &fakeOutlook{running: true, profile: "Outlook", startedAt: t0.Add(-24 * time.Hour), idle: time.Hour,
+		book: map[string]fakeEntry{}, refuseCols: map[string]bool{propLocalCommitTime: true}}
 }
 
 // host interface.
@@ -158,12 +160,16 @@ func (o *fakeOutlook) Attach() (Object, error) {
 	}
 	return o.obj("Application", nil), nil
 }
-func (o *fakeOutlook) Start() error {
+func (o *fakeOutlook) Start(profile string) error {
 	o.starts++
+	o.startProfile = profile
 	if o.startErr != nil {
 		return o.startErr
 	}
 	o.running, o.lost = true, false
+	if profile != "" {
+		o.profile = profile
+	}
 	o.startedAt = o.now()
 	return nil
 }
@@ -319,6 +325,8 @@ func (f *fakeObj) session(name string, args []any) (any, error) {
 			}
 		}
 		return nil, nil
+	case "Namespace.CurrentProfileName":
+		return o.profile, nil
 	case "Namespace.CurrentUser":
 		return o.obj("Recipient", fakeRecip{entry: o.currentUser}), nil
 	case "Namespace.GetFolderFromID":

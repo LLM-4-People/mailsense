@@ -144,6 +144,7 @@ func TestSetupPrefetchesEveryFactOnOpen(t *testing.T) {
 	setup := readModule(t, "js", "05-setup.js")
 	routes := map[string]string{
 		"status":    `"/api/status"`,
+		"sources":   `"/api/sources"`,
 		"mailboxes": `"/api/mailboxes"`,
 		"providers": `"/api/providers"`,
 		"sidecar":   `"/api/sidecar"`,
@@ -179,6 +180,34 @@ func TestSetupPrefetchesEveryFactOnOpen(t *testing.T) {
 		if !strings.Contains(setup, fragment) {
 			t.Errorf("the pre-fill lacks %q", fragment)
 		}
+	}
+}
+
+// TestSetupSourcePickerUsesReadinessAndConfiguredName keeps the picker from
+// offering a source that cannot work and from rebuilding a label out of the
+// stable id and kind. The source route owns both facts.
+func TestSetupSourcePickerUsesReadinessAndConfiguredName(t *testing.T) {
+	setup := readModule(t, "js", "05-setup.js")
+	sources := readModule(t, "js", "25-sources.js")
+	for _, fragment := range []string{
+		"source.available !== false",
+		"source.display_name || source.kind || source.id",
+		"setup.mailbox.source_unavailable",
+		"setup.mailbox.check_source",
+		"/api/sources/",
+	} {
+		if !strings.Contains(sources, fragment) {
+			t.Errorf("the setup picker lacks %q", fragment)
+		}
+	}
+	if strings.Contains(sources, "metaLine([source.id, source.kind])") {
+		t.Error("the setup picker must use the configured display name, not id · kind")
+	}
+	if strings.Contains(setup, `setupLive(["status"], setupSourceSelect)`) {
+		t.Error("the picker must read the source readiness route, not the passive status route")
+	}
+	if !strings.Contains(setup, `setupLive(["sources"], setupSourceSelect`) {
+		t.Error("the mailbox step must read the source readiness route")
 	}
 }
 
@@ -273,9 +302,12 @@ func TestSetupDialogOwnsFocus(t *testing.T) {
 func TestSetupCatalogCoversEveryKey(t *testing.T) {
 	setup := readModule(t, "js", "05-setup.js")
 	used := map[string]bool{}
-	for _, match := range regexp.MustCompile(`t\("(setup\.[^"]+)"\)`).FindAllStringSubmatch(setup, -1) {
-		if !strings.HasSuffix(match[1], ".") {
-			used[match[1]] = true
+	for _, module := range []string{"05-setup.js", "25-sources.js"} {
+		body := readModule(t, "js", module)
+		for _, match := range regexp.MustCompile(`t\("(setup\.[^"]+)"\)`).FindAllStringSubmatch(body, -1) {
+			if !strings.HasSuffix(match[1], ".") {
+				used[match[1]] = true
+			}
 		}
 	}
 	for _, name := range setupList(t, setup, "SETUP_STEPS") {
@@ -288,7 +320,7 @@ func TestSetupCatalogCoversEveryKey(t *testing.T) {
 		used["setup.language."+name] = true
 	}
 	for name := range map[string]bool{
-		"status": true, "mailboxes": true, "providers": true, "sidecar": true,
+		"status": true, "sources": true, "mailboxes": true, "providers": true, "sidecar": true,
 		"learning": true, "removals": true, "settings": true,
 	} {
 		used["setup.read."+name] = true
