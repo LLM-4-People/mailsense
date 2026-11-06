@@ -10,19 +10,27 @@ import (
 // User-facing preconditions and failures. Each names what to do.
 var (
 	ErrUnsupported = errors.New("outlook: the Outlook connector runs on Windows only")
-	ErrElevated    = errors.New("outlook: Mailsense is running as administrator, and classic Outlook refuses COM calls " +
-		"from an elevated process. Start Mailsense normally (not \"Run as administrator\")")
-	ErrNoClassicOutlook = errors.New("outlook: classic Outlook for Windows is not installed (Outlook.Application is not registered). " +
-		"The new Outlook has no COM interface; install or switch back to classic Outlook")
+	ErrElevated    = source.UnavailableCause("outlook_elevated",
+		"outlook: Mailsense is running as administrator, and classic Outlook refuses COM calls "+
+			"from an elevated process. Start Mailsense normally (not \"Run as administrator\")")
+	ErrNoClassicOutlook = source.UnavailableCause("outlook_not_installed",
+		"outlook: classic Outlook for Windows is not installed (Outlook.Application is not registered). "+
+			"The new Outlook has no COM interface; install or switch back to classic Outlook")
 	// ErrOutlookExeNotFound: classic Outlook is installed, but its App
 	// Paths registration (the absolute path of OUTLOOK.EXE, apppaths.go)
 	// resolved nowhere, so it cannot be started safely.
-	ErrOutlookExeNotFound = errors.New("outlook: classic Outlook's executable could not be located (no App Paths registration for OUTLOOK.EXE under HKLM or HKCU). " +
-		"Repair or reinstall classic Outlook")
-	ErrNewOutlook = errors.New("outlook: classic Outlook is not running and this profile is switched to the new Outlook " +
-		"(UseNewOutlook=1), which has no COM interface. Start classic Outlook, or turn off \"New Outlook\"")
-	ErrIntegrity = errors.New("outlook: Outlook and Mailsense run at different privilege levels (one of them as administrator). " +
-		"Run both normally")
+	ErrOutlookExeNotFound = source.UnavailableCause("outlook_exe_not_found",
+		"outlook: classic Outlook's executable could not be located (no App Paths registration for OUTLOOK.EXE under HKLM or HKCU). "+
+			"Repair or reinstall classic Outlook")
+	ErrNewOutlook = source.UnavailableCause("outlook_new_outlook",
+		"outlook: classic Outlook is not running and this profile is switched to the new Outlook "+
+			"(UseNewOutlook=1), which has no COM interface. Start classic Outlook, or turn off \"New Outlook\"")
+	ErrIntegrity = source.UnavailableCause("outlook_integrity",
+		"outlook: Outlook and Mailsense run at different privilege levels (one of them as administrator). "+
+			"Run both normally")
+	ErrWrongProfile = source.UnavailableCause("outlook_wrong_profile",
+		"outlook: Outlook is running with a different mail profile than outlook.profile. "+
+			"Close Outlook, then use Start Outlook to open the configured profile")
 	// ErrNotRunning: Mailsense only attaches to a running Outlook; it starts
 	// Outlook only when the user asks (Connector.StartOutlook).
 	ErrNotRunning = source.UnavailableCause("outlook_not_running",

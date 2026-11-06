@@ -13,6 +13,9 @@ import (
 	"github.com/LLM-4-People/mailsense/internal/store"
 )
 
+// outlookSourceID is the stable storage identity of the one Windows source:
+// it keys the store rows, folders and source state. The owner-facing label is
+// outlook.display_name; never derive a screen label from this id.
 const outlookSourceID = "outlook"
 
 // newSourceRegistry registers the platform's connector. Classic Outlook

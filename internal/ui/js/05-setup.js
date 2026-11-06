@@ -36,6 +36,7 @@
   // and no step issues a read of its own.
   const SETUP_READS = {
     status: () => request("/api/status"),
+    sources: () => request("/api/sources"),
     mailboxes: () => request("/api/mailboxes"),
     providers: () => request("/api/providers"),
     sidecar: () => request("/api/sidecar"),
@@ -71,6 +72,7 @@
       language: view.language || "auto",
       zone: view.time_zone || browserZone(),
       keys: null,
+      source: "",
     };
     state.setupNotNow = false;
     state.setupActionError = "";
@@ -627,13 +629,6 @@
     if (node) paintSetupLiveNode(node);
   }
 
-  function setupMailboxHint(status, mailboxes) {
-    const boxes = Array.isArray(mailboxes && mailboxes.mailboxes) ? mailboxes.mailboxes : [];
-    if (boxes.length) return null;
-    const hasSource = !!(status && Array.isArray(status.sources) && status.sources.length);
-    return h("p", { class: "fine", text: hasSource ? t("setup.mailbox.empty") : t("setup.mailbox.no_source") });
-  }
-
   function setupMailboxList(value) {
     const boxes = Array.isArray(value && value.mailboxes) ? value.mailboxes : [];
     if (!boxes.length) return null;
@@ -664,13 +659,6 @@
     }));
   }
 
-  function setupSourceSelect(status) {
-    const sources = status && Array.isArray(status.sources) ? status.sources : [];
-    if (sources.length === 0) return null;
-    return h("select", { class: "select", id: "setup-source", "aria-label": t("setup.mailbox.source") },
-      sources.map((source) => h("option", { value: source.id, text: metaLine([source.id, source.kind]) })));
-  }
-
   function mailboxStep() {
     const body = h("div", { class: "setup-form" },
       setupStepHeading(),
@@ -678,12 +666,12 @@
       state.setupDraft.skippedMailbox ? h("p", { class: "fine setup-inline-note" },
         h("span", { text: t("setup.mailbox.skipped") }),
         button(t("setup.open_sources"), () => leaveSetup("sources"), { small: true })) : null,
-      setupLive(["status"], setupSourceSelect),
-      button(t("setup.mailbox.discover"), (event) => discoverMailboxes(event.currentTarget), { icon: "search" }),
-      setupLive(["status", "mailboxes"], setupMailboxHint),
+      setupLive(["sources"], setupSourceSelect, "div"),
+      setupLive(["sources"], setupSourceActions, "div"),
+      setupLive(["sources", "mailboxes"], setupMailboxHint),
       setupLive(["mailboxes"], setupMailboxList),
       setupMailboxSummaryNode(),
-      setupProblems(["status", "mailboxes"]));
+      setupProblems(["status", "sources", "mailboxes"]));
     const actions = [
       button(t("setup.back"), () => enterSetupStep("welcome")),
       button(t("setup.skip"), () => {
@@ -696,11 +684,18 @@
   }
 
   async function discoverMailboxes(trigger) {
+    const sources = setupSources(setupReadValue("sources"));
+    const source = setupSelectedSource(sources);
+    if (!source || source.available === false) {
+      showSetupActionError(source
+        ? t("setup.mailbox.source_unavailable", { name: setupSourceName(source), reason: setupSourceReason(source) })
+        : t("setup.mailbox.no_source"));
+      return;
+    }
     await runSetupAction(trigger, t("setup.mailbox.discovering"), async () => {
-      const source = document.getElementById("setup-source");
       const result = await request("/api/mailboxes/discover", {
         method: "POST",
-        body: { source: source ? source.value : "" },
+        body: { source: source.id },
       });
       state.setupDraft.skippedMailbox = false;
       setSetupReadValue("mailboxes", result);

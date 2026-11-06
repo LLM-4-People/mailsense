@@ -35,6 +35,7 @@ func (s *Server) buildHandler() http.Handler {
 	s.post("/api/mailboxes/undeclare", false, s.handleMailboxUndeclare)
 
 	s.post("/api/actions/{action}", false, s.handleAction)
+	s.get("/api/sources", false, s.handleSources)
 	s.post("/api/sources/{id}/{action}", true, s.handleSourceAction)
 
 	s.get("/api/settings", false, s.handleSettings)

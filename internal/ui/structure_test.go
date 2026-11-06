@@ -164,9 +164,12 @@ var sourceLineBudget = map[string]int{
 	// lines in each catalog. The automatic-rule round added the uncertified
 	// answer note, its row marker and the list/row suffixes, plus the honest
 	// not-certified wording: eight lines. The job strip round added the sync
-	// stages and the named Sources cancel action: four more.
-	"internal/ui/i18n.fr.js": 2654,
-	"internal/ui/i18n.en.js": 2263,
+	// stages and the named Sources cancel action: four more. The source
+	// readiness round added the connector causes, the setup source state, the
+	// sources read, the active-profile line and the two French setting
+	// descriptions: sixteen lines in English, eighteen in French.
+	"internal/ui/i18n.fr.js": 2672,
+	"internal/ui/i18n.en.js": 2279,
 	"internal/qa/qa_test.go": 4930,
 	// The three Node behavior harnesses each run the shared thread-state
 	// block before their view block: +2 lines per harness. The Brief

@@ -110,6 +110,45 @@ test.describe("first run", () => {
     }
   });
 
+  test("does not offer a source that cannot run", async ({ browser }) => {
+    const server = await startServer({ setupDone: false });
+    try {
+      const { context, page } = await openFirstRun(browser, server, async (page) => {
+        await page.route("**/api/sources", async (route) => {
+          await route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            body: JSON.stringify({
+              sources: [{
+                id: "outlook",
+                kind: "outlook",
+                display_name: "Work Outlook",
+                capabilities: [],
+                actions: ["start"],
+                available: false,
+                cause: "outlook_not_running",
+                detail: "classic Outlook is not running",
+              }],
+            }),
+          });
+        });
+      });
+
+      await page.getByRole("button", { name: "Continue" }).click();
+      await expect(page.locator("#setup-step-title")).toHaveText("Mail");
+      await expect(page.locator("#setup-source")).toBeDisabled();
+      await expect(page.getByText(/Work Outlook cannot be used/)).toBeVisible();
+      await expect(page.getByText(/Classic Outlook is not running/)).toBeVisible();
+      await expect(page.getByRole("button", { name: "Look for stores" })).toBeDisabled();
+      await expect(page.getByRole("button", { name: "Start Work Outlook" })).toBeVisible();
+      await expect(page.getByRole("button", { name: "Check again" })).toBeVisible();
+
+      await context.close();
+    } finally {
+      await stopServer(server);
+    }
+  });
+
   test("advanced shows provider, runtime, storage and network facts without leaving setup", async ({ browser }) => {
     const server = await startServer({ setupDone: false });
     try {

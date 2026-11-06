@@ -313,9 +313,12 @@ Related screens: Teach, Mail, Logs, Settings and Sources.
 Sources answers which mailboxes Mailsense may read, who the owner is, and what
 state each store, removal and display backfill is in.
 
-The source selector chooses the connector, Discover reads its store list without
-reading a message, Sync now starts a sync for the selected source, and Refresh
-re-reads the screen. The mailbox table is sortable and has one row per store.
+The source selector chooses the connector by its configured display name;
+Discover reads its store list without reading a message, Sync now starts a sync
+for the selected source, and Refresh re-reads the screen. The mailbox table is
+sortable and has one row per store. If `outlook.profile` names a profile and
+Outlook is open with another one, the source is unavailable: close Outlook, then
+use Start Outlook to open the configured profile.
 The picked checkbox adds a store to the learning scope and starts a sync for its
 source, or removes it from that scope. Unpick asks for confirmation and explains
 that the stored mail is kept for a later re-pick.
@@ -365,10 +368,10 @@ for retry, the number of messages set aside again for a detail read:
   the source to read message details and answers `503 unavailable` when the sync
   service is not available.
 
-The console does not call these three switches yet. When a learning blocker
-offers Start the source, Reconnect, Resume or Retry details, the console opens a
-short guidance dialog and then runs the real discovery or sync action it can
-reach.
+Setup calls `start` when the owner asks to open the source, then re-probes it.
+The other switches remain guidance dialogs: when a learning blocker offers
+Start the source, Reconnect, Resume or Retry details, the console opens a short
+guidance dialog and then runs the real discovery or sync action it can reach.
 
 Related screens: Settings (Sync and Outlook filters), Learning and Logs.
 

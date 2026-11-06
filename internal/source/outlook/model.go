@@ -45,8 +45,9 @@ var model = map[string]map[string]member{
 	classApplication: {"GetNamespace": {call: true, result: classNamespace}, "Version": {}},
 	classNamespace: {
 		"Stores": {result: classStores}, "DefaultStore": {result: classStore, nullable: true},
-		"CurrentUser":     {result: classRecipient},
-		"GetFolderFromID": {call: true, result: classFolder}, "GetItemFromID": {call: true, result: classItem},
+		"CurrentProfileName": {},
+		"CurrentUser":        {result: classRecipient},
+		"GetFolderFromID":    {call: true, result: classFolder}, "GetItemFromID": {call: true, result: classItem},
 		"GetAddressEntryFromID": {call: true, result: classAddressEntry},
 		"Accounts":              {result: classAccounts},
 	},

@@ -1745,6 +1745,7 @@
   // and no step issues a read of its own.
   const SETUP_READS = {
     status: () => request("/api/status"),
+    sources: () => request("/api/sources"),
     mailboxes: () => request("/api/mailboxes"),
     providers: () => request("/api/providers"),
     sidecar: () => request("/api/sidecar"),
@@ -1780,6 +1781,7 @@
       language: view.language || "auto",
       zone: view.time_zone || browserZone(),
       keys: null,
+      source: "",
     };
     state.setupNotNow = false;
     state.setupActionError = "";
@@ -2336,13 +2338,6 @@
     if (node) paintSetupLiveNode(node);
   }
 
-  function setupMailboxHint(status, mailboxes) {
-    const boxes = Array.isArray(mailboxes && mailboxes.mailboxes) ? mailboxes.mailboxes : [];
-    if (boxes.length) return null;
-    const hasSource = !!(status && Array.isArray(status.sources) && status.sources.length);
-    return h("p", { class: "fine", text: hasSource ? t("setup.mailbox.empty") : t("setup.mailbox.no_source") });
-  }
-
   function setupMailboxList(value) {
     const boxes = Array.isArray(value && value.mailboxes) ? value.mailboxes : [];
     if (!boxes.length) return null;
@@ -2373,13 +2368,6 @@
     }));
   }
 
-  function setupSourceSelect(status) {
-    const sources = status && Array.isArray(status.sources) ? status.sources : [];
-    if (sources.length === 0) return null;
-    return h("select", { class: "select", id: "setup-source", "aria-label": t("setup.mailbox.source") },
-      sources.map((source) => h("option", { value: source.id, text: metaLine([source.id, source.kind]) })));
-  }
-
   function mailboxStep() {
     const body = h("div", { class: "setup-form" },
       setupStepHeading(),
@@ -2387,12 +2375,12 @@
       state.setupDraft.skippedMailbox ? h("p", { class: "fine setup-inline-note" },
         h("span", { text: t("setup.mailbox.skipped") }),
         button(t("setup.open_sources"), () => leaveSetup("sources"), { small: true })) : null,
-      setupLive(["status"], setupSourceSelect),
-      button(t("setup.mailbox.discover"), (event) => discoverMailboxes(event.currentTarget), { icon: "search" }),
-      setupLive(["status", "mailboxes"], setupMailboxHint),
+      setupLive(["sources"], setupSourceSelect, "div"),
+      setupLive(["sources"], setupSourceActions, "div"),
+      setupLive(["sources", "mailboxes"], setupMailboxHint),
       setupLive(["mailboxes"], setupMailboxList),
       setupMailboxSummaryNode(),
-      setupProblems(["status", "mailboxes"]));
+      setupProblems(["status", "sources", "mailboxes"]));
     const actions = [
       button(t("setup.back"), () => enterSetupStep("welcome")),
       button(t("setup.skip"), () => {
@@ -2405,11 +2393,18 @@
   }
 
   async function discoverMailboxes(trigger) {
+    const sources = setupSources(setupReadValue("sources"));
+    const source = setupSelectedSource(sources);
+    if (!source || source.available === false) {
+      showSetupActionError(source
+        ? t("setup.mailbox.source_unavailable", { name: setupSourceName(source), reason: setupSourceReason(source) })
+        : t("setup.mailbox.no_source"));
+      return;
+    }
     await runSetupAction(trigger, t("setup.mailbox.discovering"), async () => {
-      const source = document.getElementById("setup-source");
       const result = await request("/api/mailboxes/discover", {
         method: "POST",
-        body: { source: source ? source.value : "" },
+        body: { source: source.id },
       });
       state.setupDraft.skippedMailbox = false;
       setSetupReadValue("mailboxes", result);
@@ -5885,12 +5880,22 @@
     return raw.replace(/[._-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   }
 
+  // sourceDisplayName is the configured label of a registered source. The
+  // job keeps the stable source id as its name; the label is a presentation
+  // fact from /api/status, never a humanized id.
+  function sourceDisplayName(id) {
+    const sources = state.status && Array.isArray(state.status.sources) ? state.status.sources : [];
+    const source = sources.find((item) => item.id === id);
+    return source && source.display_name ? source.display_name : "";
+  }
+
   // jobDisplayName names the work and its subject: "Mail sync · Outlook"
   // instead of a bare source id. A producer whose name is already the kind
   // (triage, layer1, index) keeps the single label.
   function jobDisplayName(info) {
     const kind = jobNameLabel(info && info.kind ? info.kind : "");
-    const name = jobNameLabel(info && (info.name || info.kind) ? (info.name || info.kind) : (info && info.id));
+    const raw = info && (info.name || info.kind) ? (info.name || info.kind) : (info && info.id);
+    const name = (info && info.name && sourceDisplayName(info.name)) || jobNameLabel(raw);
     if (!kind) return name;
     if (!name || name.toLowerCase() === kind.toLowerCase()) return kind;
     return kind + " · " + name;
@@ -11037,7 +11042,7 @@
       permissionKnown ? gatePill(gateOpen()) : null);
 
     const discoverSelect = h("select", { class: "select compact", "aria-label": t("sources.discover_aria"), disabled: sources.length === 0 },
-      sources.length ? sources.map((source) => h("option", { value: source.id, selected: source.id === selectedSource, text: metaLine([source.id, source.kind]) })) : h("option", { text: t("sources.no_source_registered") }));
+      sources.length ? sources.map((source) => h("option", { value: source.id, selected: source.id === selectedSource, text: source.display_name || source.id })) : h("option", { text: t("sources.no_source_registered") }));
     // The route parameter is the one owner of the chosen source: a rebuild
     // after Refresh or Discover must not silently fall back to the first
     // source, and the backfill label and request must agree.
@@ -11587,6 +11592,106 @@
       },
     });
     if (ok) await afterBackgroundAction(["discovery", "gate"], { hard: true });
+  }
+
+  // ------------------------------------------------- source readiness (setup)
+  // The first-run mailbox step and the Sources screen share the label and
+  // readiness projection: the API owns the configured name and the live probe,
+  // so the UI never rebuilds either from the stable id.
+
+  function setupSources(value) {
+    return Array.isArray(value && value.sources) ? value.sources : [];
+  }
+
+  function setupMailboxHint(sources, mailboxes) {
+    const boxes = Array.isArray(mailboxes && mailboxes.mailboxes) ? mailboxes.mailboxes : [];
+    if (boxes.length) return null;
+    return h("p", { class: "fine", text: setupSources(sources).length ? t("setup.mailbox.empty") : t("setup.mailbox.no_source") });
+  }
+
+  function setupSourceName(source) {
+    if (!source) return "";
+    return source.display_name || source.kind || source.id || "";
+  }
+
+  function setupSourceReason(source) {
+    if (!source) return "";
+    if (source.cause && I18N.has("api.source_cause." + source.cause)) {
+      return t("api.source_cause." + source.cause);
+    }
+    return source.detail || t("setup.mailbox.source_unavailable_generic");
+  }
+
+  function setupSelectedSource(sources) {
+    const select = document.getElementById("setup-source");
+    if (!select) return null;
+    return sources.find((source) => source.id === select.value) || null;
+  }
+
+  function setupSourceSelect(value) {
+    const sources = setupSources(value);
+    if (sources.length === 0) return null;
+    const usable = sources.find((source) => source.available !== false);
+    const wanted = state.setupDraft.source;
+    const selected = sources.find((source) => source.id === wanted && source.available !== false) || usable || sources[0];
+    const select = h("select", {
+      class: "select",
+      id: "setup-source",
+      "aria-label": t("setup.mailbox.source"),
+      disabled: !usable,
+    }, sources.map((source) => h("option", {
+      value: source.id,
+      selected: source.id === selected.id,
+      disabled: source.available === false,
+      text: setupSourceName(source),
+    })));
+    select.addEventListener("change", () => {
+      state.setupDraft.source = select.value;
+    });
+    return h("div", { class: "setup-source" },
+      select,
+      sources.filter((source) => source.profile).map((source) => h("p", {
+        class: "fine setup-source-state",
+        text: t("setup.mailbox.source_profile", { name: setupSourceName(source), profile: source.profile }),
+      })),
+      sources.filter((source) => source.available === false).map((source) => h("p", {
+        class: "fine setup-source-state",
+        text: t("setup.mailbox.source_unavailable", { name: setupSourceName(source), reason: setupSourceReason(source) }),
+      })));
+  }
+
+  function setupSourceActions(value) {
+    const sources = setupSources(value);
+    const selected = setupSelectedSource(sources);
+    const usable = selected && selected.available !== false ? selected : sources.find((source) => source.available !== false);
+    const first = selected || sources[0];
+    const actions = [
+      button(t("setup.mailbox.discover"), (event) => discoverMailboxes(event.currentTarget), { icon: "search", disabled: !usable }),
+    ];
+    if (!usable && first) {
+      if (Array.isArray(first.actions) && first.actions.includes("start")) {
+        actions.push(button(t("setup.mailbox.start_source", { name: setupSourceName(first) }),
+          (event) => startSetupSource(first, event.currentTarget)));
+      }
+      actions.push(button(t("setup.mailbox.check_source"), (event) => checkSetupSource(event.currentTarget)));
+    }
+    return h("div", { class: "button-row" }, actions);
+  }
+
+  async function reloadSetupSources() {
+    setSetupReadValue("sources", await request("/api/sources"));
+  }
+
+  async function startSetupSource(source, trigger) {
+    await runSetupAction(trigger, t("setup.mailbox.starting_source", { name: setupSourceName(source) }), async () => {
+      await request(`/api/sources/${encodeURIComponent(source.id)}/start`, { method: "POST" });
+      toast(t("setup.mailbox.source_started", { name: setupSourceName(source) }), "info", t("setup.mailbox.source_started_body"));
+      await reloadSetupSources();
+    });
+  }
+
+  async function checkSetupSource(trigger) {
+    await runSetupAction(trigger, t("setup.mailbox.checking_source"), reloadSetupSources);
   }
 
   // ---------------------------------------------------------------- labels

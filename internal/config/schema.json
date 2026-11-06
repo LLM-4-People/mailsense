@@ -1481,6 +1481,14 @@
       "description": "Walk every mailbox that is not picked once per connection to show its folder and item counts. Off by default: a whole-profile walk is thousands of Outlook calls (tens of seconds per online mailbox) and can block on an offline delegate; off, unpicked mailboxes are listed without counts (folders and items -1) and are counted after they are picked."
     },
     {
+      "key": "outlook.display_name",
+      "type": "string",
+      "default": "Outlook",
+      "pattern": "^\\S(?:.*\\S)?$",
+      "group": "Outlook",
+      "description": "The owner-facing name of the Outlook mail source. It labels the source picker and the sync job; the stable source id remains outlook."
+    },
+    {
       "key": "outlook.folders.exclude_patterns",
       "type": "list",
       "item_type": "string",
@@ -1488,6 +1496,14 @@
       "default": [],
       "group": "Outlook",
       "description": "Regular expressions; a mail folder whose full Outlook path matches one is not synced (its subfolders are matched on their own paths)."
+    },
+    {
+      "key": "outlook.profile",
+      "type": "string",
+      "default": "",
+      "pattern": "^[^\"\\x00-\\x1F\\x7F]*$",
+      "group": "Outlook",
+      "description": "Classic Outlook mail profile to use. Empty attaches to the profile already open, or starts the default profile. Classic Outlook allows one profile per running process: when this names a different profile, Mailsense cannot switch the open Outlook, reports the mismatch, and only starts the configured profile once Outlook is closed. Use one profile per data directory; changing it after mail has synced is not a data migration."
     },
     {
       "key": "outlook.pace.active.busy_share",

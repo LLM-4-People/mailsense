@@ -16,6 +16,19 @@ code. The research notes are kept where they still hold.
   windowless Outlook, possibly racing Windows' restart after a crash);
   `Connector.StartOutlook` is the user's action and starts `outlook.exe`
   through the shell, with its window. `Logon` is off the member list.
+- Profile: `outlook.profile` is empty by default, which attaches to the
+  profile already open (or starts the default profile). A non-empty value is
+  verified against `NameSpace.CurrentProfileName` after the MAPI namespace is
+  obtained; a mismatch is `outlook_wrong_profile` and no mail is read.
+  Classic Outlook runs one process, one profile and one MAPI session, so COM
+  cannot switch a running Outlook to another profile. The supported path is
+  to close Outlook, then use Start Outlook (which passes `/profile`). Use one
+  profile per data directory: changing the profile after mail has synced is
+  not a data migration, and the previous profile's stores can remain recorded.
+- Setup readiness: `GET /api/sources` probes the connector and returns
+  `available`, `cause`, `detail` and the current `profile`. The first-run
+  source picker disables a source the probe rejects and never starts Outlook
+  by itself.
 - Object Model Guard: no prompts while Security Center reports AV "Good";
   otherwise guarded members (Body, Recipients, Sender*, PropertyAccessor,
   `Columns.Add`, `PrimarySmtpAddress`) prompt — detect and surface.

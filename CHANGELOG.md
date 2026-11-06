@@ -7,6 +7,14 @@ exists.
 ## Unreleased
 
 ### Added
+- Setup probes the mail source before offering it. A source that cannot run
+  (Outlook not open, a COM failure, or a configured profile that does not
+  match the open one) is disabled with its cause, and a Start Outlook / Check
+  again path lets the owner fix it.
+- The source label comes from the configured `outlook.display_name`; the new
+  `outlook.profile` setting selects the classic Outlook profile to verify.
+  Classic Outlook uses one profile per running process, so the app reports a
+  mismatch and starts the configured profile only after Outlook is closed.
 - The job strip names the source and phase of a sync (`Mail sync · Outlook`,
   `Reading folders`), and its cancel action names the task it stops. The
   Sources backfill cancel says which source it stops too.
