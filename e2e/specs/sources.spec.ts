@@ -81,7 +81,7 @@ test("a failed jobs read says job status is unavailable and retries", async ({ a
   await expect(app.page.locator(".backfill")).not.toContainText("Backfill running");
   await expect(app.page.locator(".backfill")).toContainText("2 / 10 messages");
 
-  await backfill.getByRole("button", { name: "Cancel" }).click();
+  await backfill.getByRole("button", { name: "Stop the backfill · Synthetic Backfill" }).click();
   await expect.poll(() => cancelled).toBe(true);
 });
 

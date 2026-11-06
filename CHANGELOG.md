@@ -7,6 +7,15 @@ exists.
 ## Unreleased
 
 ### Added
+- The job strip names the source and phase of a sync (`Mail sync · Outlook`,
+  `Reading folders`), and its cancel action names the task it stops. The
+  Sources backfill cancel says which source it stops too.
+- Mailsense answers from **definitional** evidence rules (structure or
+  protocol, never a wordlist or an unmeasured estimate) when the learned
+  route has not certified a question. The answer names its rule, says it is
+  uncertified, and is never written as a label, counted as coverage or used
+  to open the gate. A first-run install also trains, reports status and
+  chooses a teacher without a configured paid decider.
 - A Settings → Updates tab shows the installed and latest versions, the last
   check, the release notes, **Check now** and **Skip this version**; the
   first open that detects a release opens one What's New dialog and marks the

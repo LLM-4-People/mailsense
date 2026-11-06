@@ -99,11 +99,29 @@ func TestDeadlineOverdueRule(t *testing.T) {
 	}
 }
 
+// No rule may read a lexical signal. Automatic answers must not depend on
+// one language's wordlist: the evidence layer may still use such a signal
+// as a feature (is_reply feeds threading), but the rule table may not.
+func TestNoRuleUsesALexicalSignal(t *testing.T) {
+	set, err := parseRules(rulesJSON, Signals())
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, r := range set.Rules {
+		for _, c := range r.When {
+			if c.sig.Lexical {
+				t.Errorf("rule %s reads the lexical signal %s", r.ID, c.Signal)
+			}
+		}
+	}
+}
+
 func TestRulesMisuse(t *testing.T) {
 	doc := func(rules string) []byte { return []byte(`{"_doc": "x", "rules": {` + rules + `}}`) }
 	cases := map[string]string{
 		`"a": {"question": "q", "answer": "x", "when": [{"signal": "nope", "is": true}], "doc": "d"}`:                     "unknown signal",
 		`"a": {"question": "q", "answer": "x", "when": [{"signal": "read_state", "is": true}], "doc": "d"}`:               "not causal",
+		`"a": {"question": "q", "answer": "x", "when": [{"signal": "is_reply", "is": true}], "doc": "d"}`:                 "lexical",
 		`"a": {"question": "q", "answer": "x", "when": [{"signal": "auth_dmarc", "in": ["maybe"]}], "doc": "d"}`:          "not one of its values",
 		`"a": {"question": "q", "answer": "x", "when": [{"signal": "list_id", "is": true, "min": 1}], "doc": "d"}`:        "exactly one",
 		`"a": {"question": "q", "answer": "x", "when": [{"signal": "list_id", "min": 1}], "doc": "d"}`:                    "need a number",

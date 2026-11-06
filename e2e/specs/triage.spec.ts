@@ -60,6 +60,7 @@ type TriageMockOptions = {
   };
   summaryStatus?: number;
   triagePage?: Record<string, unknown>;
+  detail?: (id: number) => Record<string, unknown>;
 };
 
 async function triageMocks(
@@ -130,13 +131,15 @@ async function triageMocks(
       path: /^\/api\/triage\/\d+$/,
       handler: async ({ route, url }) => {
         const id = Number(url.pathname.split("/").pop());
-        await fulfillJson(route, {
-          message_id: id,
-          values: {},
-          stale: false,
-          escalate: false,
-          preview: false,
-        });
+        await fulfillJson(route, options.detail
+          ? options.detail(id)
+          : {
+              message_id: id,
+              values: {},
+              stale: false,
+              escalate: false,
+              preview: false,
+            });
       },
     },
     {
@@ -190,6 +193,80 @@ test.describe("Recent triage rows", () => {
     await expect(answeredRow.locator(".mail-row-subject")).toContainText(
       "Does this need a reply?",
     );
+  });
+
+  test("a row counts automatic rule answers apart and never as certified", async ({
+    app,
+  }) => {
+    await triageMocks(app.page, {
+      triagePage: {
+        total: 1,
+        limit: 50,
+        offset: 0,
+        routed: true,
+        preview: false,
+        ids: [mixed],
+        results: {
+          [mixed]: pageRow(mixed, {
+            answered: 0,
+            abstained: 1,
+            automatic: 1,
+            first_question: "category",
+            first_value: { type: "choice", choice: "work", rule: "cat_work" },
+          }),
+        },
+      },
+    });
+    await app.goto("/mail?mode=recent");
+    await app.expectRoute("mail");
+    const row = app.page.locator(`.triage-row[data-message-id="${mixed}"]`);
+    await expect(row.locator(".mail-row-snippet")).toHaveText(
+      "0 answered · 1 abstained · 1 automatic, uncertified",
+    );
+    // The value is shown, but the row says the route did not certify it.
+    await expect(row.locator(".mail-row-subject")).toContainText(
+      "Work update (uncertified)",
+    );
+  });
+
+  test("Model details names automatic answers and keeps their provenance", async ({
+    app,
+  }) => {
+    await triageMocks(app.page, {
+      detail: (id) => ({
+        message_id: id,
+        values: {
+          category: { type: "choice", choice: "work", rule: "cat_work" },
+          is_question: { type: "noul", number: 1, decided: "yes", rule: "question_mark" },
+          urgency: { type: "score", abstain: "not_certified" },
+        },
+        stale: false,
+        escalate: false,
+        preview: false,
+      }),
+    });
+    await app.goto(`/mail?mode=recent&id=${mixed}`);
+    await app.expectRoute("mail");
+    await app.page.getByText("Model details", { exact: true }).click();
+    const details = app.page.locator(".triage-model-details");
+    await expect(details).toContainText(
+      "2 answers come from automatic rules; the route has not certified them.",
+    );
+    const category = details.locator(".triage-model-row").filter({
+      hasText: "What kind of mail is this?",
+    });
+    await expect(category).toContainText("automatic rule · uncertified");
+    const question = details.locator(".triage-model-row").filter({
+      hasText: "Does it ask a question?",
+    });
+    await expect(question).toContainText("automatic rule");
+    await expect(question).toContainText("Yes");
+    await expect(question).not.toContainText("probability");
+    // A question no rule can answer says why, not just "no usable answer".
+    const urgency = details.locator(".triage-model-row").filter({
+      hasText: "How urgent is it?",
+    });
+    await expect(urgency).toContainText("Not certified yet");
   });
 
   test("the server's ids order the rows and select the first", async ({ app }) => {

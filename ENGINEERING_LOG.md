@@ -5,6 +5,115 @@ changed, what was tried, what failed, and what comes next. It is not a changelog
 (the user-facing history lives in `CHANGELOG.md`) and not a plan (`docs/PLAN.md`
 owns scope). Keep it current as work proceeds.
 
+## Cycle: measured rules and the definitional gate (2026-11-05)
+
+### What the gold dev split measured
+
+The rule table was measured on the sealed gold sample's dev split (240
+messages; the test split was never read) and on train+dev. The dev table is
+the check a shipped answer rule must survive, and it rejected most of the
+table:
+
+| rule | dev fired | dev precision |
+| --- | ---: | ---: |
+| `question_mark` | 92 | 0.565 |
+| `request_one` | 43 | 0.651 |
+| `request_two` | 20 | 0.200 |
+| `request_three` | 18 | 0.111 |
+| `signature_none` | 191 | 0.414 |
+| `deadline_weekday` | 12 | 0.250 |
+| `deadline_any` | 22 | 0.364 |
+| `urgency_today` | 11 | 0.091 |
+| `info_missing_attachment` | 5 | 0.000 |
+| `decision_meeting_request` | 1 | 0.000 |
+
+The rules that survived are definitional facts: `not_susp_known_pass`
+(119/119), `not_susp_internal` (27/27), `reply_not_bulk` (5/5),
+`signature_found` (10/10), `reply_not_cc` (11/12), `rel_internal` (25/27),
+plus the zero- or near-zero-coverage facts that the taxonomy definition and
+the signal semantics guarantee (`asks_meeting_request`,
+`cat_report_notifications`, `cta_meeting_request`, `rel_directory`,
+`rel_precedence`, `topic_calendar`, `topic_meeting_kind`). Nine candidate
+rules whose answer was not definitional were rejected and left out of the
+shipped table: the urgency/decision/stance families and
+`info_missing_attachment`.
+
+The zero-label experiment (`e4-rules-unmeasured`, now a true zero-teaching
+install: the label sources stay defined, no label rows are stored) trained
+layer 1 from the rules alone. It reached **0.292 mean dev accuracy** against
+**0.663 for the legacy decider**; the per-question majority aggregate was
+0.443, but several questions had no training target, so the aggregate is
+only indicative. The model beat the majority on `is_question` (0.738 vs
+0.688), `relationship` (0.183 vs 0.108), `has_signature` (0.429 vs 0.388)
+and `category` (0.087 vs 0.067), and lost badly on `urgency` (0.000 vs
+0.787), `decision_needed` (0.000 vs 0.967) and `request_count` (0.250 vs
+0.362). Unmeasured rules are not a teacher: `unmeasured_precision` stays
+`null`, so a rule with no measured target teaches nothing.
+
+### Shipped
+
+- `evidence.Engine.RuleAnswers` now applies only `definitional` rules. An
+  estimate (a question mark, a named date, a question count) remains
+  evidence and a teacher only; it answers only after its precision clears
+  `evidence.rules.min_precision` on this install.
+- The rule table has no wordlist: `attachment_mention` (27 hand-written cue
+  phrases across six languages, consumed by no rule) was deleted. Signals
+  carry `Lexical` when their extractor's value is decided by a fixed
+  vocabulary (for example `is_reply`'s shipped subject prefixes, kept for
+  threading); `LoadRules` and `TestNoRuleUsesALexicalSignal` both refuse a
+  rule that reads one. The generated reference prints both `Lexical` per
+  signal and `Definitional` per rule.
+- The measurement harness now composes experiments over the **shipped**
+  teacher document and writes an explicit null for every shipped source an
+  experiment removes. Before this, a null for a shipped source was lost in
+  the harness's own merge and the "zero-label" run silently trained on 119
+  gold labels. `TestRulesOnlyExperimentIsAZeroLabelInstall` pins the
+  composition and the empty label store.
+- A non-finite `PathNLL` (a single-class question, no scored selection
+  label) no longer reaches the report: it is omitted and the λ choice falls
+  back to `DefaultLambdas`. An infinite float cannot be stored as JSON and
+  failed a real run's commit. `TestPathNLLOmitsUnscoredLambdas` is the
+  regression; the golden model pins the intended weight change.
+- The sidecar downloader can follow a pinned artifact's cross-origin CDN
+  redirect (GET/HEAD, same scheme, SHA-256 and size still verified). Without
+  it a fresh install failed at
+  `httpx: cross-origin redirect refused` on the Hugging Face CDN, so the
+  model could not be installed on another machine.
+
+### Verification
+
+- `scripts/evidence-fixture.sh`: 33 s, dev rule table written to
+  `out/evidence-rules.json`.
+- `scripts/layer1-fixture.sh run e4-rules-unmeasured`: true zero-label run,
+  mean dev accuracy 0.2919 (legacy 0.6627).
+- `go test ./internal/evidence ./internal/triage ./internal/layer1
+  ./internal/ui`; `go test ./internal/httpx`; `make fast`.
+
+### Zero-shot taxonomy prototypes (measured, rejected as a general classifier)
+
+`e8-definitions` embedded each question's own instructions and class
+descriptions with the local EmbeddingGemma and classified dev messages by
+the nearest description — no rule, no wordlist, no labels. Mean dev
+accuracy was **0.4265 against 0.4319 for the per-question majority**. It
+beat the majority on `topic` (0.342 vs 0.129), `asks_for` (0.254 vs 0.025),
+`has_signature` (0.358 vs 0.054), `info_sufficiency` (0.417 vs 0.358) and
+`call_to_action` (0.487 vs 0.433), but lost on `reply_needed` (0.775 vs
+0.988), `is_question` (0.633 vs 0.804), `effort` (0.404 vs 0.642) and
+`stance` (0.346 vs 0.512). It is not accurate enough to be an answer or a
+teacher. The experiment stays as the reproducible baseline for a
+generative judge.
+
+### Next queue
+
+- The remaining semantic questions (`urgency`, `decision_needed`,
+  `sentiment`, `stance`, `effort`, `info_sufficiency`, `request_count`)
+  need an automatic teacher. The local embedding-only path is measured and
+  insufficient; the next candidate is a small local chat model as the
+  `judge` provider (automatic labels, no owner teaching), measured against
+  the same gold dev split before any production wiring.
+- The sidecar manages embedder runtimes only; a local chat runtime and its
+  model catalog are a separate feature.
+
 ## Cycle: adversarial fix wave and resource budgets (2026-11-05)
 
 ### Adversarial findings on the merged round (validated, being fixed)
@@ -149,6 +258,42 @@ Each was independently checked against source by the coordinator:
   cached route keeps its DOM, scroll and focus. The Sources case holds one
   shell read across the navigation and fails on the old unconditional
   refresh (reproduced: `Expected: 1, Received: 0`).
+
+### Job strip names (2026-11-05)
+
+- The owner's strip said `Outlook · En cours…` because the job name is the
+  connector id and the sync never reported a phase. A job now composes its
+  translated kind and subject (`Mail sync · Outlook`) and a running sync
+  reports a stable stage (`folders`, `details`); the UI translates it and
+  suppresses the generic `Working…` when the phase is already named. The
+  producer's English message stays a Logs diagnostic.
+- The Sources backfill cancel names its source (`Stop the backfill · Outlook`)
+  instead of the generic **Cancel**. The job tests cover both stages, the
+  composed name and the cancel label.
+
+### No-teaching answer layer (2026-11-05)
+
+- First run had a real coupling defect: `NewPlan` selected `triage.decider`
+  unconditionally, so a missing provider failed training, status and teacher
+  choice even though none of them calls a provider. `NewPlan` now reads the
+  route key's unconfigured decider identity and selects strictly only when an
+  id is configured. `TestPlanWithoutDeciderKeepsLocalTrainingUsable` pins the
+  empty-decider plan, its route key and a local teacher choice.
+- The 17-question detail was reading route abstentions only: the route cannot
+  certify a question without labels, so every value said **No usable
+  answer**. `evidence.Engine.RuleAnswers` now applies the shipped rules to
+  stored evidence at read time. It fills only `not_certified`; a conflict, a
+  score range or two exact levels answers nothing. The answer carries its rule
+  id, is never stored, never counted as coverage and never opens the gate.
+  The detail and list name it **automatic rule · uncertified** and count it
+  apart from certified answers (`TestRuleAnswersFillOnlyUncertifiedAbstentions`,
+  `TestRuleAnswersPageCountsSeparately`, plus the triage browser cases).
+- Two dimensions gained deterministic coverage without a model: `request_count`
+  from `question_marks` (0, 1, 2, 3+ as separate rules) and `call_to_action`
+  from a meeting request (true) or machine-written mail (false). Existing
+  evidence already carries sender relation, reply rate, auth results, thread
+  gap and deadline cues; the remaining semantic questions still need a model,
+  and the UI says so instead of printing a bare zero.
 
 ### Security (guidance mode) — results so far
 

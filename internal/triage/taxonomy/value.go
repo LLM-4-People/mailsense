@@ -37,19 +37,23 @@ type Value struct {
 	// triage wire.
 	Probabilities map[string]float64 `json:"-"`
 	Abstain       string             `json:"abstain,omitempty"` // the answer abstained (engine.Answer.Abstain): never used on its own
+	// Rule is the deterministic evidence rule behind an automatic answer
+	// (engine.Answer.AutoRule). It is never a certified route answer; the UI
+	// must name it as uncertified.
+	Rule string `json:"rule,omitempty"`
 }
 
 // FromAnswer is the unblended value of a raw answer.
 func FromAnswer(a engine.Answer) Value {
 	return Value{Type: a.Type, Refused: a.Refused, Choice: a.Choice, Number: a.Value, Model: a.Value,
-		Confidence: a.Confidence, Probabilities: a.Probabilities, Abstain: a.Abstain}
+		Confidence: a.Confidence, Probabilities: a.Probabilities, Abstain: a.Abstain, Rule: a.AutoRule}
 }
 
 // Answer is the model's own answer behind the value (FromAnswer's
 // inverse: the blend is not part of it).
 func (v Value) Answer() engine.Answer {
 	return engine.Answer{Type: v.Type, Refused: v.Refused, Choice: v.Choice, Value: v.Model, Confidence: v.Confidence,
-		Probabilities: v.Probabilities, Abstain: v.Abstain}
+		Probabilities: v.Probabilities, Abstain: v.Abstain, AutoRule: v.Rule}
 }
 
 // Answered reports a usable value: a typed answer that was neither

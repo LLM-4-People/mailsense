@@ -457,7 +457,8 @@ func wireEngines(cfg *config.Config, environ []string, bus *events.Bus, st *stor
 		cleanup()
 		return nil, fmt.Errorf("triage trigger: %w", err)
 	}
-	tr.UseEvidence(ev) // its facts join the states while triage.facts.evidence is on
+	tr.UseEvidence(ev)    // its facts join the states while triage.facts.evidence is on
+	tr.UseRuleAnswers(ev) // deterministic rule answers fill uncertified route abstentions
 	// The route key is the one configuration identity of the stored route
 	// rows. Triage, priority and the label queue read the same value; layer1
 	// writes it. The closure keeps one owner and lets each reader compute it

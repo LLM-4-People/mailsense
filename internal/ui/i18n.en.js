@@ -354,6 +354,7 @@ window.MailsenseI18nCatalogs.en = {
   "sources.backfill.title": "Message display",
   "sources.backfill.sub": "New mail keeps its HTML and inline images automatically. Messages stored before this build need a one-time re-read of the source: it stores display HTML and inline images only and leaves the plain learning and search body untouched. The job runs in the background, reports skipped messages, and can be cancelled.",
   "sources.backfill.start": "Fetch missing display data",
+  "sources.backfill.cancel": "Stop the backfill · {source}",
   "sources.backfill.starting": "Starting…",
   "sources.backfill.started": "Display backfill started",
   "sources.backfill.started_body": "It runs in the background. Progress is shown here and on Learning.",
@@ -645,6 +646,7 @@ window.MailsenseI18nCatalogs.en = {
   "triage.message_section_sub": "Select a triage row to load its message and stored answers.",
   "triage.row.answers": { "one": "{count} answered", "other": "{count} answered" },
   "triage.row.abstained_suffix": { "one": " · {count} abstained", "other": " · {count} abstained" },
+  "triage.row.automatic_suffix": { "one": " · {count} automatic, uncertified", "other": " · {count} automatic, uncertified" },
   "triage.row.missing_suffix": { "one": " · {count} missing", "other": " · {count} missing" },
   "triage.summary.no_value": "No stored value",
   "triage.summary.foot": "{answered} answered · {abstained} abstained · {refused} refused · {missing} missing",
@@ -734,6 +736,7 @@ window.MailsenseI18nCatalogs.en = {
   "detail.no_values_body": "This message is eligible but has no stored answer for the current profile. The next route pass will decide it.",
   "detail.answer.refused": "Refused",
   "detail.answer.abstained": "No usable answer",
+  "detail.answer.not_certified": "Not certified yet",
   "detail.answer.abstained_with": "Abstained: {reason}",
   "detail.answer.yes_probability": "{percent} probability of yes",
   "detail.answer.model_blend": "model {model} · blended {blended}",
@@ -742,6 +745,8 @@ window.MailsenseI18nCatalogs.en = {
   "detail.answer.distribution": "Distribution",
   "detail.answer.no_usable": "No usable answer",
   "detail.answer.abstained_short": "abstained",
+  "detail.answer.rule_uncertified": "automatic rule · uncertified",
+  "detail.answer.uncertified_suffix": " (uncertified)",
   "detail.answer.refused_short": "refused",
   "detail.mail_body": "Message body",
 
@@ -785,6 +790,10 @@ window.MailsenseI18nCatalogs.en = {
   "detail.summary.uncertain": "Not clear enough",
   "detail.summary.uncertain_suffix": " (uncertain)",
   "detail.summary.model_details": "Model details",
+  "detail.summary.automatic": {
+    "one": "{count} answer comes from an automatic rule; the route has not certified it.",
+    "other": "{count} answers come from automatic rules; the route has not certified them."
+  },
   "detail.summary.suspicious": "Possibly suspicious",
   "detail.summary.sufficient": "Yes, enough to act",
   "detail.summary.insufficient": "No, something is missing",
@@ -1487,6 +1496,9 @@ window.MailsenseI18nCatalogs.en = {
   "jobs.stage.certify": "Certifying the answers",
   "jobs.stage.settle": "Settling the models",
   "jobs.stage.answer": "Answering the mailbox",
+  "jobs.stage.backfill": "Reading message bodies",
+  "jobs.stage.details": "Updating message details",
+  "jobs.stage.folders": "Reading folders",
 
   "reason.security": "Security",
   "reason.urgent": "Urgent",

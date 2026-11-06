@@ -34,6 +34,17 @@ direction fails; Nocedal & Wright 2006), deterministic: gradients are
 summed per shard of `layer1.shard_rows` rows in a fixed order, so a fit
 is bitwise the same whatever `layer1.workers`.
 
+## First run without a decider
+
+`NewPlan` reads the route key's unconfigured decider identity when
+`triage.decider` is empty. A first-run install can therefore train, report
+status and choose a non-decider teacher before any provider exists; the
+decider is still selected strictly when an id is configured. The plan's
+decider key and tolerance are the same values `routekey.go` hashes, and the
+`decider` teacher source has no answers under the unconfigured key (a stale
+row is dropped by the zero tolerance). The paid decider remains optional:
+nothing local ever calls it.
+
 ## Teachers (data: `teachers.json`, `layer1.teachers.file`)
 
 Each message's training target for a question comes from the first source
@@ -281,6 +292,21 @@ selective); `internal/layer1/route.go` feeds it and stores the result;
   (answered/eligible, every labelled certification message in the
   denominator) are what the `questions` stage judges. A route's
   `Certification.Threshold` is 0: it has no single cut.
+- **Read-time rule fallback:** when the route stores `not_certified` for a
+  question, `internal/triage` may fill it from a **definitional** evidence
+  rule (`evidence.Engine.RuleAnswers`). Definitional means the signal's
+  semantics and the question's definition guarantee the answer (a delivery
+  report is a notification; an internal sender is a colleague); an
+  estimate—a question mark for a request, a named date for a deadline—is
+  taught and measured, never an unmeasured answer. No rule may read a
+  lexical signal: rules use structure, protocol and mailbox statistics, not
+  a wordlist. The answer is deterministic, carries the rule id in `rule`,
+  and is never written back: it is not a label, a route answer, a coverage
+  count or a gate permission. Firing rules must agree; for a score only the
+  narrowest exact level counts, so a range or a conflict answers nothing. A
+  `below_coverage`, `below_target`, `no_answer`, refused or certified answer
+  is never replaced. The detail and list say "automatic rule · uncertified"
+  and count those answers apart from the certified total.
 - **Storage:** `route_answers`, one row per message and route key, every
   question present (abstentions included), written in the layer-1
   commit's transaction. The route key is `rk1-` + a digest of every
@@ -421,6 +447,7 @@ the 240 dev messages; every evaluation appended to
 | E6 | conversation-mates also excluded: −0.5 pt (n.s.): no leak of consequence |
 | E6 again (v6) | conversation-mates excluded too: −0.20 pt [−0.54, +0.15], coverage −1.1 pt [−2.4, +1.1]: no leak through mates |
 | E7 errors | layer 1's dev errors are mostly the teacher's (topic technical_integration ↔ support_issue, category work ↔ action, effort/request_count 0 → 1), plus under-predicting "yes" on reply_needed/call_to_action; at the 0.99 operating point most errors are on clear (single or agreed) gold items |
+| E8 definitions | zero-shot nearest taxonomy description (local EmbeddingGemma): mean dev 0.4265 vs 0.4319 majority; helpful on topic/asks_for/has_signature, harmful on reply_needed/is_question/effort: not adopted; kept as the baseline for a generative judge |
 | Data | the whole fixture (33,096 teachers vs 8,119): +0.5 pt accuracy, +4.5 pt coverage at 0.99 |
 
 Final (v6 = the review round's fixed method, shipped defaults, whole

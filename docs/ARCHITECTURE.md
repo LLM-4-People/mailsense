@@ -767,10 +767,12 @@ JSON mode; no new provider key or dependency exists.
   language profiles trained on UDHR translations plus CLDR exemplar
   letters, CLDR date/time patterns and names (dates resolved in code
   against the message's day in the owner's zone), currency codes and
-  symbols, UTS #39 confusables; no word list anywhere. Rules are data
-  and act as answer keys only when their precision, measured on the
-  install's own judge labels, has a Wilson lower bound ≥ a setting (no
-  judge yet: evidence only). Observed facts in the triage state are
+  symbols, UTS #39 confusables; no word list in the rule layer. Rules are
+  data: an estimate acts as an answer key only when its precision, measured
+  on the install's own judge labels, has a Wilson lower bound ≥ a setting,
+  while a definitional rule (the signal semantics and the question's
+  definition guarantee the answer) may answer unmeasured. No rule reads a
+  lexical signal. Observed facts in the triage state are
   behind `triage.facts.evidence`, off (they would change every state).
   Connectors declare four more capabilities (read state, flags,
   categories, last verb); Outlook's and the legacy exporter's header

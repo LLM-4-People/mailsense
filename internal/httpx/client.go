@@ -26,6 +26,7 @@ type options struct {
 	total            *time.Duration
 	quietSuccess     bool
 	quietUnavailable bool
+	crossOrigin      bool
 }
 
 // WithBaseTransport replaces the network transport under the logging and retry layers.
@@ -50,6 +51,14 @@ func WithQuietSuccess() Option { return func(o *options) { o.quietSuccess = true
 // A health probe uses it while its runtime is still loading; every other
 // failure status and every transport error keeps its own level.
 func WithQuietUnavailable() Option { return func(o *options) { o.quietUnavailable = true } }
+
+// WithCrossOriginRedirects allows a GET or HEAD to follow a redirect to
+// another host, but never across schemes (https cannot become http). It
+// exists for a pinned artifact download: no credential is sent and the
+// bytes are verified against a SHA-256 and size. Provider calls keep the
+// same-origin default, so a bearer key or prompt body cannot be forwarded
+// to a second host.
+func WithCrossOriginRedirects() Option { return func(o *options) { o.crossOrigin = true } }
 
 // New returns a client named name (logged and published as "client").
 // Transport timeouts are read once; the retry policy is re-read per request.
@@ -86,8 +95,13 @@ func New(cfg *config.Config, bus *events.Bus, name string, opts ...Option) (*htt
 				return errors.New("httpx: too many redirects")
 			}
 			origin := via[0].URL
-			if req.URL.Scheme != origin.Scheme || req.URL.Host != origin.Host {
-				return errors.New("httpx: cross-origin redirect refused")
+			if req.URL.Scheme != origin.Scheme {
+				return errors.New("httpx: cross-origin redirect refused (scheme change)")
+			}
+			if req.URL.Host != origin.Host {
+				if !o.crossOrigin || (req.Method != http.MethodGet && req.Method != http.MethodHead) {
+					return errors.New("httpx: cross-origin redirect refused")
+				}
 			}
 			return nil
 		},

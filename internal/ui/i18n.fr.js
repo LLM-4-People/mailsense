@@ -354,6 +354,7 @@ window.MailsenseI18nCatalogs.fr = {
   "sources.backfill.title": "Affichage des messages",
   "sources.backfill.sub": "Le nouveau courrier conserve automatiquement son HTML et ses images intégrées. Les messages stockés avant cette version nécessitent une relecture unique de la source\u00a0: elle n’enregistre que le HTML d’affichage et les images intégrées, et laisse intact le corps texte utilisé pour l’apprentissage et la recherche. La tâche s’exécute en arrière-plan, signale les messages ignorés et peut être annulée.",
   "sources.backfill.start": "Récupérer l’affichage manquant",
+  "sources.backfill.cancel": "Arrêter le rattrapage · {source}",
   "sources.backfill.starting": "Démarrage…",
   "sources.backfill.started": "Relecture d’affichage lancée",
   "sources.backfill.started_body": "Elle s’exécute en arrière-plan. La progression s’affiche ici et dans Apprentissage.",
@@ -645,6 +646,7 @@ window.MailsenseI18nCatalogs.fr = {
   "triage.message_section_sub": "Sélectionnez une ligne de triage pour charger son message et les réponses enregistrées.",
   "triage.row.answers": { "one": "{count} répondue", "other": "{count} répondues" },
   "triage.row.abstained_suffix": { "one": " · {count} en abstention", "other": " · {count} en abstention" },
+  "triage.row.automatic_suffix": { "one": " · {count} automatique, non certifiée", "other": " · {count} automatiques, non certifiées" },
   "triage.row.missing_suffix": { "one": " · {count} manquante", "other": " · {count} manquantes" },
   "triage.summary.no_value": "Aucune valeur enregistrée",
   "triage.summary.foot": "{answered} réponses · {abstained} abstentions · {refused} refus · {missing} manquantes",
@@ -734,6 +736,7 @@ window.MailsenseI18nCatalogs.fr = {
   "detail.no_values_body": "Ce message est éligible mais n’a aucune réponse enregistrée pour le profil actuel. Le prochain passage de route le décidera.",
   "detail.answer.refused": "Refusé",
   "detail.answer.abstained": "Aucune réponse utilisable",
+  "detail.answer.not_certified": "Pas encore certifiée",
   "detail.answer.abstained_with": "Abstention\u00a0: {reason}",
   "detail.answer.yes_probability": "{percent} de probabilité de oui",
   "detail.answer.model_blend": "modèle {model} · combiné {blended}",
@@ -742,6 +745,8 @@ window.MailsenseI18nCatalogs.fr = {
   "detail.answer.distribution": "Distribution",
   "detail.answer.no_usable": "Aucune réponse utilisable",
   "detail.answer.abstained_short": "abstention",
+  "detail.answer.rule_uncertified": "règle automatique · non certifiée",
+  "detail.answer.uncertified_suffix": " (non certifiée)",
   "detail.answer.refused_short": "refusé",
   "detail.mail_body": "Corps du message",
 
@@ -785,6 +790,10 @@ window.MailsenseI18nCatalogs.fr = {
   "detail.summary.uncertain": "Pas assez clair",
   "detail.summary.uncertain_suffix": " (incertain)",
   "detail.summary.model_details": "Détails du modèle",
+  "detail.summary.automatic": {
+    "one": "{count} réponse vient d’une règle automatique\u00a0; la route ne l’a pas certifiée.",
+    "other": "{count} réponses viennent de règles automatiques\u00a0; la route ne les a pas certifiées."
+  },
   "detail.summary.suspicious": "Possiblement suspect",
   "detail.summary.sufficient": "Oui, assez pour agir",
   "detail.summary.insufficient": "Non, il manque quelque chose",
@@ -1875,6 +1884,9 @@ window.MailsenseI18nCatalogs.fr = {
   "jobs.stage.certify": "Certification des réponses",
   "jobs.stage.settle": "Stabilisation des modèles",
   "jobs.stage.answer": "Réponse à la boîte aux lettres",
+  "jobs.stage.backfill": "Lecture des corps de message",
+  "jobs.stage.details": "Mise à jour des détails",
+  "jobs.stage.folders": "Lecture des dossiers",
 
   "reason.security": "Sécurité",
   "reason.urgent": "Urgent",

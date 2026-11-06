@@ -784,8 +784,12 @@ func TestRemovedMessageReadHasOneOwner(t *testing.T) {
 // producer name or enum never reaches the primary copy, and a filtered All
 // Mail list always shows the filter with a way to clear it.
 func TestOwnerFacingJobAndScopeNamesAreLocalized(t *testing.T) {
-	if !strings.Contains(readUIModule(t, "13-jobs.js"), `const name = jobNameLabel(info.name || info.kind || info.id);`) {
+	jobs := readUIModule(t, "13-jobs.js")
+	if !strings.Contains(jobs, `const name = jobDisplayName(info);`) {
 		t.Error("the job chip shows the raw producer name")
+	}
+	if !strings.Contains(jobs, "function jobDisplayName(info)") || !strings.Contains(jobs, "jobNameLabel(info && info.kind") {
+		t.Error("jobDisplayName does not translate the producer kind and name")
 	}
 	if !strings.Contains(readUIModule(t, "23-learning.js"), `jobNameLabel(job.name)`) {
 		t.Error("Learning shows raw running-job names")

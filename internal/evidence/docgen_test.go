@@ -45,10 +45,10 @@ func reference(t *testing.T) string {
 	var b strings.Builder
 	b.WriteString(referenceMarker)
 	for _, g := range []string{GroupHeaders, GroupRecipients, GroupThread, GroupHistory, GroupContent, GroupOwner} {
-		fmt.Fprintf(&b, "\n### %s\n\n| Signal | Type | Needs | Causal | Context | Meaning |\n| --- | --- | --- | --- | --- | --- |\n", g)
+		fmt.Fprintf(&b, "\n### %s\n\n| Signal | Type | Needs | Causal | Context | Lexical | Meaning |\n| --- | --- | --- | --- | --- | --- | --- |\n", g)
 		for _, s := range Signals() {
 			if s.Group == g {
-				fmt.Fprintf(&b, "| `%s` v%d | %s | %s | %s | %s | %s |\n", s.Name, s.Version, typeText(s), needsText(s), yes(s.Causal), yes(s.Context), s.Doc)
+				fmt.Fprintf(&b, "| `%s` v%d | %s | %s | %s | %s | %s | %s |\n", s.Name, s.Version, typeText(s), needsText(s), yes(s.Causal), yes(s.Context), yes(s.Lexical), s.Doc)
 			}
 		}
 	}
@@ -56,13 +56,13 @@ func reference(t *testing.T) string {
 	if err != nil {
 		t.Fatal(err)
 	}
-	b.WriteString("\n## Rule reference\n\n| Rule | Question | Answer | When |\n| --- | --- | --- | --- |\n")
+	b.WriteString("\n## Rule reference\n\nA rule answers a question the route has not certified only when it is **definitional**: its signal semantics and the question's definition guarantee the answer. Every other rule is an estimate that teaches and answers only after its precision has been measured on this install. No rule may read a signal marked **lexical**: the rule layer uses structure, protocol and mailbox statistics, never a word list.\n\n| Rule | Question | Answer | Definitional | When |\n| --- | --- | --- | --- | --- |\n")
 	for _, r := range set.Rules {
 		var when []string
 		for _, c := range r.When {
 			when = append(when, condText(c))
 		}
-		fmt.Fprintf(&b, "| `%s` | %s | `%s` | %s |\n", r.ID, r.Question, r.Answer, strings.Join(when, " and "))
+		fmt.Fprintf(&b, "| `%s` | %s | `%s` | %s | %s |\n", r.ID, r.Question, r.Answer, yes(r.Definitional), strings.Join(when, " and "))
 	}
 	return b.String()
 }

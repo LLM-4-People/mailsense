@@ -24,6 +24,13 @@ type Answer struct {
 	// non-answer reasons (internal/route: not_certified, below_coverage,
 	// no_answer).
 	Abstain string `json:"abstain,omitempty"`
+	// AutoRule names the deterministic evidence rule that produced this
+	// answer outside the learned route. It is read-time provenance, never
+	// stored in route or decision rows: a rule answer is useful, but the
+	// route has not certified it, so consumers must keep showing that
+	// distinction. The name avoids route.Answer's own `rule` field (the
+	// layer-0 key id) in the embedded encoding.
+	AutoRule string `json:"auto_rule,omitempty"`
 }
 
 // The distribution keys of an abstained yes/no answer.

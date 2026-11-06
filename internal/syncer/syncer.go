@@ -103,7 +103,8 @@ func (s *Syncer) start(m *jobs.Manager, c source.Connector, world bool) (*jobs.J
 			if p.Phase == source.PhaseDetails {
 				msg = fmt.Sprintf("details: %d of %d", p.Position.Done, p.Position.Total)
 			}
-			report(jobs.Progress{Done: p.Position.Done, Total: p.Position.Total, Unit: p.Position.Unit, Message: msg})
+			report(jobs.Progress{Done: p.Position.Done, Total: p.Position.Total, Unit: p.Position.Unit,
+				Stage: syncProgressStage(p), Message: msg})
 		})
 		return err
 	})
@@ -111,6 +112,15 @@ func (s *Syncer) start(m *jobs.Manager, c source.Connector, world bool) (*jobs.J
 		s.release(c.ID())
 	}
 	return j, err
+}
+
+// syncStage names the visible phase of a sync run. The UI translates the
+// stable key; the producer's Message stays an English diagnostic for Logs.
+func syncProgressStage(p Progress) string {
+	if p.Phase == source.PhaseDetails {
+		return "details"
+	}
+	return "folders"
 }
 
 // Run syncs every discovered folder of c, completes partial messages when

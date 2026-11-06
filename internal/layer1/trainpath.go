@@ -44,6 +44,14 @@ func (p *lambdaPath) nll(lp [][]float64) float64 {
 }
 
 func (p *lambdaPath) record(lambda, nll float64) {
+	// A path step with no scored selection label (no out-of-fold
+	// prediction, e.g. a single-class question) has an infinite NLL: it is
+	// a diagnostic that carries no information, and an infinite float
+	// cannot be stored as JSON at all (it would fail the run's commit).
+	// Omit it; the λ choice below falls back to the default.
+	if math.IsInf(nll, 0) || math.IsNaN(nll) {
+		return
+	}
 	if p.rep.PathNLL == nil {
 		p.rep.PathNLL = map[string]float64{}
 	}
@@ -74,12 +82,21 @@ func (p *lambdaPath) withTeachers(plain []Example) ([][]float64, *Params, error)
 		prev = &par
 	}
 	p.report(StageFit, len(p.tc.Lambdas), len(p.tc.Lambdas))
+	var start *Params
+	if !math.IsInf(best, 1) {
+		start = &bestP
+	} else {
+		// No λ could be scored on the selection labels: keep the default λ
+		// and warm the final fit from nothing. A zero Params here would
+		// silently warm-start the final fit from a model nobody chose.
+		p.rep.Lambda = p.tc.DefaultLambda
+	}
 	oof, err := crossFit(p.qs, p.sel, p.fold, p.tc.Folds, p.base, func(ex []Example, f int) (Params, error) {
 		p.report(StageFold, f+1, p.tc.Folds)
-		par, _, err := p.fit(ex, p.rep.Lambda, &bestP)
+		par, _, err := p.fit(ex, p.rep.Lambda, start)
 		return par, err
 	}, p.d)
-	return oof, &bestP, err
+	return oof, start, err
 }
 
 // coldStart cross-fits every λ over the selection labels (no target but

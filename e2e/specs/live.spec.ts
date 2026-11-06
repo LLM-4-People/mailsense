@@ -221,6 +221,41 @@ test.describe("global job strip", () => {
     await expect(strip.locator("progress")).toHaveCount(1);
   });
 
+  test("the strip names the sync source and its current stage", async ({ app }) => {
+    await installFakeEventSource(app.page);
+    const sync = {
+      id: "job-outlook",
+      kind: "sync",
+      name: "outlook",
+      status: "running",
+      progress: { done: 0, total: 0, stage: "folders" },
+      started_at: "2026-11-02T08:00:00Z",
+    };
+    await mockApi(app.page, [
+      { method: "GET", path: "/api/jobs", body: { jobs: [] } },
+    ]);
+    await app.goto("/hub");
+    await app.expectRoute("hub");
+    await emitSse(app.page, "open");
+    await emitSse(app.page, "jobs.update", sync);
+
+    const strip = app.page.locator("#job-strip");
+    const summary = strip.locator(".job-summary");
+    await expect(summary).toContainText("Mail sync · Outlook");
+    await expect(summary).toContainText("Reading folders");
+    // The stage already says what is happening; the generic line would repeat it.
+    await expect(summary).not.toContainText("Working…");
+    await expect(
+      strip.getByRole("button", { name: "Cancel Mail sync · Outlook" }),
+    ).toBeVisible();
+
+    await emitSse(app.page, "jobs.update", {
+      ...sync,
+      progress: { done: 0, total: 0, stage: "details" },
+    });
+    await expect(summary).toContainText("Updating message details");
+  });
+
   test("a paused job stays in the running aggregate and names its ceiling", async ({
     app,
   }) => {

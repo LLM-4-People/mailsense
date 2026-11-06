@@ -4,8 +4,11 @@ package layer1
 
 import (
 	"encoding/json"
+	"fmt"
+	"math"
 	"os"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"slices"
 	"strconv"
@@ -355,9 +358,55 @@ func writeJSON(t *testing.T, path string, v any) {
 	t.Helper()
 	b, err := json.MarshalIndent(v, "", "  ")
 	if err != nil {
+		// Name the field: the encoder reports the value, not where it lives.
+		if p, bad := nonFinite(v, ""); bad {
+			t.Fatalf("%s: %v (at %s)", path, err, p)
+		}
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(path, append(b, '\n'), 0o600); err != nil {
 		t.Fatal(err)
 	}
+}
+
+// nonFinite walks a report value and returns the first NaN or infinite
+// float's path. A report that cannot be stored is a defect, not a value to
+// round: the harness must say which field produced it.
+func nonFinite(v any, path string) (string, bool) {
+	rv := reflect.ValueOf(v)
+	switch rv.Kind() {
+	case reflect.Pointer, reflect.Interface:
+		if rv.IsNil() {
+			return "", false
+		}
+		return nonFinite(rv.Elem().Interface(), path)
+	case reflect.Struct:
+		for i := 0; i < rv.NumField(); i++ {
+			f := rv.Type().Field(i)
+			if !f.IsExported() {
+				continue
+			}
+			if p, bad := nonFinite(rv.Field(i).Interface(), path+"."+f.Name); bad {
+				return p, true
+			}
+		}
+	case reflect.Map:
+		for _, k := range rv.MapKeys() {
+			if p, bad := nonFinite(rv.MapIndex(k).Interface(), fmt.Sprintf("%s[%v]", path, k.Interface())); bad {
+				return p, true
+			}
+		}
+	case reflect.Slice, reflect.Array:
+		for i := 0; i < rv.Len(); i++ {
+			if p, bad := nonFinite(rv.Index(i).Interface(), fmt.Sprintf("%s[%d]", path, i)); bad {
+				return p, true
+			}
+		}
+	case reflect.Float32, reflect.Float64:
+		f := rv.Float()
+		if math.IsNaN(f) || math.IsInf(f, 0) {
+			return path, true
+		}
+	}
+	return "", false
 }

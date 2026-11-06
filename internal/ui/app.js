@@ -5885,6 +5885,26 @@
     return raw.replace(/[._-]+/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   }
 
+  // jobDisplayName names the work and its subject: "Mail sync · Outlook"
+  // instead of a bare source id. A producer whose name is already the kind
+  // (triage, layer1, index) keeps the single label.
+  function jobDisplayName(info) {
+    const kind = jobNameLabel(info && info.kind ? info.kind : "");
+    const name = jobNameLabel(info && (info.name || info.kind) ? (info.name || info.kind) : (info && info.id));
+    if (!kind) return name;
+    if (!name || name.toLowerCase() === kind.toLowerCase()) return kind;
+    return kind + " · " + name;
+  }
+
+  // jobRunningStage is the translated phase a running job reports. A
+  // producer's Message is an English diagnostic for Logs, never UI copy.
+  function jobRunningStage(info) {
+    const stage = String(info && info.progress && info.progress.stage ? info.progress.stage : "").trim();
+    if (!stage) return "";
+    const key = "jobs.stage." + stage;
+    return I18N.has(key) ? t(key) : "";
+  }
+
   function forgetJob(id) {
     const timer = jobRemovalTimers.get(id);
     if (timer) {
@@ -5896,7 +5916,7 @@
 
   function announceJob(info, previous) {
     if (!dom.jobLive) return;
-    const name = jobNameLabel(info.name || info.kind || info.id);
+    const name = jobDisplayName(info);
     if (!previous) {
       dom.jobLive.textContent = t("shell.job.announce_started", { name });
       return;
@@ -6041,7 +6061,7 @@
     const paused = info && info.paused;
     if (!info || info.status !== "running" || !paused || !paused.resource) return "";
     return t("jobs.paused", {
-      name: jobNameLabel(info.name || info.kind || info.id),
+      name: jobDisplayName(info),
       resource: resourceName(paused.resource),
       percent: paused.percent,
       limit: paused.limit,
@@ -6099,8 +6119,13 @@
   }
 
   function jobSummaryName(info) {
-    const name = jobNameLabel(info.name || info.kind || info.id);
-    if (info.status === "running") return jobPauseNote(info) || name;
+    const name = jobDisplayName(info);
+    if (info.status === "running") {
+      const paused = jobPauseNote(info);
+      if (paused) return paused;
+      const stage = jobRunningStage(info);
+      return stage ? name + " · " + stage : name;
+    }
     if (info.status === "failed" && (info.cause || info.error)) {
       // The reason is the translated cause when the producer named one; the
       // redacted diagnostic is the fallback. Both are bounded, because a
@@ -6143,7 +6168,7 @@
   }
 
   function jobActionLabel(info, kind) {
-    const name = jobNameLabel(info.name || info.kind || info.id);
+    const name = jobDisplayName(info);
     return kind === "cancel"
       ? t("shell.job.cancel_job", { name })
       : t("shell.job.dismiss_job", { name });
@@ -6232,8 +6257,10 @@
     }
     if (aggregate.etaKnown) parts.push(t("common.eta", { duration: formatDuration(aggregate.eta) }));
     // A starting job with no total has no measurable work yet, but it is
-    // still running: the summary says so instead of rendering an empty line.
-    if (!parts.length && aggregate.running.length) parts.push(t("shell.job.running"));
+    // still running. When the job already names its phase, repeating
+    // "Working…" beside it says nothing.
+    const hasStage = aggregate.running.some((info) => jobRunningStage(info) !== "");
+    if (!parts.length && aggregate.running.length && !hasStage) parts.push(t("shell.job.running"));
     metrics.textContent = metaLine(parts);
     metrics.hidden = parts.length === 0;
     metricsSep.hidden = parts.length === 0;
@@ -11288,7 +11315,7 @@
         } catch (error) { reportActionError(error); }
       });
     }, { icon: "refresh", kind: "primary", disabled: running || !sourceID });
-    const cancel = running ? button(t("common.cancel"), async (event) => {
+    const cancel = running ? button(t("sources.backfill.cancel", { source: jobNameLabel(job.name || job.kind || job.id) }), async (event) => {
       await cancelJob(job.id, event.currentTarget);
       await afterBackgroundAction(["job"]);
     }, { small: true, kind: "quiet" }) : null;
@@ -14754,12 +14781,16 @@
     // map stays on the detail read.
     const answered = Number(result && result.answered) || 0;
     const abstained = Number(result && result.abstained) || 0;
+    const automatic = Number(result && result.automatic) || 0;
     const missing = Number(result && result.missing) || 0;
     const first = result && result.first_question ? String(result.first_question) : "";
     const firstQuestion = first
       ? (questions.get(first) || { name: first, type: result.first_value && result.first_value.type ? result.first_value.type : "", levels: [] })
       : null;
-    const firstValue = firstQuestion ? triageListValue(firstQuestion, result.first_value) : t("common.dash");
+    let firstValue = firstQuestion ? triageListValue(firstQuestion, result.first_value) : t("common.dash");
+    if (firstQuestion && result.first_value && result.first_value.rule) {
+      firstValue += t("detail.answer.uncertified_suffix");
+    }
     return mailRow({
       tag: "button",
       className: "mail-row triage-row" + (id === selectedId ? " selected" : ""),
@@ -14772,6 +14803,7 @@
       subjectDir: null,
       snippet: t("triage.row.answers", { count: answered }) +
         (abstained ? t("triage.row.abstained_suffix", { count: abstained }) : "") +
+        (automatic ? t("triage.row.automatic_suffix", { count: automatic }) : "") +
         (missing ? t("triage.row.missing_suffix", { count: missing }) : ""),
       snippetDir: null,
       why: [
@@ -15837,7 +15869,11 @@
   function advancedAnswerValue(q, value) {
     if (!value) return t("common.dash");
     if (value.refused) return t("detail.answer.refused");
-    if (value.abstain) return t("detail.answer.abstained");
+    if (value.abstain) {
+      return value.abstain === "not_certified"
+        ? t("detail.answer.not_certified")
+        : t("detail.answer.abstained");
+    }
     const type = q && q.type ? q.type : (value.type || "");
     const name = q && q.name ? q.name : "";
     if (type === "noul") {
@@ -15850,6 +15886,9 @@
         value: reading.yes ? t("labels.answer.yes") : t("labels.answer.no"),
       });
       else label = reading.yes ? t("labels.answer.yes") : t("labels.answer.no");
+      // A deterministic rule has no model probability; showing 100% would
+      // claim a confidence it never stated.
+      if (value.rule) return label;
       return metaLine([label, t("detail.answer.yes_probability", { percent: formatPercent(reading.probability, 0) })]);
     }
     if (type === "choice") {
@@ -15901,8 +15940,12 @@
   }
 
   function triageModelDetails(names, map, values) {
+    const automatic = names.filter((name) => values[name] && values[name].rule).length;
     return h("details", { class: "triage-model-details" },
       h("summary", { text: t("detail.summary.model_details") }),
+      automatic
+        ? h("p", { class: "fine triage-model-note", text: t("detail.summary.automatic", { count: automatic }) })
+        : null,
       h("div", { class: "triage-model-list" }, names.map((name) => {
         const value = values[name];
         const known = map.get(name) || null;
@@ -15912,6 +15955,9 @@
           h("span", { class: "triage-model-q", text: questionTitle(name) }),
           h("span", { class: "triage-model-v" },
             h("span", { text: advancedAnswerValue(q, value) }),
+            value && value.rule
+              ? h("span", { class: "triage-model-rule", text: t("detail.answer.rule_uncertified") })
+              : null,
             levelText ? h("span", { class: "triage-model-level", lang: "en", text: levelText }) : null));
       })));
   }

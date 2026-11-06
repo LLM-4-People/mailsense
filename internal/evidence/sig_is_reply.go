@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	register(Signal{Data: []string{DataMail}, Name: "is_reply", Version: 1, Type: TypeBool, Causal: true, Group: GroupThread,
+	register(Signal{Data: []string{DataMail}, Name: "is_reply", Version: 1, Type: TypeBool, Causal: true, Group: GroupThread, Lexical: true,
 		Settings: []string{mail.SettingSubjectPrefixes, mail.SettingSubjectPrefixesLearned, threads.SettingMaxPrefixes},
 		Doc:      "The message answers or forwards another: it references a parent (In-Reply-To/References) or its subject starts with a reply or forward prefix (mail.SubjectPrefixes).",
 		Extract: func(in *Input) Value {

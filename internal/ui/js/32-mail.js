@@ -1251,12 +1251,16 @@
     // map stays on the detail read.
     const answered = Number(result && result.answered) || 0;
     const abstained = Number(result && result.abstained) || 0;
+    const automatic = Number(result && result.automatic) || 0;
     const missing = Number(result && result.missing) || 0;
     const first = result && result.first_question ? String(result.first_question) : "";
     const firstQuestion = first
       ? (questions.get(first) || { name: first, type: result.first_value && result.first_value.type ? result.first_value.type : "", levels: [] })
       : null;
-    const firstValue = firstQuestion ? triageListValue(firstQuestion, result.first_value) : t("common.dash");
+    let firstValue = firstQuestion ? triageListValue(firstQuestion, result.first_value) : t("common.dash");
+    if (firstQuestion && result.first_value && result.first_value.rule) {
+      firstValue += t("detail.answer.uncertified_suffix");
+    }
     return mailRow({
       tag: "button",
       className: "mail-row triage-row" + (id === selectedId ? " selected" : ""),
@@ -1269,6 +1273,7 @@
       subjectDir: null,
       snippet: t("triage.row.answers", { count: answered }) +
         (abstained ? t("triage.row.abstained_suffix", { count: abstained }) : "") +
+        (automatic ? t("triage.row.automatic_suffix", { count: automatic }) : "") +
         (missing ? t("triage.row.missing_suffix", { count: missing }) : ""),
       snippetDir: null,
       why: [

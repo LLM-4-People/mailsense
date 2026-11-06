@@ -77,11 +77,20 @@ func NewPlan(cfg *config.Config) (*Plan, error) {
 		UseEvidence: s.Bool(SettingUseEvidence), Dimensions: s.Int(SettingDimensions), Tolerance: map[string]float64{},
 		Heads: map[engine.QuestionType]Kind{engine.Score: Kind(s.String(SettingScoreHead))}}
 	deciderID := s.String(triage.DeciderSetting)
-	decider, err := cat.Select(deciderID, engine.KindDecider)
+	// The route key already describes the first-run install honestly
+	// (unconfigured identity plus the catalog digest). Training, status and
+	// teacher choice use the same identity, so a missing provider no longer
+	// blocks the local classifier before the owner has chosen one.
+	plan.DeciderKey, plan.DeciderTolerance, err = deciderIdentity(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("layer1: triage.decider: %w", err)
 	}
-	plan.DeciderKey, plan.DeciderTolerance = decider.Key(), decider.ProbabilityTolerance
+	var decider engine.Provider
+	if deciderID != "" {
+		if decider, err = cat.Select(deciderID, engine.KindDecider); err != nil {
+			return nil, fmt.Errorf("layer1: triage.decider: %w", err)
+		}
+	}
 	for _, src := range t.Sources {
 		if src.From != FromDecisions {
 			continue

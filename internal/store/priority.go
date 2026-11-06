@@ -217,6 +217,7 @@ type priorityRouteFields struct {
 	Confidence discardNumber       `json:"confidence,omitempty"`
 	Layer      discardString       `json:"layer,omitempty"`
 	Rule       discardString       `json:"rule,omitempty"`
+	AutoRule   discardString       `json:"auto_rule,omitempty"`
 }
 
 // answer is the engine answer the lean route shape materializes. A score

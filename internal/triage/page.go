@@ -54,11 +54,17 @@ type Page struct {
 // unread JSON on each 50-row read. Answered counts only usable values: a
 // present refusal or abstention increments Abstained and never takes the
 // first-value slot. Missing stays the absent questions. FirstQuestion is the
-// first answered question in the profile's document order.
+// first certified answered question in the profile's document order, or the
+// first automatic rule value when no question is certified.
 type PageRow struct {
-	MessageID     int64          `json:"message_id"`
-	Answered      int            `json:"answered"`
-	Abstained     int            `json:"abstained"`
+	MessageID int64 `json:"message_id"`
+	Answered  int   `json:"answered"`
+	Abstained int   `json:"abstained"`
+	// Automatic counts the route abstentions a deterministic rule filled.
+	// It is its own count, beside answered and abstained: the value is shown,
+	// but the route did not certify it and it must never inflate the answered
+	// total or hide the remaining plain abstentions.
+	Automatic     int            `json:"automatic,omitempty"`
 	FirstQuestion string         `json:"first_question,omitempty"`
 	FirstValue    taxonomy.Value `json:"first_value"`
 	Missing       int            `json:"missing"`
@@ -81,12 +87,17 @@ func pageRowOf(res Result, profile *taxonomy.Profile) PageRow {
 			if !ok {
 				continue
 			}
-			if !value.Answered() {
+			switch {
+			case value.Rule != "":
+				// The route abstained; the rule supplied a display value.
+				row.Automatic++
+			case !value.Answered():
 				row.Abstained++
 				continue
+			default:
+				row.Answered++
 			}
-			row.Answered++
-			if row.FirstQuestion == "" {
+			if row.FirstQuestion == "" || (row.FirstValue.Rule != "" && value.Rule == "") {
 				row.FirstQuestion, row.FirstValue = q.Name, value
 			}
 		}
@@ -219,8 +230,12 @@ func (t *Triager) buildPage(ctx context.Context, routeKey string, limit, offset 
 	if err != nil {
 		return nil, err
 	}
+	rules, err := t.loadRuleAnswers(ctx, ids)
+	if err != nil {
+		return nil, err
+	}
 	err = s.eachEligible(ctx, t.st, ids, func(r *store.MessageRow) error {
-		a, err := routeMessageAnswers(s.profile, r, records, previews)
+		a, err := routeMessageAnswers(s.profile, r, records, previews, rules)
 		if err != nil {
 			return err
 		}
